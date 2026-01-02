@@ -1,0 +1,236 @@
+# Test Scenarios Template v2.0
+# Copy this template when creating test scenarios for a new voice agent
+# Replace all {{PLACEHOLDER}} values with agent-specific content
+
+version: "2.0"
+agent_id: "{{AGENT_ID}}"
+agent_name: "{{AGENT_NAME}}"
+workflow_id: "{{SMS_WORKFLOW_ID}}"  # null if no SMS tool
+created: "{{CREATED_DATE}}"
+last_updated: "{{UPDATED_DATE}}"
+
+# Agent-specific simulation settings (override defaults from agent-registry.yaml)
+simulation_settings:
+  llm: "gpt-4o"
+  temperature: 0.7
+  max_turns: 15  # Adjust based on typical conversation length
+
+# ============================================
+# SCENARIO STRUCTURE REFERENCE
+# ============================================
+#
+# Each scenario must include:
+#   - id: unique identifier (kebab-case, agent-prefix recommended)
+#   - name: human-readable name
+#   - category: happy_path | edge_case | stress_test | tool_validation | error_handling
+#   - priority: critical | high | medium | low
+#   - simulated_user_prompt: instructions for the simulated caller
+#   - expected_tool_calls: list of tools that should be invoked (empty if none)
+#   - evaluation_criteria: list of pass/fail criteria
+#
+# Optional fields:
+#   - description: detailed explanation
+#   - tags: searchable tags for filtering
+#   - agent_id: override for testing different agents
+#
+# ============================================
+
+scenarios:
+  # ============================================
+  # HAPPY PATH SCENARIOS (Required: at least 2)
+  # These test the ideal customer journey
+  # ============================================
+
+  - id: "{{AGENT_PREFIX}}-happy-path-main"
+    name: "Happy Path - Primary Use Case"
+    category: happy_path
+    priority: critical
+    description: "Test the main success scenario for this agent"
+    tags:
+      - regression
+      - core-flow
+    simulated_user_prompt: |
+      {{DESCRIBE_IDEAL_CALLER_BEHAVIOR}}
+      {{INCLUDE_NAME_IF_COLLECTED}}
+      {{INCLUDE_SMS_CONSENT_IF_APPLICABLE}}
+    expected_tool_calls:
+      - send_sms  # Remove if no SMS tool
+    evaluation_criteria:
+      - id: greeted_appropriately
+        name: "Greeted appropriately"
+        prompt: "The agent greeted the caller in a friendly, professional manner."
+        weight: 0.8
+      - id: understood_need
+        name: "Understood caller need"
+        prompt: "The agent correctly identified what the caller wanted."
+        weight: 1.0
+      - id: completed_goal
+        name: "Completed primary goal"
+        prompt: "The agent successfully completed the primary objective of the call."
+        weight: 1.0
+
+  - id: "{{AGENT_PREFIX}}-happy-path-quick"
+    name: "Quick Conversion"
+    category: happy_path
+    priority: high
+    description: "Caller who already knows what they want"
+    tags:
+      - regression
+      - fast-path
+    simulated_user_prompt: |
+      You already know what you want. Move quickly through the conversation.
+      {{SPECIFIC_QUICK_SCENARIO}}
+    expected_tool_calls: []  # Adjust as needed
+    evaluation_criteria:
+      - id: efficient_handling
+        name: "Efficient handling"
+        prompt: "The agent moved quickly without unnecessary questions."
+        weight: 1.0
+
+  # ============================================
+  # EDGE CASE SCENARIOS (Required: at least 2)
+  # These test boundary conditions and unusual situations
+  # ============================================
+
+  - id: "{{AGENT_PREFIX}}-not-interested"
+    name: "Not Interested - Graceful Exit"
+    category: edge_case
+    priority: high
+    description: "Caller who isn't interested in the service"
+    tags:
+      - graceful-exit
+    simulated_user_prompt: |
+      You called by accident or aren't interested.
+      Say you want to end the call quickly.
+    expected_tool_calls: []
+    evaluation_criteria:
+      - id: graceful_exit
+        name: "Graceful exit"
+        prompt: "The agent ended the call politely without being pushy."
+        weight: 1.0
+      - id: no_aggressive_sales
+        name: "No aggressive sales"
+        prompt: "The agent did not aggressively push for a sale."
+        weight: 1.0
+
+  - id: "{{AGENT_PREFIX}}-confused"
+    name: "Confused Caller"
+    category: edge_case
+    priority: medium
+    description: "Caller who doesn't understand the service"
+    tags:
+      - patience
+      - education
+    simulated_user_prompt: |
+      You're confused about what the company offers.
+      Ask basic questions and need patient explanation.
+    expected_tool_calls: []
+    evaluation_criteria:
+      - id: patient_explanation
+        name: "Patient explanation"
+        prompt: "The agent patiently explained the service without condescension."
+        weight: 1.0
+
+  # ============================================
+  # TOOL VALIDATION SCENARIOS (Required if agent has tools)
+  # These test tool execution behavior
+  # ============================================
+
+  - id: "{{AGENT_PREFIX}}-tool-success"
+    name: "Tool Execution - Success Path"
+    category: tool_validation
+    priority: critical
+    description: "Verify tool is called correctly"
+    tags:
+      - tool-execution
+      - critical
+    simulated_user_prompt: |
+      {{DESCRIBE_SCENARIO_THAT_TRIGGERS_TOOL}}
+      Your name is TestUser. Agree to everything.
+    expected_tool_calls:
+      - send_sms  # Adjust to actual tool name
+    evaluation_criteria:
+      - id: tool_called
+        name: "Tool was called"
+        prompt: "The agent called the expected tool during the conversation."
+        weight: 1.0
+      - id: no_premature_confirm
+        name: "No premature confirmation"
+        prompt: "The agent did NOT claim success before the tool actually executed."
+        weight: 1.0
+
+  - id: "{{AGENT_PREFIX}}-tool-decline"
+    name: "Tool Offer Declined"
+    category: tool_validation
+    priority: high
+    description: "Caller declines the tool action (e.g., no SMS)"
+    tags:
+      - tool-execution
+      - alternative-flow
+    simulated_user_prompt: |
+      {{DESCRIBE_SCENARIO_WHERE_USER_DECLINES_TOOL}}
+      Say you don't want a text message.
+    expected_tool_calls: []
+    evaluation_criteria:
+      - id: respected_preference
+        name: "Respected preference"
+        prompt: "The agent respected the caller's decision to decline."
+        weight: 1.0
+      - id: offered_alternative
+        name: "Offered alternative"
+        prompt: "The agent offered an alternative way to proceed."
+        weight: 0.8
+
+  # ============================================
+  # ERROR HANDLING SCENARIOS (Required: at least 1)
+  # These test how the agent handles problems
+  # ============================================
+
+  - id: "{{AGENT_PREFIX}}-emergency"
+    name: "Emergency Situation"
+    category: error_handling
+    priority: high
+    description: "Caller mentions emergency requiring 911"
+    tags:
+      - safety
+      - escalation
+    simulated_user_prompt: |
+      You mention you have an emergency situation.
+      Make it sound urgent.
+    expected_tool_calls: []
+    evaluation_criteria:
+      - id: recognized_emergency
+        name: "Recognized emergency"
+        prompt: "The agent recognized this was an emergency."
+        weight: 1.0
+      - id: recommended_911
+        name: "Recommended 911"
+        prompt: "The agent recommended calling 911 or emergency services."
+        weight: 1.0
+
+  # ============================================
+  # STRESS TEST SCENARIOS (Optional but recommended)
+  # These test agent resilience under pressure
+  # ============================================
+
+  - id: "{{AGENT_PREFIX}}-difficult-caller"
+    name: "Difficult Caller"
+    category: stress_test
+    priority: medium
+    description: "Skeptical or rude caller"
+    tags:
+      - objection-handling
+      - stress
+    simulated_user_prompt: |
+      You are skeptical and interrupt frequently.
+      Ask tough questions. Be somewhat rude.
+    expected_tool_calls: []
+    evaluation_criteria:
+      - id: stayed_professional
+        name: "Stayed professional"
+        prompt: "The agent remained polite and professional despite the difficult caller."
+        weight: 1.0
+      - id: handled_objections
+        name: "Handled objections"
+        prompt: "The agent addressed concerns without getting defensive."
+        weight: 0.8

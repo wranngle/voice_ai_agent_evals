@@ -1,0 +1,22 @@
+# Voice AI Agents - Business Process Manifest
+# Auto-generated: 2025-12-26
+
+name: voice_ai_agents
+description: >
+  Voice-based AI agent workflows combining speech synthesis,
+  voice cloning, telephony, and conversational AI capabilities.
+
+
+  transcript-field-extractor:
+    status: deployed
+    description: Extracts structured data from ElevenLabs voice transcripts using Gemini bulk prompts
+    integrations:
+      - elevenlabs
+      - google_gemini
+    capabilities:
+      - transcript-extraction
+      - llm-data-parsing
+    n8n_nodes_required:
+      http_request:
+        - elevenlabs-api
+        - gemini-api

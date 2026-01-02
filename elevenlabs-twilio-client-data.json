@@ -1,0 +1,472 @@
+{
+  "name": "ElevenLabs Twilio Outbound Call with Client Data",
+  "nodes": [
+    {
+      "id": "trigger-webhook",
+      "name": "Webhook: Initiate Call",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "elevenlabs-call-trigger",
+      "parameters": {
+        "path": "initiate-call",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "validate-input",
+      "name": "Validate Input Data",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [460, 300],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "phone-exists",
+              "leftValue": "={{ $json.phone }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "isNotEmpty"
+              }
+            },
+            {
+              "id": "customer-name-exists",
+              "leftValue": "={{ $json.customer_name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "isNotEmpty"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "build-client-data",
+      "name": "Build Client Data Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 200],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Extract input data\nconst input = $input.item.json;\n\n// Build the ElevenLabs outbound call payload\nconst payload = {\n  agent_id: $env.ELEVENLABS_AGENT_ID,\n  agent_phone_number_id: $env.ELEVENLABS_PHONE_NUMBER_ID,\n  to_number: input.phone,\n  conversation_initiation_client_data: {\n    user_id: input.customer_id || input.phone,\n    dynamic_variables: {\n      // Core customer info\n      customer_name: input.customer_name,\n      customer_first_name: input.customer_name?.split(' ')[0] || input.customer_name,\n      \n      // Account context\n      account_number: input.account_number || '',\n      account_type: input.account_type || 'standard',\n      loyalty_tier: input.loyalty_tier || '',\n      \n      // Call purpose\n      call_purpose: input.call_purpose || 'general inquiry',\n      call_purpose_intro: input.call_purpose_intro || 'I\\'m reaching out to assist you today.',\n      \n      // Appointment data\n      appointment_date: input.appointment_date || '',\n      appointment_time: input.appointment_time || '',\n      appointment_type: input.appointment_type || '',\n      \n      // Order/transaction data\n      order_number: input.order_number || '',\n      order_status: input.order_status || '',\n      last_purchase: input.last_purchase || '',\n      \n      // Custom fields (pass through any additional data)\n      ...input.custom_variables\n    },\n    // Optional: Override agent's first message\n    conversation_config_override: input.first_message_override ? {\n      agent: {\n        first_message: input.first_message_override\n      }\n    } : undefined\n  }\n};\n\n// Clean undefined values from dynamic_variables\nObject.keys(payload.conversation_initiation_client_data.dynamic_variables).forEach(key => {\n  if (payload.conversation_initiation_client_data.dynamic_variables[key] === undefined ||\n      payload.conversation_initiation_client_data.dynamic_variables[key] === '') {\n    delete payload.conversation_initiation_client_data.dynamic_variables[key];\n  }\n});\n\n// Remove override if not set\nif (!payload.conversation_initiation_client_data.conversation_config_override) {\n  delete payload.conversation_initiation_client_data.conversation_config_override;\n}\n\nreturn {\n  json: {\n    payload,\n    original_input: input,\n    timestamp: new Date().toISOString()\n  }\n};"
+      }
+    },
+    {
+      "id": "call-elevenlabs",
+      "name": "ElevenLabs: Initiate Outbound Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 200],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/convai/twilio/outbound-call",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "elevenlabs-api",
+          "name": "ElevenLabs API Key"
+        }
+      }
+    },
+    {
+      "id": "check-call-success",
+      "name": "Check Call Initiated",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1120, 200],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "success-check",
+              "leftValue": "={{ $json.body?.success }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "log-success",
+      "name": "Log Call Success",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1340, 100],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "status",
+              "name": "status",
+              "value": "initiated",
+              "type": "string"
+            },
+            {
+              "id": "conversation_id",
+              "name": "conversation_id",
+              "value": "={{ $json.body.conversation_id }}",
+              "type": "string"
+            },
+            {
+              "id": "call_sid",
+              "name": "call_sid",
+              "value": "={{ $json.body.callSid }}",
+              "type": "string"
+            },
+            {
+              "id": "customer_phone",
+              "name": "customer_phone",
+              "value": "={{ $('Build Client Data Payload').item.json.original_input.phone }}",
+              "type": "string"
+            },
+            {
+              "id": "customer_name",
+              "name": "customer_name",
+              "value": "={{ $('Build Client Data Payload').item.json.original_input.customer_name }}",
+              "type": "string"
+            },
+            {
+              "id": "initiated_at",
+              "name": "initiated_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "log-failure",
+      "name": "Log Call Failure",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1340, 300],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "status",
+              "name": "status",
+              "value": "failed",
+              "type": "string"
+            },
+            {
+              "id": "error",
+              "name": "error",
+              "value": "={{ $json.body?.message || $json.body?.detail || 'Unknown error' }}",
+              "type": "string"
+            },
+            {
+              "id": "customer_phone",
+              "name": "customer_phone",
+              "value": "={{ $('Build Client Data Payload').item.json.original_input.phone }}",
+              "type": "string"
+            },
+            {
+              "id": "failed_at",
+              "name": "failed_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "respond-success",
+      "name": "Respond: Call Initiated",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1560, 100],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"message\": \"Call initiated successfully\",\n  \"conversation_id\": \"{{ $json.conversation_id }}\",\n  \"call_sid\": \"{{ $json.call_sid }}\",\n  \"customer\": {\n    \"phone\": \"{{ $json.customer_phone }}\",\n    \"name\": \"{{ $json.customer_name }}\"\n  },\n  \"initiated_at\": \"{{ $json.initiated_at }}\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      }
+    },
+    {
+      "id": "respond-failure",
+      "name": "Respond: Call Failed",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1560, 300],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"message\": \"Failed to initiate call\",\n  \"error\": \"{{ $json.error }}\",\n  \"customer_phone\": \"{{ $json.customer_phone }}\",\n  \"failed_at\": \"{{ $json.failed_at }}\"\n}",
+        "options": {
+          "responseCode": 500
+        }
+      }
+    },
+    {
+      "id": "respond-validation-error",
+      "name": "Respond: Validation Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [680, 400],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"message\": \"Validation failed\",\n  \"error\": \"Missing required fields: phone and customer_name are required\",\n  \"received\": {{ JSON.stringify($json) }}\n}",
+        "options": {
+          "responseCode": 400
+        }
+      }
+    },
+    {
+      "id": "call-completed-webhook",
+      "name": "Webhook: Call Completed",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 600],
+      "webhookId": "elevenlabs-call-completed",
+      "parameters": {
+        "path": "call-completed",
+        "httpMethod": "POST",
+        "responseMode": "lastNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "process-call-result",
+      "name": "Process Call Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 600],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Process the call completion webhook from ElevenLabs\nconst data = $input.item.json;\n\n// Extract key metrics\nconst result = {\n  conversation_id: data.conversation_id,\n  call_sid: data.call_sid,\n  status: data.status || 'completed',\n  duration_seconds: data.metadata?.call_duration_secs || 0,\n  \n  // Transcript and analysis\n  transcript: data.transcript || '',\n  analysis: data.analysis || {},\n  \n  // Caller info (if available from caller lookup)\n  caller_phone: data.caller_phone_number || data.to_number,\n  \n  // Custom data that was passed in\n  client_data: data.conversation_initiation_client_data || {},\n  \n  // Timestamps\n  started_at: data.metadata?.start_time_unix_secs \n    ? new Date(data.metadata.start_time_unix_secs * 1000).toISOString() \n    : null,\n  completed_at: new Date().toISOString(),\n  \n  // Raw data for logging\n  raw_webhook: data\n};\n\nreturn { json: result };"
+      }
+    },
+    {
+      "id": "log-to-sheets",
+      "name": "Log to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [680, 600],
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "YOUR_SHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "Call Log"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "conversation_id": "={{ $json.conversation_id }}",
+            "call_sid": "={{ $json.call_sid }}",
+            "status": "={{ $json.status }}",
+            "duration_seconds": "={{ $json.duration_seconds }}",
+            "caller_phone": "={{ $json.caller_phone }}",
+            "transcript": "={{ $json.transcript }}",
+            "completed_at": "={{ $json.completed_at }}"
+          }
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "respond-logged",
+      "name": "Respond: Logged",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [900, 600],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"message\": \"Call result logged\",\n  \"conversation_id\": \"{{ $json.conversation_id }}\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook: Initiate Call": {
+      "main": [
+        [
+          {
+            "node": "Validate Input Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Input Data": {
+      "main": [
+        [
+          {
+            "node": "Build Client Data Payload",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond: Validation Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Client Data Payload": {
+      "main": [
+        [
+          {
+            "node": "ElevenLabs: Initiate Outbound Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ElevenLabs: Initiate Outbound Call": {
+      "main": [
+        [
+          {
+            "node": "Check Call Initiated",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Call Initiated": {
+      "main": [
+        [
+          {
+            "node": "Log Call Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Call Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Call Success": {
+      "main": [
+        [
+          {
+            "node": "Respond: Call Initiated",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Call Failure": {
+      "main": [
+        [
+          {
+            "node": "Respond: Call Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook: Call Completed": {
+      "main": [
+        [
+          {
+            "node": "Process Call Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Call Result": {
+      "main": [
+        [
+          {
+            "node": "Log to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log to Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Respond: Logged",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["voice-ai", "elevenlabs", "twilio", "outbound-calling"],
+  "triggerCount": 2,
+  "pinData": {}
+}

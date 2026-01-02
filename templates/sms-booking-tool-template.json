@@ -1,0 +1,98 @@
+{
+  "name": "{{COMPANY_NAME}} SMS Tool - ElevenLabs Webhook",
+  "nodes": [
+    {
+      "id": "webhook-trigger",
+      "name": "ElevenLabs Tool Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "{{WEBHOOK_PATH}}",
+        "responseMode": "responseNode"
+      },
+      "webhookId": "{{WEBHOOK_ID}}"
+    },
+    {
+      "id": "set-data",
+      "name": "Extract Tool Parameters",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [470, 300],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "phone",
+              "name": "phone_number",
+              "value": "={{ $json.body.phone_number || $json.phone_number }}",
+              "type": "string"
+            },
+            {
+              "id": "name",
+              "name": "first_name", 
+              "value": "={{ $json.body.caller_name || $json.body.first_name || $json.caller_name || $json.first_name || 'there' }}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "twilio-sms",
+      "name": "Send SMS via Twilio",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [690, 300],
+      "parameters": {
+        "resource": "sms",
+        "operation": "send",
+        "from": "+15550100",
+        "to": "={{ $json.phone_number }}",
+        "message": "=Hi {{ $json.first_name }}! {{SMS_MESSAGE}}"
+      },
+      "credentials": {
+        "twilioApi": {
+          "id": "7NL1kUMhDvMY4yUc",
+          "name": "Twilio SMS - Sarah"
+        }
+      }
+    },
+    {
+      "id": "respond-webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [910, 300],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, message: 'SMS sent successfully', sid: $json.sid } }}",
+        "options": { "responseCode": 200 }
+      }
+    }
+  ],
+  "connections": {
+    "ElevenLabs Tool Webhook": {
+      "main": [[{"node": "Extract Tool Parameters", "type": "main", "index": 0}]]
+    },
+    "Extract Tool Parameters": {
+      "main": [[{"node": "Send SMS via Twilio", "type": "main", "index": 0}]]
+    },
+    "Send SMS via Twilio": {
+      "main": [[{"node": "Respond to Webhook", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "_template": {
+    "version": "1.0",
+    "variables": {
+      "COMPANY_NAME": "Company name for workflow title",
+      "WEBHOOK_PATH": "URL path like 'acme-sms'",
+      "WEBHOOK_ID": "Unique ID like 'acme-sms-tool'",
+      "SMS_MESSAGE": "Custom SMS text with booking link"
+    }
+  }
+}
