@@ -83,5 +83,14 @@ _bmad-output/
 # ===================
 # ARCHIVED FILES
 # ===================
-# old/ directory removed 2026-01-19 - use git history for archived files
+# old/ directory contains archived cloud-mirroring files (committed for reference)
 .absorbed/
+
+# ===================
+# WORKING DIRECTORIES
+# ===================
+# temp/ is for working drafts before cloud deployment (not committed)
+temp/
+
+# reconciliation-data/ is for cloud-local state analysis (not committed)
+reconciliation-data/

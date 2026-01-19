@@ -6,48 +6,51 @@ ElevenLabs voice agent configurations, n8n workflow pipelines, testing infrastru
 
 ```
 voice_ai_agents/
-├── agents/                 # Per-agent configurations
-│   └── example-agent/              # Sarah - B2B Sales SDR (PRODUCTION)
-│       ├── tech-spec.md    # Technical specification (846 lines)
-│       ├── SETUP.md        # Setup documentation
-│       └── tests/
-│           └── scenarios.yaml  # Sarah-specific test scenarios
-│
-├── pipelines/              # n8n workflow definitions
-│   ├── elevenlabs-twilio-bulletproof-v3.json # Main voice agent pipeline
-│   ├── elevenlabs-post-call-bulletproof-v2.json # Post-call processing
-│   ├── crm-lead-caller.json        # CRM integration
-│   ├── voice-agent-tester-v2.json        # Test runner workflow
-│   ├── example-agent-email-tool-v1.json          # Email sending tool
-│   └── qdrant-*.json                     # Vector DB setup
-│
-├── supersystem/            # Autonomous evaluation framework
+├── supersystem/            # Autonomous evaluation framework (runs tests against cloud)
 │   ├── test-factory/       # Advanced test generation system
 │   │   ├── lib/            # Core modules (generator, executor, uploader)
 │   │   ├── templates/      # Base scenarios and variants
 │   │   └── generated/      # Auto-generated test suites
-│   └── tests/              # Test scenarios and evaluation configs
+│   ├── scenarios/          # Test scenarios for cloud agents
+│   │   └── example-agent.yaml      # Sarah agent test scenarios
+│   └── tests/              # Test execution and evaluation configs
 │
-├── templates/              # Reusable components
+├── docs/                   # Documentation
+│   ├── how-to/             # Cloud operation guides (MCP tools)
+│   ├── architecture/       # Architecture documentation
+│   ├── decisions/          # Architecture decision records (ADRs)
+│   └── elevenlabs-twilio-voiceagent/  # API documentation
+│
+├── templates/              # Reusable component templates
 │   ├── sms-booking-tool-template.json
 │   └── test-scenarios-template.yaml
 │
-├── transcript-extraction/  # Post-call transcript processing
-│   ├── transcript-field-extractor-v2.json
-│   └── workflow.json
+├── temp/                   # Working directory (gitignored)
+│   ├── agent-drafts/       # Draft ElevenLabs agent configs before cloud deployment
+│   └── workflow-exports/   # Exported n8n workflows for local modification
 │
-├── docs/                   # API documentation
-│   └── elevenlabs-twilio-voiceagent/
+├── old/                    # Archived cloud-mirroring files (read-only snapshots)
+│   ├── agents/             # Archived ElevenLabs agent configs (use MCP tools for current)
+│   ├── pipelines/          # Archived n8n workflow JSONs (query cloud for current)
+│   └── transcript-extraction/  # Archived workflows
 │
 ├── openspec/               # Formal change specifications
 │   ├── project.md          # Project definition
 │   └── changes/            # Change proposals and specs
 │
-├── agent-registry.yaml     # Master index of all agents
-├── CLAUDE.md               # OpenSpec integration instructions
-└── docs/decisions/         # Architecture decision records (ADRs)
-    └── 2026-01-19-project-reorganization.md  # old/ directory removal
+├── agent-registry.yaml     # Master index of cloud agents
+└── CLAUDE.md               # OpenSpec integration instructions
 ```
+
+## Cloud-First Architecture
+
+This project is a **cloud-first portal** for managing ElevenLabs voice agents and n8n workflows. The cloud systems are the source of truth:
+
+- **ElevenLabs Agents**: Managed via `mcp__elevenlabs-mcp__*` tools
+- **n8n Workflows**: Managed via `mcp__n8n-mcp__*` tools
+- **Local Repository**: Control plane with testing infrastructure, documentation, and working directory
+
+See `docs/how-to/` for guides on cloud operations.
 
 ## Active Agents
 
@@ -57,7 +60,8 @@ voice_ai_agents/
 - **Status:** PRODUCTION
 - **Purpose:** the AI hotline - AI hotline for after-hours B2B sales
 - **Industries:** HVAC, plumbing, property management, personal injury law
-- **Docs:** `agents/example-agent/SETUP.md` | `agents/example-agent/tech-spec.md`
+- **Cloud Config:** Query via `mcp__elevenlabs-mcp__get_agent agent_xxxx_demo`
+- **Archived Docs:** `old/agents/example-agent/` (historical reference)
 - **Note:** Agent config managed via ElevenLabs API (cloud-first)
 
 ## Quick Reference
