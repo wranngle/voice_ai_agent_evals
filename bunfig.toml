@@ -1,0 +1,15 @@
+# Bun Configuration for TypeScript Projects
+# See: https://bun.sh/docs/runtime/bunfig
+
+[install]
+# Use exact versions for reproducibility
+exact = true
+
+[install.lockfile]
+# Save lockfile in binary format (faster)
+save = true
+
+[test]
+# Jest-compatible test runner
+coverage = false
+coverageReporter = ["text", "lcov"]

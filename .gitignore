@@ -1,0 +1,87 @@
+# Voice AI Agents - Git Ignore
+
+# ===================
+# CREDENTIALS & SECRETS
+# ===================
+.env
+.env.*
+!.env.example
+credentials*.json
+secrets*.json
+*.key
+*.pem
+
+# ===================
+# TEMPORARY & DEBUG FILES
+# ===================
+*.tmp
+*.temp
+*.bak
+*.backup
+temp-*.json
+temp_*.json
+test-payload*.json
+current-agent-config.json
+clean-agent-config.json
+enriched-config*.json
+
+# ===================
+# NODE.JS
+# ===================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+bun.lock
+
+# ===================
+# TYPESCRIPT
+# ===================
+*.tsbuildinfo
+dist/
+build/
+
+# ===================
+# IDE & EDITORS
+# ===================
+.vscode/
+.idea/
+*.sublime-*
+
+# ===================
+# OS FILES
+# ===================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===================
+# LOGS
+# ===================
+*.log
+logs/
+
+# ===================
+# TEST RESULTS
+# ===================
+*-results-*.json
+test-results/
+baseline-results-*.json
+nightmare-results-*.json
+regression-results-*.json
+agent-audit-*.json
+
+# ===================
+# CLAUDE & BMAD
+# ===================
+.claude/
+.claude-controlled
+.gemini/
+_bmad-output/
+
+# ===================
+# ARCHIVED FILES
+# ===================
+# old/ directory removed 2026-01-19 - use git history for archived files
+.absorbed/
