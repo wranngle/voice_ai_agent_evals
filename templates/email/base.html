@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{subject}}</title>
+  <style>
+    /* ExampleCo Brand Colors */
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --secondary: #64748b;
+      --background: #f8fafc;
+      --surface: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #22c55e;
+      --warning: #f59e0b;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: var(--text);
+      background-color: var(--background);
+      margin: 0;
+      padding: 0;
+    }
+
+    .email-wrapper {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .email-container {
+      background-color: var(--surface);
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .email-header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .email-header img {
+      max-width: 150px;
+      height: auto;
+    }
+
+    .email-header h1 {
+      margin: 15px 0 0 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .email-body {
+      padding: 30px;
+    }
+
+    .email-body h2 {
+      color: var(--primary);
+      margin-top: 0;
+    }
+
+    .email-body p {
+      margin: 15px 0;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: var(--primary);
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 500;
+      margin: 10px 0;
+    }
+
+    .btn:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .btn-secondary {
+      background-color: var(--secondary);
+    }
+
+    .info-box {
+      background-color: var(--background);
+      border-left: 4px solid var(--primary);
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .email-footer {
+      background-color: var(--background);
+      padding: 20px 30px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+    }
+
+    .email-footer a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .social-links {
+      margin: 15px 0;
+    }
+
+    .social-links a {
+      margin: 0 10px;
+      display: inline-block;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .email-wrapper {
+        padding: 10px;
+      }
+      .email-header, .email-body {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-wrapper">
+    <div class="email-container">
+      <!-- Header -->
+      <div class="email-header">
+        <!-- Logo placeholder - replace with actual logo URL -->
+        <img src="https://example.com/logo.png" alt="ExampleCo" onerror="this.style.display='none'">
+        <h1>ExampleCo</h1>
+      </div>
+
+      <!-- Body - Content inserted here -->
+      <div class="email-body">
+        {{content}}
+      </div>
+
+      <!-- Footer -->
+      <div class="email-footer">
+        <div class="social-links">
+          <a href="https://linkedin.com/company/example">LinkedIn</a>
+          <a href="https://twitter.com/example">Twitter</a>
+        </div>
+        <p>
+          ExampleCo, Inc.<br>
+          <a href="https://example.com">example.com</a>
+        </p>
+        <p>
+          <a href="{{unsubscribe_url}}">Unsubscribe</a> |
+          <a href="https://example.com/privacy">Privacy Policy</a>
+        </p>
+        <p style="color: #94a3b8;">
+          You're receiving this because you interacted with ExampleCo.<br>
+          &copy; {{year}} ExampleCo, Inc. All rights reserved.
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
