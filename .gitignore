@@ -24,6 +24,11 @@ test-payload*.json
 current-agent-config.json
 clean-agent-config.json
 enriched-config*.json
+minimal-workflow.json
+exec.json
+response.txt
+deploy-response.json
+webhook-response.json
 
 # ===================
 # NODE.JS
