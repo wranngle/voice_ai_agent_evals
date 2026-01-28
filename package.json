@@ -59,6 +59,7 @@
   "scripts": {
     "test": "vitest",
     "test:run": "vitest run",
+    "test:offline": "vitest run --project ingestion --project integration --project governance",
     "test:ui": "vitest --ui",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",

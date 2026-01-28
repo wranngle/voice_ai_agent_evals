@@ -3,12 +3,14 @@
 
 cd workflows/voice_ai_agents || exit 0
 
-echo "Running tests before push..."
-bun run test:run
+echo "Running voice AI agent tests..."
+bun run test:offline
 
 if [ $? -ne 0 ]; then
-  echo "Tests failed. Push aborted."
+  echo ""
+  echo "❌ Tests failed. Push blocked."
+  echo "Run 'bun run test:offline' in workflows/voice_ai_agents to see details."
   exit 1
 fi
 
-echo "All tests passed. Proceeding with push."
+echo "✅ Offline tests passed. Pushing."

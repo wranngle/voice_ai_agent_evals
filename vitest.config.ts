@@ -1,27 +1,123 @@
 import { defineConfig } from 'vitest/config';
 
+/*
+ * CONVENTION-BASED TEST CLASSIFICATION
+ *
+ * Drop a .test.ts file in the right directory and it auto-classifies:
+ *
+ *   tests/unit/**        → Pure logic, no network, runs everywhere
+ *   tests/governance/**  → File/config validation, no network
+ *   tests/ingestion/**   → Parser tests, no network
+ *   tests/integration/** → Cross-module, may need local storage
+ *   tests/webhook/**     → LIVE: hits real n8n endpoints
+ *   tests/el/**          → LIVE: hits real ElevenLabs API
+ *   tests/eval/**        → LIVE: hits real n8n API
+ *   tests/mcp/**         → LIVE: hits real MCP server
+ *   tests/*.test.ts      → Legacy root-level (treated as integration)
+ *
+ * CI runs:
+ *   Unit job   → "offline" group (no network needed)
+ *   Live job   → "live" group (needs secrets + network)
+ *
+ * Local `bun test` → runs ALL groups
+ *
+ * To add a new test domain:
+ *   1. Create tests/<domain>/
+ *   2. Add a project entry below
+ *   3. Tag it needsNetwork: true/false in the comment
+ *   That's it. CI exclusions are driven by vitest project names, not hardcoded paths.
+ */
+
+// Offline projects (no network, run in CI unit job)
+const offlineProjects = [
+  {
+    test: {
+      name: 'ingestion',
+      root: '.',
+      include: ['tests/ingestion/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30000,
+    },
+  },
+  {
+    test: {
+      name: 'integration',
+      root: '.',
+      include: ['tests/integration/**/*.test.ts', 'tests/runners.test.ts', 'tests/data-table-api.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 60000,
+    },
+  },
+  {
+    test: {
+      name: 'governance',
+      root: '.',
+      include: ['tests/governance/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30000,
+    },
+  },
+];
+
+// Live projects (need network + secrets, only run in CI live job or locally)
+const liveProjects = [
+  {
+    test: {
+      name: 'webhook',
+      root: '.',
+      include: ['tests/webhook/**/*.test.ts', 'tests/post-call-webhook.test.ts', 'tests/client-initiation-webhook.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30000,
+    },
+  },
+  {
+    test: {
+      name: 'elevenlabs',
+      root: '.',
+      include: ['tests/el/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 120000,
+    },
+  },
+  {
+    test: {
+      name: 'n8n-eval',
+      root: '.',
+      include: ['tests/eval/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 60000,
+    },
+  },
+  {
+    test: {
+      name: 'mcp',
+      root: '.',
+      include: ['tests/mcp/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30000,
+    },
+  },
+];
+
+// Export project name lists for CI to consume programmatically
+export const OFFLINE_PROJECTS = offlineProjects.map(p => p.test.name);
+export const LIVE_PROJECTS = liveProjects.map(p => p.test.name);
+
 export default defineConfig({
   test: {
-    // Global settings
     globals: true,
     environment: 'node',
     testTimeout: 30000,
     hookTimeout: 10000,
 
-    // Reporter configuration
-    // - verbose: CLI output
-    // - html: @vitest/ui static dashboard (open reports/html/index.html)
-    // - allure-vitest/reporter: Allure multi-project dashboard (run: bun run test:report)
     reporters: [
       'verbose',
       ['html', { outputFile: './reports/html/index.html' }],
       ['allure-vitest/reporter', { resultsDir: './allure-results' }],
     ],
 
-    // Allure setup for metadata/labels
     setupFiles: ['allure-vitest/setup'],
 
-    // Coverage
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'json-summary'],
@@ -30,78 +126,7 @@ export default defineConfig({
       exclude: ['**/*.test.ts', '**/*.d.ts', 'node_modules/**'],
     },
 
-    // Vitest 4 projects - each project runs its own test files
-    projects: [
-      // Webhook tests - HTTP contract validation
-      {
-        test: {
-          name: 'webhook',
-          root: '.',
-          include: ['tests/webhook/**/*.test.ts'],
-          environment: 'node',
-          testTimeout: 30000,
-        },
-      },
-      // ElevenLabs voice agent tests (future)
-      {
-        test: {
-          name: 'elevenlabs',
-          root: '.',
-          include: ['tests/el/**/*.test.ts'],
-          environment: 'node',
-          testTimeout: 120000,
-        },
-      },
-      // n8n evaluation tests (future)
-      {
-        test: {
-          name: 'n8n-eval',
-          root: '.',
-          include: ['tests/eval/**/*.test.ts'],
-          environment: 'node',
-          testTimeout: 60000,
-        },
-      },
-      // MCP execution tests (future)
-      {
-        test: {
-          name: 'mcp',
-          root: '.',
-          include: ['tests/mcp/**/*.test.ts'],
-          environment: 'node',
-          testTimeout: 30000,
-        },
-      },
-      // Ingestion tests - Vitest file parsing and test import
-      {
-        test: {
-          name: 'ingestion',
-          root: '.',
-          include: ['tests/ingestion/**/*.test.ts'],
-          environment: 'node',
-          testTimeout: 30000,
-        },
-      },
-      // Integration tests - Data Table API, cross-system tests
-      {
-        test: {
-          name: 'integration',
-          root: '.',
-          include: ['tests/*.test.ts', 'tests/integration/**/*.test.ts'],
-          environment: 'node',
-          testTimeout: 60000,
-        },
-      },
-      // Governance tests - Enforce project rules
-      {
-        test: {
-          name: 'governance',
-          root: '.',
-          include: ['tests/governance/**/*.test.ts'],
-          environment: 'node',
-          testTimeout: 30000,
-        },
-      },
-    ],
+    // All projects combined — local runs everything, CI selects by --project flag
+    projects: [...offlineProjects, ...liveProjects],
   },
 });

@@ -64,10 +64,17 @@ describe('CI/CD Infrastructure', () => {
   });
 
   // ROOT CAUSE #3: Live endpoint tests ran in CI unit job, failed without network
-  it('CI unit job must exclude live endpoint tests', () => {
+  // Convention fix: CI uses --project to select offline-only projects
+  it('CI unit job must use --project flag (not --exclude) for offline tests', () => {
     const files = require('fs').readdirSync(repoWorkflowDir).filter((f: string) => f.includes('vitest') || f.includes('voice-ai'));
     const content = readFileSync(join(repoWorkflowDir, files[0]), 'utf-8');
-    expect(content, 'CI must exclude webhook tests from unit job').toContain('--exclude');
+    expect(content, 'CI must use --project for convention-based selection').toContain('--project');
+  });
+
+  it('CI must NOT use hardcoded --exclude paths (convention violation)', () => {
+    const files = require('fs').readdirSync(repoWorkflowDir).filter((f: string) => f.includes('vitest') || f.includes('voice-ai'));
+    const content = readFileSync(join(repoWorkflowDir, files[0]), 'utf-8');
+    expect(content, 'Hardcoded --exclude breaks the anything-machine convention').not.toContain('--exclude');
   });
 
   it('CI must write test summary to GITHUB_STEP_SUMMARY', () => {
@@ -106,6 +113,65 @@ describe('Git Hooks', () => {
     // Must have some failure mechanism (exit 1, ||, set -e, etc.)
     const hasFail = content.includes('exit 1') || content.includes('set -e') || content.includes('|| exit');
     expect(hasFail, 'Hook must propagate test failures').toBe(true);
+  });
+});
+
+// ============================================
+// 1.5. Convention Enforcement (ANYTHING MACHINE)
+// ============================================
+
+describe('Convention: Offline/Live Project Classification', () => {
+  const vitestConfigPath = join(PROJECT_ROOT, 'vitest.config.ts');
+
+  it('vitest.config.ts must export OFFLINE_PROJECTS and LIVE_PROJECTS arrays', () => {
+    const content = readFileSync(vitestConfigPath, 'utf-8');
+    expect(content).toContain('export const OFFLINE_PROJECTS');
+    expect(content).toContain('export const LIVE_PROJECTS');
+  });
+
+  it('every test directory must be covered by a vitest project', () => {
+    const fs = require('fs');
+    const testDir = join(PROJECT_ROOT, 'tests');
+    const NON_TEST_DIRS = ['setup', 'fixtures', '__mocks__', 'data', 'helpers', 'utils'];
+    const subdirs = fs.readdirSync(testDir, { withFileTypes: true })
+      .filter((d: any) => d.isDirectory() && !NON_TEST_DIRS.includes(d.name))
+      .map((d: any) => d.name);
+
+    const configContent = readFileSync(vitestConfigPath, 'utf-8');
+
+    for (const dir of subdirs) {
+      const hasProject = configContent.includes(`tests/${dir}/`);
+      expect(hasProject, `tests/${dir}/ has no vitest project — add it to offlineProjects or liveProjects in vitest.config.ts`).toBe(true);
+    }
+  });
+
+  it('CI workflow must reference every offline project by --project flag', () => {
+    const fs = require('fs');
+    const ciFiles = fs.readdirSync(join(REPO_ROOT, '.github/workflows')).filter((f: string) => f.includes('vitest') || f.includes('voice-ai'));
+    const ciContent = readFileSync(join(REPO_ROOT, '.github/workflows', ciFiles[0]), 'utf-8');
+    const configContent = readFileSync(vitestConfigPath, 'utf-8');
+
+    // Extract offline project names from vitest config
+    const offlineBlock = configContent.split('const offlineProjects')[1]?.split('const liveProjects')[0] || '';
+    const projectNames = [...offlineBlock.matchAll(/name:\s*'([^']+)'/g)].map(m => m[1]);
+
+    for (const name of projectNames) {
+      expect(ciContent, `CI missing --project ${name} for offline project`).toContain(`--project ${name}`);
+    }
+  });
+
+  it('CI workflow must have a separate live tests job', () => {
+    const fs = require('fs');
+    const ciFiles = fs.readdirSync(join(REPO_ROOT, '.github/workflows')).filter((f: string) => f.includes('vitest') || f.includes('voice-ai'));
+    const ciContent = readFileSync(join(REPO_ROOT, '.github/workflows', ciFiles[0]), 'utf-8');
+    expect(ciContent).toContain('live-tests:');
+  });
+
+  it('CI live job must check for secrets before running', () => {
+    const fs = require('fs');
+    const ciFiles = fs.readdirSync(join(REPO_ROOT, '.github/workflows')).filter((f: string) => f.includes('vitest') || f.includes('voice-ai'));
+    const ciContent = readFileSync(join(REPO_ROOT, '.github/workflows', ciFiles[0]), 'utf-8');
+    expect(ciContent).toContain('Verify secrets');
   });
 });
 
