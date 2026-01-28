@@ -65,7 +65,7 @@ const liveProjects = [
     test: {
       name: 'webhook',
       root: '.',
-      include: ['tests/webhook/**/*.test.ts', 'tests/post-call-webhook.test.ts', 'tests/client-initiation-webhook.test.ts'],
+      include: ['tests/webhook/**/*.test.ts'],
       environment: 'node' as const,
       testTimeout: 30000,
     },
