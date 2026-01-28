@@ -5,6 +5,8 @@
  * Run with: bun test tests/client-initiation-webhook.test.ts
  */
 
+import { describe, test, expect } from 'vitest';
+
 const WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || 'https://your-n8n-host.example.com/webhook/client-initiation-data';
 const VALID_AGENT_ID = 'agent_xxxx_demo';
 
