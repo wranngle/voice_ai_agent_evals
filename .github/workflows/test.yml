@@ -1,0 +1,135 @@
+name: Voice AI Agents - Automated Tests
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'workflows/voice_ai_agents/**'
+      - 'workflows/dev/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'workflows/voice_ai_agents/**'
+  schedule:
+    # Run every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    # Manual trigger
+
+env:
+  N8N_API_URL: ${{ secrets.N8N_API_URL }}
+  N8N_API_KEY: ${{ secrets.N8N_API_KEY }}
+  ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: workflows/voice_ai_agents
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Run Vitest
+        run: bunx vitest run --reporter=json --outputFile=test-results.json 2>&1 | tee test-output.txt; bunx vitest run
+
+      - name: Publish test summary
+        if: always()
+        run: |
+          node -e "
+          const fs = require('fs');
+          const r = JSON.parse(fs.readFileSync('test-results.json','utf8'));
+          const passed = r.numPassedTests;
+          const failed = r.numFailedTests;
+          const total = r.numTotalTests;
+          const suites = r.numPassedTestSuites;
+          const totalSuites = r.numTotalTestSuites;
+          const dur = ((r.testResults||[]).reduce((a,t)=>a+(t.endTime-t.startTime),0)/1000).toFixed(1);
+          const icon = failed > 0 ? '🔴' : '🟢';
+          let md = '# ' + icon + ' Test Results\n\n';
+          md += '| Metric | Value |\n|---|---|\n';
+          md += '| Tests | **' + passed + '** passed, **' + failed + '** failed, **' + total + '** total |\n';
+          md += '| Suites | **' + suites + '/' + totalSuites + '** passed |\n';
+          md += '| Duration | ' + dur + 's |\n\n';
+          if (failed > 0) {
+            md += '## Failed Tests\n\n';
+            for (const suite of (r.testResults||[])) {
+              for (const t of (suite.assertionResults||[])) {
+                if (t.status === 'failed') {
+                  md += '- ❌ **' + t.ancestorTitles.join(' > ') + ' > ' + t.title + '**\n';
+                  md += '  \`\`\`\n  ' + (t.failureMessages||[]).join('\n  ').slice(0,500) + '\n  \`\`\`\n';
+                }
+              }
+            }
+          }
+          md += '\n## Suites\n\n';
+          for (const suite of (r.testResults||[])) {
+            const si = suite.numFailingTests > 0 ? '❌' : '✅';
+            const name = suite.name.split('/').pop();
+            md += si + ' **' + name + '** — ' + suite.numPassingTests + ' passed';
+            if (suite.numFailingTests > 0) md += ', ' + suite.numFailingTests + ' failed';
+            md += '\n';
+          }
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, md);
+          "
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results
+          path: workflows/voice_ai_agents/allure-results/
+
+  integration-tests:
+    name: Integration Tests (Live APIs)
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    defaults:
+      run:
+        working-directory: workflows/voice_ai_agents
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Run ElevenLabs Agent Tests
+        run: bun run scripts/test-elevenlabs-runner.ts
+        continue-on-error: true
+
+      - name: Run n8n Webhook Tests
+        run: bun run scripts/test-n8n-eval-runner.ts
+        continue-on-error: true
+
+      - name: Run MCP Tests
+        run: bun run scripts/test-mcp-runner.ts
+        continue-on-error: true
+
+  notify-failure:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests]
+    if: failure()
+
+    steps:
+      - name: Send failure notification
+        run: |
+          echo "Tests failed - notification would be sent here"
+          # Future: Send to Slack, email, or n8n webhook
