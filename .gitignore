@@ -90,6 +90,8 @@ _bmad-output/
 # ===================
 # old/ directory contains archived cloud-mirroring files (committed for reference)
 .absorbed/
+# Local workflow JSON files are NOT source of truth - n8n server is
+.archived-workflows/
 
 # ===================
 # WORKING DIRECTORIES
@@ -99,3 +101,8 @@ temp/
 
 # reconciliation-data/ is for cloud-local state analysis (not committed)
 reconciliation-data/
+.test-data/
+.test-data-*/
+allure-results/
+reports/
+coverage/

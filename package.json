@@ -57,14 +57,40 @@
     ]
   },
   "scripts": {
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:ui": "vitest --ui",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest run --coverage",
+    "test:webhook": "vitest --project webhook",
+    "test:elevenlabs": "vitest --project elevenlabs",
+    "test:n8n-eval": "vitest --project n8n-eval",
+    "test:mcp": "vitest --project mcp",
+    "testing": "bun run lib/testing/cli.ts",
+    "testing:run": "bun run lib/testing/cli.ts run",
+    "testing:list": "bun run lib/testing/cli.ts list",
+    "testing:validate": "bun run lib/testing/cli.ts validate",
+    "testing:report": "bun run lib/testing/cli.ts report",
+    "testing:ingest": "bun run lib/testing/cli.ts ingest",
+    "test:report": "npx allure serve allure-results",
+    "test:report:generate": "npx allure generate allure-results -o reports/allure --clean",
+    "testing:live": "bun run scripts/test-elevenlabs-runner.ts && bun run scripts/test-n8n-eval-runner.ts && bun run scripts/test-mcp-runner.ts",
+    "testing:live:el": "bun run scripts/test-elevenlabs-runner.ts",
+    "testing:live:n8n": "bun run scripts/test-n8n-eval-runner.ts",
+    "testing:live:mcp": "bun run scripts/test-mcp-runner.ts",
     "typecheck": "tsc --noEmit",
     "lint": "xo",
     "lint:fix": "xo --fix"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "4.0.18",
+    "@vitest/ui": "4.0.18",
+    "allure-js-commons": "3.4.5",
+    "allure-vitest": "3.4.5",
     "arktype": "2.1.29",
     "bun-types": "1.3.6",
     "typescript": "5.9.3",
+    "vitest": "4.0.18",
     "xo": "1.2.3"
   }
 }

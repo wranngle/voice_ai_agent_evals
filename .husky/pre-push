@@ -1,0 +1,14 @@
+#!/bin/sh
+# Pre-push hook: Run tests before pushing
+
+cd workflows/voice_ai_agents || exit 0
+
+echo "Running tests before push..."
+bun run test:run
+
+if [ $? -ne 0 ]; then
+  echo "Tests failed. Push aborted."
+  exit 1
+fi
+
+echo "All tests passed. Proceeding with push."
