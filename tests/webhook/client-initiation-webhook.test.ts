@@ -31,7 +31,6 @@ interface DynamicVariables {
   data_source: string;
   secret__crm_person_id: number;
   secret__crm_org_id: number;
-  secret__google_sheet_row: number;
 }
 
 interface WebhookResponse {
