@@ -74,6 +74,44 @@ describe('extraction config validation', () => {
 			expect(new Set(ids).size).toBe(ids.length);
 		}
 	});
+
+	it('all field IDs are globally unique across categories', () => {
+		const allIds = defaultCategories.flatMap(c => c.fields.map(f => f.field_id));
+		expect(new Set(allIds).size).toBe(allIds.length);
+	});
+
+	it('supersedes archived v2 requestor/contact/request/routing fields', () => {
+		const allFields = new Set(defaultCategories.flatMap(c => c.fields.map(f => f.field_id)));
+		// Archived v2 "requestor" section
+		expect(allFields.has('requestor_first_name')).toBe(true);
+		expect(allFields.has('requestor_last_name')).toBe(true);
+		expect(allFields.has('requestor_company_name')).toBe(true);
+		// Archived v2 "contact" section
+		expect(allFields.has('contact_phone')).toBe(true);
+		expect(allFields.has('contact_email')).toBe(true);
+		expect(allFields.has('contact_preferred_followup_channel')).toBe(true);
+		expect(allFields.has('requestor_is_contact')).toBe(true);
+		// Archived v2 "request" section
+		expect(allFields.has('existing_request')).toBe(true);
+		expect(allFields.has('request_affected_asset')).toBe(true);
+		expect(allFields.has('request_description')).toBe(true);
+		expect(allFields.has('request_summary')).toBe(true);
+		// Archived v2 "routing" section
+		expect(allFields.has('requested_person')).toBe(true);
+		expect(allFields.has('department')).toBe(true);
+		expect(allFields.has('conversation_transferred')).toBe(true);
+		expect(allFields.has('transfer_destination')).toBe(true);
+	});
+
+	it('supersedes parent workflow BANT + qualification fields', () => {
+		const salesFields = defaultCategories.find(c => c.category_id === 'sales')!.fields.map(f => f.field_id);
+		expect(salesFields).toContain('budget_mentioned');
+		expect(salesFields).toContain('timeline');
+		expect(salesFields).toContain('decision_authority');
+		expect(salesFields).toContain('deal_stage');
+		expect(salesFields).toContain('qualification_status');
+		expect(salesFields).toContain('transcript_summary');
+	});
 });
 
 // ─── Task 6.2: Output envelope validation ───
