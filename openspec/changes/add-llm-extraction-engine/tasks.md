@@ -2,36 +2,36 @@
 
 ## 1. Schema & Config Design
 
-- [ ] 1.1 Define extraction config JSON schema (categories + fields + context_rules)
-- [ ] 1.2 Define standard output envelope schema (per-field + top-level wrapper)
-- [ ] 1.3 Define 6 default category configs with all field definitions
-- [ ] 1.4 Design dynamic strictness inference logic (type → level mapping)
+- [x] 1.1 Define extraction config JSON schema (categories + fields + context_rules) ✅ `lib/extraction/types.ts`
+- [x] 1.2 Define standard output envelope schema (per-field + top-level wrapper) ✅ `lib/extraction/types.ts`
+- [x] 1.3 Define 6 default category configs with all field definitions ✅ `lib/extraction/categories.ts`
+- [x] 1.4 Design dynamic strictness inference logic (type → level mapping) ✅ `lib/extraction/strictness.ts`
 
 ## 2. Prompt Architecture
 
-- [ ] 2.1 Design 5-component prompt template generalized from archived v2
-- [ ] 2.2 Design schema generation logic (field defs → JSON schema for Component C)
-- [ ] 2.3 Design extraction rules template (Component E) with strictness-aware instructions
+- [x] 2.1 Design 5-component prompt template generalized from archived v2 ✅ `lib/extraction/prompt-builder.ts`
+- [x] 2.2 Design schema generation logic (field defs → JSON schema for Component C) ✅ `lib/extraction/prompt-builder.ts`
+- [x] 2.3 Design extraction rules template (Component E) with strictness-aware instructions ✅ `lib/extraction/prompt-builder.ts`
 
 ## 3. Validation & Repair
 
-- [ ] 3.1 Design schema validation layer (type-specific: enum, boolean, phone, email, string)
-- [ ] 3.2 Design repair logic (whitespace trim, enum normalization, type coercion)
+- [x] 3.1 Design schema validation layer (type-specific: enum, boolean, phone, email, string) ✅ `lib/extraction/validation.ts`
+- [x] 3.2 Design repair logic (whitespace trim, enum normalization, type coercion) ✅ `lib/extraction/validation.ts`
 
 ## 4. n8n Subworkflow Implementation
 
-- [ ] 4.1 Create `[DEV] LLM Extraction Engine` workflow via MCP
-- [ ] 4.2 Implement Execute Workflow Trigger node
-- [ ] 4.3 Implement input validation code node (transcript + config checks)
-- [ ] 4.4 Implement error response node
-- [ ] 4.5 Implement category splitter (SplitInBatches)
-- [ ] 4.6 Implement 5-component prompt builder (Code node)
-- [ ] 4.7 Implement Gemini 3 Pro httpRequest call (JSON mode, temperature 0.1)
-- [ ] 4.8 Implement response parser + validator (Code node)
-- [ ] 4.9 Implement envelope transformer (Code node)
-- [ ] 4.10 Implement result aggregator (Aggregate node)
-- [ ] 4.11 Implement post-processor / dedup (Code node)
-- [ ] 4.12 Wire all node connections per architecture diagram
+- [x] 4.1 Create `[DEV] LLM Extraction Engine` workflow via MCP ✅ (ID: 2Z4wykQk0x1Y67Sr, 11 nodes)
+- [x] 4.2 Implement Execute Workflow Trigger node ✅
+- [x] 4.3 Implement input validation code node (transcript + config checks) ✅
+- [x] 4.4 Implement error response node ✅
+- [x] 4.5 Implement category splitter (SplitInBatches) ✅
+- [x] 4.6 Implement 5-component prompt builder (Code node) ✅
+- [x] 4.7 Implement Gemini 3 Pro httpRequest call (JSON mode, temperature 0.1) ✅
+- [x] 4.8 Implement response parser + validator (Code node) ✅
+- [x] 4.9 Implement envelope transformer (Code node) ✅ (merged into 4.8)
+- [x] 4.10 Implement result aggregator (Aggregate node) ✅ (Code-based aggregator)
+- [x] 4.11 Implement post-processor / dedup (Code node) ✅ (merged into 4.10)
+- [x] 4.12 Wire all node connections per architecture diagram ✅
 
 ## 5. Fan-Out Integration
 
@@ -41,9 +41,9 @@
 
 ## 6. Testing
 
-- [ ] 6.1 Write vitest tests: extraction config schema validation
-- [ ] 6.2 Write vitest tests: output envelope schema validation
-- [ ] 6.3 Write vitest tests: strictness inference logic
+- [x] 6.1 Write vitest tests: extraction config schema validation ✅ (26/26 pass)
+- [x] 6.2 Write vitest tests: output envelope schema validation ✅
+- [x] 6.3 Write vitest tests: strictness inference logic ✅
 - [ ] 6.4 Test live extraction with sample transcript + sales category config
 - [ ] 6.5 Test multi-category extraction (sales + external_contacts)
 - [ ] 6.6 Test error handling: invalid config, empty transcript, Gemini failure
