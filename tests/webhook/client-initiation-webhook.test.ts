@@ -191,7 +191,7 @@ describe('Client Initiation Webhook', () => {
         agent_id: VALID_AGENT_ID,
       });
 
-      const validSources = ['crm', 'sheets', 'none'];
+      const validSources = ['crm', 'data_table', 'none'];
       expect(validSources).toContain(result.body.dynamic_variables.data_source);
     });
 
@@ -244,7 +244,6 @@ describe('Client Initiation Webhook', () => {
       const dv = result.body.dynamic_variables;
       expect(typeof dv.secret__crm_person_id).toBe('number');
       expect(typeof dv.secret__crm_org_id).toBe('number');
-      expect(typeof dv.secret__google_sheet_row).toBe('number');
     });
 
   });
