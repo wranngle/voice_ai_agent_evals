@@ -190,14 +190,15 @@ The system SHALL integrate as a fan-out branch in the post-call webhook.
 - **THEN** the extraction engine is called via Execute Workflow node
 - **AND** runs in parallel with DataTbl Logger, Slack Notifier, CRM Graceful, and Qdrant Embeddings
 
-#### Scenario: Extraction results written to data table
+#### Scenario: Extraction results written to Supabase
 - **WHEN** extraction completes successfully
-- **THEN** BANT fields from the extraction output are written to the `post_call_logs` data table row
+- **THEN** all extracted fields are written to the `extraction_results` table in Supabase Postgres via REST API
+- **AND** the `raw_envelope` JSONB column contains the full extraction output
 
 #### Scenario: Extraction failure does not block other branches
 - **WHEN** the extraction engine fails or times out
-- **THEN** other fan-out branches (Data Table, Slack, CRM, Qdrant) continue unaffected
-- **AND** the error is logged
+- **THEN** other fan-out branches (Slack, CRM, Qdrant) continue unaffected
+- **AND** the error is logged via onError: continueRegularOutput
 
 ---
 

@@ -20,6 +20,6 @@ Post-call processing needs structured field extraction from transcripts (BANT, c
 - **Affected code**:
   - `[DEV] LLM Extraction Engine` subworkflow (NEW — created via MCP)
   - `[DEV] Post-Call Bulletproof` workflow (MODIFIED — new Execute Workflow node in fan-out)
-- **Affected systems**: n8n, Gemini 3 Pro API, post_call_logs data table
+- **Affected systems**: n8n, Gemini 3 Pro API, Supabase Postgres (`extraction_results` table)
 - **Breaking changes**: None — additive subworkflow + optional fan-out branch
 - **Depends on**: `harden-post-call-webhook` (fan-out architecture must exist)

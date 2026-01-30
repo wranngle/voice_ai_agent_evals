@@ -303,13 +303,14 @@ Fan-Out (Parallel)
 }
 ```
 
-### Data Table Integration
+### Supabase Postgres Integration
 
-Extraction results map to existing `post_call_logs` BANT columns:
-- `budget` ← `fields.find(f => f.field_id === 'budget_mentioned').value`
-- `timeline` ← `fields.find(f => f.field_id === 'timeline').value`
-- `authority` ← `fields.find(f => f.field_id === 'decision_authority').value`
-- `need` ← `fields.find(f => f.field_id === 'deal_stage').value`
+Extraction results persist to `extraction_results` table in Supabase Postgres (project: `cgezudpwebljssmeuybm`):
+- 45 columns: 6 metadata + 36 field columns (`category__field_id` naming) + `raw_envelope` JSONB + `created_at`
+- Indexes: `conversation_id`, `timestamp`
+- pgvector 0.8.0 enabled for future embedding support
+- Write via HTTP Request node → Supabase REST API (service_role key)
+- Supersedes n8n Data Table (broken native insert, no query API, impractical for 42+ columns)
 
 ## Governance Compliance
 
