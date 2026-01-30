@@ -36,7 +36,7 @@
 ## 5. Fan-Out Integration
 
 - [x] 5.1 Add Execute Workflow node to post-call webhook fan-out ✅ Parallel branch from Check Call Status case 0
-- [x] 5.2 Map extraction results to post_call_logs BANT columns ✅ Flatten node outputs all fields; Data Table write deferred (table needs columns via internal API)
+- [x] 5.2 Persist extraction results to Supabase Postgres ✅ `extraction_results` table (45 columns), HTTP Request node via REST API, pgvector 0.8.0 enabled
 - [x] 5.3 Configure onError: continueRegularOutput for graceful degradation ✅
 
 ## 6. Testing
@@ -54,7 +54,7 @@
 - [x] 7.1 Activate `[DEV] LLM Extraction Engine` on n8n ✅ Active (workflow 2Z4wykQk0x1Y67Sr)
 - [x] 7.2 Test via n8n API with curl (sample transcript + config → verify envelope) ✅ Via test harness webhook
 - [x] 7.3 Enable fan-out branch in post-call webhook ✅ Live in [DEV] Post-Call Webhook - Sarah (GZsLwzpsTvl9jIEs)
-- [x] 7.4 End-to-end test: real call → extraction fields in Data Table ✅ Execution 21195 — full pipeline success, 2 categories, 11 fields extracted
+- [x] 7.4 End-to-end test: real call → extraction fields in Supabase ✅ Execution 21330+21332 — full pipeline success, 6 categories, 31 fields populated, row verified in Supabase Postgres
 
 ## Dependencies
 
