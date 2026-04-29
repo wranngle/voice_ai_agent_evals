@@ -80,9 +80,9 @@ agent-audit-*.json
 # ===================
 # CLAUDE & BMAD
 # ===================
-.claude/
+# .claude/  # Preserving AI agent local state
 .claude-controlled
-.gemini/
+# .gemini/  # Preserving AI agent local state
 _bmad-output/
 
 # ===================
@@ -97,10 +97,10 @@ _bmad-output/
 # WORKING DIRECTORIES
 # ===================
 # temp/ is for working drafts before cloud deployment (not committed)
-temp/
+# temp/  # Preserving mock test data and working drafts
 
 # reconciliation-data/ is for cloud-local state analysis (not committed)
-reconciliation-data/
+# reconciliation-data/  # Preserving mock cloud-local state analysis
 .test-data/
 .test-data-*/
 allure-results/
