@@ -89,12 +89,30 @@ regression-results-*.json
 agent-audit-*.json
 
 # ===================
-# CLAUDE & BMAD
+# CLAUDE & BMAD (keep commands/ committed; ignore operator-local state)
 # ===================
-# .claude/  # Preserving AI agent local state
+.claude/local/
+.claude/worktrees/
+.claude/mcp.json
+.claude/.env
+.claude/settings.json
+.claude/scheduled_tasks*
+.claude/logs/
 .claude-controlled
-# .gemini/  # Preserving AI agent local state
+.gemini/local/
+.gemini/settings.json
 _bmad-output/
+.bmad-output/
+
+# ===================
+# Playwright MCP runtime artifacts
+# ===================
+.playwright-mcp/
+
+# ===================
+# Husky auto-managed (we use lefthook now — lefthook.yml is committed)
+# ===================
+.husky/_/
 
 # ===================
 # ARCHIVED FILES
