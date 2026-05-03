@@ -1,0 +1,36 @@
+{
+  "_comment": "workflows_list.example.json — synthetic placeholder for the gitignored workflows_list.json. Copy to workflows_list.json and fill in real values from the n8n cloud instance via `bun scripts/list-workflows.ts`. The real file is gitignored and never committed (it had verified live keys in past dumps).",
+  "_shape": "Array of n8n workflow summaries as returned by GET /rest/workflows. Each entry shows the structure a reviewer would see post-clone after running the listing script against a fresh n8n instance.",
+  "workflows": [
+    {
+      "id": "wf_demo_lead_intake",
+      "name": "[DEMO] Lead Intake - Webhook Processor",
+      "active": true,
+      "tags": ["demo", "lead-intake"],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-15T00:00:00.000Z",
+      "nodeCount": 5,
+      "credentials": ["${N8N_HTTP_HEADER_AUTH_ID}"]
+    },
+    {
+      "id": "wf_demo_voice_eval",
+      "name": "[DEMO] Voice Agent Eval Webhook",
+      "active": true,
+      "tags": ["demo", "eval"],
+      "createdAt": "2026-01-05T00:00:00.000Z",
+      "updatedAt": "2026-01-20T00:00:00.000Z",
+      "nodeCount": 8,
+      "credentials": ["${N8N_TWILIO_CRED_ID}", "${N8N_OPENAI_CRED_ID}"]
+    },
+    {
+      "id": "wf_demo_send_sms",
+      "name": "[DEMO] Send SMS Tool",
+      "active": false,
+      "tags": ["demo", "tool"],
+      "createdAt": "2026-01-10T00:00:00.000Z",
+      "updatedAt": "2026-01-22T00:00:00.000Z",
+      "nodeCount": 3,
+      "credentials": ["${N8N_TWILIO_CRED_ID}"]
+    }
+  ]
+}
