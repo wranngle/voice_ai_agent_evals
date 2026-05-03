@@ -2,10 +2,10 @@
 
 > eval runner enforcing sub-second latency budgets and catching regressions for the example-agent sdr.
 
-[![License](https://img.shields.io/github/license/example/voice_ai_agent_evals?color=A371F7)](./LICENSE) ![Status](https://img.shields.io/badge/status-experimental-orange.svg)
+[![License](https://img.shields.io/github/license/example/voice_ai_agent_evals?color=A371F7)](./LICENSE) ![Status](https://img.shields.io/badge/status-active-brightgreen.svg)
 
 > [!NOTE]
-> Experiment. Built to learn one specific thing. Code may not survive.
+> Active personal project. Used in my own workflow. Issues triaged on a personal-time cadence.
 
 ## Quick start
 
@@ -29,4 +29,4 @@ bun test --filter barge-in-mid-question
 
 ## License
 
-See [LICENSE](LICENSE).
+See [LICENSE](./LICENSE).
