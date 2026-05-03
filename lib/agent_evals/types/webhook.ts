@@ -1,54 +1,49 @@
-import { z } from "zod";
+import {type} from 'arktype';
 
-export const WebhookEventTypeSchema = z.enum([
-  "conversation.started",
-  "conversation.ended",
-  "transcript.ready",
-  "analysis.complete",
-]);
-export type WebhookEventType = z.infer<typeof WebhookEventTypeSchema>;
+export const WebhookEventTypeSchema = type('\'conversation.started\' | \'conversation.ended\' | \'transcript.ready\' | \'analysis.complete\'');
+export type WebhookEventType = typeof WebhookEventTypeSchema.infer;
 
-export const ConversationMetadataSchema = z.object({
-  conversationId: z.string().min(1),
-  agentId: z.string().min(1),
-  startedAtMs: z.number().int().nonnegative(),
-  endedAtMs: z.number().int().nonnegative().optional(),
+export const ConversationMetadataSchema = type({
+  conversationId: 'string > 0',
+  agentId: 'string > 0',
+  startedAtMs: 'number.integer >= 0',
+  'endedAtMs?': 'number.integer >= 0',
 });
-export type ConversationMetadata = z.infer<typeof ConversationMetadataSchema>;
+export type ConversationMetadata = typeof ConversationMetadataSchema.infer;
 
-export const TranscriptDataSchema = z.object({
-  conversationId: z.string().min(1),
-  turns: z.array(
-    z.object({
-      role: z.enum(["agent", "caller"]),
-      text: z.string().min(1),
-      startedAtMs: z.number().int().nonnegative(),
-      durationMs: z.number().int().positive(),
-    })
-  ).min(1),
-  completedAtMs: z.number().int().positive(),
+export const TranscriptDataSchema = type({
+  conversationId: 'string > 0',
+  turns: type({
+    role: '\'agent\' | \'caller\'',
+    text: 'string > 0',
+    startedAtMs: 'number.integer >= 0',
+    durationMs: 'number.integer > 0',
+  })
+    .array()
+    .atLeastLength(1),
+  completedAtMs: 'number.integer > 0',
 });
-export type TranscriptData = z.infer<typeof TranscriptDataSchema>;
+export type TranscriptData = typeof TranscriptDataSchema.infer;
 
-export const AnalysisDataSchema = z.object({
-  conversationId: z.string().min(1),
-  sentiment: z.enum(["positive", "neutral", "negative"]),
-  resolved: z.boolean(),
-  summaryText: z.string().min(1),
+export const AnalysisDataSchema = type({
+  conversationId: 'string > 0',
+  sentiment: '\'positive\' | \'neutral\' | \'negative\'',
+  resolved: 'boolean',
+  summaryText: 'string > 0',
 });
-export type AnalysisData = z.infer<typeof AnalysisDataSchema>;
+export type AnalysisData = typeof AnalysisDataSchema.infer;
 
-export const WebhookPayloadSchema = z.object({
+export const WebhookPayloadSchema = type({
   type: WebhookEventTypeSchema,
-  timestamp: z.string().datetime(),
-  conversationMetadata: ConversationMetadataSchema.optional(),
-  transcriptData: TranscriptDataSchema.optional(),
-  analysisData: AnalysisDataSchema.optional(),
+  timestamp: 'string.date.iso',
+  'conversationMetadata?': ConversationMetadataSchema,
+  'transcriptData?': TranscriptDataSchema,
+  'analysisData?': AnalysisDataSchema,
 });
-export type WebhookPayload = z.infer<typeof WebhookPayloadSchema>;
+export type WebhookPayload = typeof WebhookPayloadSchema.infer;
 
-export const WebhookRequestSchema = z.object({
-  headers: z.record(z.string(), z.string()),
+export const WebhookRequestSchema = type({
+  headers: 'Record<string, string>',
   body: WebhookPayloadSchema,
 });
-export type WebhookRequest = z.infer<typeof WebhookRequestSchema>;
+export type WebhookRequest = typeof WebhookRequestSchema.infer;

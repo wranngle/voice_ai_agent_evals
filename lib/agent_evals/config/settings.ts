@@ -1,23 +1,23 @@
-import { z } from "zod";
+import {type} from 'arktype';
 
-const SettingsSchema = z.object({
-  maxTurnDurationMs: z.number().int().positive(),
-  minAgentTurnRatio: z.number().min(0).max(1),
-  fixturesDirectory: z.string().min(1),
-  logFile: z.string().optional(),
-  otlpEndpoint: z.string().url().optional(),
+const SettingsSchema = type({
+  maxTurnDurationMs: 'number.integer > 0',
+  minAgentTurnRatio: '0 <= number <= 1',
+  fixturesDirectory: 'string > 0',
+  'logFile?': 'string',
+  'otlpEndpoint?': 'string.url',
 });
 
-export type Settings = z.infer<typeof SettingsSchema>;
+export type Settings = typeof SettingsSchema.infer;
 
 const DEFAULT_SETTINGS: Settings = {
   maxTurnDurationMs: 30_000,
   minAgentTurnRatio: 0.3,
-  fixturesDirectory: "fixtures",
+  fixturesDirectory: 'fixtures',
 };
 
 export function loadSettings(env: NodeJS.ProcessEnv = process.env): Settings {
-  const candidate = {
+  const candidate: Record<string, unknown> = {
     maxTurnDurationMs: env.AGENT_EVALS_MAX_TURN_DURATION_MS
       ? Number(env.AGENT_EVALS_MAX_TURN_DURATION_MS)
       : DEFAULT_SETTINGS.maxTurnDurationMs,
@@ -26,8 +26,14 @@ export function loadSettings(env: NodeJS.ProcessEnv = process.env): Settings {
       : DEFAULT_SETTINGS.minAgentTurnRatio,
     fixturesDirectory:
       env.AGENT_EVALS_FIXTURES_DIRECTORY ?? DEFAULT_SETTINGS.fixturesDirectory,
-    logFile: env.AGENT_EVALS_LOG_FILE,
-    otlpEndpoint: env.AGENT_EVALS_OTLP_ENDPOINT,
   };
-  return SettingsSchema.parse(candidate);
+  if (env.AGENT_EVALS_LOG_FILE !== undefined) {
+    candidate.logFile = env.AGENT_EVALS_LOG_FILE;
+  }
+
+  if (env.AGENT_EVALS_OTLP_ENDPOINT !== undefined) {
+    candidate.otlpEndpoint = env.AGENT_EVALS_OTLP_ENDPOINT;
+  }
+
+  return SettingsSchema.assert(candidate);
 }
