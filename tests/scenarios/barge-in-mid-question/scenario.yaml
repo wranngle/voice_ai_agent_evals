@@ -1,0 +1,45 @@
+# Synthetic scenario — deterministic, no real customer data.
+# Result shape committed at tests/runs/2026-04-fail-barge-in/result.json
+id: barge-in-mid-question
+description: Caller interrupts the agent mid-question; agent must yield within 400ms.
+agent: example-agent
+
+fixture:
+  transcript: transcript.json
+
+axes:
+  - name: barge_in_recovery
+  - name: tool_call_schema
+  - name: ttfb_p95_ms
+  - name: end_to_first_audio_p95_ms
+  - name: total_turn_p95_ms
+  - name: tone_judge
+
+thresholds:
+  ttfb_p95_ms: 800
+  end_to_first_audio_p95_ms: 1400
+  total_turn_p95_ms: 3000
+  barge_in_yield_ms: 400
+
+success_criteria:
+  - axis: barge_in_recovery
+    expected: true
+    weight: 1.0
+  - axis: tool_call_schema
+    expected: n/a
+    weight: 1.0
+  - axis: ttfb_p95_ms
+    expected: pass
+    weight: 0.5
+  - axis: end_to_first_audio_p95_ms
+    expected: pass
+    weight: 0.5
+  - axis: total_turn_p95_ms
+    expected: pass
+    weight: 0.5
+  - axis: tone_judge
+    expected: polite
+    weight: 0.5
+
+partial_credit: true
+judge_llm: claude-haiku-4-5

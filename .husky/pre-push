@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+# voice_ai_agent_evals pre-push hook
+# Run offline test suite before allowing push. Fails on any test failure.
+set -e
+
+echo "[voice_ai_agent_evals] running offline test suite before push..."
+bun run test:offline

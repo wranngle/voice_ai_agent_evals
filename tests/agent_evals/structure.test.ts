@@ -1,8 +1,10 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const packageRoot = join(import.meta.dir, "..", "..", "lib", "agent_evals");
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const packageRoot = join(__dirname, "..", "..", "lib", "agent_evals");
 const srcRoot = packageRoot;
 
 const expectedLayers = [

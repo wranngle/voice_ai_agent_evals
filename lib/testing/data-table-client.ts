@@ -359,7 +359,7 @@ export async function getRequirementCoverage(): Promise<ApiResponse<Array<{
     requirement_id: req.requirement_id,
     user_intent: req.user_intent,
     test_count: req.linked_tests?.length || 0,
-    coverage_status: (req.linked_tests?.length || 0) > 0 ? 'covered' : 'uncovered' as const,
+    coverage_status: ((req.linked_tests?.length || 0) > 0 ? 'covered' : 'uncovered') as 'covered' | 'partial' | 'uncovered',
   }));
 
   return { success: true, data: coverage };

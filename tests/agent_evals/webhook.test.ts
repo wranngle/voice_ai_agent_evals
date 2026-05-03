@@ -1,6 +1,7 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   WebhookPayloadSchema,
   WebhookEventTypeSchema,
@@ -8,7 +9,8 @@ import {
   type WebhookPayload,
 } from "../../lib/agent_evals/types";
 
-const fixturesDir = join(import.meta.dir, "..", "..", "lib", "agent_evals", "fixtures");
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const fixturesDir = join(__dirname, "..", "..", "lib", "agent_evals", "fixtures");
 
 describe("webhook contracts", () => {
   test("all webhook event fixtures conform to schema", () => {
@@ -22,10 +24,10 @@ describe("webhook contracts", () => {
 
     for (const event of events) {
       const result = WebhookPayloadSchema.safeParse(event);
-      expect(result.success).toBe(
-        true,
+      expect(
+        result.success,
         `Event validation failed: ${result.error?.message || "unknown error"}`
-      );
+      ).toBe(true);
     }
   });
 
@@ -95,10 +97,10 @@ describe("webhook contracts", () => {
       const conversationId =
         event.conversationMetadata?.conversationId ||
         event.transcriptData?.conversationId;
-      expect(conversationId?.startsWith("synth-")).toBe(
-        true,
+      expect(
+        conversationId?.startsWith("synth-"),
         `Event ${event.type} has non-synthetic conversation ID: ${conversationId}`
-      );
+      ).toBe(true);
     }
   });
 
@@ -110,10 +112,10 @@ describe("webhook contracts", () => {
     for (const event of events) {
       const agentId = event.conversationMetadata?.agentId;
       if (agentId) {
-        expect(agentId.startsWith("synth-")).toBe(
-          true,
+        expect(
+          agentId.startsWith("synth-"),
           `Event ${event.type} has non-synthetic agent ID: ${agentId}`
-        );
+        ).toBe(true);
       }
     }
   });
@@ -173,7 +175,7 @@ describe("webhook contracts", () => {
     for (const event of analysisEvents) {
       expect(event.analysisData).toBeDefined();
       const result = AnalysisDataSchema.safeParse(event.analysisData);
-      expect(result.success).toBe(true, `AnalysisData validation failed: ${result.error?.message}`);
+      expect(result.success, `AnalysisData validation failed: ${result.error?.message}`).toBe(true);
       expect(event.analysisData?.conversationId.startsWith("synth-")).toBe(true);
       expect(["positive", "neutral", "negative"]).toContain(event.analysisData?.sentiment);
       expect(typeof event.analysisData?.resolved).toBe("boolean");

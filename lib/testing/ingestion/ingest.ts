@@ -11,8 +11,8 @@ import { parseVitestFile, type ParsedTest } from './vitest-parser';
 import {
   createTestCase,
   listTestCases,
-  type TestCase,
 } from '../local-storage';
+import type { TestCase } from '../types';
 import type { WebhookTestInput } from '../types';
 
 export interface IngestOptions {
@@ -69,7 +69,7 @@ async function isDuplicate(
 
   for (const existing of existingTests) {
     if (existing.type !== 'webhook') continue;
-    const input = existing.input as WebhookTestInput;
+    const input = existing.input as unknown as WebhookTestInput;
     if (!input.url || !input.body) continue;
 
     const existingKey = getTestKey(input.url, input.body as Record<string, unknown>);

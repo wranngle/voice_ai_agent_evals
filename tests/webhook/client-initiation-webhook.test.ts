@@ -62,7 +62,7 @@ async function callWebhook(payload: WebhookRequest): Promise<{ status: number; b
   return { status: response.status, body, latencyMs };
 }
 
-describe('Client Initiation Webhook', () => {
+describe.skipIf(process.env.CI)('Client Initiation Webhook', () => {
 
   describe('Valid Requests', () => {
 

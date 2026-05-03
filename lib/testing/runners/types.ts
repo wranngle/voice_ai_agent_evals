@@ -90,6 +90,8 @@ export interface ElevenLabsTestConfig {
   expected_intent?: string;
   expected_entities?: Record<string, string>;
   max_turns?: number;
+  language?: string;
+  dynamic_variables?: Record<string, string>;
 }
 
 /**

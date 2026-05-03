@@ -1,0 +1,43 @@
+# Synthetic scenario — deterministic, no real customer data.
+# Result shape committed at tests/runs/2026-04-pass-lookup-record-greeting/result.json
+id: lookup-record-greeting
+description: Agent greets a known caller and routes via lookup_record tool with valid args.
+agent: example-agent
+
+fixture:
+  transcript: transcript.json
+
+axes:
+  - name: barge_in_recovery
+  - name: tool_call_schema
+  - name: tool_call_routing
+  - name: ttfb_p95_ms
+  - name: end_to_first_audio_p95_ms
+  - name: total_turn_p95_ms
+
+thresholds:
+  ttfb_p95_ms: 800
+  end_to_first_audio_p95_ms: 1400
+  total_turn_p95_ms: 3000
+
+success_criteria:
+  - axis: barge_in_recovery
+    expected: true
+    weight: 1.0
+  - axis: tool_call_schema
+    expected: { name: lookup_record, parameters_pass: true }
+    weight: 1.0
+  - axis: tool_call_routing
+    expected: tool
+    weight: 1.0
+  - axis: ttfb_p95_ms
+    expected: pass
+    weight: 0.5
+  - axis: end_to_first_audio_p95_ms
+    expected: pass
+    weight: 0.5
+  - axis: total_turn_p95_ms
+    expected: pass
+    weight: 0.5
+
+partial_credit: false

@@ -12,7 +12,7 @@ export type TestType = 'webhook' | 'elevenlabs' | 'n8n-eval' | 'mcp';
 export type TestStatus = 'passed' | 'failed' | 'error' | 'skipped' | 'pending';
 
 // Requirement capture status
-export type RequirementStatus = 'captured' | 'reviewed' | 'implemented' | 'deprecated';
+export type RequirementStatus = 'captured' | 'reviewed' | 'implemented' | 'deprecated' | 'validated';
 
 // Follow-up priority levels
 export type Priority = 'low' | 'medium' | 'high' | 'urgent';
@@ -64,8 +64,8 @@ export interface TestResult {
   latency_ms: number;
   error_message?: string;
   executed_at: string; // ISO timestamp
-  assertions_passed: number;
-  assertions_failed: number;
+  assertions_passed?: number;
+  assertions_failed?: number;
 }
 
 /**
@@ -78,15 +78,17 @@ export interface TestRun {
   completed_at?: string;
   triggered_by: 'manual' | 'ci' | 'scheduled' | 'hook';
   trigger_source?: string; // Branch name, schedule name, etc.
-  total_tests: number;
-  passed: number;
-  failed: number;
-  errors: number;
-  skipped: number;
-  pass_rate: number; // Percentage 0-100
-  avg_latency_ms: number;
+  total_tests?: number;
+  passed?: number;
+  failed?: number;
+  errors?: number;
+  skipped?: number;
+  pass_rate?: number; // Percentage 0-100
+  avg_latency_ms?: number;
   test_type_filter?: TestType; // If filtered by type
   tag_filter?: string; // If filtered by tag
+  /** Arbitrary filter context recorded at run start (type, tags, ids, etc.) */
+  test_filter?: Record<string, unknown>;
 }
 
 /**

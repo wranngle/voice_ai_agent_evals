@@ -3,7 +3,7 @@
  */
 
 const API_URL = process.env.N8N_API_URL || "https://your-n8n-host.example.com/api/v1/workflows?limit=100";
-const API_KEY = process.env.N8N_API_KEY;
+const API_KEY: string = process.env.N8N_API_KEY ?? "";
 if (!API_KEY) {
   throw new Error("N8N_API_KEY env var required");
 }
@@ -74,3 +74,5 @@ async function main() {
 }
 
 main().catch(console.error);
+
+export {};

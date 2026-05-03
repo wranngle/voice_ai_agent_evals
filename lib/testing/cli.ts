@@ -27,6 +27,7 @@
 
 import { parseArgs } from 'util';
 import { join } from 'path';
+import { existsSync, readdirSync, readFileSync, statSync } from 'fs';
 import {
   orchestrator,
   listTestCases,
@@ -37,6 +38,41 @@ import {
 } from './index';
 import { ingestTests } from './ingestion';
 import type { TestType, TestCase, TestRunSummary } from './types';
+
+/**
+ * Discover scenario YAMLs in tests/scenarios/<id>/scenario.yaml.
+ * Returns a list of synthetic TestCase-shaped records so they appear in
+ * `testing:list` even before they've been ingested into local-storage.
+ * The leading "_template" directory is skipped.
+ */
+function discoverScenarios(rootDir = process.cwd()): TestCase[] {
+  const scenariosDir = join(rootDir, 'tests', 'scenarios');
+  if (!existsSync(scenariosDir)) return [];
+  const out: TestCase[] = [];
+  for (const entry of readdirSync(scenariosDir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    if (entry.name.startsWith('_')) continue; // skip _template
+    const scenarioFile = join(scenariosDir, entry.name, 'scenario.yaml');
+    if (!existsSync(scenarioFile)) continue;
+    const raw = readFileSync(scenarioFile, 'utf-8');
+    // Lightweight YAML parse — extract `description:` line without pulling a yaml dep.
+    const descMatch = raw.match(/^description:\s*(.+)$/m);
+    const description = descMatch ? descMatch[1].trim() : '';
+    out.push({
+      test_id: `SCEN-${entry.name}`,
+      type: 'elevenlabs' as TestType,
+      name: entry.name,
+      description,
+      input: { scenarioPath: scenarioFile },
+      expected_output: {},
+      tags: ['scenario'],
+      enabled: true,
+      created_at: new Date(statSync(scenarioFile).mtime).toISOString(),
+      updated_at: new Date(statSync(scenarioFile).mtime).toISOString(),
+    } as TestCase);
+  }
+  return out;
+}
 
 // ANSI colors
 const C = {
@@ -225,6 +261,19 @@ async function listTests(options: CliOptions): Promise<number> {
       type: options.type,
     });
     let tests = result.data || [];
+
+    // Augment with scenarios discovered from tests/scenarios/<id>/scenario.yaml
+    // so a fresh checkout shows the canonical scenarios even before they've
+    // been ingested into local-storage. Skipped when tests are using an
+    // isolated storage dir (TEST_STORAGE_DIR) so cli.test.ts fixtures stay
+    // deterministic.
+    if (!process.env.TEST_STORAGE_DIR) {
+      const scenarios = discoverScenarios();
+      const known = new Set(tests.map(t => t.test_id));
+      for (const s of scenarios) {
+        if (!known.has(s.test_id)) tests.push(s);
+      }
+    }
 
     // Filter by tags
     if (options.tags.length > 0) {

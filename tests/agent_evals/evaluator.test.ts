@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { createEvaluator } from "../../lib/agent_evals/service";
 import type { ConversationRepository } from "../../lib/agent_evals/repo";
 import type { Conversation } from "../../lib/agent_evals/types";

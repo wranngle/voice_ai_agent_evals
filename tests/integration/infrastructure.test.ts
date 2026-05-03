@@ -10,11 +10,26 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, chmodSync, statSync } from 'fs';
-import { join, resolve } from 'path';
+import { join, resolve, dirname } from 'path';
 import { execSync } from 'child_process';
 
 const PROJECT_ROOT = resolve(__dirname, '../..');
-const REPO_ROOT = resolve(PROJECT_ROOT, '../..');
+
+// Walk up from PROJECT_ROOT looking for a .git directory. Returns PROJECT_ROOT
+// in standalone clones (where voice_ai_agent_evals is its own repo) or the
+// parent monorepo root in nested layouts. Both are correct: REPO_ROOT must
+// be the location housing .github/workflows and .git/hooks.
+function findRepoRoot(start: string): string {
+  let cur = start;
+  while (cur !== '/' && cur !== '') {
+    if (existsSync(join(cur, '.git'))) return cur;
+    const parent = dirname(cur);
+    if (parent === cur) break;
+    cur = parent;
+  }
+  return start; // fallback
+}
+const REPO_ROOT = findRepoRoot(PROJECT_ROOT);
 
 // ============================================
 // 1. CI/CD Infrastructure
@@ -129,12 +144,27 @@ describe('Convention: Offline/Live Project Classification', () => {
     expect(content).toContain('export const LIVE_PROJECTS');
   });
 
-  it('every test directory must be covered by a vitest project', () => {
+  it('every test directory containing .test.ts files must be covered by a vitest project', () => {
     const fs = require('fs');
+    const path = require('path');
     const testDir = join(PROJECT_ROOT, 'tests');
-    const NON_TEST_DIRS = ['setup', 'fixtures', '__mocks__', 'data', 'helpers', 'utils'];
+    const NON_TEST_DIRS = ['setup', 'fixtures', '__mocks__', 'data', 'helpers', 'utils', 'runs', 'scenarios'];
+
+    function containsTestFile(dir: string): boolean {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules') {
+          if (containsTestFile(path.join(dir, entry.name))) return true;
+        } else if (entry.isFile() && entry.name.endsWith('.test.ts')) {
+          return true;
+        }
+      }
+      return false;
+    }
+
     const subdirs = fs.readdirSync(testDir, { withFileTypes: true })
       .filter((d: any) => d.isDirectory() && !NON_TEST_DIRS.includes(d.name))
+      .filter((d: any) => containsTestFile(path.join(testDir, d.name)))
       .map((d: any) => d.name);
 
     const configContent = readFileSync(vitestConfigPath, 'utf-8');

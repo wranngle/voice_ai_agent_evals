@@ -33,7 +33,7 @@ async function fetchExecutions(): Promise<ApiResponse> {
   const response = await fetch(url, {
     headers: { 'X-N8N-API-KEY': API_KEY },
   });
-  return response.json();
+  return (await response.json()) as ApiResponse;
 }
 
 function formatDuration(start: string, stop: string | null): string {
@@ -118,3 +118,5 @@ async function main() {
 }
 
 main();
+
+export {};

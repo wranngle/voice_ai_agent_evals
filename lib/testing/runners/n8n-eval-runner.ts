@@ -80,7 +80,7 @@ export class N8nEvalRunner implements TestRunner {
   }
 
   async execute(testCase: TestCase, options?: RunOptions): Promise<TestExecutionResult> {
-    const config = testCase.input as N8nEvalTestConfig;
+    const config = testCase.input as unknown as N8nEvalTestConfig;
     const expected = testCase.expected_output as N8nEvalExpectedOutput;
     const timeout = options?.timeout || DEFAULT_TIMEOUT;
 
@@ -218,7 +218,7 @@ export class N8nEvalRunner implements TestRunner {
 
   validate(testCase: TestCase): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
-    const config = testCase.input as N8nEvalTestConfig;
+    const config = testCase.input as unknown as N8nEvalTestConfig;
 
     if (!config.workflow_id) {
       errors.push('Missing required field: workflow_id');
@@ -269,7 +269,7 @@ export class N8nEvalRunner implements TestRunner {
     // Parse the response body regardless of status code
     let result: Record<string, unknown>;
     try {
-      result = await response.json();
+      result = (await response.json()) as Record<string, unknown>;
     } catch {
       result = { _raw_response: await response.text() };
     }
@@ -319,11 +319,11 @@ export class N8nEvalRunner implements TestRunner {
       throw new Error(`Workflow execution failed: ${response.status} - ${error}`);
     }
 
-    const result = await response.json();
+    const result = (await response.json()) as Record<string, unknown> & N8nExecutionResult;
 
     // If we got an execution ID, poll for completion
     if (result.executionId && !result.finished) {
-      return this.pollForCompletion(result.executionId, timeout);
+      return this.pollForCompletion(result.executionId as string, timeout);
     }
 
     return result;
@@ -354,7 +354,7 @@ export class N8nEvalRunner implements TestRunner {
         continue;
       }
 
-      const execution = await response.json();
+      const execution = (await response.json()) as Record<string, unknown> & N8nExecutionResult;
 
       if (execution.finished || execution.status === 'success' || execution.status === 'error') {
         return execution;

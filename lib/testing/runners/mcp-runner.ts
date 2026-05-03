@@ -53,7 +53,7 @@ export class McpRunner implements TestRunner {
   }
 
   async execute(testCase: TestCase, options?: RunOptions): Promise<TestExecutionResult> {
-    const config = testCase.input as McpTestConfig;
+    const config = testCase.input as unknown as McpTestConfig;
     const expected = testCase.expected_output as McpExpectedOutput;
     const timeout = options?.timeout || config.expected_execution_time_ms || DEFAULT_TIMEOUT;
 
@@ -164,7 +164,7 @@ export class McpRunner implements TestRunner {
 
   validate(testCase: TestCase): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
-    const config = testCase.input as McpTestConfig;
+    const config = testCase.input as unknown as McpTestConfig;
 
     if (!config.workflow_id) {
       errors.push('Missing required field: workflow_id');
@@ -245,7 +245,7 @@ export class McpRunner implements TestRunner {
     // Parse response regardless of status code
     let result: Record<string, unknown>;
     try {
-      result = await response.json();
+      result = (await response.json()) as Record<string, unknown>;
     } catch {
       result = { _raw_response: await response.text() };
     }
@@ -292,11 +292,11 @@ export class McpRunner implements TestRunner {
       throw new Error(`Workflow execution failed: ${response.status} - ${error}`);
     }
 
-    const result = await response.json();
+    const result = (await response.json()) as Record<string, unknown>;
 
     // If execution is async, poll for completion
     if (result.executionId && !result.finished) {
-      return this.pollForCompletion(result.executionId, timeout);
+      return this.pollForCompletion(result.executionId as string, timeout);
     }
 
     return result;
@@ -324,7 +324,7 @@ export class McpRunner implements TestRunner {
         continue;
       }
 
-      const execution = await response.json();
+      const execution = (await response.json()) as Record<string, unknown>;
 
       if (execution.finished || execution.status === 'success' || execution.status === 'error') {
         return execution;

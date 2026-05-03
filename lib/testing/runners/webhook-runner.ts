@@ -20,7 +20,7 @@ export class WebhookRunner implements TestRunner {
   readonly type = 'webhook' as const;
 
   async execute(testCase: TestCase, options?: RunOptions): Promise<TestExecutionResult> {
-    const config = testCase.input as WebhookTestConfig;
+    const config = testCase.input as unknown as WebhookTestConfig;
     const expected = testCase.expected_output as WebhookExpectedOutput;
     const timeout = config.timeout_ms || options?.timeout || DEFAULT_TIMEOUT;
 
@@ -53,7 +53,7 @@ export class WebhookRunner implements TestRunner {
 
       if (contentType.includes('application/json')) {
         try {
-          responseBody = await response.json();
+          responseBody = (await response.json()) as Record<string, unknown>;
         } catch {
           responseBody = { _raw: await response.text() };
         }
@@ -127,7 +127,7 @@ export class WebhookRunner implements TestRunner {
 
   validate(testCase: TestCase): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
-    const config = testCase.input as WebhookTestConfig;
+    const config = testCase.input as unknown as WebhookTestConfig;
 
     if (!config.url) {
       errors.push('Missing required field: url');

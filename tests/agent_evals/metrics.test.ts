@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
   NoopMetricsSink,
   createPrometheusMetricsSink,
@@ -26,7 +26,7 @@ describe("PrometheusMetricsSink", () => {
   });
 
   function fakeFetch(): typeof fetch {
-    return (async (input: RequestInfo | URL, init?: RequestInit) => {
+    return (async (input: string | URL | Request, init?: RequestInit) => {
       const url = typeof input === "string" ? input : input.toString();
       const body = (init?.body as string) ?? "";
       captured.push({ url, body });

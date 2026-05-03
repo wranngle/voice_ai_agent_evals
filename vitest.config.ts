@@ -57,6 +57,15 @@ const offlineProjects = [
       testTimeout: 30000,
     },
   },
+  {
+    test: {
+      name: 'agent_evals',
+      root: '.',
+      include: ['tests/agent_evals/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30000,
+    },
+  },
 ];
 
 // Live projects (need network + secrets, only run in CI live job or locally)

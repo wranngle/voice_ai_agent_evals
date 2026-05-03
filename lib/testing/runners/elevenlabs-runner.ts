@@ -105,7 +105,7 @@ export class ElevenLabsRunner implements TestRunner {
   }
 
   async execute(testCase: TestCase, options?: RunOptions): Promise<TestExecutionResult> {
-    const config = testCase.input as ElevenLabsTestConfig;
+    const config = testCase.input as unknown as ElevenLabsTestConfig;
     const expected = testCase.expected_output as ElevenLabsExpectedOutput;
     const timeout = options?.timeout || DEFAULT_TIMEOUT;
 
@@ -189,7 +189,7 @@ export class ElevenLabsRunner implements TestRunner {
 
   validate(testCase: TestCase): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
-    const config = testCase.input as ElevenLabsTestConfig;
+    const config = testCase.input as unknown as ElevenLabsTestConfig;
 
     if (!config.agent_id) {
       errors.push('Missing required field: agent_id');
@@ -209,7 +209,7 @@ export class ElevenLabsRunner implements TestRunner {
    * Build simulation request from test case
    */
   private buildRequest(testCase: TestCase): SimulateConversationRequest {
-    const config = testCase.input as ElevenLabsTestConfig;
+    const config = testCase.input as unknown as ElevenLabsTestConfig;
     const expected = testCase.expected_output as ElevenLabsExpectedOutput;
 
     const request: SimulateConversationRequest = {
@@ -268,7 +268,7 @@ export class ElevenLabsRunner implements TestRunner {
         throw new Error(`ElevenLabs API error ${response.status}: ${errorText}`);
       }
 
-      return await response.json();
+      return (await response.json()) as SimulateConversationResponse;
     } finally {
       clearTimeout(timeoutId);
     }

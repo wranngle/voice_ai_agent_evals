@@ -139,8 +139,8 @@ describe('LLM Extraction Engine — n8n Eval', () => {
 
 			const result = await runner.execute(testCase);
 			expect(result.status).toBe('passed');
-			expect(result.actual_output.output.fields.length).toBeGreaterThan(0);
-			expect(result.actual_output.output.errors).toHaveLength(0);
+			expect((result.actual_output.output as any).fields.length).toBeGreaterThan(0);
+			expect((result.actual_output.output as any).errors).toHaveLength(0);
 		});
 	});
 
@@ -185,7 +185,7 @@ describe('LLM Extraction Engine — n8n Eval', () => {
 			const result = await runner.execute(testCase);
 			expect(result.status).toBe('passed');
 
-			const output = result.actual_output.output;
+			const output = result.actual_output.output as any;
 			const categories = new Set(output.fields.map((f: Record<string, unknown>) => f.category));
 			expect(categories.has('sales')).toBe(true);
 			expect(categories.has('external_contacts')).toBe(true);
@@ -274,8 +274,8 @@ describe('LLM Extraction Engine — n8n Eval', () => {
 
 			const result = await runner.execute(testCase);
 			expect(result.status).toBe('passed');
-			expect(result.actual_output.output.errors.length).toBeGreaterThan(0);
-			expect(result.actual_output.output.fields.length).toBeGreaterThan(0);
+			expect((result.actual_output.output as any).errors.length).toBeGreaterThan(0);
+			expect((result.actual_output.output as any).fields.length).toBeGreaterThan(0);
 		});
 	});
 

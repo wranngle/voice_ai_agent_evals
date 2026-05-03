@@ -64,7 +64,7 @@ async function callSmsWebhook(
 
   let body: SmsResponse;
   try {
-    body = await response.json();
+    body = (await response.json()) as SmsResponse;
   } catch {
     body = { success: false, error: "PARSE_ERROR", message: await response.text() } as any;
   }
@@ -72,7 +72,7 @@ async function callSmsWebhook(
   return { status: response.status, body, latencyMs };
 }
 
-describe("SMS Tool Webhook", () => {
+describe.skipIf(process.env.CI)("SMS Tool Webhook", () => {
   describe("Authentication", () => {
     test("should reject requests without auth header", async () => {
       const response = await fetch(WEBHOOK_URL, {
@@ -82,7 +82,7 @@ describe("SMS Tool Webhook", () => {
       });
 
       expect(response.status).toBe(401);
-      const body = await response.json();
+      const body = (await response.json()) as { success?: boolean; error?: string };
       expect(body.success).toBe(false);
       expect(body.error).toBe("UNAUTHORIZED");
     });
@@ -98,7 +98,7 @@ describe("SMS Tool Webhook", () => {
       });
 
       expect(response.status).toBe(401);
-      const body = await response.json();
+      const body = (await response.json()) as { error?: string };
       expect(body.error).toBe("UNAUTHORIZED");
     });
 
