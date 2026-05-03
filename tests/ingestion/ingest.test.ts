@@ -4,11 +4,13 @@
  * Tests for the test ingestion engine that imports Vitest tests into the framework.
  */
 
-import { describe, it, expect, test, beforeEach, afterEach, vi } from 'vitest';
-import { mkdirSync, writeFileSync, rmSync } from 'fs';
-import { join } from 'path';
-import { ingestTests, type IngestResult } from '../../lib/testing/ingestion/ingest';
-import { clearAllDataSync, listTestCasesSync } from '../../lib/testing/local-storage';
+import {mkdirSync, writeFileSync, rmSync} from 'node:fs';
+import {join} from 'node:path';
+import {
+  describe, it, expect, test, beforeEach, afterEach, vi,
+} from 'vitest';
+import {ingestTests, type IngestResult} from '../../lib/testing/ingestion/ingest';
+import {clearAllDataSync, listTestCasesSync} from '../../lib/testing/local-storage';
 
 const TEST_DIR = join(process.cwd(), '.test-ingestion-temp-' + Date.now());
 const UNIQUE_STORAGE_DIR = join(process.cwd(), '.test-data-ingest-' + Date.now());
@@ -17,9 +19,9 @@ describe('Test Ingestion Engine', () => {
   beforeEach(() => {
     // Set unique storage dir to avoid conflicts with parallel tests
     process.env.TEST_STORAGE_DIR = UNIQUE_STORAGE_DIR;
-    mkdirSync(UNIQUE_STORAGE_DIR, { recursive: true });
+    mkdirSync(UNIQUE_STORAGE_DIR, {recursive: true});
     // Create temp directory
-    mkdirSync(TEST_DIR, { recursive: true });
+    mkdirSync(TEST_DIR, {recursive: true});
     // Clear test data
     clearAllDataSync();
   });
@@ -27,17 +29,19 @@ describe('Test Ingestion Engine', () => {
   afterEach(() => {
     // Clean up temp directory
     try {
-      rmSync(TEST_DIR, { recursive: true, force: true });
+      rmSync(TEST_DIR, {recursive: true, force: true});
     } catch {
       // Ignore cleanup errors
     }
+
     // Clear test data
     clearAllDataSync();
     try {
-      rmSync(UNIQUE_STORAGE_DIR, { recursive: true, force: true });
+      rmSync(UNIQUE_STORAGE_DIR, {recursive: true, force: true});
     } catch {
       // Ignore cleanup errors
     }
+
     delete process.env.TEST_STORAGE_DIR;
   });
 
@@ -54,7 +58,7 @@ describe('Test Ingestion Engine', () => {
             expect(response.status).toBe(200);
           });
         });
-        `
+        `,
       );
 
       const result = await ingestTests({
@@ -77,7 +81,7 @@ describe('Test Ingestion Engine', () => {
             expect(response.status).toBe(200);
           });
         });
-        `
+        `,
       );
       writeFileSync(
         join(TEST_DIR, 'webhook.test.ts'),
@@ -89,7 +93,7 @@ describe('Test Ingestion Engine', () => {
             expect(response.status).toBe(200);
           });
         });
-        `
+        `,
       );
 
       const result = await ingestTests({
@@ -104,7 +108,7 @@ describe('Test Ingestion Engine', () => {
     test('should scan subdirectories', async () => {
       // Create nested structure
       const subDir = join(TEST_DIR, 'sub');
-      mkdirSync(subDir, { recursive: true });
+      mkdirSync(subDir, {recursive: true});
 
       writeFileSync(
         join(subDir, 'nested.test.ts'),
@@ -116,7 +120,7 @@ describe('Test Ingestion Engine', () => {
             expect(response.status).toBe(200);
           });
         });
-        `
+        `,
       );
 
       const result = await ingestTests({
@@ -131,7 +135,7 @@ describe('Test Ingestion Engine', () => {
     test('should skip node_modules', async () => {
       // Create node_modules structure
       const nmDir = join(TEST_DIR, 'node_modules', 'some-package');
-      mkdirSync(nmDir, { recursive: true });
+      mkdirSync(nmDir, {recursive: true});
 
       writeFileSync(
         join(nmDir, 'index.test.ts'),
@@ -143,7 +147,7 @@ describe('Test Ingestion Engine', () => {
             expect(response.status).toBe(200);
           });
         });
-        `
+        `,
       );
 
       const result = await ingestTests({
@@ -166,7 +170,7 @@ describe('Test Ingestion Engine', () => {
             expect(1 + 1).toBe(2);
           });
         });
-        `
+        `,
       );
 
       const result = await ingestTests({
@@ -192,7 +196,7 @@ describe('Test Ingestion Engine', () => {
             expect(response.status).toBe(200);
           });
         });
-        `
+        `,
       );
 
       const result = await ingestTests({
@@ -223,7 +227,7 @@ describe('Test Ingestion Engine', () => {
             expect(response.status).toBe(201);
           });
         });
-        `
+        `,
       );
 
       const result = await ingestTests({
@@ -251,7 +255,7 @@ describe('Test Ingestion Engine', () => {
             expect(response.body.success).toBe(true);
           });
         });
-        `
+        `,
       );
 
       const result = await ingestTests({
@@ -280,7 +284,7 @@ describe('Test Ingestion Engine', () => {
             expect(response.status).toBe(200);
           });
         });
-        `
+        `,
       );
 
       await ingestTests({
@@ -303,7 +307,7 @@ describe('Test Ingestion Engine', () => {
             expect(response.status).toBe(200);
           });
         });
-        `
+        `,
       );
 
       await ingestTests({
@@ -329,7 +333,7 @@ describe('Test Ingestion Engine', () => {
             expect(response.status).toBe(200);
           });
         });
-        `
+        `,
       );
 
       await ingestTests({
@@ -355,7 +359,7 @@ describe('Test Ingestion Engine', () => {
             expect(response.status).toBe(200);
           });
         });
-        `
+        `,
       );
 
       // First ingestion
@@ -377,7 +381,7 @@ describe('Test Ingestion Engine', () => {
             expect(response.status).toBe(200);
           });
         });
-        `
+        `,
       );
 
       // Second ingestion should skip duplicate
@@ -404,7 +408,7 @@ describe('Test Ingestion Engine', () => {
             expect(response.status).toBe(200);
           });
         });
-        `
+        `,
       );
 
       const result = await ingestTests({
@@ -429,7 +433,7 @@ describe('Test Ingestion Engine', () => {
             expect(response.status).toBe(200);
           });
         });
-        `
+        `,
       );
 
       const result = await ingestTests({
@@ -457,7 +461,7 @@ describe('Test Ingestion Engine', () => {
             expect(response.status).toBe(200);
           });
         });
-        `
+        `,
       );
 
       const result = await ingestTests({
@@ -478,7 +482,7 @@ describe('Test Ingestion Engine', () => {
           it('unclosed block', async () => {
             const response = await sendWebhook({ field: 'value' });
         // Missing closing braces
-        `
+        `,
       );
 
       // Should not throw
@@ -508,7 +512,7 @@ describe('Test Ingestion Engine', () => {
             expect(response.status).toBe(200);
           });
         });
-        `
+        `,
       );
 
       await ingestTests({
@@ -517,7 +521,7 @@ describe('Test Ingestion Engine', () => {
       });
 
       const testCases = listTestCasesSync();
-      const input = testCases[0].input as { url: string; method: string; body: Record<string, unknown> };
+      const input = testCases[0].input as {url: string; method: string; body: Record<string, unknown>};
 
       expect(input.url).toBe('https://example.com/webhook/post-call');
       expect(input.method).toBe('POST');
@@ -539,7 +543,7 @@ describe('Test Ingestion Engine', () => {
             expect(response.body.processed).toBeTruthy();
           });
         });
-        `
+        `,
       );
 
       await ingestTests({
@@ -548,7 +552,7 @@ describe('Test Ingestion Engine', () => {
       });
 
       const testCases = listTestCasesSync();
-      const expectedOutput = testCases[0].expected_output as Record<string, unknown>;
+      const expectedOutput = testCases[0].expected_output;
 
       expect(expectedOutput.status).toBe(201);
       expect((expectedOutput.response_contains as Record<string, unknown>).success).toBe(true);
@@ -565,7 +569,7 @@ describe('Test Ingestion Engine', () => {
             expect(response.status).toBe(200);
           });
         });
-        `
+        `,
       );
 
       await ingestTests({

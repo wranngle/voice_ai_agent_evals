@@ -10,9 +10,9 @@
  * Output: JSON with test results, suitable for n8n workflow processing
  */
 
-import { runTests } from '../lib/testing/runners/orchestrator';
+import {runTests} from '../lib/testing/runners/orchestrator';
 
-interface HealthCheckResult {
+type HealthCheckResult = {
   status: 'healthy' | 'degraded' | 'failing';
   timestamp: string;
   summary: {
@@ -28,7 +28,7 @@ interface HealthCheckResult {
     name: string;
     error: string;
   }>;
-}
+};
 
 async function main() {
   const startTime = Date.now();
@@ -39,9 +39,10 @@ async function main() {
       enabledOnly: true,
     });
 
-    const healthStatus: HealthCheckResult['status'] =
-      result.failed === 0 && result.errors === 0 ? 'healthy' :
-      result.pass_rate >= 80 ? 'degraded' : 'failing';
+    const healthStatus: HealthCheckResult['status']
+      = result.failed === 0 && result.errors === 0
+        ? 'healthy'
+        : (result.pass_rate >= 80 ? 'degraded' : 'failing');
 
     const output: HealthCheckResult = {
       status: healthStatus,
@@ -65,7 +66,6 @@ async function main() {
 
     // Exit code based on health status
     process.exit(healthStatus === 'healthy' ? 0 : 1);
-
   } catch (error) {
     const output: HealthCheckResult = {
       status: 'failing',

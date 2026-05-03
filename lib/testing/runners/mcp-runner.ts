@@ -10,7 +10,7 @@
  * - MCP tool call verification
  */
 
-import type { TestCase } from '../types';
+import type {TestCase} from '../types';
 import type {
   TestRunner,
   TestExecutionResult,
@@ -19,12 +19,12 @@ import type {
   AssertionResult,
 } from './types';
 
-const DEFAULT_TIMEOUT = 120000; // 2 minutes
+const DEFAULT_TIMEOUT = 120_000; // 2 minutes
 
 /**
  * Expected output configuration for MCP tests
  */
-export interface McpExpectedOutput {
+export type McpExpectedOutput = {
   /** Expected workflow execution status */
   execution_status?: 'success' | 'error';
   /** Expected MCP tools to be called */
@@ -35,12 +35,12 @@ export interface McpExpectedOutput {
   expected_output?: Record<string, unknown>;
   /** Max execution time */
   max_execution_time_ms?: number;
-}
+};
 
 export class McpRunner implements TestRunner {
   readonly type = 'mcp' as const;
-  private apiUrl: string;
-  private apiKey: string;
+  private readonly apiUrl: string;
+  private readonly apiKey: string;
 
   constructor(apiUrl?: string, apiKey?: string) {
     // Ensure API URL includes /api/v1 path
@@ -48,6 +48,7 @@ export class McpRunner implements TestRunner {
     if (!url.endsWith('/api/v1')) {
       url = url.replace(/\/$/, '') + '/api/v1';
     }
+
     this.apiUrl = url;
     this.apiKey = apiKey || process.env.N8N_API_KEY || '';
   }
@@ -64,7 +65,7 @@ export class McpRunner implements TestRunner {
     if (!this.apiKey) {
       return {
         status: 'error',
-        actual_output: { error: 'N8N_API_KEY not configured' },
+        actual_output: {error: 'N8N_API_KEY not configured'},
         latency_ms: Date.now() - startTime,
         error_message: 'N8N_API_KEY environment variable or constructor parameter required',
         assertions_passed: 0,
@@ -143,9 +144,9 @@ export class McpRunner implements TestRunner {
         error_message: allPassed
           ? undefined
           : assertions
-              .filter(a => !a.passed)
-              .map(a => a.message)
-              .join('; '),
+            .filter(a => !a.passed)
+            .map(a => a.message)
+            .join('; '),
       };
     } catch (error) {
       const latency_ms = Date.now() - startTime;
@@ -153,7 +154,7 @@ export class McpRunner implements TestRunner {
 
       return {
         status: 'error',
-        actual_output: { error: errorMessage },
+        actual_output: {error: errorMessage},
         latency_ms,
         error_message: errorMessage,
         assertions_passed: 0,
@@ -162,7 +163,7 @@ export class McpRunner implements TestRunner {
     }
   }
 
-  validate(testCase: TestCase): { valid: boolean; errors: string[] } {
+  validate(testCase: TestCase): {valid: boolean; errors: string[]} {
     const errors: string[] = [];
     const config = testCase.input as unknown as McpTestConfig;
 
@@ -180,7 +181,7 @@ export class McpRunner implements TestRunner {
       errors.push('Missing required field: payload');
     }
 
-    return { valid: errors.length === 0, errors };
+    return {valid: errors.length === 0, errors};
   }
 
   /**
@@ -188,11 +189,12 @@ export class McpRunner implements TestRunner {
    */
   private async executeWorkflow(
     config: McpTestConfig,
-    timeout: number
+    timeout: number,
   ): Promise<Record<string, unknown>> {
     if (config.trigger_type === 'webhook') {
       return this.executeViaWebhook(config, timeout);
     }
+
     return this.executeViaApi(config, timeout);
   }
 
@@ -201,12 +203,12 @@ export class McpRunner implements TestRunner {
    */
   private async executeViaWebhook(
     config: McpTestConfig,
-    timeout: number
+    timeout: number,
   ): Promise<Record<string, unknown>> {
     // Get workflow details to find webhook path
     const workflowUrl = `${this.apiUrl}/workflows/${config.workflow_id}`;
     const workflowResponse = await fetch(workflowUrl, {
-      headers: { 'X-N8N-API-KEY': this.apiKey },
+      headers: {'X-N8N-API-KEY': this.apiKey},
     });
 
     if (!workflowResponse.ok) {
@@ -223,7 +225,7 @@ export class McpRunner implements TestRunner {
     }
 
     // Find webhook node
-    const nodes = workflow.nodes as Array<{ type: string; parameters?: { path?: string }; webhookId?: string }> | undefined;
+    const nodes = workflow.nodes as Array<{type: string; parameters?: {path?: string}; webhookId?: string}> | undefined;
     const webhookNode = nodes?.find(n => n.type === 'n8n-nodes-base.webhook');
 
     if (!webhookNode) {
@@ -247,7 +249,7 @@ export class McpRunner implements TestRunner {
     try {
       result = (await response.json()) as Record<string, unknown>;
     } catch {
-      result = { _raw_response: await response.text() };
+      result = {_raw_response: await response.text()};
     }
 
     result._http_status = response.status;
@@ -259,7 +261,7 @@ export class McpRunner implements TestRunner {
       data: {
         resultData: {
           runData: {
-            webhook_output: [{ data: { main: [[{ json: result }]] } }],
+            webhook_output: [{data: {main: [[{json: result}]]}}],
           },
         },
       },
@@ -271,7 +273,7 @@ export class McpRunner implements TestRunner {
    */
   private async executeViaApi(
     config: McpTestConfig,
-    timeout: number
+    timeout: number,
   ): Promise<Record<string, unknown>> {
     const url = `${this.apiUrl}/workflows/${config.workflow_id}/execute`;
 
@@ -307,7 +309,7 @@ export class McpRunner implements TestRunner {
    */
   private async pollForCompletion(
     executionId: string,
-    timeout: number
+    timeout: number,
   ): Promise<Record<string, unknown>> {
     const startTime = Date.now();
     const pollInterval = 1000;
@@ -316,7 +318,7 @@ export class McpRunner implements TestRunner {
       const url = `${this.apiUrl}/executions/${executionId}`;
 
       const response = await fetch(url, {
-        headers: { 'X-N8N-API-KEY': this.apiKey },
+        headers: {'X-N8N-API-KEY': this.apiKey},
       });
 
       if (!response.ok) {
@@ -340,8 +342,14 @@ export class McpRunner implements TestRunner {
    * Determine execution status from result
    */
   private determineExecutionStatus(result: Record<string, unknown>): 'success' | 'error' {
-    if (result.status === 'error') return 'error';
-    if ((result.data as { resultData?: { error?: unknown } })?.resultData?.error) return 'error';
+    if (result.status === 'error') {
+      return 'error';
+    }
+
+    if ((result.data as {resultData?: {error?: unknown}})?.resultData?.error) {
+      return 'error';
+    }
+
     return 'success';
   }
 
@@ -349,14 +357,16 @@ export class McpRunner implements TestRunner {
    * Extract output from execution result
    */
   private extractOutput(result: Record<string, unknown>): Record<string, unknown> {
-    const data = result.data as { resultData?: { runData?: Record<string, unknown[]> } };
+    const data = result.data as {resultData?: {runData?: Record<string, unknown[]>}};
     const runData = data?.resultData?.runData;
-    if (!runData) return {};
+    if (!runData) {
+      return {};
+    }
 
     const output: Record<string, unknown> = {};
     for (const [nodeName, nodeRuns] of Object.entries(runData)) {
       const firstRun = nodeRuns[0] as {
-        data?: { main?: Array<Array<{ json: Record<string, unknown> }>> };
+        data?: {main?: Array<Array<{json: Record<string, unknown>}>>};
       };
       if (firstRun?.data?.main?.[0]?.[0]?.json) {
         output[nodeName] = firstRun.data.main[0][0].json;
@@ -370,9 +380,12 @@ export class McpRunner implements TestRunner {
    * Get list of executed nodes
    */
   private getExecutedNodes(result: Record<string, unknown>): string[] {
-    const data = result.data as { resultData?: { runData?: Record<string, unknown> } };
+    const data = result.data as {resultData?: {runData?: Record<string, unknown>}};
     const runData = data?.resultData?.runData;
-    if (!runData) return [];
+    if (!runData) {
+      return [];
+    }
+
     return Object.keys(runData);
   }
 
@@ -389,8 +402,8 @@ export class McpRunner implements TestRunner {
     // Check for MCP-related nodes
     for (const nodeName of executedNodes) {
       if (
-        nodeName.toLowerCase().includes('mcp') ||
-        nodeName.toLowerCase().includes('tool')
+        nodeName.toLowerCase().includes('mcp')
+        || nodeName.toLowerCase().includes('tool')
       ) {
         mcpTools.push(nodeName);
       }
@@ -398,15 +411,13 @@ export class McpRunner implements TestRunner {
 
     // Check output for tool call indicators
     for (const [nodeName, nodeOutput] of Object.entries(output)) {
-      const outputObj = nodeOutput as Record<string, unknown>;
-      if (
-        outputObj?.tool_name ||
-        outputObj?.mcp_tool ||
-        outputObj?.toolCalls
-      ) {
-        if (!mcpTools.includes(nodeName)) {
-          mcpTools.push(nodeName);
-        }
+      const outputObject = nodeOutput as Record<string, unknown>;
+      if ((
+        outputObject?.tool_name
+        || outputObject?.mcp_tool
+        || outputObject?.toolCalls
+      ) && !mcpTools.includes(nodeName)) {
+        mcpTools.push(nodeName);
       }
     }
 
@@ -450,7 +461,7 @@ export class McpRunner implements TestRunner {
 
   private assertOutputContains(
     actual: Record<string, unknown>,
-    expected: Record<string, unknown>
+    expected: Record<string, unknown>,
   ): AssertionResult {
     const passed = this.objectContains(actual, expected);
     return {
@@ -462,18 +473,25 @@ export class McpRunner implements TestRunner {
     };
   }
 
-  private objectContains(obj: Record<string, unknown>, subset: Record<string, unknown>): boolean {
+  private objectContains(object: Record<string, unknown>, subset: Record<string, unknown>): boolean {
     for (const [key, value] of Object.entries(subset)) {
-      if (!(key in obj)) return false;
+      if (!(key in object)) {
+        return false;
+      }
+
       if (typeof value === 'object' && value !== null) {
-        if (typeof obj[key] !== 'object' || obj[key] === null) return false;
-        if (!this.objectContains(obj[key] as Record<string, unknown>, value as Record<string, unknown>)) {
+        if (typeof object[key] !== 'object' || object[key] === null) {
           return false;
         }
-      } else if (obj[key] !== value) {
+
+        if (!this.objectContains(object[key] as Record<string, unknown>, value as Record<string, unknown>)) {
+          return false;
+        }
+      } else if (object[key] !== value) {
         return false;
       }
     }
+
     return true;
   }
 }

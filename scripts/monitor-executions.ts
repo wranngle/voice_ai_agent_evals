@@ -5,7 +5,7 @@
  */
 
 const WORKFLOW_ID = process.argv[2] || '81W6PAGZfSi81ZQ9';
-const LIMIT = parseInt(process.argv[3] || '10');
+const LIMIT = Number.parseInt(process.argv[3] || '10');
 const API_KEY = process.env.N8N_API_KEY || '';
 const API_URL = process.env.N8N_API_URL || 'https://your-n8n-host.example.com';
 
@@ -14,30 +14,33 @@ if (!API_KEY) {
   process.exit(1);
 }
 
-interface Execution {
+type Execution = {
   id: string;
   status: string;
   startedAt: string;
-  stoppedAt: string | null;
+  stoppedAt: string | undefined;
   mode: string;
   finished: boolean;
-}
+};
 
-interface ApiResponse {
+type ApiResponse = {
   data: Execution[];
   nextCursor?: string;
-}
+};
 
 async function fetchExecutions(): Promise<ApiResponse> {
   const url = `${API_URL}/api/v1/executions?workflowId=${WORKFLOW_ID}&limit=${LIMIT}`;
   const response = await fetch(url, {
-    headers: { 'X-N8N-API-KEY': API_KEY },
+    headers: {'X-N8N-API-KEY': API_KEY},
   });
   return (await response.json()) as ApiResponse;
 }
 
-function formatDuration(start: string, stop: string | null): string {
-  if (!stop) return 'running';
+function formatDuration(start: string, stop: string | undefined): string {
+  if (!stop) {
+    return 'running';
+  }
+
   const ms = new Date(stop).getTime() - new Date(start).getTime();
   return `${ms}ms`;
 }
@@ -64,9 +67,7 @@ async function main() {
     for (const exec of data.data) {
       const duration = formatDuration(exec.startedAt, exec.stoppedAt);
       const started = new Date(exec.startedAt).toLocaleString();
-      console.log(
-        `${exec.id.padEnd(10)} | ${exec.status.padEnd(7)} | ${duration.padEnd(8)} | ${exec.mode.padEnd(7)} | ${started}`
-      );
+      console.log(`${exec.id.padEnd(10)} | ${exec.status.padEnd(7)} | ${duration.padEnd(8)} | ${exec.mode.padEnd(7)} | ${started}`);
     }
 
     // Statistics
@@ -110,7 +111,6 @@ async function main() {
       console.log('');
       console.log(`⚠️  WARNING: Success rate ${Math.round(successRate * 100)}% below 95% target`);
     }
-
   } catch (error) {
     console.error('Error fetching executions:', error);
     process.exit(1);

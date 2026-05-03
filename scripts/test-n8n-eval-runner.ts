@@ -4,11 +4,11 @@
  * Run: bun run scripts/test-n8n-eval-runner.ts
  */
 
-import { N8nEvalRunner } from '../lib/testing/runners/n8n-eval-runner';
-import type { TestCase } from '../lib/testing/types';
+import {N8nEvalRunner} from '../lib/testing/runners/n8n-eval-runner';
+import type {TestCase} from '../lib/testing/types';
 
 const POST_CALL_WORKFLOW_ID = 'GZsLwzpsTvl9jIEs';
-const POST_CALL_WEBHOOK_PATH = 'post-call'; // path from webhook node, not webhookId
+const POST_CALL_WEBHOOK_PATH = 'post-call'; // Path from webhook node, not webhookId
 const SARAH_AGENT_ID = 'agent_xxxx_demo';
 
 async function main() {
@@ -63,7 +63,7 @@ async function main() {
         processed: true,
         call_status: 'completed',
       },
-      max_execution_time_ms: 10000,
+      max_execution_time_ms: 10_000,
     },
     tags: ['smoke', 'webhook', 'n8n-eval'],
     enabled: true,
@@ -77,14 +77,15 @@ async function main() {
     console.log('❌ Validation failed:', validation1.errors);
     process.exit(1);
   }
+
   console.log('✓ Validation passed');
 
   // Execute
   console.log('\n🚀 Executing test...\n');
-  const result1 = await runner.execute(test1, { timeout: 30000 });
+  const result1 = await runner.execute(test1, {timeout: 30_000});
 
   console.log('─'.repeat(40));
-  console.log(`Status: ${result1.status === 'passed' ? '✅ PASSED' : result1.status === 'failed' ? '❌ FAILED' : '⚠️ ERROR'}`);
+  console.log(`Status: ${result1.status === 'passed' ? '✅ PASSED' : (result1.status === 'failed' ? '❌ FAILED' : '⚠️ ERROR')}`);
   console.log(`Latency: ${result1.latency_ms}ms`);
   console.log(`Assertions: ${result1.assertions_passed} passed, ${result1.assertions_failed} failed`);
 
@@ -93,7 +94,7 @@ async function main() {
   }
 
   // Show output
-  const output1 = result1.actual_output as Record<string, unknown>;
+  const output1 = result1.actual_output;
   console.log('\n📤 Response:');
   console.log(JSON.stringify(output1.output, null, 2));
 
@@ -131,15 +132,13 @@ async function main() {
   };
 
   const validation2 = runner.validate(test2);
-  if (!validation2.valid) {
-    console.log('❌ Validation failed:', validation2.errors);
-  } else {
+  if (validation2.valid) {
     console.log('✓ Validation passed');
     console.log('\n🚀 Executing test...\n');
-    const result2 = await runner.execute(test2, { timeout: 30000 });
+    const result2 = await runner.execute(test2, {timeout: 30_000});
 
     console.log('─'.repeat(40));
-    console.log(`Status: ${result2.status === 'passed' ? '✅ PASSED' : result2.status === 'failed' ? '❌ FAILED' : '⚠️ ERROR'}`);
+    console.log(`Status: ${result2.status === 'passed' ? '✅ PASSED' : (result2.status === 'failed' ? '❌ FAILED' : '⚠️ ERROR')}`);
     console.log(`Latency: ${result2.latency_ms}ms`);
     console.log(`Assertions: ${result2.assertions_passed} passed, ${result2.assertions_failed} failed`);
 
@@ -147,9 +146,11 @@ async function main() {
       console.log(`\nError: ${result2.error_message}`);
     }
 
-    const output2 = result2.actual_output as Record<string, unknown>;
+    const output2 = result2.actual_output;
     console.log('\n📤 Response:');
     console.log(JSON.stringify(output2.output, null, 2));
+  } else {
+    console.log('❌ Validation failed:', validation2.errors);
   }
 
   // Test 3: Abandoned call
@@ -177,7 +178,7 @@ async function main() {
       output_contains: {
         success: true,
         call_status: 'abandoned',
-        // should_callback contains the caller_id when truthy, not boolean
+        // Should_callback contains the caller_id when truthy, not boolean
         abandon_reason: 'early_abandonment',
       },
     },
@@ -188,15 +189,13 @@ async function main() {
   };
 
   const validation3 = runner.validate(test3);
-  if (!validation3.valid) {
-    console.log('❌ Validation failed:', validation3.errors);
-  } else {
+  if (validation3.valid) {
     console.log('✓ Validation passed');
     console.log('\n🚀 Executing test...\n');
-    const result3 = await runner.execute(test3, { timeout: 30000 });
+    const result3 = await runner.execute(test3, {timeout: 30_000});
 
     console.log('─'.repeat(40));
-    console.log(`Status: ${result3.status === 'passed' ? '✅ PASSED' : result3.status === 'failed' ? '❌ FAILED' : '⚠️ ERROR'}`);
+    console.log(`Status: ${result3.status === 'passed' ? '✅ PASSED' : (result3.status === 'failed' ? '❌ FAILED' : '⚠️ ERROR')}`);
     console.log(`Latency: ${result3.latency_ms}ms`);
     console.log(`Assertions: ${result3.assertions_passed} passed, ${result3.assertions_failed} failed`);
 
@@ -204,16 +203,18 @@ async function main() {
       console.log(`\nError: ${result3.error_message}`);
     }
 
-    const output3 = result3.actual_output as Record<string, unknown>;
+    const output3 = result3.actual_output;
     console.log('\n📤 Response:');
     console.log(JSON.stringify(output3.output, null, 2));
+  } else {
+    console.log('❌ Validation failed:', validation3.errors);
   }
 
   console.log('\n' + '═'.repeat(60));
   console.log('\n✨ Tests complete!\n');
 }
 
-main().catch((err) => {
-  console.error('Fatal error:', err);
+main().catch(error => {
+  console.error('Fatal error:', error);
   process.exit(1);
 });

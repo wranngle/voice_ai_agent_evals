@@ -7,9 +7,9 @@
  * Run: bun run scripts/ingest-and-run.ts
  */
 
-import { join } from 'path';
-import { ingestTests } from '../lib/testing/ingestion';
-import { clearAllDataSync, runTests, listTestCases } from '../lib/testing';
+import {join} from 'node:path';
+import {ingestTests} from '../lib/testing/ingestion';
+import {clearAllDataSync, runTests, listTestCases} from '../lib/testing';
 
 async function main() {
   console.log('🔄 Test Ingestion & Execution\n');
@@ -39,8 +39,8 @@ async function main() {
 
   if (ingestionResult.errors.length > 0) {
     console.log(`\n  ⚠️  Errors (${ingestionResult.errors.length}):`);
-    for (const err of ingestionResult.errors) {
-      console.log(`     - ${err}`);
+    for (const error of ingestionResult.errors) {
+      console.log(`     - ${error}`);
     }
   }
 
@@ -48,7 +48,7 @@ async function main() {
   console.log('\n' + '═'.repeat(60));
   console.log('\n📝 Ingested Test Cases:\n');
 
-  const casesResult = await listTestCases({ tag: 'ingested' });
+  const casesResult = await listTestCases({tag: 'ingested'});
   const cases = casesResult.data || [];
 
   for (const tc of cases) {
@@ -97,7 +97,7 @@ async function main() {
   process.exit(summary.failed > 0 || summary.errors > 0 ? 1 : 0);
 }
 
-main().catch((err) => {
-  console.error('Fatal error:', err);
+main().catch(error => {
+  console.error('Fatal error:', error);
   process.exit(1);
 });

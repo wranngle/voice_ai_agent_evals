@@ -21,7 +21,7 @@ export type Priority = 'low' | 'medium' | 'high' | 'urgent';
  * Captured requirement from user input
  * Stored in: testing-requirements Data Table
  */
-export interface TestRequirement {
+export type TestRequirement = {
   requirement_id: string; // REQ-XXX-NNN format
   user_intent: string; // What the user wants to achieve
   verbatim_quote?: string; // Exact quote from user
@@ -30,13 +30,13 @@ export interface TestRequirement {
   source: string; // Where this was captured (chat, issue, etc.)
   linked_tests: string[]; // Array of test_id references
   tags?: string[];
-}
+};
 
 /**
  * Test case definition
  * Stored in: testing-cases Data Table
  */
-export interface TestCase {
+export type TestCase = {
   test_id: string; // TC-XXX-NNN format
   type: TestType;
   requirement_id?: string; // Optional link to requirement
@@ -48,13 +48,13 @@ export interface TestCase {
   enabled: boolean;
   created_at: string;
   updated_at: string;
-}
+};
 
 /**
  * Test execution result
  * Stored in: testing-results Data Table
  */
-export interface TestResult {
+export type TestResult = {
   result_id: string; // Auto-generated UUID
   test_id: string; // Reference to TestCase
   execution_id: string; // Reference to TestRun
@@ -66,13 +66,13 @@ export interface TestResult {
   executed_at: string; // ISO timestamp
   assertions_passed?: number;
   assertions_failed?: number;
-}
+};
 
 /**
  * Test run/batch execution record
  * Stored in: testing-runs Data Table
  */
-export interface TestRun {
+export type TestRun = {
   execution_id: string; // UUID
   started_at: string;
   completed_at?: string;
@@ -89,34 +89,34 @@ export interface TestRun {
   tag_filter?: string; // If filtered by tag
   /** Arbitrary filter context recorded at run start (type, tags, ids, etc.) */
   test_filter?: Record<string, unknown>;
-}
+};
 
 /**
  * Webhook test input format
  */
-export interface WebhookTestInput {
+export type WebhookTestInput = {
   url: string;
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   headers?: Record<string, string>;
   body?: Record<string, unknown>;
   timeout_ms?: number;
-}
+};
 
 /**
  * ElevenLabs test input format
  */
-export interface ElevenLabsTestInput {
+export type ElevenLabsTestInput = {
   agent_id: string;
   test_criteria: string;
   success_evaluation: string;
   sample_audio_url?: string;
   expected_transcript_keywords?: string[];
-}
+};
 
 /**
- * n8n Eval test input format
+ * N8n Eval test input format
  */
-export interface N8nEvalTestInput {
+export type N8nEvalTestInput = {
   workflow_id: string;
   webhook_path?: string;
   payload: Record<string, unknown>;
@@ -125,34 +125,34 @@ export interface N8nEvalTestInput {
     helpfulness_weight: number;
     custom_rubric?: string;
   };
-}
+};
 
 /**
  * MCP workflow test input format
  */
-export interface McpTestInput {
+export type McpTestInput = {
   workflow_id: string;
   trigger_type: 'webhook' | 'manual';
   payload: Record<string, unknown>;
   expected_execution_time_ms?: number;
-}
+};
 
 /**
  * Coverage report for requirements
  */
-export interface RequirementCoverage {
+export type RequirementCoverage = {
   requirement_id: string;
   user_intent: string;
   test_count: number;
   last_test_status?: TestStatus;
   last_tested_at?: string;
   coverage_status: 'covered' | 'partial' | 'uncovered';
-}
+};
 
 /**
  * Test run summary for reporting
  */
-export interface TestRunSummary {
+export type TestRunSummary = {
   execution_id: string;
   duration_ms: number;
   total_tests: number;
@@ -172,4 +172,4 @@ export interface TestRunSummary {
     name: string;
     error_message: string;
   }>;
-}
+};

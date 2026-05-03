@@ -4,9 +4,11 @@
  * Tests for the MCP workflow test runner.
  */
 
-import { describe, it, expect, test, beforeEach, vi, afterEach } from 'vitest';
-import { McpRunner } from '../../lib/testing/runners/mcp-runner';
-import type { TestCase } from '../../lib/testing/types';
+import {
+  describe, it, expect, test, beforeEach, vi, afterEach,
+} from 'vitest';
+import {McpRunner} from '../../lib/testing/runners/mcp-runner';
+import type {TestCase} from '../../lib/testing/types';
 
 describe('MCP Runner', () => {
   describe('Validation', () => {
@@ -21,7 +23,7 @@ describe('MCP Runner', () => {
         input: {
           workflow_id: 'abc123',
           trigger_type: 'webhook',
-          payload: { message: 'Hello' },
+          payload: {message: 'Hello'},
         },
         expected_output: {
           execution_status: 'success',
@@ -46,7 +48,7 @@ describe('MCP Runner', () => {
         input: {
           workflow_id: 'abc123',
           trigger_type: 'manual',
-          payload: { data: 'test' },
+          payload: {data: 'test'},
         },
         expected_output: {},
         tags: [],
@@ -68,7 +70,7 @@ describe('MCP Runner', () => {
         description: 'Test without workflow_id',
         input: {
           trigger_type: 'webhook',
-          payload: { test: true },
+          payload: {test: true},
         },
         expected_output: {},
         tags: [],
@@ -90,7 +92,7 @@ describe('MCP Runner', () => {
         description: 'Test without trigger_type',
         input: {
           workflow_id: 'abc123',
-          payload: { test: true },
+          payload: {test: true},
         },
         expected_output: {},
         tags: [],
@@ -113,7 +115,7 @@ describe('MCP Runner', () => {
         input: {
           workflow_id: 'abc123',
           trigger_type: 'invalid',
-          payload: { test: true },
+          payload: {test: true},
         },
         expected_output: {},
         tags: [],
@@ -172,7 +174,7 @@ describe('MCP Runner', () => {
         input: {
           workflow_id: 'abc123',
           trigger_type: 'manual',
-          payload: { test: true },
+          payload: {test: true},
         },
         expected_output: {},
         tags: [],
@@ -188,12 +190,10 @@ describe('MCP Runner', () => {
     });
 
     test('should handle API error gracefully', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response('{"error": "Unauthorized"}', {
-          status: 401,
-          statusText: 'Unauthorized',
-        })
-      );
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response('{"error": "Unauthorized"}', {
+        status: 401,
+        statusText: 'Unauthorized',
+      }));
 
       const testCase: TestCase = {
         test_id: 'TC-MCP-008',
@@ -203,7 +203,7 @@ describe('MCP Runner', () => {
         input: {
           workflow_id: 'abc123',
           trigger_type: 'manual',
-          payload: { test: true },
+          payload: {test: true},
         },
         expected_output: {},
         tags: [],
@@ -219,7 +219,7 @@ describe('MCP Runner', () => {
     });
 
     test('should handle network errors gracefully', async () => {
-      vi.spyOn(global, 'fetch').mockRejectedValueOnce(new Error('Network error'));
+      vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('Network error'));
 
       const testCase: TestCase = {
         test_id: 'TC-MCP-009',
@@ -229,7 +229,7 @@ describe('MCP Runner', () => {
         input: {
           workflow_id: 'abc123',
           trigger_type: 'manual',
-          payload: { test: true },
+          payload: {test: true},
         },
         expected_output: {},
         tags: [],
@@ -245,30 +245,28 @@ describe('MCP Runner', () => {
     });
 
     test('should execute workflow successfully with mocked API', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            id: 'exec_123',
-            status: 'success',
-            finished: true,
-            data: {
-              resultData: {
-                runData: {
-                  mcp_tool_node: [
-                    {
-                      data: {
-                        main: [[{ json: { result: 'success', tool_name: 'test_tool' } }]],
-                      },
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
+        JSON.stringify({
+          id: 'exec_123',
+          status: 'success',
+          finished: true,
+          data: {
+            resultData: {
+              runData: {
+                mcp_tool_node: [
+                  {
+                    data: {
+                      main: [[{json: {result: 'success', tool_name: 'test_tool'}}]],
                     },
-                  ],
-                },
-                lastNodeExecuted: 'mcp_tool_node',
+                  },
+                ],
               },
+              lastNodeExecuted: 'mcp_tool_node',
             },
-          }),
-          { status: 200 }
-        )
-      );
+          },
+        }),
+        {status: 200},
+      ));
 
       const testCase: TestCase = {
         test_id: 'TC-MCP-010',
@@ -278,7 +276,7 @@ describe('MCP Runner', () => {
         input: {
           workflow_id: 'abc123',
           trigger_type: 'manual',
-          payload: { input: 'test' },
+          payload: {input: 'test'},
         },
         expected_output: {
           execution_status: 'success',
@@ -297,26 +295,24 @@ describe('MCP Runner', () => {
     });
 
     test('should check expected_nodes assertion', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            id: 'exec_123',
-            status: 'success',
-            finished: true,
-            data: {
-              resultData: {
-                runData: {
-                  start: [{ data: { main: [[{ json: {} }]] } }],
-                  mcp_tool: [{ data: { main: [[{ json: {} }]] } }],
-                  output: [{ data: { main: [[{ json: {} }]] } }],
-                },
-                lastNodeExecuted: 'output',
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
+        JSON.stringify({
+          id: 'exec_123',
+          status: 'success',
+          finished: true,
+          data: {
+            resultData: {
+              runData: {
+                start: [{data: {main: [[{json: {}}]]}}],
+                mcp_tool: [{data: {main: [[{json: {}}]]}}],
+                output: [{data: {main: [[{json: {}}]]}}],
               },
+              lastNodeExecuted: 'output',
             },
-          }),
-          { status: 200 }
-        )
-      );
+          },
+        }),
+        {status: 200},
+      ));
 
       const testCase: TestCase = {
         test_id: 'TC-MCP-011',
@@ -326,7 +322,7 @@ describe('MCP Runner', () => {
         input: {
           workflow_id: 'abc123',
           trigger_type: 'manual',
-          payload: { input: 'test' },
+          payload: {input: 'test'},
         },
         expected_output: {
           expected_nodes: ['start', 'mcp_tool', 'output'],
@@ -346,37 +342,35 @@ describe('MCP Runner', () => {
     });
 
     test('should check mcp_tools_called assertion', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            id: 'exec_123',
-            status: 'success',
-            finished: true,
-            data: {
-              resultData: {
-                runData: {
-                  mcp_n8n_tool: [
-                    {
-                      data: {
-                        main: [[{ json: { tool_name: 'n8n_tool' } }]],
-                      },
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
+        JSON.stringify({
+          id: 'exec_123',
+          status: 'success',
+          finished: true,
+          data: {
+            resultData: {
+              runData: {
+                mcp_n8n_tool: [
+                  {
+                    data: {
+                      main: [[{json: {tool_name: 'n8n_tool'}}]],
                     },
-                  ],
-                  mcp_elevenlabs: [
-                    {
-                      data: {
-                        main: [[{ json: { mcp_tool: 'elevenlabs_speak' } }]],
-                      },
+                  },
+                ],
+                mcp_elevenlabs: [
+                  {
+                    data: {
+                      main: [[{json: {mcp_tool: 'elevenlabs_speak'}}]],
                     },
-                  ],
-                },
-                lastNodeExecuted: 'mcp_elevenlabs',
+                  },
+                ],
               },
+              lastNodeExecuted: 'mcp_elevenlabs',
             },
-          }),
-          { status: 200 }
-        )
-      );
+          },
+        }),
+        {status: 200},
+      ));
 
       const testCase: TestCase = {
         test_id: 'TC-MCP-012',
@@ -386,7 +380,7 @@ describe('MCP Runner', () => {
         input: {
           workflow_id: 'abc123',
           trigger_type: 'manual',
-          payload: { input: 'test' },
+          payload: {input: 'test'},
         },
         expected_output: {
           mcp_tools_called: ['n8n', 'elevenlabs'],
@@ -404,30 +398,28 @@ describe('MCP Runner', () => {
     });
 
     test('should check expected_output assertion', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            id: 'exec_123',
-            status: 'success',
-            finished: true,
-            data: {
-              resultData: {
-                runData: {
-                  output: [
-                    {
-                      data: {
-                        main: [[{ json: { status: 'ok', count: 5 } }]],
-                      },
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
+        JSON.stringify({
+          id: 'exec_123',
+          status: 'success',
+          finished: true,
+          data: {
+            resultData: {
+              runData: {
+                output: [
+                  {
+                    data: {
+                      main: [[{json: {status: 'ok', count: 5}}]],
                     },
-                  ],
-                },
-                lastNodeExecuted: 'output',
+                  },
+                ],
               },
+              lastNodeExecuted: 'output',
             },
-          }),
-          { status: 200 }
-        )
-      );
+          },
+        }),
+        {status: 200},
+      ));
 
       const testCase: TestCase = {
         test_id: 'TC-MCP-013',
@@ -437,10 +429,10 @@ describe('MCP Runner', () => {
         input: {
           workflow_id: 'abc123',
           trigger_type: 'manual',
-          payload: { input: 'test' },
+          payload: {input: 'test'},
         },
         expected_output: {
-          expected_output: { output: { status: 'ok' } },
+          expected_output: {output: {status: 'ok'}},
         },
         tags: [],
         enabled: true,
@@ -454,21 +446,19 @@ describe('MCP Runner', () => {
     });
 
     test('should check max_execution_time_ms assertion', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            id: 'exec_123',
-            status: 'success',
-            finished: true,
-            data: {
-              resultData: {
-                runData: {},
-              },
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
+        JSON.stringify({
+          id: 'exec_123',
+          status: 'success',
+          finished: true,
+          data: {
+            resultData: {
+              runData: {},
             },
-          }),
-          { status: 200 }
-        )
-      );
+          },
+        }),
+        {status: 200},
+      ));
 
       const testCase: TestCase = {
         test_id: 'TC-MCP-014',
@@ -478,7 +468,7 @@ describe('MCP Runner', () => {
         input: {
           workflow_id: 'abc123',
           trigger_type: 'manual',
-          payload: { input: 'test' },
+          payload: {input: 'test'},
         },
         expected_output: {
           max_execution_time_ms: 5000,
@@ -509,29 +499,25 @@ describe('MCP Runner', () => {
 
     test('should execute via webhook when trigger_type is webhook', async () => {
       // First fetch: get workflow details
-      vi.spyOn(global, 'fetch')
-        .mockResolvedValueOnce(
-          new Response(
-            JSON.stringify({
-              id: 'abc123',
-              name: 'Test Workflow',
-              nodes: [
-                {
-                  type: 'n8n-nodes-base.webhook',
-                  parameters: { path: 'test-webhook' },
-                },
-              ],
-            }),
-            { status: 200 }
-          )
-        )
-        // Second fetch: webhook call
-        .mockResolvedValueOnce(
-          new Response(
-            JSON.stringify({ success: true, message: 'Webhook received' }),
-            { status: 200 }
-          )
-        );
+      vi.spyOn(globalThis, 'fetch')
+        .mockResolvedValueOnce(new Response(
+          JSON.stringify({
+            id: 'abc123',
+            name: 'Test Workflow',
+            nodes: [
+              {
+                type: 'n8n-nodes-base.webhook',
+                parameters: {path: 'test-webhook'},
+              },
+            ],
+          }),
+          {status: 200},
+        ))
+      // Second fetch: webhook call
+        .mockResolvedValueOnce(new Response(
+          JSON.stringify({success: true, message: 'Webhook received'}),
+          {status: 200},
+        ));
 
       const testCase: TestCase = {
         test_id: 'TC-MCP-015',
@@ -541,7 +527,7 @@ describe('MCP Runner', () => {
         input: {
           workflow_id: 'abc123',
           trigger_type: 'webhook',
-          payload: { input: 'test' },
+          payload: {input: 'test'},
         },
         expected_output: {
           execution_status: 'success',

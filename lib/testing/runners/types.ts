@@ -4,35 +4,37 @@
  * Interfaces and types for the test runner system.
  */
 
-import type { TestCase, TestResult, TestStatus, TestType } from '../types';
+import type {
+  TestCase, TestResult, TestStatus, TestType,
+} from '../types';
 
 /**
  * Result of executing a single test
  */
-export interface TestExecutionResult {
+export type TestExecutionResult = {
   status: TestStatus;
   actual_output: Record<string, unknown>;
   latency_ms: number;
   error_message?: string;
   assertions_passed: number;
   assertions_failed: number;
-}
+};
 
 /**
  * Assertion result from a single check
  */
-export interface AssertionResult {
+export type AssertionResult = {
   name: string;
   passed: boolean;
   expected?: unknown;
   actual?: unknown;
   message?: string;
-}
+};
 
 /**
  * Options for running tests
  */
-export interface RunOptions {
+export type RunOptions = {
   /** Timeout in milliseconds */
   timeout?: number;
   /** Whether to continue on failure */
@@ -41,12 +43,12 @@ export interface RunOptions {
   headers?: Record<string, string>;
   /** Environment variables */
   env?: Record<string, string>;
-}
+};
 
 /**
  * Base interface for all test runners
  */
-export interface TestRunner {
+export type TestRunner = {
   /** The type of tests this runner handles */
   readonly type: TestType;
 
@@ -54,36 +56,36 @@ export interface TestRunner {
   execute(testCase: TestCase, options?: RunOptions): Promise<TestExecutionResult>;
 
   /** Validate that a test case is properly configured */
-  validate(testCase: TestCase): { valid: boolean; errors: string[] };
-}
+  validate(testCase: TestCase): {valid: boolean; errors: string[]};
+};
 
 /**
  * Webhook-specific test input
  */
-export interface WebhookTestConfig {
+export type WebhookTestConfig = {
   url: string;
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   headers?: Record<string, string>;
   body?: unknown;
   timeout_ms?: number;
-}
+};
 
 /**
  * Webhook-specific expected output
  */
-export interface WebhookExpectedOutput {
+export type WebhookExpectedOutput = {
   status?: number;
-  status_range?: { min: number; max: number };
+  status_range?: {min: number; max: number};
   body?: Record<string, unknown>;
   body_contains?: Record<string, unknown>;
   headers?: Record<string, string>;
   latency_max_ms?: number;
-}
+};
 
 /**
  * ElevenLabs test input
  */
-export interface ElevenLabsTestConfig {
+export type ElevenLabsTestConfig = {
   agent_id: string;
   test_prompt?: string;
   test_audio_url?: string;
@@ -92,12 +94,12 @@ export interface ElevenLabsTestConfig {
   max_turns?: number;
   language?: string;
   dynamic_variables?: Record<string, string>;
-}
+};
 
 /**
  * ElevenLabs expected output
  */
-export interface ElevenLabsExpectedOutput {
+export type ElevenLabsExpectedOutput = {
   /** Expected test result (pass/fail) */
   should_pass?: boolean;
   /** Keywords that should appear in agent response */
@@ -108,12 +110,12 @@ export interface ElevenLabsExpectedOutput {
   forbidden_tool_calls?: string[];
   /** Max latency for first response */
   first_response_max_ms?: number;
-}
+};
 
 /**
- * n8n Eval test input
+ * N8n Eval test input
  */
-export interface N8nEvalTestConfig {
+export type N8nEvalTestConfig = {
   workflow_id: string;
   webhook_path?: string;
   payload: Record<string, unknown>;
@@ -122,12 +124,12 @@ export interface N8nEvalTestConfig {
     helpfulness_weight?: number;
     custom_rubric?: string;
   };
-}
+};
 
 /**
- * n8n Eval expected output
+ * N8n Eval expected output
  */
-export interface N8nEvalExpectedOutput {
+export type N8nEvalExpectedOutput = {
   /** Expected status of the workflow execution */
   execution_status?: 'success' | 'error';
   /** Minimum overall score (0-100) */
@@ -144,24 +146,24 @@ export interface N8nEvalExpectedOutput {
     path: string;
     expected: unknown;
   }>;
-}
+};
 
 /**
  * MCP test input
  */
-export interface McpTestConfig {
+export type McpTestConfig = {
   workflow_id: string;
   trigger_type: 'webhook' | 'manual';
   payload: Record<string, unknown>;
   expected_nodes?: string[];
   expected_output?: Record<string, unknown>;
   expected_execution_time_ms?: number;
-}
+};
 
 /**
  * MCP expected output
  */
-export interface McpExpectedOutput {
+export type McpExpectedOutput = {
   /** Expected workflow execution status */
   execution_status?: 'success' | 'error';
   /** Expected MCP tools to be called */
@@ -172,4 +174,4 @@ export interface McpExpectedOutput {
   expected_output?: Record<string, unknown>;
   /** Max execution time */
   max_execution_time_ms?: number;
-}
+};

@@ -4,9 +4,11 @@
  * Tests for the file-based local storage layer.
  */
 
-import { describe, it, expect, test, beforeEach, afterEach } from 'vitest';
-import { mkdirSync, rmSync } from 'fs';
-import { join } from 'path';
+import {mkdirSync, rmSync} from 'node:fs';
+import {join} from 'node:path';
+import {
+  describe, it, expect, test, beforeEach, afterEach,
+} from 'vitest';
 import {
   createTestCaseSync,
   getTestCaseSync,
@@ -39,7 +41,7 @@ describe('Local Storage', () => {
   beforeEach(() => {
     // Set unique storage dir to avoid conflicts with parallel tests
     process.env.TEST_STORAGE_DIR = UNIQUE_STORAGE_DIR;
-    mkdirSync(UNIQUE_STORAGE_DIR, { recursive: true });
+    mkdirSync(UNIQUE_STORAGE_DIR, {recursive: true});
     clearAllDataSync();
   });
 
@@ -47,24 +49,25 @@ describe('Local Storage', () => {
     // Clean up after tests
     clearAllDataSync();
     try {
-      rmSync(UNIQUE_STORAGE_DIR, { recursive: true, force: true });
+      rmSync(UNIQUE_STORAGE_DIR, {recursive: true, force: true});
     } catch {
       // Ignore cleanup errors
     }
+
     delete process.env.TEST_STORAGE_DIR;
   });
 
   describe('ID Generation', () => {
     test('should generate unique IDs with correct prefix', () => {
-      const reqId = generateId('REQ');
+      const requestId = generateId('REQ');
       const tcId = generateId('TC');
       const runId = generateId('RUN');
       const resId = generateId('RES');
 
-      expect(reqId).toMatch(/^REQ-[A-Z0-9]+-[A-Z0-9]+$/);
-      expect(tcId).toMatch(/^TC-[A-Z0-9]+-[A-Z0-9]+$/);
-      expect(runId).toMatch(/^RUN-[A-Z0-9]+-[A-Z0-9]+$/);
-      expect(resId).toMatch(/^RES-[A-Z0-9]+-[A-Z0-9]+$/);
+      expect(requestId).toMatch(/^REQ(?:-[A-Z\d]+){2}$/);
+      expect(tcId).toMatch(/^TC(?:-[A-Z\d]+){2}$/);
+      expect(runId).toMatch(/^RUN(?:-[A-Z\d]+){2}$/);
+      expect(resId).toMatch(/^RES(?:-[A-Z\d]+){2}$/);
     });
 
     test('should generate unique IDs each time', () => {
@@ -72,6 +75,7 @@ describe('Local Storage', () => {
       for (let i = 0; i < 100; i++) {
         ids.add(generateId('TC'));
       }
+
       // Allow for very rare timing collisions (99+ is acceptable)
       expect(ids.size).toBeGreaterThanOrEqual(99);
     });
@@ -83,8 +87,8 @@ describe('Local Storage', () => {
         type: 'webhook',
         name: 'Test Case 1',
         description: 'A test case',
-        input: { url: 'https://example.com', method: 'POST', body: {} },
-        expected_output: { status: 200 },
+        input: {url: 'https://example.com', method: 'POST', body: {}},
+        expected_output: {status: 200},
         tags: ['smoke'],
         enabled: true,
       });
@@ -149,19 +153,19 @@ describe('Local Storage', () => {
       });
 
       // Filter by type
-      const webhookTests = listTestCasesSync({ type: 'webhook' });
+      const webhookTests = listTestCasesSync({type: 'webhook'});
       expect(webhookTests.length).toBe(2);
 
       // Filter by tag
-      const smokeTests = listTestCasesSync({ tag: 'smoke' });
+      const smokeTests = listTestCasesSync({tag: 'smoke'});
       expect(smokeTests.length).toBe(2);
 
       // Filter by enabled
-      const enabledTests = listTestCasesSync({ enabled: true });
+      const enabledTests = listTestCasesSync({enabled: true});
       expect(enabledTests.length).toBe(2);
 
       // Pagination
-      const limited = listTestCasesSync({ limit: 1 });
+      const limited = listTestCasesSync({limit: 1});
       expect(limited.length).toBe(1);
     });
 
@@ -191,7 +195,7 @@ describe('Local Storage', () => {
     });
 
     test('should return undefined when updating non-existent test case', () => {
-      const result = updateTestCaseSync('TC-NONEXISTENT-XXX', { name: 'New' });
+      const result = updateTestCaseSync('TC-NONEXISTENT-XXX', {name: 'New'});
       expect(result).toBeUndefined();
     });
 
@@ -223,7 +227,7 @@ describe('Local Storage', () => {
     test('should create a test run with auto-generated ID and timestamp', () => {
       const run = createTestRunSync({
         triggered_by: 'manual',
-        test_filter: { tags: ['smoke'] },
+        test_filter: {tags: ['smoke']},
       });
 
       expect(run.execution_id).toMatch(/^RUN-/);
@@ -243,14 +247,14 @@ describe('Local Storage', () => {
     });
 
     test('should list test runs with filtering', () => {
-      createTestRunSync({ triggered_by: 'manual', test_filter: {} });
-      createTestRunSync({ triggered_by: 'ci', test_filter: {} });
-      createTestRunSync({ triggered_by: 'manual', test_filter: {} });
+      createTestRunSync({triggered_by: 'manual', test_filter: {}});
+      createTestRunSync({triggered_by: 'ci', test_filter: {}});
+      createTestRunSync({triggered_by: 'manual', test_filter: {}});
 
-      const manualRuns = listTestRunsSync({ triggeredBy: 'manual' });
+      const manualRuns = listTestRunsSync({triggeredBy: 'manual'});
       expect(manualRuns.length).toBe(2);
 
-      const ciRuns = listTestRunsSync({ triggeredBy: 'ci' });
+      const ciRuns = listTestRunsSync({triggeredBy: 'ci'});
       expect(ciRuns.length).toBe(1);
     });
 
@@ -282,7 +286,7 @@ describe('Local Storage', () => {
         test_id: 'TC-TEST-001',
         execution_id: 'RUN-TEST-001',
         status: 'passed',
-        actual_output: { success: true },
+        actual_output: {success: true},
         latency_ms: 100,
       });
 
@@ -331,31 +335,31 @@ describe('Local Storage', () => {
       });
 
       // Filter by execution ID
-      const run1Results = listTestResultsSync({ executionId: 'RUN-001' });
+      const run1Results = listTestResultsSync({executionId: 'RUN-001'});
       expect(run1Results.length).toBe(2);
 
       // Filter by status
-      const passedResults = listTestResultsSync({ status: 'passed' });
+      const passedResults = listTestResultsSync({status: 'passed'});
       expect(passedResults.length).toBe(2);
 
       // Filter by test ID
-      const tc001Results = listTestResultsSync({ testId: 'TC-001' });
+      const tc001Results = listTestResultsSync({testId: 'TC-001'});
       expect(tc001Results.length).toBe(1);
     });
   });
 
   describe('Requirements CRUD', () => {
     test('should create a requirement with auto-generated ID and timestamp', () => {
-      const req = createRequirementSync({
+      const request = createRequirementSync({
         user_intent: 'The agent should respond to greetings',
         status: 'captured',
         source: 'manual',
         linked_tests: [],
       });
 
-      expect(req.requirement_id).toMatch(/^REQ-/);
-      expect(req.user_intent).toBe('The agent should respond to greetings');
-      expect(req.captured_at).toBeDefined();
+      expect(request.requirement_id).toMatch(/^REQ-/);
+      expect(request.user_intent).toBe('The agent should respond to greetings');
+      expect(request.captured_at).toBeDefined();
     });
 
     test('should get a requirement by ID', () => {
@@ -384,10 +388,10 @@ describe('Local Storage', () => {
       const all = listRequirementsSync();
       expect(all.length).toBe(5);
 
-      const limited = listRequirementsSync({ limit: 2 });
+      const limited = listRequirementsSync({limit: 2});
       expect(limited.length).toBe(2);
 
-      const offset = listRequirementsSync({ offset: 3, limit: 10 });
+      const offset = listRequirementsSync({offset: 3, limit: 10});
       expect(offset.length).toBe(2);
     });
 
@@ -426,20 +430,20 @@ describe('Local Storage', () => {
 
   describe('Utility Functions', () => {
     test('captureRequirementSync should create requirement with options', () => {
-      const req = captureRequirementSync('User wants to book appointments', {
+      const request = captureRequirementSync('User wants to book appointments', {
         verbatimQuote: '"I need to schedule a demo"',
         source: 'chat',
         tags: ['booking', 'demo'],
       });
 
-      expect(req.user_intent).toBe('User wants to book appointments');
-      expect(req.verbatim_quote).toBe('"I need to schedule a demo"');
-      expect(req.source).toBe('chat');
-      expect(req.tags).toContain('booking');
+      expect(request.user_intent).toBe('User wants to book appointments');
+      expect(request.verbatim_quote).toBe('"I need to schedule a demo"');
+      expect(request.source).toBe('chat');
+      expect(request.tags).toContain('booking');
     });
 
     test('linkTestToRequirementSync should link test to requirement', () => {
-      const req = createRequirementSync({
+      const request = createRequirementSync({
         user_intent: 'Test requirement',
         status: 'captured',
         source: 'manual',
@@ -456,15 +460,15 @@ describe('Local Storage', () => {
         enabled: true,
       });
 
-      const result = linkTestToRequirementSync(testCase.test_id, req.requirement_id);
+      const result = linkTestToRequirementSync(testCase.test_id, request.requirement_id);
 
-      expect(result.testCase?.requirement_id).toBe(req.requirement_id);
+      expect(result.testCase?.requirement_id).toBe(request.requirement_id);
       expect(result.requirement?.linked_tests).toContain(testCase.test_id);
     });
 
     test('getRequirementCoverageSync should return coverage status', () => {
       // Create requirement with linked test
-      const coveredReq = createRequirementSync({
+      const coveredRequest = createRequirementSync({
         user_intent: 'Covered requirement',
         status: 'captured',
         source: 'manual',
@@ -481,7 +485,7 @@ describe('Local Storage', () => {
         enabled: true,
       });
 
-      linkTestToRequirementSync(testCase.test_id, coveredReq.requirement_id);
+      linkTestToRequirementSync(testCase.test_id, coveredRequest.requirement_id);
 
       // Create uncovered requirement
       createRequirementSync({
@@ -494,7 +498,7 @@ describe('Local Storage', () => {
       const coverage = getRequirementCoverageSync();
       expect(coverage.length).toBe(2);
 
-      const covered = coverage.find(c => c.requirement_id === coveredReq.requirement_id);
+      const covered = coverage.find(c => c.requirement_id === coveredRequest.requirement_id);
       expect(covered?.coverage_status).toBe('covered');
       expect(covered?.test_count).toBe(1);
 

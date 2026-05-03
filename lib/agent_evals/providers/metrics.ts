@@ -1,22 +1,22 @@
-export interface MetricsSink {
+export type MetricsSink = {
   incrementCounter(name: string, value?: number, attributes?: Record<string, string>): void;
   flush(): Promise<void>;
-}
+};
 
 export const NoopMetricsSink: MetricsSink = {
   incrementCounter(): void {},
   async flush(): Promise<void> {},
 };
 
-interface CounterPoint {
+type CounterPoint = {
   name: string;
   value: number;
   attributes: Record<string, string>;
   timeUnixNano: string;
   startTimeUnixNano: string;
-}
+};
 
-export interface PrometheusMetricsSinkOptions {
+export type PrometheusMetricsSinkOptions = {
   /**
    * Endpoint that accepts Prometheus exposition format. For VictoriaMetrics:
    * `http://<host>:8428/api/v1/import/prometheus`.
@@ -32,7 +32,7 @@ export interface PrometheusMetricsSinkOptions {
   endpoint: string;
   serviceName?: string;
   fetchImpl?: typeof fetch;
-}
+};
 
 /**
  * @deprecated Renamed to `createPrometheusMetricsSink`. The "OTLP" label
@@ -52,18 +52,16 @@ export interface PrometheusMetricsSinkOptions {
  */
 export const createOtlpHttpMetricsSink = createPrometheusMetricsSink;
 
-export function createPrometheusMetricsSink(
-  opts: PrometheusMetricsSinkOptions,
-): MetricsSink {
+export function createPrometheusMetricsSink(options: PrometheusMetricsSinkOptions): MetricsSink {
   const startTime = Date.now() * 1_000_000;
   const startTimeNs = startTime.toString();
-  const serviceName = opts.serviceName ?? "agent-evals";
-  const fetchImpl = opts.fetchImpl ?? fetch;
+  const serviceName = options.serviceName ?? 'agent-evals';
+  const fetchImpl = options.fetchImpl ?? fetch;
   const counters = new Map<string, CounterPoint>();
 
   return {
     incrementCounter(name, value = 1, attributes = {}): void {
-      const merged = { ...attributes, service_name: serviceName };
+      const merged = {...attributes, service_name: serviceName};
       const key = counterKey(name, merged);
       const existing = counters.get(key);
       if (existing) {
@@ -80,18 +78,18 @@ export function createPrometheusMetricsSink(
       }
     },
     async flush(): Promise<void> {
-      if (counters.size === 0) return;
+      if (counters.size === 0) {
+        return;
+      }
 
-      const payload = buildPrometheusPayload(Array.from(counters.values()));
-      const response = await fetchImpl(opts.endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain" },
+      const payload = buildPrometheusPayload([...counters.values()]);
+      const response = await fetchImpl(options.endpoint, {
+        method: 'POST',
+        headers: {'Content-Type': 'text/plain'},
         body: payload,
       });
       if (!response.ok) {
-        throw new Error(
-          `metrics export failed: ${response.status} ${response.statusText}`,
-        );
+        throw new Error(`metrics export failed: ${response.status} ${response.statusText}`);
       }
       // Counters are cumulative — leave values in place for the next flush.
     },
@@ -106,24 +104,26 @@ function buildPrometheusPayload(points: CounterPoint[]): string {
       lines.push(`# TYPE ${point.name} counter`);
       seenNames.add(point.name);
     }
-    const labelStr = Object.entries(point.attributes)
+
+    const labelString = Object.entries(point.attributes)
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([k, v]) => `${k.replace(/[^A-Za-z0-9_]/g, "_")}="${escapePromValue(v)}"`)
-      .join(",");
-    lines.push(`${point.name}{${labelStr}} ${point.value}`);
+      .map(([k, v]) => `${k.replaceAll(/\W/g, '_')}="${escapePromValue(v)}"`)
+      .join(',');
+    lines.push(`${point.name}{${labelString}} ${point.value}`);
   }
-  return lines.join("\n") + "\n";
+
+  return lines.join('\n') + '\n';
 }
 
 function escapePromValue(v: string): string {
-  return v.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n");
+  return v.replaceAll('\\', '\\\\').replaceAll('"', String.raw`\"`).replaceAll('\n', String.raw`\n`);
 }
 
 function counterKey(name: string, attributes: Record<string, string>): string {
   const sortedAttrs = Object.entries(attributes)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([k, v]) => `${k}=${v}`)
-    .join(",");
+    .join(',');
   return `${name}{${sortedAttrs}}`;
 }
 

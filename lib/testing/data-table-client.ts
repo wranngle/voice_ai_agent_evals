@@ -25,18 +25,18 @@ const ENDPOINTS = {
   runs: `${N8N_BASE_URL}/testing-runs`,
 } as const;
 
-interface QueryParams {
+type QueryParameters = {
   limit?: number;
   offset?: number;
   filter?: Record<string, unknown>;
-}
+};
 
-interface ApiResponse<T> {
+type ApiResponse<T> = {
   success: boolean;
   data?: T;
   error?: string;
   count?: number;
-}
+};
 
 /**
  * Generic fetch wrapper with error handling
@@ -44,7 +44,7 @@ interface ApiResponse<T> {
 async function apiCall<T>(
   endpoint: string,
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
-  body?: Record<string, unknown>
+  body?: Record<string, unknown>,
 ): Promise<ApiResponse<T>> {
   const url = new URL(endpoint);
 
@@ -69,7 +69,7 @@ async function apiCall<T>(
   }
 
   const data = await response.json() as T;
-  return { success: true, data };
+  return {success: true, data};
 }
 
 /**
@@ -77,7 +77,7 @@ async function apiCall<T>(
  */
 export function generateId(prefix: 'REQ' | 'TC' | 'RUN' | 'RES'): string {
   const timestamp = Date.now().toString(36).toUpperCase();
-  const random = Math.random().toString(36).substring(2, 5).toUpperCase();
+  const random = Math.random().toString(36).slice(2, 5).toUpperCase();
   return `${prefix}-${timestamp}-${random}`;
 }
 
@@ -85,9 +85,7 @@ export function generateId(prefix: 'REQ' | 'TC' | 'RUN' | 'RES'): string {
 // Requirements CRUD
 // ============================================
 
-export async function createRequirement(
-  requirement: Omit<TestRequirement, 'requirement_id' | 'captured_at'>
-): Promise<ApiResponse<TestRequirement>> {
+export async function createRequirement(requirement: Omit<TestRequirement, 'requirement_id' | 'captured_at'>): Promise<ApiResponse<TestRequirement>> {
   const data: TestRequirement = {
     ...requirement,
     requirement_id: generateId('REQ'),
@@ -104,17 +102,22 @@ export async function getRequirement(requirementId: string): Promise<ApiResponse
   return apiCall<TestRequirement>(`${ENDPOINTS.requirements}?id=${requirementId}`);
 }
 
-export async function listRequirements(params?: QueryParams): Promise<ApiResponse<TestRequirement[]>> {
+export async function listRequirements(parameters?: QueryParameters): Promise<ApiResponse<TestRequirement[]>> {
   const url = new URL(ENDPOINTS.requirements);
-  if (params?.limit) url.searchParams.set('limit', params.limit.toString());
-  if (params?.offset) url.searchParams.set('offset', params.offset.toString());
+  if (parameters?.limit) {
+    url.searchParams.set('limit', parameters.limit.toString());
+  }
+
+  if (parameters?.offset) {
+    url.searchParams.set('offset', parameters.offset.toString());
+  }
 
   return apiCall<TestRequirement[]>(url.toString());
 }
 
 export async function updateRequirement(
   requirementId: string,
-  updates: Partial<TestRequirement>
+  updates: Partial<TestRequirement>,
 ): Promise<ApiResponse<TestRequirement>> {
   return apiCall<TestRequirement>(ENDPOINTS.requirements, 'PUT', {
     operation: 'update',
@@ -127,9 +130,7 @@ export async function updateRequirement(
 // Test Cases CRUD
 // ============================================
 
-export async function createTestCase(
-  testCase: Omit<TestCase, 'test_id' | 'created_at' | 'updated_at'>
-): Promise<ApiResponse<TestCase>> {
+export async function createTestCase(testCase: Omit<TestCase, 'test_id' | 'created_at' | 'updated_at'>): Promise<ApiResponse<TestCase>> {
   const now = new Date().toISOString();
   const data: TestCase = {
     ...testCase,
@@ -148,26 +149,43 @@ export async function getTestCase(testId: string): Promise<ApiResponse<TestCase>
   return apiCall<TestCase>(`${ENDPOINTS.cases}?id=${testId}`);
 }
 
-export async function listTestCases(params?: QueryParams & {
+export async function listTestCases(parameters?: QueryParameters & {
   type?: TestType;
   requirementId?: string;
   tag?: string;
   enabled?: boolean;
 }): Promise<ApiResponse<TestCase[]>> {
   const url = new URL(ENDPOINTS.cases);
-  if (params?.limit) url.searchParams.set('limit', params.limit.toString());
-  if (params?.offset) url.searchParams.set('offset', params.offset.toString());
-  if (params?.type) url.searchParams.set('type', params.type);
-  if (params?.requirementId) url.searchParams.set('requirement_id', params.requirementId);
-  if (params?.tag) url.searchParams.set('tag', params.tag);
-  if (params?.enabled !== undefined) url.searchParams.set('enabled', params.enabled.toString());
+  if (parameters?.limit) {
+    url.searchParams.set('limit', parameters.limit.toString());
+  }
+
+  if (parameters?.offset) {
+    url.searchParams.set('offset', parameters.offset.toString());
+  }
+
+  if (parameters?.type) {
+    url.searchParams.set('type', parameters.type);
+  }
+
+  if (parameters?.requirementId) {
+    url.searchParams.set('requirement_id', parameters.requirementId);
+  }
+
+  if (parameters?.tag) {
+    url.searchParams.set('tag', parameters.tag);
+  }
+
+  if (parameters?.enabled !== undefined) {
+    url.searchParams.set('enabled', parameters.enabled.toString());
+  }
 
   return apiCall<TestCase[]>(url.toString());
 }
 
 export async function updateTestCase(
   testId: string,
-  updates: Partial<TestCase>
+  updates: Partial<TestCase>,
 ): Promise<ApiResponse<TestCase>> {
   return apiCall<TestCase>(ENDPOINTS.cases, 'PUT', {
     operation: 'update',
@@ -190,9 +208,7 @@ export async function deleteTestCase(testId: string): Promise<ApiResponse<void>>
 // Test Results CRUD
 // ============================================
 
-export async function createTestResult(
-  result: Omit<TestResult, 'result_id' | 'executed_at'>
-): Promise<ApiResponse<TestResult>> {
+export async function createTestResult(result: Omit<TestResult, 'result_id' | 'executed_at'>): Promise<ApiResponse<TestResult>> {
   const data: TestResult = {
     ...result,
     result_id: generateId('RES'),
@@ -209,32 +225,44 @@ export async function getTestResult(resultId: string): Promise<ApiResponse<TestR
   return apiCall<TestResult>(`${ENDPOINTS.results}?id=${resultId}`);
 }
 
-export async function listTestResults(params?: QueryParams & {
+export async function listTestResults(parameters?: QueryParameters & {
   testId?: string;
   executionId?: string;
   status?: TestStatus;
 }): Promise<ApiResponse<TestResult[]>> {
   const url = new URL(ENDPOINTS.results);
-  if (params?.limit) url.searchParams.set('limit', params.limit.toString());
-  if (params?.offset) url.searchParams.set('offset', params.offset.toString());
-  if (params?.testId) url.searchParams.set('test_id', params.testId);
-  if (params?.executionId) url.searchParams.set('execution_id', params.executionId);
-  if (params?.status) url.searchParams.set('status', params.status);
+  if (parameters?.limit) {
+    url.searchParams.set('limit', parameters.limit.toString());
+  }
+
+  if (parameters?.offset) {
+    url.searchParams.set('offset', parameters.offset.toString());
+  }
+
+  if (parameters?.testId) {
+    url.searchParams.set('test_id', parameters.testId);
+  }
+
+  if (parameters?.executionId) {
+    url.searchParams.set('execution_id', parameters.executionId);
+  }
+
+  if (parameters?.status) {
+    url.searchParams.set('status', parameters.status);
+  }
 
   return apiCall<TestResult[]>(url.toString());
 }
 
 export async function getResultsByRun(executionId: string): Promise<ApiResponse<TestResult[]>> {
-  return listTestResults({ executionId });
+  return listTestResults({executionId});
 }
 
 // ============================================
 // Test Runs CRUD
 // ============================================
 
-export async function createTestRun(
-  run: Omit<TestRun, 'execution_id' | 'started_at'>
-): Promise<ApiResponse<TestRun>> {
+export async function createTestRun(run: Omit<TestRun, 'execution_id' | 'started_at'>): Promise<ApiResponse<TestRun>> {
   const data: TestRun = {
     ...run,
     execution_id: generateId('RUN'),
@@ -251,13 +279,21 @@ export async function getTestRun(executionId: string): Promise<ApiResponse<TestR
   return apiCall<TestRun>(`${ENDPOINTS.runs}?id=${executionId}`);
 }
 
-export async function listTestRuns(params?: QueryParams & {
+export async function listTestRuns(parameters?: QueryParameters & {
   triggeredBy?: TestRun['triggered_by'];
 }): Promise<ApiResponse<TestRun[]>> {
   const url = new URL(ENDPOINTS.runs);
-  if (params?.limit) url.searchParams.set('limit', params.limit.toString());
-  if (params?.offset) url.searchParams.set('offset', params.offset.toString());
-  if (params?.triggeredBy) url.searchParams.set('triggered_by', params.triggeredBy);
+  if (parameters?.limit) {
+    url.searchParams.set('limit', parameters.limit.toString());
+  }
+
+  if (parameters?.offset) {
+    url.searchParams.set('offset', parameters.offset.toString());
+  }
+
+  if (parameters?.triggeredBy) {
+    url.searchParams.set('triggered_by', parameters.triggeredBy);
+  }
 
   return apiCall<TestRun[]>(url.toString());
 }
@@ -271,7 +307,7 @@ export async function completeTestRun(
     errors: number;
     skipped: number;
     avg_latency_ms: number;
-  }
+  },
 ): Promise<ApiResponse<TestRun>> {
   const passRate = stats.total_tests > 0
     ? (stats.passed / stats.total_tests) * 100
@@ -301,7 +337,7 @@ export async function captureRequirement(
     verbatimQuote?: string;
     source?: string;
     tags?: string[];
-  }
+  },
 ): Promise<ApiResponse<TestRequirement>> {
   return createRequirement({
     user_intent: userIntent,
@@ -318,27 +354,27 @@ export async function captureRequirement(
  */
 export async function linkTestToRequirement(
   testId: string,
-  requirementId: string
-): Promise<{ testUpdate: ApiResponse<TestCase>; reqUpdate: ApiResponse<TestRequirement> }> {
+  requirementId: string,
+): Promise<{testUpdate: ApiResponse<TestCase>; reqUpdate: ApiResponse<TestRequirement>}> {
   // Update test case with requirement reference
-  const testUpdate = await updateTestCase(testId, { requirement_id: requirementId });
+  const testUpdate = await updateTestCase(testId, {requirement_id: requirementId});
 
   // Get current requirement to update linked_tests array
-  const reqResponse = await getRequirement(requirementId);
-  if (!reqResponse.success || !reqResponse.data) {
-    return { testUpdate, reqUpdate: reqResponse };
+  const requestResponse = await getRequirement(requirementId);
+  if (!requestResponse.success || !requestResponse.data) {
+    return {testUpdate, reqUpdate: requestResponse};
   }
 
-  const linkedTests = [...(reqResponse.data.linked_tests || [])];
+  const linkedTests = [...(requestResponse.data.linked_tests || [])];
   if (!linkedTests.includes(testId)) {
     linkedTests.push(testId);
   }
 
-  const reqUpdate = await updateRequirement(requirementId, {
+  const requestUpdate = await updateRequirement(requirementId, {
     linked_tests: linkedTests,
   });
 
-  return { testUpdate, reqUpdate };
+  return {testUpdate, reqUpdate: requestUpdate};
 }
 
 /**
@@ -355,12 +391,12 @@ export async function getRequirementCoverage(): Promise<ApiResponse<Array<{
     return requirements as ApiResponse<never>;
   }
 
-  const coverage = requirements.data.map(req => ({
-    requirement_id: req.requirement_id,
-    user_intent: req.user_intent,
-    test_count: req.linked_tests?.length || 0,
-    coverage_status: ((req.linked_tests?.length || 0) > 0 ? 'covered' : 'uncovered') as 'covered' | 'partial' | 'uncovered',
+  const coverage = requirements.data.map(request => ({
+    requirement_id: request.requirement_id,
+    user_intent: request.user_intent,
+    test_count: request.linked_tests?.length || 0,
+    coverage_status: ((request.linked_tests?.length || 0) > 0 ? 'covered' : 'uncovered') as 'covered' | 'partial' | 'uncovered',
   }));
 
-  return { success: true, data: coverage };
+  return {success: true, data: coverage};
 }

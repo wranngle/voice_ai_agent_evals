@@ -4,23 +4,25 @@
  * Coordinates test execution across multiple runners and records results.
  */
 
-import type { TestCase, TestResult, TestRun, TestType, TestRunSummary } from '../types';
-import type { TestRunner, RunOptions, TestExecutionResult } from './types';
+import type {
+  TestCase, TestResult, TestRun, TestType, TestRunSummary,
+} from '../types';
 import {
   createTestRun,
   completeTestRun,
   createTestResult,
   listTestCases,
 } from '../local-storage';
-import { WebhookRunner } from './webhook-runner';
-import { ElevenLabsRunner } from './elevenlabs-runner';
-import { N8nEvalRunner } from './n8n-eval-runner';
-import { McpRunner } from './mcp-runner';
+import type {TestRunner, RunOptions, TestExecutionResult} from './types';
+import {WebhookRunner} from './webhook-runner';
+import {ElevenLabsRunner} from './elevenlabs-runner';
+import {N8nEvalRunner} from './n8n-eval-runner';
+import {McpRunner} from './mcp-runner';
 
 /**
  * Options for the test orchestrator
  */
-export interface OrchestratorOptions {
+export type OrchestratorOptions = {
   /** Filter tests by type */
   type?: TestType;
   /** Filter tests by tag (single) */
@@ -43,13 +45,13 @@ export interface OrchestratorOptions {
   triggerSource?: string;
   /** Triggered by */
   triggeredBy?: 'manual' | 'ci' | 'scheduled' | 'hook';
-}
+};
 
 /**
  * Test Orchestrator - runs tests and records results
  */
 export class TestOrchestrator {
-  private runners: Map<TestType, TestRunner> = new Map();
+  private readonly runners = new Map<TestType, TestRunner>();
 
   constructor() {
     // Register default runners
@@ -94,14 +96,14 @@ export class TestOrchestrator {
       avg_latency_ms: 0,
     });
 
-    const executionId = runResult.data!.execution_id;
+    const executionId = runResult.data.execution_id;
 
     // Get test cases
     const casesResult = await listTestCases({
       type: options.type,
       requirementId: options.requirementId,
       tag: options.tag,
-      enabled: options.enabledOnly !== false ? true : undefined,
+      enabled: options.enabledOnly === false ? undefined : true,
     });
 
     let testCases = casesResult.data || [];
@@ -109,12 +111,12 @@ export class TestOrchestrator {
     // Filter by multiple tags if provided
     if (options.tags && options.tags.length > 0) {
       testCases = testCases.filter(tc =>
-        options.tags!.some(tag => tc.tags.includes(tag))
-      );
+        options.tags!.some(tag => tc.tags.includes(tag)));
     }
+
     const results: TestResult[] = [];
-    const failures: Array<{ test_id: string; name: string; error_message: string }> = [];
-    let slowestTest: { test_id: string; name: string; latency_ms: number } | undefined;
+    const failures: Array<{test_id: string; name: string; error_message: string}> = [];
+    let slowestTest: {test_id: string; name: string; latency_ms: number} | undefined;
 
     // Stats
     let passed = 0;
@@ -129,18 +131,32 @@ export class TestOrchestrator {
       const chunks = this.chunkArray(testCases, concurrency);
 
       for (const chunk of chunks) {
-        const chunkResults = await Promise.all(
-          chunk.map(tc => this.executeTest(tc, executionId, options))
-        );
+        const chunkResults = await Promise.all(chunk.map(async tc => this.executeTest(tc, executionId, options)));
 
         for (const result of chunkResults) {
           results.push(result);
-          this.updateStats(result, { passed, failed, errors, skipped, totalLatency });
+          this.updateStats(result, {
+            passed, failed, errors, skipped, totalLatency,
+          });
 
-          if (result.status === 'passed') passed++;
-          else if (result.status === 'failed') failed++;
-          else if (result.status === 'error') errors++;
-          else if (result.status === 'skipped') skipped++;
+          switch (result.status) {
+            case 'passed': {passed++;
+              break;
+            }
+
+            case 'failed': {failed++;
+              break;
+            }
+
+            case 'error': {errors++;
+              break;
+            }
+
+            case 'skipped': {skipped++;
+              break;
+            }
+					// No default
+          }
 
           totalLatency += result.latency_ms;
 
@@ -161,11 +177,15 @@ export class TestOrchestrator {
               error_message: result.error_message || 'Unknown error',
             });
 
-            if (options.failFast) break;
+            if (options.failFast) {
+              break;
+            }
           }
         }
 
-        if (options.failFast && failures.length > 0) break;
+        if (options.failFast && failures.length > 0) {
+          break;
+        }
       }
     } else {
       // Sequential execution
@@ -173,10 +193,24 @@ export class TestOrchestrator {
         const result = await this.executeTest(testCase, executionId, options);
         results.push(result);
 
-        if (result.status === 'passed') passed++;
-        else if (result.status === 'failed') failed++;
-        else if (result.status === 'error') errors++;
-        else if (result.status === 'skipped') skipped++;
+        switch (result.status) {
+          case 'passed': {passed++;
+            break;
+          }
+
+          case 'failed': {failed++;
+            break;
+          }
+
+          case 'error': {errors++;
+            break;
+          }
+
+          case 'skipped': {skipped++;
+            break;
+          }
+				// No default
+        }
 
         totalLatency += result.latency_ms;
 
@@ -195,7 +229,9 @@ export class TestOrchestrator {
             error_message: result.error_message || 'Unknown error',
           });
 
-          if (options.failFast) break;
+          if (options.failFast) {
+            break;
+          }
         }
       }
     }
@@ -223,7 +259,7 @@ export class TestOrchestrator {
       failed,
       errors,
       skipped,
-      pass_rate: totalTests > 0 ? Math.round((passed / totalTests) * 10000) / 100 : 0,
+      pass_rate: totalTests > 0 ? Math.round((passed / totalTests) * 10_000) / 100 : 0,
       avg_latency_ms: avgLatency,
       slowest_test: slowestTest,
       failures,
@@ -236,7 +272,7 @@ export class TestOrchestrator {
   private async executeTest(
     testCase: TestCase,
     executionId: string,
-    options: RunOptions
+    options: RunOptions,
   ): Promise<TestResult> {
     const runner = this.runners.get(testCase.type);
 
@@ -253,7 +289,7 @@ export class TestOrchestrator {
         assertions_passed: 0,
         assertions_failed: 0,
       });
-      return result.data!;
+      return result.data;
     }
 
     // Validate test case
@@ -264,13 +300,13 @@ export class TestOrchestrator {
         execution_id: executionId,
         requirement_id: testCase.requirement_id,
         status: 'error',
-        actual_output: { validation_errors: validation.errors },
+        actual_output: {validation_errors: validation.errors},
         latency_ms: 0,
         error_message: `Validation failed: ${validation.errors.join(', ')}`,
         assertions_passed: 0,
         assertions_failed: 0,
       });
-      return result.data!;
+      return result.data;
     }
 
     // Execute test
@@ -284,12 +320,12 @@ export class TestOrchestrator {
       ...executionResult,
     });
 
-    return result.data!;
+    return result.data;
   }
 
   private updateStats(
     _result: TestResult,
-    _stats: { passed: number; failed: number; errors: number; skipped: number; totalLatency: number }
+    _stats: {passed: number; failed: number; errors: number; skipped: number; totalLatency: number},
   ): void {
     // Stats are updated in the main loop
   }
@@ -299,6 +335,7 @@ export class TestOrchestrator {
     for (let i = 0; i < array.length; i += size) {
       chunks.push(array.slice(i, i + size));
     }
+
     return chunks;
   }
 }

@@ -1,5 +1,5 @@
-import { loadSettings } from "../config";
-import { createFileConversationRepository } from "../repo";
+import {loadSettings} from '../config';
+import {createFileConversationRepository} from '../repo';
 import {
   SystemClock,
   StderrSink,
@@ -7,24 +7,23 @@ import {
   createJsonLogger,
   NoopMetricsSink,
   createOtlpHttpMetricsSink,
-} from "../providers";
-import { createEvaluator } from "../service";
-import { renderResultsMarkdown } from "../ui";
+} from '../providers';
+import {createEvaluator} from '../service';
+import {renderResultsMarkdown} from '../ui';
 
 async function main(): Promise<void> {
   const fixturePath = process.argv[2];
   if (!fixturePath) {
-    process.stderr.write(
-      "usage: bun run src/runtime/cli.ts <conversations.json>\n",
-    );
+    process.stderr.write('usage: bun run src/runtime/cli.ts <conversations.json>\n');
     process.exit(2);
   }
+
   const settings = loadSettings();
   const repository = createFileConversationRepository(settings, fixturePath);
   const sink = settings.logFile ? createFileSink(settings.logFile) : StderrSink;
   const logger = createJsonLogger(sink);
   const metrics = settings.otlpEndpoint
-    ? createOtlpHttpMetricsSink({ endpoint: settings.otlpEndpoint })
+    ? createOtlpHttpMetricsSink({endpoint: settings.otlpEndpoint})
     : NoopMetricsSink;
   const evaluator = createEvaluator(
     repository,
@@ -47,7 +46,7 @@ async function main(): Promise<void> {
     }
   }
 
-  const failed = results.filter((r) => !r.passed).length;
+  const failed = results.filter(r => !r.passed).length;
   process.exit(failed === 0 ? 0 : 1);
 }
 

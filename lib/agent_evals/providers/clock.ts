@@ -1,6 +1,6 @@
-export interface Clock {
+export type Clock = {
   nowIso(): string;
-}
+};
 
 export const SystemClock: Clock = {
   nowIso(): string {

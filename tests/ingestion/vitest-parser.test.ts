@@ -4,8 +4,10 @@
  * Tests for the Vitest file parser that extracts test cases for ingestion.
  */
 
-import { describe, it, expect, test } from 'vitest';
-import { parseVitestFile, type ParsedTest } from '../../lib/testing/ingestion/vitest-parser';
+import {
+  describe, it, expect, test,
+} from 'vitest';
+import {parseVitestFile, type ParsedTest} from '../../lib/testing/ingestion/vitest-parser';
 
 describe('Vitest Parser', () => {
   describe('Constants Extraction', () => {
@@ -213,7 +215,7 @@ describe('Tests', () => {
 
       const result = parseVitestFile(content, 'test.ts');
 
-      expect(result.tests[0].payload).toEqual({ field: 'value' });
+      expect(result.tests[0].payload).toEqual({field: 'value'});
     });
 
     test('should resolve constant references in payload', () => {

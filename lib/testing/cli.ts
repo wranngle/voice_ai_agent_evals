@@ -25,9 +25,13 @@
  *   --help       Show help
  */
 
-import { parseArgs } from 'util';
-import { join } from 'path';
-import { existsSync, readdirSync, readFileSync, statSync } from 'fs';
+import {parseArgs} from 'node:util';
+import {join} from 'node:path';
+import {
+  existsSync, readdirSync, readFileSync, statSync,
+} from 'node:fs';
+import {ingestTests} from './ingestion';
+import type {TestType, TestCase, TestRunSummary} from './types';
 import {
   orchestrator,
   listTestCases,
@@ -36,8 +40,6 @@ import {
   listTestRuns,
   getResultsByRun,
 } from './index';
-import { ingestTests } from './ingestion';
-import type { TestType, TestCase, TestRunSummary } from './types';
 
 /**
  * Discover scenario YAMLs in tests/scenarios/<id>/scenario.yaml.
@@ -47,47 +49,60 @@ import type { TestType, TestCase, TestRunSummary } from './types';
  */
 function discoverScenarios(rootDir = process.cwd()): TestCase[] {
   const scenariosDir = join(rootDir, 'tests', 'scenarios');
-  if (!existsSync(scenariosDir)) return [];
+  if (!existsSync(scenariosDir)) {
+    return [];
+  }
+
   const out: TestCase[] = [];
-  for (const entry of readdirSync(scenariosDir, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
-    if (entry.name.startsWith('_')) continue; // skip _template
+  for (const entry of readdirSync(scenariosDir, {withFileTypes: true})) {
+    if (!entry.isDirectory()) {
+      continue;
+    }
+
+    if (entry.name.startsWith('_')) {
+      continue;
+    } // Skip _template
+
     const scenarioFile = join(scenariosDir, entry.name, 'scenario.yaml');
-    if (!existsSync(scenarioFile)) continue;
+    if (!existsSync(scenarioFile)) {
+      continue;
+    }
+
     const raw = readFileSync(scenarioFile, 'utf-8');
     // Lightweight YAML parse — extract `description:` line without pulling a yaml dep.
-    const descMatch = raw.match(/^description:\s*(.+)$/m);
+    const descMatch = /^description:\s*(.+)$/m.exec(raw);
     const description = descMatch ? descMatch[1].trim() : '';
     out.push({
       test_id: `SCEN-${entry.name}`,
-      type: 'elevenlabs' as TestType,
+      type: 'elevenlabs',
       name: entry.name,
       description,
-      input: { scenarioPath: scenarioFile },
+      input: {scenarioPath: scenarioFile},
       expected_output: {},
       tags: ['scenario'],
       enabled: true,
       created_at: new Date(statSync(scenarioFile).mtime).toISOString(),
       updated_at: new Date(statSync(scenarioFile).mtime).toISOString(),
-    } as TestCase);
+    });
   }
+
   return out;
 }
 
 // ANSI colors
 const C = {
-  reset: '\x1b[0m',
-  bold: '\x1b[1m',
-  dim: '\x1b[2m',
-  red: '\x1b[31m',
-  green: '\x1b[32m',
-  yellow: '\x1b[33m',
-  blue: '\x1b[34m',
-  cyan: '\x1b[36m',
-  magenta: '\x1b[35m',
+  reset: '\u001B[0m',
+  bold: '\u001B[1m',
+  dim: '\u001B[2m',
+  red: '\u001B[31m',
+  green: '\u001B[32m',
+  yellow: '\u001B[33m',
+  blue: '\u001B[34m',
+  cyan: '\u001B[36m',
+  magenta: '\u001B[35m',
 };
 
-interface CliOptions {
+type CliOptions = {
   command: string;
   type?: TestType;
   tags: string[];
@@ -98,35 +113,35 @@ interface CliOptions {
   verbose: boolean;
   help: boolean;
   dir?: string;
-}
+};
 
 function parseCliArgs(): CliOptions {
-  const { values, positionals } = parseArgs({
+  const {values, positionals} = parseArgs({
     allowPositionals: true,
     options: {
-      type: { type: 'string', short: 't' },
-      tag: { type: 'string', short: 'g', multiple: true },
-      id: { type: 'string' },
-      'fail-fast': { type: 'boolean', short: 'f' },
-      timeout: { type: 'string' },
-      json: { type: 'boolean', short: 'j' },
-      verbose: { type: 'boolean', short: 'v' },
-      help: { type: 'boolean', short: 'h' },
-      dir: { type: 'string', short: 'd' },
+      type: {type: 'string', short: 't'},
+      tag: {type: 'string', short: 'g', multiple: true},
+      id: {type: 'string'},
+      'fail-fast': {type: 'boolean', short: 'f'},
+      timeout: {type: 'string'},
+      json: {type: 'boolean', short: 'j'},
+      verbose: {type: 'boolean', short: 'v'},
+      help: {type: 'boolean', short: 'h'},
+      dir: {type: 'string', short: 'd'},
     },
   });
 
   return {
     command: positionals[0] || 'run',
     type: values.type as TestType | undefined,
-    tags: (values.tag as string[]) || [],
-    id: values.id as string | undefined,
+    tags: (values.tag!) || [],
+    id: values.id,
     failFast: values['fail-fast'] || false,
-    timeout: values.timeout ? parseInt(values.timeout as string, 10) : undefined,
+    timeout: values.timeout ? Number.parseInt(values.timeout, 10) : undefined,
     json: values.json || false,
     verbose: values.verbose || false,
     help: values.help || false,
-    dir: values.dir as string | undefined,
+    dir: values.dir,
   };
 }
 
@@ -199,10 +214,11 @@ async function runTests(options: CliOptions): Promise<number> {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (options.json) {
-      console.log(JSON.stringify({ error: message }));
+      console.log(JSON.stringify({error: message}));
     } else {
       console.error(`${C.red}Error: ${message}${C.reset}`);
     }
+
     return 1;
   }
 }
@@ -210,10 +226,10 @@ async function runTests(options: CliOptions): Promise<number> {
 function printSummary(summary: TestRunSummary, verbose: boolean): void {
   const duration = summary.duration_ms;
   const total = summary.total_tests;
-  const passed = summary.passed;
-  const failed = summary.failed;
-  const errors = summary.errors;
-  const skipped = summary.skipped;
+  const {passed} = summary;
+  const {failed} = summary;
+  const {errors} = summary;
+  const {skipped} = summary;
 
   console.log(`\n${C.bold}═══════════════════════════════════════════════════${C.reset}`);
   console.log(`${C.bold}                   TEST RESULTS                      ${C.reset}`);
@@ -223,12 +239,15 @@ function printSummary(summary: TestRunSummary, verbose: boolean): void {
   if (passed > 0) {
     console.log(`  ${C.green}✓ Passed:${C.reset}  ${passed}`);
   }
+
   if (failed > 0) {
     console.log(`  ${C.red}✗ Failed:${C.reset}  ${failed}`);
   }
+
   if (errors > 0) {
     console.log(`  ${C.yellow}⚠ Errors:${C.reset}  ${errors}`);
   }
+
   if (skipped > 0) {
     console.log(`  ${C.dim}○ Skipped:${C.reset} ${skipped}`);
   }
@@ -271,15 +290,16 @@ async function listTests(options: CliOptions): Promise<number> {
       const scenarios = discoverScenarios();
       const known = new Set(tests.map(t => t.test_id));
       for (const s of scenarios) {
-        if (!known.has(s.test_id)) tests.push(s);
+        if (!known.has(s.test_id)) {
+          tests.push(s);
+        }
       }
     }
 
     // Filter by tags
     if (options.tags.length > 0) {
       tests = tests.filter(t =>
-        options.tags.some(tag => t.tags.includes(tag))
-      );
+        options.tags.some(tag => t.tags.includes(tag)));
     }
 
     if (options.json) {
@@ -292,10 +312,11 @@ async function listTests(options: CliOptions): Promise<number> {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (options.json) {
-      console.log(JSON.stringify({ error: message }));
+      console.log(JSON.stringify({error: message}));
     } else {
       console.error(`${C.red}Error: ${message}${C.reset}`);
     }
+
     return 1;
   }
 }
@@ -311,10 +332,11 @@ function printTestList(tests: TestCase[]): void {
   // Group by type
   const byType = new Map<string, TestCase[]>();
   for (const test of tests) {
-    const type = test.type;
+    const {type} = test;
     if (!byType.has(type)) {
       byType.set(type, []);
     }
+
     byType.get(type)!.push(test);
   }
 
@@ -325,6 +347,7 @@ function printTestList(tests: TestCase[]): void {
       const tags = test.tags.length > 0 ? C.dim + ` [${test.tags.join(', ')}]` + C.reset : '';
       console.log(`  ${status}${C.reset} ${test.test_id} - ${test.name}${tags}`);
     }
+
     console.log();
   }
 }
@@ -336,7 +359,7 @@ async function validateTests(options: CliOptions): Promise<number> {
     });
     const tests = result.data || [];
 
-    const results: Array<{ test_id: string; valid: boolean; errors: string[] }> = [];
+    const results: Array<{test_id: string; valid: boolean; errors: string[]}> = [];
     let hasErrors = false;
 
     for (const test of tests) {
@@ -373,17 +396,16 @@ async function validateTests(options: CliOptions): Promise<number> {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (options.json) {
-      console.log(JSON.stringify({ error: message }));
+      console.log(JSON.stringify({error: message}));
     } else {
       console.error(`${C.red}Error: ${message}${C.reset}`);
     }
+
     return 1;
   }
 }
 
-function printValidationResults(
-  results: Array<{ test_id: string; valid: boolean; errors: string[] }>
-): void {
+function printValidationResults(results: Array<{test_id: string; valid: boolean; errors: string[]}>): void {
   console.log(`\n${C.bold}Validation Results${C.reset}\n`);
 
   const valid = results.filter(r => r.valid);
@@ -394,6 +416,7 @@ function printValidationResults(
     for (const result of valid) {
       console.log(`  ${C.green}●${C.reset} ${result.test_id}`);
     }
+
     console.log();
   }
 
@@ -405,6 +428,7 @@ function printValidationResults(
         console.log(`    ${C.dim}└─${C.reset} ${error}`);
       }
     }
+
     console.log();
   }
 
@@ -423,17 +447,17 @@ async function showReport(options: CliOptions): Promise<number> {
 
     if (runs.length === 0) {
       if (options.json) {
-        console.log(JSON.stringify({ error: 'No test runs found' }));
+        console.log(JSON.stringify({error: 'No test runs found'}));
       } else {
         console.log(`${C.yellow}No test runs found${C.reset}`);
       }
+
       return 0;
     }
 
     // Get the most recent run
     const latestRun = runs.sort((a, b) =>
-      new Date(b.started_at).getTime() - new Date(a.started_at).getTime()
-    )[0];
+      new Date(b.started_at).getTime() - new Date(a.started_at).getTime())[0];
 
     const resultsResult = await getResultsByRun(latestRun.execution_id);
     const results = resultsResult.data || [];
@@ -460,18 +484,19 @@ async function showReport(options: CliOptions): Promise<number> {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (options.json) {
-      console.log(JSON.stringify({ error: message }));
+      console.log(JSON.stringify({error: message}));
     } else {
       console.error(`${C.red}Error: ${message}${C.reset}`);
     }
+
     return 1;
   }
 }
 
 function printReport(report: {
-  run: { execution_id: string; started_at: string; completed_at?: string };
-  results: Array<{ test_id: string; status: string; latency_ms: number }>;
-  summary: { total: number; passed: number; failed: number; errors: number; skipped: number };
+  run: {execution_id: string; started_at: string; completed_at?: string};
+  results: Array<{test_id: string; status: string; latency_ms: number}>;
+  summary: {total: number; passed: number; failed: number; errors: number; skipped: number};
 }): void {
   console.log(`\n${C.bold}═══════════════════════════════════════════════════${C.reset}`);
   console.log(`${C.bold}                   TEST REPORT                       ${C.reset}`);
@@ -492,10 +517,13 @@ function printReport(report: {
   if (report.results.length > 0) {
     console.log(`\n${C.bold}Results:${C.reset}`);
     for (const result of report.results) {
-      const statusIcon = result.status === 'passed' ? C.green + '✓' :
-                         result.status === 'failed' ? C.red + '✗' :
-                         result.status === 'error' ? C.yellow + '⚠' :
-                         C.dim + '○';
+      const statusIcon = result.status === 'passed'
+        ? C.green + '✓'
+        : result.status === 'failed'
+          ? C.red + '✗'
+          : result.status === 'error'
+            ? C.yellow + '⚠'
+            : C.dim + '○';
       console.log(`  ${statusIcon}${C.reset} ${result.test_id} (${result.latency_ms}ms)`);
     }
   }
@@ -507,18 +535,20 @@ async function clearData(options: CliOptions): Promise<number> {
   try {
     clearAllDataSync();
     if (options.json) {
-      console.log(JSON.stringify({ success: true, message: 'All test data cleared' }));
+      console.log(JSON.stringify({success: true, message: 'All test data cleared'}));
     } else {
       console.log(`${C.green}✓ All test data cleared${C.reset}`);
     }
+
     return 0;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (options.json) {
-      console.log(JSON.stringify({ error: message }));
+      console.log(JSON.stringify({error: message}));
     } else {
       console.error(`${C.red}Error: ${message}${C.reset}`);
     }
+
     return 1;
   }
 }
@@ -550,8 +580,8 @@ async function ingestTestsCmd(options: CliOptions): Promise<number> {
 
       if (result.errors.length > 0) {
         console.log(`\n  ${C.red}Errors (${result.errors.length}):${C.reset}`);
-        for (const err of result.errors) {
-          console.log(`    ${C.dim}└─${C.reset} ${err}`);
+        for (const error of result.errors) {
+          console.log(`    ${C.dim}└─${C.reset} ${error}`);
         }
       }
 
@@ -562,10 +592,11 @@ async function ingestTestsCmd(options: CliOptions): Promise<number> {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (options.json) {
-      console.log(JSON.stringify({ error: message }));
+      console.log(JSON.stringify({error: message}));
     } else {
       console.error(`${C.red}Error: ${message}${C.reset}`);
     }
+
     return 1;
   }
 }
@@ -581,28 +612,41 @@ async function main(): Promise<void> {
   let exitCode: number;
 
   switch (options.command) {
-    case 'run':
+    case 'run': {
       exitCode = await runTests(options);
       break;
-    case 'list':
+    }
+
+    case 'list': {
       exitCode = await listTests(options);
       break;
-    case 'validate':
+    }
+
+    case 'validate': {
       exitCode = await validateTests(options);
       break;
-    case 'report':
+    }
+
+    case 'report': {
       exitCode = await showReport(options);
       break;
-    case 'clear':
+    }
+
+    case 'clear': {
       exitCode = await clearData(options);
       break;
-    case 'ingest':
+    }
+
+    case 'ingest': {
       exitCode = await ingestTestsCmd(options);
       break;
-    default:
+    }
+
+    default: {
       console.log(`${C.red}Unknown command: ${options.command}${C.reset}`);
-      console.log(`\nRun with --help for usage information.`);
+      console.log('\nRun with --help for usage information.');
       exitCode = 1;
+    }
   }
 
   process.exit(exitCode);

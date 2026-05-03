@@ -4,35 +4,37 @@
  * Integration tests for the testing framework CLI.
  */
 
-import { describe, it, expect, test, beforeEach, afterEach, vi } from 'vitest';
-import { spawn } from 'child_process';
-import { join } from 'path';
-import { mkdirSync, rmSync } from 'fs';
-import { clearAllDataSync, createTestCase } from '../../lib/testing';
+import {spawn} from 'node:child_process';
+import {join} from 'node:path';
+import {mkdirSync, rmSync} from 'node:fs';
+import {
+  describe, it, expect, test, beforeEach, afterEach, vi,
+} from 'vitest';
+import {clearAllDataSync, createTestCase} from '../../lib/testing';
 
 const CLI_PATH = join(process.cwd(), 'lib/testing/cli.ts');
 const UNIQUE_STORAGE_DIR = join(process.cwd(), '.test-data-cli-' + process.pid);
 
-function runCli(args: string[]): Promise<{ code: number; stdout: string; stderr: string }> {
-  return new Promise((resolve) => {
+async function runCli(args: string[]): Promise<{code: number; stdout: string; stderr: string}> {
+  return new Promise(resolve => {
     const proc = spawn('bun', ['run', CLI_PATH, ...args], {
       cwd: process.cwd(),
-      env: { ...process.env, NO_COLOR: '1', TEST_STORAGE_DIR: UNIQUE_STORAGE_DIR },
+      env: {...process.env, NO_COLOR: '1', TEST_STORAGE_DIR: UNIQUE_STORAGE_DIR},
     });
 
     let stdout = '';
     let stderr = '';
 
-    proc.stdout.on('data', (data) => {
+    proc.stdout.on('data', data => {
       stdout += data.toString();
     });
 
-    proc.stderr.on('data', (data) => {
+    proc.stderr.on('data', data => {
       stderr += data.toString();
     });
 
-    proc.on('close', (code) => {
-      resolve({ code: code ?? 0, stdout, stderr });
+    proc.on('close', code => {
+      resolve({code: code ?? 0, stdout, stderr});
     });
   });
 }
@@ -40,12 +42,15 @@ function runCli(args: string[]): Promise<{ code: number; stdout: string; stderr:
 describe('CLI', () => {
   beforeEach(() => {
     process.env.TEST_STORAGE_DIR = UNIQUE_STORAGE_DIR;
-    mkdirSync(UNIQUE_STORAGE_DIR, { recursive: true });
+    mkdirSync(UNIQUE_STORAGE_DIR, {recursive: true});
     clearAllDataSync();
   });
 
   afterEach(() => {
-    try { rmSync(UNIQUE_STORAGE_DIR, { recursive: true, force: true }); } catch {}
+    try {
+      rmSync(UNIQUE_STORAGE_DIR, {recursive: true, force: true});
+    } catch {}
+
     delete process.env.TEST_STORAGE_DIR;
   });
 
@@ -88,8 +93,8 @@ describe('CLI', () => {
         type: 'webhook',
         name: 'Test HTTP endpoint',
         description: 'Tests HTTP endpoint',
-        input: { url: 'https://example.com', method: 'GET' },
-        expected_output: { status: 200 },
+        input: {url: 'https://example.com', method: 'GET'},
+        expected_output: {status: 200},
         tags: ['smoke'],
         enabled: true,
       });
@@ -106,7 +111,7 @@ describe('CLI', () => {
         type: 'webhook',
         name: 'Webhook Test',
         description: 'Webhook test',
-        input: { url: 'https://example.com' },
+        input: {url: 'https://example.com'},
         expected_output: {},
         tags: [],
         enabled: true,
@@ -116,7 +121,7 @@ describe('CLI', () => {
         type: 'elevenlabs',
         name: 'ElevenLabs Test',
         description: 'ElevenLabs test',
-        input: { agent_id: 'agent_123', test_prompt: 'Hello' },
+        input: {agent_id: 'agent_123', test_prompt: 'Hello'},
         expected_output: {},
         tags: [],
         enabled: true,
@@ -138,7 +143,7 @@ describe('CLI', () => {
         type: 'webhook',
         name: 'Smoke Test',
         description: 'Smoke test',
-        input: { url: 'https://example.com' },
+        input: {url: 'https://example.com'},
         expected_output: {},
         tags: ['smoke'],
         enabled: true,
@@ -148,7 +153,7 @@ describe('CLI', () => {
         type: 'webhook',
         name: 'Integration Test',
         description: 'Integration test',
-        input: { url: 'https://example.com' },
+        input: {url: 'https://example.com'},
         expected_output: {},
         tags: ['integration'],
         enabled: true,
@@ -172,8 +177,8 @@ describe('CLI', () => {
         type: 'webhook',
         name: 'Valid Test',
         description: 'Valid webhook test',
-        input: { url: 'https://example.com', method: 'GET' },
-        expected_output: { status: 200 },
+        input: {url: 'https://example.com', method: 'GET'},
+        expected_output: {status: 200},
         tags: [],
         enabled: true,
       });
@@ -204,7 +209,7 @@ describe('CLI', () => {
         type: 'webhook',
         name: 'Test',
         description: 'Test',
-        input: { url: 'https://example.com' },
+        input: {url: 'https://example.com'},
         expected_output: {},
         tags: [],
         enabled: true,
@@ -242,7 +247,7 @@ describe('CLI', () => {
         type: 'webhook',
         name: 'Test to Clear',
         description: 'Will be cleared',
-        input: { url: 'https://example.com' },
+        input: {url: 'https://example.com'},
         expected_output: {},
         tags: [],
         enabled: true,

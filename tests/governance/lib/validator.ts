@@ -1,32 +1,38 @@
-import * as path from 'path';
+import * as path from 'node:path';
 
 // Governance Constants
 export const TAG_IDS = {
   DEV: 'Nbnc0KJVYlJeasQJ',
-  ARCHIVED: '4k9QbQQTpxNkOoJQ'
+  ARCHIVED: '4k9QbQQTpxNkOoJQ',
 };
 
 export const BANNED_BUZZWORDS = [
-  'agent', 'orchestrator', 'super', 'hyper', 
-  'mega', 'synapse', 'synthesized', 'autonomous'
+  'agent',
+  'orchestrator',
+  'super',
+  'hyper',
+  'mega',
+  'synapse',
+  'synthesized',
+  'autonomous',
 ];
 
 export const ALLOWED_TRIGGER_NAMES = [
-  'webhook_trigger', 
-  'schedule_trigger', 
-  'cron_trigger', 
+  'webhook_trigger',
+  'schedule_trigger',
+  'cron_trigger',
   'poll_trigger',
-  'manual_trigger'
+  'manual_trigger',
 ];
 
-export interface ValidationResult {
+export type ValidationResult = {
   valid: boolean;
   errors: string[];
-}
+};
 
-export class GovernanceValidator {
-  
-  static validate(workflow: any, fileName: string = 'workflow.json'): ValidationResult {
+export const GovernanceValidator = {
+
+  validate(workflow: any, fileName = 'workflow.json'): ValidationResult {
     const errors: string[] = [];
 
     // --- RULE 1: LITERAL TAGGING ---
@@ -47,15 +53,15 @@ export class GovernanceValidator {
       errors.push('Name: No version numbers (v1, v2) allowed in workflow name');
     }
 
-    BANNED_BUZZWORDS.forEach(word => {
+    for (const word of BANNED_BUZZWORDS) {
       if (workflow.name.toLowerCase().includes(word)) {
         errors.push(`Name: Banned buzzword '${word}' found in workflow name`);
       }
-    });
+    }
 
     const nameWithoutExt = path.parse(fileName).name;
     // Basic kebab-case check: allows lowercase alphanumeric and hyphens
-    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(nameWithoutExt)) {
+    if (!/^[a-z\d]+(-[a-z\d]+)*$/.test(nameWithoutExt)) {
       errors.push(`File Name: Must be kebab-case (got '${nameWithoutExt}')`);
     }
 
@@ -63,15 +69,13 @@ export class GovernanceValidator {
     if (workflow.nodes) {
       workflow.nodes.forEach((node: any) => {
         const isTrigger = node.type.includes('trigger') || node.type.includes('webhook');
-        
+
         if (isTrigger) {
           if (!ALLOWED_TRIGGER_NAMES.includes(node.name)) {
             errors.push(`Node '${node.name}': Trigger must use allowed generic name (${ALLOWED_TRIGGER_NAMES.join(', ')})`);
           }
-        } else {
-          if (!/^[a-z0-9_]+$/.test(node.name)) {
-            errors.push(`Node '${node.name}': Name must be snake_case`);
-          }
+        } else if (!/^[a-z\d_]+$/.test(node.name)) {
+          errors.push(`Node '${node.name}': Name must be snake_case`);
         }
 
         if (!node.notes || node.notes.trim().length === 0) {
@@ -87,12 +91,12 @@ export class GovernanceValidator {
           const code = node.parameters?.jsCode || '';
           // Simple heuristic for insecure access
           if (code.includes('$json.') && !code.includes('$json.body') && !code.includes('$json.json')) {
-             // We won't block strictly on this regex as it can have false positives, 
-             // but we'll flag obvious ones if needed. For now, adhering to the previous test logic:
-             // The previous test logged it but didn't strictly fail unless it was a specific assert.
-             // We'll leave it as a warning or omit strict failure for now to match exact previous behavior,
-             // or enforce strictness:
-             // errors.push(`Node '${node.name}': Code may use insecure $json.property access`);
+            // We won't block strictly on this regex as it can have false positives,
+            // but we'll flag obvious ones if needed. For now, adhering to the previous test logic:
+            // The previous test logged it but didn't strictly fail unless it was a specific assert.
+            // We'll leave it as a warning or omit strict failure for now to match exact previous behavior,
+            // or enforce strictness:
+            // errors.push(`Node '${node.name}': Code may use insecure $json.property access`);
           }
         }
       });
@@ -102,13 +106,14 @@ export class GovernanceValidator {
     if (workflow.nodes) {
       workflow.nodes.forEach((node: any) => {
         if (node.type.includes('webhook')) {
-          const pathParam = node.parameters?.path;
-          if (pathParam) {
-            if (pathParam.includes('/')) {
-              errors.push(`Webhook '${pathParam}': Must be unnested (no slashes)`);
+          const pathParameter = node.parameters?.path;
+          if (pathParameter) {
+            if (pathParameter.includes('/')) {
+              errors.push(`Webhook '${pathParameter}': Must be unnested (no slashes)`);
             }
-            if (!/^[a-z0-9-]+$/.test(pathParam)) {
-              errors.push(`Webhook '${pathParam}': Must be kebab-case`);
+
+            if (!/^[a-z\d-]+$/.test(pathParameter)) {
+              errors.push(`Webhook '${pathParameter}': Must be kebab-case`);
             }
           }
         }
@@ -116,27 +121,31 @@ export class GovernanceValidator {
     }
 
     // --- RULE 6: RESEARCH PREACTION ---
-    if (!hasArchivedTag) {
-      if (!workflow.meta?.research_proof || typeof workflow.meta.research_proof !== 'string') {
-        errors.push('Rule: Must have meta.research_proof (unless ARCHIVED)');
-      }
+    if (!hasArchivedTag && (!workflow.meta?.research_proof || typeof workflow.meta.research_proof !== 'string')) {
+      errors.push('Rule: Must have meta.research_proof (unless ARCHIVED)');
     }
 
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     };
-  }
+  },
 
-  static calculateSimilarity(w1: any, w2: any): number {
-    if (!w1.nodes || !w2.nodes) return 0;
+  calculateSimilarity(w1: any, w2: any): number {
+    if (!w1.nodes || !w2.nodes) {
+      return 0;
+    }
+
     const types1 = new Set(w1.nodes.map((n: any) => n.type));
     const types2 = new Set(w2.nodes.map((n: any) => n.type));
-    
+
     const intersection = new Set([...types1].filter(x => types2.has(x)));
     const union = new Set([...types1, ...types2]);
-    
-    if (union.size === 0) return 0;
+
+    if (union.size === 0) {
+      return 0;
+    }
+
     return intersection.size / union.size;
-  }
-}
+  },
+};

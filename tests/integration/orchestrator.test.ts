@@ -4,18 +4,20 @@
  * Tests for the test orchestrator that coordinates test execution.
  */
 
-import { describe, it, expect, test, beforeEach, afterEach, vi } from 'vitest';
-import { mkdirSync, rmSync } from 'fs';
-import { join } from 'path';
-import { TestOrchestrator, runTests } from '../../lib/testing/runners/orchestrator';
+import {mkdirSync, rmSync} from 'node:fs';
+import {join} from 'node:path';
+import {
+  describe, it, expect, test, beforeEach, afterEach, vi,
+} from 'vitest';
+import {TestOrchestrator, runTests} from '../../lib/testing/runners/orchestrator';
 import {
   clearAllDataSync,
   createTestCaseSync,
   listTestRunsSync,
   listTestResultsSync,
 } from '../../lib/testing/local-storage';
-import type { TestRunner, TestExecutionResult } from '../../lib/testing/runners/types';
-import type { TestCase, TestType } from '../../lib/testing/types';
+import type {TestRunner, TestExecutionResult} from '../../lib/testing/runners/types';
+import type {TestCase, TestType} from '../../lib/testing/types';
 
 // Use unique storage directory for this test file
 const UNIQUE_STORAGE_DIR = join(process.cwd(), '.test-data-orchestrator-' + Date.now());
@@ -24,7 +26,7 @@ describe('Test Orchestrator', () => {
   beforeEach(() => {
     // Set unique storage dir to avoid conflicts with parallel tests
     process.env.TEST_STORAGE_DIR = UNIQUE_STORAGE_DIR;
-    mkdirSync(UNIQUE_STORAGE_DIR, { recursive: true });
+    mkdirSync(UNIQUE_STORAGE_DIR, {recursive: true});
     clearAllDataSync();
   });
 
@@ -33,10 +35,11 @@ describe('Test Orchestrator', () => {
     vi.restoreAllMocks();
     // Clean up storage dir
     try {
-      rmSync(UNIQUE_STORAGE_DIR, { recursive: true, force: true });
+      rmSync(UNIQUE_STORAGE_DIR, {recursive: true, force: true});
     } catch {
       // Ignore cleanup errors
     }
+
     delete process.env.TEST_STORAGE_DIR;
   });
 
@@ -62,7 +65,7 @@ describe('Test Orchestrator', () => {
           assertions_passed: 1,
           assertions_failed: 0,
         }),
-        validate: () => ({ valid: true, errors: [] }),
+        validate: () => ({valid: true, errors: []}),
       };
 
       orchestrator.registerRunner(customRunner);
@@ -85,7 +88,7 @@ describe('Test Orchestrator', () => {
         input: {
           url: 'https://example.com/webhook',
           method: 'POST',
-          body: { test: true },
+          body: {test: true},
         },
         expected_output: {},
         tags: ['smoke'],
@@ -99,12 +102,12 @@ describe('Test Orchestrator', () => {
         type: 'webhook',
         execute: vi.fn().mockResolvedValue({
           status: 'passed',
-          actual_output: { success: true },
+          actual_output: {success: true},
           latency_ms: 150,
           assertions_passed: 1,
           assertions_failed: 0,
         }),
-        validate: () => ({ valid: true, errors: [] }),
+        validate: () => ({valid: true, errors: []}),
       };
       orchestrator.registerRunner(mockRunner);
 
@@ -122,7 +125,7 @@ describe('Test Orchestrator', () => {
         type: 'webhook',
         name: 'Test for Run Record',
         description: 'Test',
-        input: { url: 'https://example.com/webhook', method: 'POST', body: {} },
+        input: {url: 'https://example.com/webhook', method: 'POST', body: {}},
         expected_output: {},
         tags: [],
         enabled: true,
@@ -138,11 +141,11 @@ describe('Test Orchestrator', () => {
           assertions_passed: 1,
           assertions_failed: 0,
         }),
-        validate: () => ({ valid: true, errors: [] }),
+        validate: () => ({valid: true, errors: []}),
       };
       orchestrator.registerRunner(mockRunner);
 
-      const summary = await orchestrator.run({ triggeredBy: 'ci' });
+      const summary = await orchestrator.run({triggeredBy: 'ci'});
 
       // Verify test run was created
       const runs = listTestRunsSync();
@@ -156,7 +159,7 @@ describe('Test Orchestrator', () => {
         type: 'webhook',
         name: 'Test for Result Record',
         description: 'Test',
-        input: { url: 'https://example.com/webhook', method: 'POST', body: {} },
+        input: {url: 'https://example.com/webhook', method: 'POST', body: {}},
         expected_output: {},
         tags: [],
         enabled: true,
@@ -167,18 +170,18 @@ describe('Test Orchestrator', () => {
         type: 'webhook',
         execute: vi.fn().mockResolvedValue({
           status: 'passed',
-          actual_output: { data: 'result' },
+          actual_output: {data: 'result'},
           latency_ms: 250,
           assertions_passed: 2,
           assertions_failed: 0,
         }),
-        validate: () => ({ valid: true, errors: [] }),
+        validate: () => ({valid: true, errors: []}),
       };
       orchestrator.registerRunner(mockRunner);
 
       await orchestrator.run();
 
-      const results = listTestResultsSync({ testId: testCase.test_id });
+      const results = listTestResultsSync({testId: testCase.test_id});
       expect(results.length).toBe(1);
       expect(results[0].status).toBe('passed');
       expect(results[0].latency_ms).toBe(250);
@@ -192,7 +195,7 @@ describe('Test Orchestrator', () => {
         type: 'webhook',
         name: 'Webhook Test',
         description: 'Test',
-        input: { url: 'https://example.com/webhook', method: 'POST', body: {} },
+        input: {url: 'https://example.com/webhook', method: 'POST', body: {}},
         expected_output: {},
         tags: ['smoke', 'webhook'],
         enabled: true,
@@ -202,7 +205,7 @@ describe('Test Orchestrator', () => {
         type: 'elevenlabs',
         name: 'ElevenLabs Test',
         description: 'Test',
-        input: { agent_id: 'agent_123', test_prompt: 'Hello' },
+        input: {agent_id: 'agent_123', test_prompt: 'Hello'},
         expected_output: {},
         tags: ['smoke', 'voice'],
         enabled: true,
@@ -212,7 +215,7 @@ describe('Test Orchestrator', () => {
         type: 'webhook',
         name: 'Disabled Test',
         description: 'Test',
-        input: { url: 'https://example.com/webhook', method: 'POST', body: {} },
+        input: {url: 'https://example.com/webhook', method: 'POST', body: {}},
         expected_output: {},
         tags: ['regression'],
         enabled: false,
@@ -230,11 +233,11 @@ describe('Test Orchestrator', () => {
           assertions_passed: 1,
           assertions_failed: 0,
         }),
-        validate: () => ({ valid: true, errors: [] }),
+        validate: () => ({valid: true, errors: []}),
       };
       orchestrator.registerRunner(mockRunner);
 
-      const summary = await orchestrator.run({ type: 'webhook' });
+      const summary = await orchestrator.run({type: 'webhook'});
 
       // Should only run enabled webhook tests (1 test, not the disabled one)
       expect(summary.total_tests).toBe(1);
@@ -251,9 +254,9 @@ describe('Test Orchestrator', () => {
           assertions_passed: 1,
           assertions_failed: 0,
         }),
-        validate: () => ({ valid: true, errors: [] }),
+        validate: () => ({valid: true, errors: []}),
       };
-      const mockElRunner: TestRunner = {
+      const mockElementRunner: TestRunner = {
         type: 'elevenlabs',
         execute: vi.fn().mockResolvedValue({
           status: 'passed',
@@ -262,12 +265,12 @@ describe('Test Orchestrator', () => {
           assertions_passed: 1,
           assertions_failed: 0,
         }),
-        validate: () => ({ valid: true, errors: [] }),
+        validate: () => ({valid: true, errors: []}),
       };
       orchestrator.registerRunner(mockWebhookRunner);
-      orchestrator.registerRunner(mockElRunner);
+      orchestrator.registerRunner(mockElementRunner);
 
-      const summary = await orchestrator.run({ tag: 'smoke' });
+      const summary = await orchestrator.run({tag: 'smoke'});
 
       // Should run both smoke tests
       expect(summary.total_tests).toBe(2);
@@ -284,11 +287,11 @@ describe('Test Orchestrator', () => {
           assertions_passed: 1,
           assertions_failed: 0,
         }),
-        validate: () => ({ valid: true, errors: [] }),
+        validate: () => ({valid: true, errors: []}),
       };
       orchestrator.registerRunner(mockRunner);
 
-      const summary = await orchestrator.run({ type: 'webhook' });
+      const summary = await orchestrator.run({type: 'webhook'});
 
       // Should only run enabled tests
       expect(summary.total_tests).toBe(1);
@@ -305,11 +308,11 @@ describe('Test Orchestrator', () => {
           assertions_passed: 1,
           assertions_failed: 0,
         }),
-        validate: () => ({ valid: true, errors: [] }),
+        validate: () => ({valid: true, errors: []}),
       };
       orchestrator.registerRunner(mockRunner);
 
-      const summary = await orchestrator.run({ type: 'webhook', enabledOnly: false });
+      const summary = await orchestrator.run({type: 'webhook', enabledOnly: false});
 
       // Should include disabled test
       expect(summary.total_tests).toBe(2);
@@ -322,7 +325,7 @@ describe('Test Orchestrator', () => {
         type: 'webhook',
         name: 'Test 1 - Pass',
         description: 'Test',
-        input: { url: 'https://example.com/webhook', method: 'POST', body: {} },
+        input: {url: 'https://example.com/webhook', method: 'POST', body: {}},
         expected_output: {},
         tags: [],
         enabled: true,
@@ -332,7 +335,7 @@ describe('Test Orchestrator', () => {
         type: 'webhook',
         name: 'Test 2 - Fail',
         description: 'Test',
-        input: { url: 'https://example.com/webhook', method: 'POST', body: {} },
+        input: {url: 'https://example.com/webhook', method: 'POST', body: {}},
         expected_output: {},
         tags: [],
         enabled: true,
@@ -342,7 +345,7 @@ describe('Test Orchestrator', () => {
         type: 'webhook',
         name: 'Test 3 - Should Not Run',
         description: 'Test',
-        input: { url: 'https://example.com/webhook', method: 'POST', body: {} },
+        input: {url: 'https://example.com/webhook', method: 'POST', body: {}},
         expected_output: {},
         tags: [],
         enabled: true,
@@ -364,6 +367,7 @@ describe('Test Orchestrator', () => {
               assertions_failed: 1,
             };
           }
+
           return {
             status: 'passed',
             actual_output: {},
@@ -372,11 +376,11 @@ describe('Test Orchestrator', () => {
             assertions_failed: 0,
           };
         }),
-        validate: () => ({ valid: true, errors: [] }),
+        validate: () => ({valid: true, errors: []}),
       };
       orchestrator.registerRunner(mockRunner);
 
-      const summary = await orchestrator.run({ failFast: true });
+      const summary = await orchestrator.run({failFast: true});
 
       // Should have stopped after 2 tests
       expect(callCount).toBe(2);
@@ -393,7 +397,7 @@ describe('Test Orchestrator', () => {
           type: 'webhook',
           name: `Test ${i}`,
           description: 'Test',
-          input: { url: 'https://example.com/webhook', method: 'POST', body: { i } },
+          input: {url: 'https://example.com/webhook', method: 'POST', body: {i}},
           expected_output: {},
           tags: [],
           enabled: true,
@@ -417,6 +421,7 @@ describe('Test Orchestrator', () => {
               assertions_failed: 1,
             };
           }
+
           return {
             status: 'passed',
             actual_output: {},
@@ -425,7 +430,7 @@ describe('Test Orchestrator', () => {
             assertions_failed: 0,
           };
         }),
-        validate: () => ({ valid: true, errors: [] }),
+        validate: () => ({valid: true, errors: []}),
       };
       orchestrator.registerRunner(mockRunner);
 
@@ -440,7 +445,7 @@ describe('Test Orchestrator', () => {
           type: 'webhook',
           name: `Latency Test ${i}`,
           description: 'Test',
-          input: { url: 'https://example.com/webhook', method: 'POST', body: { i } },
+          input: {url: 'https://example.com/webhook', method: 'POST', body: {i}},
           expected_output: {},
           tags: [],
           enabled: true,
@@ -463,7 +468,7 @@ describe('Test Orchestrator', () => {
             assertions_failed: 0,
           };
         }),
-        validate: () => ({ valid: true, errors: [] }),
+        validate: () => ({valid: true, errors: []}),
       };
       orchestrator.registerRunner(mockRunner);
 
@@ -477,7 +482,7 @@ describe('Test Orchestrator', () => {
         type: 'webhook',
         name: 'Fast Test',
         description: 'Test',
-        input: { url: 'https://example.com/webhook', method: 'POST', body: { fast: true } },
+        input: {url: 'https://example.com/webhook', method: 'POST', body: {fast: true}},
         expected_output: {},
         tags: [],
         enabled: true,
@@ -487,7 +492,7 @@ describe('Test Orchestrator', () => {
         type: 'webhook',
         name: 'Slow Test',
         description: 'Test',
-        input: { url: 'https://example.com/webhook', method: 'POST', body: { slow: true } },
+        input: {url: 'https://example.com/webhook', method: 'POST', body: {slow: true}},
         expected_output: {},
         tags: [],
         enabled: true,
@@ -507,7 +512,7 @@ describe('Test Orchestrator', () => {
             assertions_failed: 0,
           };
         }),
-        validate: () => ({ valid: true, errors: [] }),
+        validate: () => ({valid: true, errors: []}),
       };
       orchestrator.registerRunner(mockRunner);
 
@@ -523,7 +528,7 @@ describe('Test Orchestrator', () => {
         type: 'webhook',
         name: 'Failing Test',
         description: 'Test',
-        input: { url: 'https://example.com/webhook', method: 'POST', body: {} },
+        input: {url: 'https://example.com/webhook', method: 'POST', body: {}},
         expected_output: {},
         tags: [],
         enabled: true,
@@ -540,7 +545,7 @@ describe('Test Orchestrator', () => {
           assertions_passed: 0,
           assertions_failed: 1,
         }),
-        validate: () => ({ valid: true, errors: [] }),
+        validate: () => ({valid: true, errors: []}),
       };
       orchestrator.registerRunner(mockRunner);
 
@@ -558,7 +563,7 @@ describe('Test Orchestrator', () => {
         type: 'webhook',
         name: 'Invalid Test',
         description: 'Test',
-        input: { url: '', method: 'POST', body: {} }, // Invalid: empty URL
+        input: {url: '', method: 'POST', body: {}}, // Invalid: empty URL
         expected_output: {},
         tags: [],
         enabled: true,
@@ -614,7 +619,7 @@ describe('Test Orchestrator', () => {
           type: 'webhook',
           name: `Parallel Test ${i}`,
           description: 'Test',
-          input: { url: 'https://example.com/webhook', method: 'POST', body: { i } },
+          input: {url: 'https://example.com/webhook', method: 'POST', body: {i}},
           expected_output: {},
           tags: [],
           enabled: true,
@@ -638,11 +643,11 @@ describe('Test Orchestrator', () => {
             assertions_failed: 0,
           };
         }),
-        validate: () => ({ valid: true, errors: [] }),
+        validate: () => ({valid: true, errors: []}),
       };
       orchestrator.registerRunner(mockRunner);
 
-      const summary = await orchestrator.run({ parallel: true, concurrency: 3 });
+      const summary = await orchestrator.run({parallel: true, concurrency: 3});
 
       expect(summary.total_tests).toBe(5);
       expect(summary.passed).toBe(5);
@@ -655,14 +660,14 @@ describe('Test Orchestrator', () => {
         type: 'webhook',
         name: 'Default Export Test',
         description: 'Test',
-        input: { url: 'https://example.com/webhook', method: 'POST', body: {} },
+        input: {url: 'https://example.com/webhook', method: 'POST', body: {}},
         expected_output: {},
         tags: [],
         enabled: true,
       });
 
       // Note: This will actually try to make HTTP calls, so we just check it returns
-      const summary = await runTests({ enabledOnly: false, type: 'webhook' });
+      const summary = await runTests({enabledOnly: false, type: 'webhook'});
 
       expect(summary).toBeDefined();
       expect(summary.execution_id).toBeDefined();
@@ -693,7 +698,7 @@ describe('Test Orchestrator', () => {
         type: 'webhook',
         name: 'Duration Test',
         description: 'Test',
-        input: { url: 'https://example.com/webhook', method: 'POST', body: {} },
+        input: {url: 'https://example.com/webhook', method: 'POST', body: {}},
         expected_output: {},
         tags: [],
         enabled: true,
@@ -712,7 +717,7 @@ describe('Test Orchestrator', () => {
             assertions_failed: 0,
           };
         }),
-        validate: () => ({ valid: true, errors: [] }),
+        validate: () => ({valid: true, errors: []}),
       };
       orchestrator.registerRunner(mockRunner);
 

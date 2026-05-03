@@ -4,7 +4,7 @@
  * Executes HTTP webhook tests and validates responses.
  */
 
-import type { TestCase } from '../types';
+import type {TestCase} from '../types';
 import type {
   TestRunner,
   TestExecutionResult,
@@ -14,7 +14,7 @@ import type {
   AssertionResult,
 } from './types';
 
-const DEFAULT_TIMEOUT = 30000;
+const DEFAULT_TIMEOUT = 30_000;
 
 export class WebhookRunner implements TestRunner {
   readonly type = 'webhook' as const;
@@ -55,10 +55,10 @@ export class WebhookRunner implements TestRunner {
         try {
           responseBody = (await response.json()) as Record<string, unknown>;
         } catch {
-          responseBody = { _raw: await response.text() };
+          responseBody = {_raw: await response.text()};
         }
       } else {
-        responseBody = { _raw: await response.text() };
+        responseBody = {_raw: await response.text()};
       }
 
       // Run assertions
@@ -106,9 +106,9 @@ export class WebhookRunner implements TestRunner {
         error_message: allPassed
           ? undefined
           : assertions
-              .filter(a => !a.passed)
-              .map(a => a.message)
-              .join('; '),
+            .filter(a => !a.passed)
+            .map(a => a.message)
+            .join('; '),
       };
     } catch (error) {
       const latency_ms = Date.now() - startTime;
@@ -116,7 +116,7 @@ export class WebhookRunner implements TestRunner {
 
       return {
         status: 'error',
-        actual_output: { error: errorMessage },
+        actual_output: {error: errorMessage},
         latency_ms,
         error_message: errorMessage,
         assertions_passed: 0,
@@ -125,25 +125,25 @@ export class WebhookRunner implements TestRunner {
     }
   }
 
-  validate(testCase: TestCase): { valid: boolean; errors: string[] } {
+  validate(testCase: TestCase): {valid: boolean; errors: string[]} {
     const errors: string[] = [];
     const config = testCase.input as unknown as WebhookTestConfig;
 
-    if (!config.url) {
-      errors.push('Missing required field: url');
-    } else {
+    if (config.url) {
       try {
         new URL(config.url);
       } catch {
         errors.push(`Invalid URL: ${config.url}`);
       }
+    } else {
+      errors.push('Missing required field: url');
     }
 
     if (config.method && !['GET', 'POST', 'PUT', 'DELETE', 'PATCH'].includes(config.method)) {
       errors.push(`Invalid HTTP method: ${config.method}`);
     }
 
-    return { valid: errors.length === 0, errors };
+    return {valid: errors.length === 0, errors};
   }
 
   private assertStatus(actual: number, expected: number): AssertionResult {
@@ -159,7 +159,7 @@ export class WebhookRunner implements TestRunner {
 
   private assertStatusRange(
     actual: number,
-    range: { min: number; max: number }
+    range: {min: number; max: number},
   ): AssertionResult {
     const passed = actual >= range.min && actual <= range.max;
     return {
@@ -175,7 +175,7 @@ export class WebhookRunner implements TestRunner {
 
   private assertBodyEquals(
     actual: Record<string, unknown>,
-    expected: Record<string, unknown>
+    expected: Record<string, unknown>,
   ): AssertionResult {
     const passed = this.deepEquals(actual, expected);
     return {
@@ -189,7 +189,7 @@ export class WebhookRunner implements TestRunner {
 
   private assertBodyContains(
     actual: Record<string, unknown>,
-    expected: Record<string, unknown>
+    expected: Record<string, unknown>,
   ): AssertionResult {
     const passed = this.objectContains(actual, expected);
     return {
@@ -204,7 +204,7 @@ export class WebhookRunner implements TestRunner {
   private assertHeader(
     headers: Headers,
     key: string,
-    expected: string
+    expected: string,
   ): AssertionResult {
     const actual = headers.get(key);
     const passed = actual === expected;
@@ -229,39 +229,60 @@ export class WebhookRunner implements TestRunner {
   }
 
   private deepEquals(a: unknown, b: unknown): boolean {
-    if (a === b) return true;
-    if (typeof a !== typeof b) return false;
-    if (a === null || b === null) return a === b;
+    if (a === b) {
+      return true;
+    }
+
+    if (typeof a !== typeof b) {
+      return false;
+    }
+
+    if (a === null || b === null) {
+      return a === b;
+    }
 
     if (Array.isArray(a) && Array.isArray(b)) {
-      if (a.length !== b.length) return false;
+      if (a.length !== b.length) {
+        return false;
+      }
+
       return a.every((item, i) => this.deepEquals(item, b[i]));
     }
 
     if (typeof a === 'object' && typeof b === 'object') {
-      const aObj = a as Record<string, unknown>;
-      const bObj = b as Record<string, unknown>;
-      const aKeys = Object.keys(aObj);
-      const bKeys = Object.keys(bObj);
-      if (aKeys.length !== bKeys.length) return false;
-      return aKeys.every(key => this.deepEquals(aObj[key], bObj[key]));
+      const aObject = a as Record<string, unknown>;
+      const bObject = b as Record<string, unknown>;
+      const aKeys = Object.keys(aObject);
+      const bKeys = Object.keys(bObject);
+      if (aKeys.length !== bKeys.length) {
+        return false;
+      }
+
+      return aKeys.every(key => this.deepEquals(aObject[key], bObject[key]));
     }
 
     return false;
   }
 
-  private objectContains(obj: Record<string, unknown>, subset: Record<string, unknown>): boolean {
+  private objectContains(object: Record<string, unknown>, subset: Record<string, unknown>): boolean {
     for (const [key, value] of Object.entries(subset)) {
-      if (!(key in obj)) return false;
+      if (!(key in object)) {
+        return false;
+      }
+
       if (typeof value === 'object' && value !== null) {
-        if (typeof obj[key] !== 'object' || obj[key] === null) return false;
-        if (!this.objectContains(obj[key] as Record<string, unknown>, value as Record<string, unknown>)) {
+        if (typeof object[key] !== 'object' || object[key] === null) {
           return false;
         }
-      } else if (obj[key] !== value) {
+
+        if (!this.objectContains(object[key] as Record<string, unknown>, value as Record<string, unknown>)) {
+          return false;
+        }
+      } else if (object[key] !== value) {
         return false;
       }
     }
+
     return true;
   }
 }

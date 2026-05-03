@@ -1,12 +1,14 @@
 /**
- * n8n Eval Runner Tests
+ * N8n Eval Runner Tests
  *
  * Tests for the n8n workflow evaluation test runner.
  */
 
-import { describe, it, expect, test, beforeEach, vi, afterEach } from 'vitest';
-import { N8nEvalRunner } from '../../lib/testing/runners/n8n-eval-runner';
-import type { TestCase } from '../../lib/testing/types';
+import {
+  describe, it, expect, test, beforeEach, vi, afterEach,
+} from 'vitest';
+import {N8nEvalRunner} from '../../lib/testing/runners/n8n-eval-runner';
+import type {TestCase} from '../../lib/testing/types';
 
 describe('n8n Eval Runner', () => {
   describe('Validation', () => {
@@ -20,7 +22,7 @@ describe('n8n Eval Runner', () => {
         description: 'Test workflow execution',
         input: {
           workflow_id: 'abc123',
-          payload: { message: 'Hello' },
+          payload: {message: 'Hello'},
         },
         expected_output: {
           execution_status: 'success',
@@ -45,7 +47,7 @@ describe('n8n Eval Runner', () => {
         input: {
           workflow_id: 'abc123',
           webhook_path: 'test-webhook',
-          payload: { data: 'test' },
+          payload: {data: 'test'},
         },
         expected_output: {},
         tags: [],
@@ -66,7 +68,7 @@ describe('n8n Eval Runner', () => {
         name: 'Missing workflow_id',
         description: 'Test without workflow_id',
         input: {
-          payload: { test: true },
+          payload: {test: true},
         },
         expected_output: {},
         tags: [],
@@ -123,7 +125,7 @@ describe('n8n Eval Runner', () => {
         description: 'Test without API key',
         input: {
           workflow_id: 'abc123',
-          payload: { test: true },
+          payload: {test: true},
         },
         expected_output: {},
         tags: [],
@@ -139,12 +141,10 @@ describe('n8n Eval Runner', () => {
     });
 
     test('should handle API error gracefully', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response('{"error": "Unauthorized"}', {
-          status: 401,
-          statusText: 'Unauthorized',
-        })
-      );
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response('{"error": "Unauthorized"}', {
+        status: 401,
+        statusText: 'Unauthorized',
+      }));
 
       const testCase: TestCase = {
         test_id: 'TC-N8N-006',
@@ -153,7 +153,7 @@ describe('n8n Eval Runner', () => {
         description: 'Test API error handling',
         input: {
           workflow_id: 'abc123',
-          payload: { test: true },
+          payload: {test: true},
         },
         expected_output: {},
         tags: [],
@@ -169,7 +169,7 @@ describe('n8n Eval Runner', () => {
     });
 
     test('should handle network errors gracefully', async () => {
-      vi.spyOn(global, 'fetch').mockRejectedValueOnce(new Error('Network error'));
+      vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('Network error'));
 
       const testCase: TestCase = {
         test_id: 'TC-N8N-007',
@@ -178,7 +178,7 @@ describe('n8n Eval Runner', () => {
         description: 'Test network error handling',
         input: {
           workflow_id: 'abc123',
-          payload: { test: true },
+          payload: {test: true},
         },
         expected_output: {},
         tags: [],
@@ -194,30 +194,28 @@ describe('n8n Eval Runner', () => {
     });
 
     test('should execute workflow successfully with mocked API', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            id: 'exec_123',
-            status: 'success',
-            finished: true,
-            data: {
-              resultData: {
-                runData: {
-                  output_node: [
-                    {
-                      data: {
-                        main: [[{ json: { result: 'success', value: 42 } }]],
-                      },
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
+        JSON.stringify({
+          id: 'exec_123',
+          status: 'success',
+          finished: true,
+          data: {
+            resultData: {
+              runData: {
+                output_node: [
+                  {
+                    data: {
+                      main: [[{json: {result: 'success', value: 42}}]],
                     },
-                  ],
-                },
-                lastNodeExecuted: 'output_node',
+                  },
+                ],
               },
+              lastNodeExecuted: 'output_node',
             },
-          }),
-          { status: 200 }
-        )
-      );
+          },
+        }),
+        {status: 200},
+      ));
 
       const testCase: TestCase = {
         test_id: 'TC-N8N-008',
@@ -226,7 +224,7 @@ describe('n8n Eval Runner', () => {
         description: 'Test successful workflow execution',
         input: {
           workflow_id: 'abc123',
-          payload: { input: 'test' },
+          payload: {input: 'test'},
         },
         expected_output: {
           execution_status: 'success',
@@ -245,30 +243,28 @@ describe('n8n Eval Runner', () => {
     });
 
     test('should check output_contains assertion', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            id: 'exec_123',
-            status: 'success',
-            finished: true,
-            data: {
-              resultData: {
-                runData: {
-                  output_node: [
-                    {
-                      data: {
-                        main: [[{ json: { result: 'success', value: 42 } }]],
-                      },
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
+        JSON.stringify({
+          id: 'exec_123',
+          status: 'success',
+          finished: true,
+          data: {
+            resultData: {
+              runData: {
+                output_node: [
+                  {
+                    data: {
+                      main: [[{json: {result: 'success', value: 42}}]],
                     },
-                  ],
-                },
-                lastNodeExecuted: 'output_node',
+                  },
+                ],
               },
+              lastNodeExecuted: 'output_node',
             },
-          }),
-          { status: 200 }
-        )
-      );
+          },
+        }),
+        {status: 200},
+      ));
 
       const testCase: TestCase = {
         test_id: 'TC-N8N-009',
@@ -277,11 +273,11 @@ describe('n8n Eval Runner', () => {
         description: 'Test output contains assertion',
         input: {
           workflow_id: 'abc123',
-          payload: { input: 'test' },
+          payload: {input: 'test'},
         },
         expected_output: {
           execution_status: 'success',
-          output_contains: { result: 'success' },
+          output_contains: {result: 'success'},
         },
         tags: [],
         enabled: true,
@@ -296,22 +292,20 @@ describe('n8n Eval Runner', () => {
     });
 
     test('should fail when execution_status does not match', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            id: 'exec_123',
-            status: 'success',
-            finished: true,
-            data: {
-              resultData: {
-                runData: {},
-                lastNodeExecuted: 'node1',
-              },
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
+        JSON.stringify({
+          id: 'exec_123',
+          status: 'success',
+          finished: true,
+          data: {
+            resultData: {
+              runData: {},
+              lastNodeExecuted: 'node1',
             },
-          }),
-          { status: 200 }
-        )
-      );
+          },
+        }),
+        {status: 200},
+      ));
 
       const testCase: TestCase = {
         test_id: 'TC-N8N-010',
@@ -320,7 +314,7 @@ describe('n8n Eval Runner', () => {
         description: 'Test expecting error status',
         input: {
           workflow_id: 'abc123',
-          payload: { input: 'test' },
+          payload: {input: 'test'},
         },
         expected_output: {
           execution_status: 'error', // Expecting error but got success
@@ -339,26 +333,24 @@ describe('n8n Eval Runner', () => {
     });
 
     test('should check nodes_executed assertion', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            id: 'exec_123',
-            status: 'success',
-            finished: true,
-            data: {
-              resultData: {
-                runData: {
-                  start: [{ data: { main: [[{ json: {} }]] } }],
-                  process: [{ data: { main: [[{ json: {} }]] } }],
-                  output: [{ data: { main: [[{ json: {} }]] } }],
-                },
-                lastNodeExecuted: 'output',
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
+        JSON.stringify({
+          id: 'exec_123',
+          status: 'success',
+          finished: true,
+          data: {
+            resultData: {
+              runData: {
+                start: [{data: {main: [[{json: {}}]]}}],
+                process: [{data: {main: [[{json: {}}]]}}],
+                output: [{data: {main: [[{json: {}}]]}}],
               },
+              lastNodeExecuted: 'output',
             },
-          }),
-          { status: 200 }
-        )
-      );
+          },
+        }),
+        {status: 200},
+      ));
 
       const testCase: TestCase = {
         test_id: 'TC-N8N-011',
@@ -367,7 +359,7 @@ describe('n8n Eval Runner', () => {
         description: 'Test nodes executed assertion',
         input: {
           workflow_id: 'abc123',
-          payload: { input: 'test' },
+          payload: {input: 'test'},
         },
         expected_output: {
           nodes_executed: ['start', 'process', 'output'],
@@ -387,24 +379,22 @@ describe('n8n Eval Runner', () => {
     });
 
     test('should fail when expected nodes are missing', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            id: 'exec_123',
-            status: 'success',
-            finished: true,
-            data: {
-              resultData: {
-                runData: {
-                  start: [{ data: { main: [[{ json: {} }]] } }],
-                },
-                lastNodeExecuted: 'start',
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
+        JSON.stringify({
+          id: 'exec_123',
+          status: 'success',
+          finished: true,
+          data: {
+            resultData: {
+              runData: {
+                start: [{data: {main: [[{json: {}}]]}}],
               },
+              lastNodeExecuted: 'start',
             },
-          }),
-          { status: 200 }
-        )
-      );
+          },
+        }),
+        {status: 200},
+      ));
 
       const testCase: TestCase = {
         test_id: 'TC-N8N-012',
@@ -413,7 +403,7 @@ describe('n8n Eval Runner', () => {
         description: 'Test missing nodes detection',
         input: {
           workflow_id: 'abc123',
-          payload: { input: 'test' },
+          payload: {input: 'test'},
         },
         expected_output: {
           nodes_executed: ['start', 'process', 'output'],
@@ -432,42 +422,40 @@ describe('n8n Eval Runner', () => {
     });
 
     test('should check custom assertions', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            id: 'exec_123',
-            status: 'success',
-            finished: true,
-            data: {
-              resultData: {
-                runData: {
-                  output: [
-                    {
-                      data: {
-                        main: [
-                          [
-                            {
-                              json: {
-                                user: {
-                                  name: 'John',
-                                  age: 30,
-                                },
-                                status: 'active',
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
+        JSON.stringify({
+          id: 'exec_123',
+          status: 'success',
+          finished: true,
+          data: {
+            resultData: {
+              runData: {
+                output: [
+                  {
+                    data: {
+                      main: [
+                        [
+                          {
+                            json: {
+                              user: {
+                                name: 'John',
+                                age: 30,
                               },
+                              status: 'active',
                             },
-                          ],
+                          },
                         ],
-                      },
+                      ],
                     },
-                  ],
-                },
-                lastNodeExecuted: 'output',
+                  },
+                ],
               },
+              lastNodeExecuted: 'output',
             },
-          }),
-          { status: 200 }
-        )
-      );
+          },
+        }),
+        {status: 200},
+      ));
 
       const testCase: TestCase = {
         test_id: 'TC-N8N-013',
@@ -476,12 +464,12 @@ describe('n8n Eval Runner', () => {
         description: 'Test custom JSON path assertions',
         input: {
           workflow_id: 'abc123',
-          payload: { input: 'test' },
+          payload: {input: 'test'},
         },
         expected_output: {
           custom_assertions: [
-            { name: 'user_name', path: 'user.name', expected: 'John' },
-            { name: 'status', path: 'status', expected: 'active' },
+            {name: 'user_name', path: 'user.name', expected: 'John'},
+            {name: 'status', path: 'status', expected: 'active'},
           ],
         },
         tags: [],
@@ -497,24 +485,22 @@ describe('n8n Eval Runner', () => {
     });
 
     test('should evaluate minimum score', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            id: 'exec_123',
-            status: 'success',
-            finished: true,
-            data: {
-              resultData: {
-                runData: {
-                  output: [{ data: { main: [[{ json: { result: 'ok' } }]] } }],
-                },
-                lastNodeExecuted: 'output',
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
+        JSON.stringify({
+          id: 'exec_123',
+          status: 'success',
+          finished: true,
+          data: {
+            resultData: {
+              runData: {
+                output: [{data: {main: [[{json: {result: 'ok'}}]]}}],
               },
+              lastNodeExecuted: 'output',
             },
-          }),
-          { status: 200 }
-        )
-      );
+          },
+        }),
+        {status: 200},
+      ));
 
       const testCase: TestCase = {
         test_id: 'TC-N8N-014',
@@ -523,7 +509,7 @@ describe('n8n Eval Runner', () => {
         description: 'Test score calculation',
         input: {
           workflow_id: 'abc123',
-          payload: { input: 'test' },
+          payload: {input: 'test'},
           eval_metrics: {
             correctness_weight: 0.5,
             helpfulness_weight: 0.5,
@@ -557,11 +543,9 @@ describe('n8n Eval Runner', () => {
     });
 
     test('should execute via webhook when webhook_path is provided', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response(JSON.stringify({ success: true, data: 'webhook response' }), {
-          status: 200,
-        })
-      );
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(JSON.stringify({success: true, data: 'webhook response'}), {
+        status: 200,
+      }));
 
       const testCase: TestCase = {
         test_id: 'TC-N8N-015',
@@ -571,7 +555,7 @@ describe('n8n Eval Runner', () => {
         input: {
           workflow_id: 'abc123',
           webhook_path: 'test-webhook',
-          payload: { input: 'test' },
+          payload: {input: 'test'},
         },
         expected_output: {
           execution_status: 'success',
@@ -588,12 +572,12 @@ describe('n8n Eval Runner', () => {
       expect(result.actual_output.status).toBe('success');
 
       // Verify webhook URL was called
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(globalThis.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/webhook/test-webhook'),
         expect.objectContaining({
           method: 'POST',
-          body: JSON.stringify({ input: 'test' }),
-        })
+          body: JSON.stringify({input: 'test'}),
+        }),
       );
     });
   });

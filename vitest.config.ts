@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config';
+import {defineConfig} from 'vitest/config';
 
 /*
  * CONVENTION-BASED TEST CLASSIFICATION
@@ -36,7 +36,7 @@ const offlineProjects = [
       root: '.',
       include: ['tests/ingestion/**/*.test.ts'],
       environment: 'node' as const,
-      testTimeout: 30000,
+      testTimeout: 30_000,
     },
   },
   {
@@ -45,7 +45,7 @@ const offlineProjects = [
       root: '.',
       include: ['tests/integration/**/*.test.ts', 'tests/runners.test.ts', 'tests/data-table-api.test.ts'],
       environment: 'node' as const,
-      testTimeout: 60000,
+      testTimeout: 60_000,
     },
   },
   {
@@ -54,7 +54,7 @@ const offlineProjects = [
       root: '.',
       include: ['tests/governance/**/*.test.ts'],
       environment: 'node' as const,
-      testTimeout: 30000,
+      testTimeout: 30_000,
     },
   },
   {
@@ -63,7 +63,7 @@ const offlineProjects = [
       root: '.',
       include: ['tests/agent_evals/**/*.test.ts'],
       environment: 'node' as const,
-      testTimeout: 30000,
+      testTimeout: 30_000,
     },
   },
 ];
@@ -76,7 +76,7 @@ const liveProjects = [
       root: '.',
       include: ['tests/webhook/**/*.test.ts'],
       environment: 'node' as const,
-      testTimeout: 30000,
+      testTimeout: 30_000,
     },
   },
   {
@@ -85,7 +85,7 @@ const liveProjects = [
       root: '.',
       include: ['tests/el/**/*.test.ts'],
       environment: 'node' as const,
-      testTimeout: 120000,
+      testTimeout: 120_000,
     },
   },
   {
@@ -94,7 +94,7 @@ const liveProjects = [
       root: '.',
       include: ['tests/eval/**/*.test.ts'],
       environment: 'node' as const,
-      testTimeout: 60000,
+      testTimeout: 60_000,
     },
   },
   {
@@ -103,7 +103,7 @@ const liveProjects = [
       root: '.',
       include: ['tests/mcp/**/*.test.ts'],
       environment: 'node' as const,
-      testTimeout: 30000,
+      testTimeout: 30_000,
     },
   },
 ];
@@ -116,13 +116,13 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    testTimeout: 30000,
-    hookTimeout: 10000,
+    testTimeout: 30_000,
+    hookTimeout: 10_000,
 
     reporters: [
       'verbose',
-      ['html', { outputFile: './reports/html/index.html' }],
-      ['allure-vitest/reporter', { resultsDir: './allure-results' }],
+      ['html', {outputFile: './reports/html/index.html'}],
+      ['allure-vitest/reporter', {resultsDir: './allure-results'}],
     ],
 
     setupFiles: ['allure-vitest/setup'],

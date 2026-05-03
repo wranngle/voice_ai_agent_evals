@@ -1,15 +1,15 @@
 export type {
-	FieldType,
-	StrictnessLevel,
-	ExtractionField,
-	CategoryContextRules,
-	ExtractionCategory,
-	GlobalContext,
-	ExtractionConfig,
-	ExtractionInput,
-	FieldEnvelope,
-	ExtractionError,
-	ExtractionOutput,
+  FieldType,
+  StrictnessLevel,
+  ExtractionField,
+  CategoryContextRules,
+  ExtractionCategory,
+  GlobalContext,
+  ExtractionConfig,
+  ExtractionInput,
+  FieldEnvelope,
+  ExtractionError,
+  ExtractionOutput,
 } from './types.js';
 
 export {inferStrictness} from './strictness.js';

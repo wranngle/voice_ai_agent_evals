@@ -8,10 +8,14 @@
  * If these pass and the system still breaks later, a test is missing here.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, chmodSync, statSync } from 'fs';
-import { join, resolve, dirname } from 'path';
-import { execSync } from 'child_process';
+import {
+  existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, chmodSync, statSync,
+} from 'fs';
+import {join, resolve, dirname} from 'path';
+import {execSync} from 'child_process';
+import {
+  describe, it, expect, beforeEach, afterEach,
+} from 'vitest';
 
 const PROJECT_ROOT = resolve(__dirname, '../..');
 
@@ -22,13 +26,21 @@ const PROJECT_ROOT = resolve(__dirname, '../..');
 function findRepoRoot(start: string): string {
   let cur = start;
   while (cur !== '/' && cur !== '') {
-    if (existsSync(join(cur, '.git'))) return cur;
+    if (existsSync(join(cur, '.git'))) {
+      return cur;
+    }
+
     const parent = dirname(cur);
-    if (parent === cur) break;
+    if (parent === cur) {
+      break;
+    }
+
     cur = parent;
   }
-  return start; // fallback
+
+  return start; // Fallback
 }
+
 const REPO_ROOT = findRepoRoot(PROJECT_ROOT);
 
 // ============================================
@@ -42,15 +54,18 @@ describe('CI/CD Infrastructure', () => {
 
   it('CI workflow must exist in repo root .github/workflows/ (NOT in child project)', () => {
     const files = existsSync(repoWorkflowDir)
-      ? require('fs').readdirSync(repoWorkflowDir).filter((f: string) => f.includes('vitest') || f.includes('voice-ai'))
+      ? require('node:fs').readdirSync(repoWorkflowDir).filter((f: string) => f.includes('vitest') || f.includes('voice-ai'))
       : [];
     expect(files.length, 'No voice-ai workflow found in repo root .github/workflows/').toBeGreaterThan(0);
   });
 
   it('child project .github/workflows/ must NOT contain CI workflows (wrong location)', () => {
     const childWorkflowDir = join(PROJECT_ROOT, '.github/workflows');
-    if (!existsSync(childWorkflowDir)) return; // Good - doesn't exist
-    const files = require('fs').readdirSync(childWorkflowDir);
+    if (!existsSync(childWorkflowDir)) {
+      return;
+    } // Good - doesn't exist
+
+    const files = require('node:fs').readdirSync(childWorkflowDir);
     const ciFiles = files.filter((f: string) => f.endsWith('.yml') || f.endsWith('.yaml'));
     // Advisory: these files won't be picked up by GitHub
     if (ciFiles.length > 0) {
@@ -59,21 +74,21 @@ describe('CI/CD Infrastructure', () => {
   });
 
   it('CI workflow must have scheduled trigger for hands-free monitoring', () => {
-    const files = require('fs').readdirSync(repoWorkflowDir).filter((f: string) => f.includes('vitest') || f.includes('voice-ai'));
-    const content = readFileSync(join(repoWorkflowDir, files[0]), 'utf-8');
+    const file = require('node:fs').readdirSync(repoWorkflowDir).find((f: string) => f.includes('vitest') || f.includes('voice-ai'));
+    const content = readFileSync(join(repoWorkflowDir, file), 'utf-8');
     expect(content).toContain('schedule:');
     expect(content).toMatch(/cron:/);
   });
 
   it('CI workflow must have workflow_dispatch for manual trigger', () => {
-    const files = require('fs').readdirSync(repoWorkflowDir).filter((f: string) => f.includes('vitest') || f.includes('voice-ai'));
-    const content = readFileSync(join(repoWorkflowDir, files[0]), 'utf-8');
+    const file = require('node:fs').readdirSync(repoWorkflowDir).find((f: string) => f.includes('vitest') || f.includes('voice-ai'));
+    const content = readFileSync(join(repoWorkflowDir, file), 'utf-8');
     expect(content).toContain('workflow_dispatch');
   });
 
   it('CI workflow must run vitest with bun', () => {
-    const files = require('fs').readdirSync(repoWorkflowDir).filter((f: string) => f.includes('vitest') || f.includes('voice-ai'));
-    const content = readFileSync(join(repoWorkflowDir, files[0]), 'utf-8');
+    const file = require('node:fs').readdirSync(repoWorkflowDir).find((f: string) => f.includes('vitest') || f.includes('voice-ai'));
+    const content = readFileSync(join(repoWorkflowDir, file), 'utf-8');
     expect(content).toContain('vitest');
     expect(content).toContain('bun');
   });
@@ -81,20 +96,20 @@ describe('CI/CD Infrastructure', () => {
   // ROOT CAUSE #3: Live endpoint tests ran in CI unit job, failed without network
   // Convention fix: CI uses --project to select offline-only projects
   it('CI unit job must use --project flag (not --exclude) for offline tests', () => {
-    const files = require('fs').readdirSync(repoWorkflowDir).filter((f: string) => f.includes('vitest') || f.includes('voice-ai'));
-    const content = readFileSync(join(repoWorkflowDir, files[0]), 'utf-8');
+    const file = require('node:fs').readdirSync(repoWorkflowDir).find((f: string) => f.includes('vitest') || f.includes('voice-ai'));
+    const content = readFileSync(join(repoWorkflowDir, file), 'utf-8');
     expect(content, 'CI must use --project for convention-based selection').toContain('--project');
   });
 
   it('CI must NOT use hardcoded --exclude paths (convention violation)', () => {
-    const files = require('fs').readdirSync(repoWorkflowDir).filter((f: string) => f.includes('vitest') || f.includes('voice-ai'));
-    const content = readFileSync(join(repoWorkflowDir, files[0]), 'utf-8');
+    const file = require('node:fs').readdirSync(repoWorkflowDir).find((f: string) => f.includes('vitest') || f.includes('voice-ai'));
+    const content = readFileSync(join(repoWorkflowDir, file), 'utf-8');
     expect(content, 'Hardcoded --exclude breaks the anything-machine convention').not.toContain('--exclude');
   });
 
   it('CI must write test summary to GITHUB_STEP_SUMMARY', () => {
-    const files = require('fs').readdirSync(repoWorkflowDir).filter((f: string) => f.includes('vitest') || f.includes('voice-ai'));
-    const content = readFileSync(join(repoWorkflowDir, files[0]), 'utf-8');
+    const file = require('node:fs').readdirSync(repoWorkflowDir).find((f: string) => f.includes('vitest') || f.includes('voice-ai'));
+    const content = readFileSync(join(repoWorkflowDir, file), 'utf-8');
     expect(content).toContain('GITHUB_STEP_SUMMARY');
   });
 });
@@ -116,14 +131,20 @@ describe('Git Hooks', () => {
 
   it('pre-push hook must reference voice_ai_agent_evals tests', () => {
     const hookFile = existsSync(huskyPath) ? huskyPath : gitHookPath;
-    if (!existsSync(hookFile)) return;
+    if (!existsSync(hookFile)) {
+      return;
+    }
+
     const content = readFileSync(hookFile, 'utf-8');
     expect(content).toContain('voice_ai_agent_evals');
   });
 
   it('pre-push hook must fail on test failure', () => {
     const hookFile = existsSync(huskyPath) ? huskyPath : gitHookPath;
-    if (!existsSync(hookFile)) return;
+    if (!existsSync(hookFile)) {
+      return;
+    }
+
     const content = readFileSync(hookFile, 'utf-8');
     // Must have some failure mechanism (exit 1, ||, set -e, etc.)
     const hasFail = content.includes('exit 1') || content.includes('set -e') || content.includes('|| exit');
@@ -145,25 +166,28 @@ describe('Convention: Offline/Live Project Classification', () => {
   });
 
   it('every test directory containing .test.ts files must be covered by a vitest project', () => {
-    const fs = require('fs');
-    const path = require('path');
+    const fs = require('node:fs');
+    const path = require('node:path');
     const testDir = join(PROJECT_ROOT, 'tests');
-    const NON_TEST_DIRS = ['setup', 'fixtures', '__mocks__', 'data', 'helpers', 'utils', 'runs', 'scenarios'];
+    const NON_TEST_DIRS = new Set(['setup', 'fixtures', '__mocks__', 'data', 'helpers', 'utils', 'runs', 'scenarios']);
 
     function containsTestFile(dir: string): boolean {
-      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      const entries = fs.readdirSync(dir, {withFileTypes: true});
       for (const entry of entries) {
         if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules') {
-          if (containsTestFile(path.join(dir, entry.name))) return true;
+          if (containsTestFile(path.join(dir, entry.name))) {
+            return true;
+          }
         } else if (entry.isFile() && entry.name.endsWith('.test.ts')) {
           return true;
         }
       }
+
       return false;
     }
 
-    const subdirs = fs.readdirSync(testDir, { withFileTypes: true })
-      .filter((d: any) => d.isDirectory() && !NON_TEST_DIRS.includes(d.name))
+    const subdirs = fs.readdirSync(testDir, {withFileTypes: true})
+      .filter((d: any) => d.isDirectory() && !NON_TEST_DIRS.has(d.name))
       .filter((d: any) => containsTestFile(path.join(testDir, d.name)))
       .map((d: any) => d.name);
 
@@ -176,9 +200,9 @@ describe('Convention: Offline/Live Project Classification', () => {
   });
 
   it('CI workflow must reference every offline project by --project flag', () => {
-    const fs = require('fs');
-    const ciFiles = fs.readdirSync(join(REPO_ROOT, '.github/workflows')).filter((f: string) => f.includes('vitest') || f.includes('voice-ai'));
-    const ciContent = readFileSync(join(REPO_ROOT, '.github/workflows', ciFiles[0]), 'utf-8');
+    const fs = require('node:fs');
+    const ciFile = fs.readdirSync(join(REPO_ROOT, '.github/workflows')).find((f: string) => f.includes('vitest') || f.includes('voice-ai'));
+    const ciContent = readFileSync(join(REPO_ROOT, '.github/workflows', ciFile), 'utf-8');
     const configContent = readFileSync(vitestConfigPath, 'utf-8');
 
     // Extract offline project names from vitest config
@@ -191,16 +215,16 @@ describe('Convention: Offline/Live Project Classification', () => {
   });
 
   it('CI workflow must have a separate live tests job', () => {
-    const fs = require('fs');
-    const ciFiles = fs.readdirSync(join(REPO_ROOT, '.github/workflows')).filter((f: string) => f.includes('vitest') || f.includes('voice-ai'));
-    const ciContent = readFileSync(join(REPO_ROOT, '.github/workflows', ciFiles[0]), 'utf-8');
+    const fs = require('node:fs');
+    const ciFile = fs.readdirSync(join(REPO_ROOT, '.github/workflows')).find((f: string) => f.includes('vitest') || f.includes('voice-ai'));
+    const ciContent = readFileSync(join(REPO_ROOT, '.github/workflows', ciFile), 'utf-8');
     expect(ciContent).toContain('live-tests:');
   });
 
   it('CI live job must check for secrets before running', () => {
-    const fs = require('fs');
-    const ciFiles = fs.readdirSync(join(REPO_ROOT, '.github/workflows')).filter((f: string) => f.includes('vitest') || f.includes('voice-ai'));
-    const ciContent = readFileSync(join(REPO_ROOT, '.github/workflows', ciFiles[0]), 'utf-8');
+    const fs = require('node:fs');
+    const ciFile = fs.readdirSync(join(REPO_ROOT, '.github/workflows')).find((f: string) => f.includes('vitest') || f.includes('voice-ai'));
+    const ciContent = readFileSync(join(REPO_ROOT, '.github/workflows', ciFile), 'utf-8');
     expect(ciContent).toContain('Verify secrets');
   });
 });
@@ -215,13 +239,16 @@ describe('Import Hygiene', () => {
   // Every test file must import from "vitest", never from "bun:test".
 
   it('no test file must import from bun:test', () => {
-    const glob = require('fs');
-    const path = require('path');
+    const glob = require('node:fs');
+    const path = require('node:path');
 
     function findTestFiles(dir: string): string[] {
       const results: string[] = [];
-      if (!existsSync(dir)) return results;
-      const entries = glob.readdirSync(dir, { withFileTypes: true });
+      if (!existsSync(dir)) {
+        return results;
+      }
+
+      const entries = glob.readdirSync(dir, {withFileTypes: true});
       for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
         if (entry.isDirectory() && !entry.name.includes('node_modules')) {
@@ -230,6 +257,7 @@ describe('Import Hygiene', () => {
           results.push(fullPath);
         }
       }
+
       return results;
     }
 
@@ -248,13 +276,16 @@ describe('Import Hygiene', () => {
   });
 
   it('test files using describe/it/expect must import them from vitest', () => {
-    const glob = require('fs');
-    const path = require('path');
+    const glob = require('node:fs');
+    const path = require('node:path');
 
     function findTestFiles(dir: string): string[] {
       const results: string[] = [];
-      if (!existsSync(dir)) return results;
-      const entries = glob.readdirSync(dir, { withFileTypes: true });
+      if (!existsSync(dir)) {
+        return results;
+      }
+
+      const entries = glob.readdirSync(dir, {withFileTypes: true});
       for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
         if (entry.isDirectory() && !entry.name.includes('node_modules')) {
@@ -263,6 +294,7 @@ describe('Import Hygiene', () => {
           results.push(fullPath);
         }
       }
+
       return results;
     }
 
@@ -273,7 +305,7 @@ describe('Import Hygiene', () => {
     for (const file of allTestFiles) {
       const content = readFileSync(file, 'utf-8');
       const usesTestGlobals = /\b(describe|it|test|expect|beforeAll|afterAll|beforeEach|afterEach)\b/.test(content);
-      const importsVitest = content.includes('from "vitest"') || content.includes("from 'vitest'");
+      const importsVitest = content.includes('from "vitest"') || content.includes('from \'vitest\'');
       const hasVitestGlobals = content.includes('// @vitest-environment') || content.includes('globals: true');
 
       if (usesTestGlobals && !importsVitest) {
@@ -298,27 +330,33 @@ describe('Test Isolation Enforcement', () => {
     'tests/runners.test.ts',
   ];
 
-  testFiles.forEach((file) => {
+  for (const file of testFiles) {
     it(`${file} must use isolated storage directory`, () => {
       const filePath = join(PROJECT_ROOT, file);
-      if (!existsSync(filePath)) return; // Skip if file doesn't exist yet
+      if (!existsSync(filePath)) {
+        return;
+      } // Skip if file doesn't exist yet
+
       const content = readFileSync(filePath, 'utf-8');
 
       // Must set TEST_STORAGE_DIR or use a unique dir
-      const usesIsolation =
-        content.includes('TEST_STORAGE_DIR') ||
-        content.includes('UNIQUE_STORAGE_DIR') ||
-        content.includes('.test-data-');
+      const usesIsolation
+        = content.includes('TEST_STORAGE_DIR')
+          || content.includes('UNIQUE_STORAGE_DIR')
+          || content.includes('.test-data-');
 
       expect(usesIsolation, `${file} must use isolated storage to prevent parallel test interference`).toBe(true);
     });
-  });
+  }
 
   it('default storage dir must NOT be used by any test file', () => {
     // The default .test-data/ directory should not be hardcoded in test files
     for (const file of testFiles) {
       const filePath = join(PROJECT_ROOT, file);
-      if (!existsSync(filePath)) continue;
+      if (!existsSync(filePath)) {
+        continue;
+      }
+
       const content = readFileSync(filePath, 'utf-8');
 
       // Should not hardcode the default path directly (join(cwd, '.test-data') without pid/suffix)
@@ -337,11 +375,14 @@ describe('Storage Corruption Resilience', () => {
 
   beforeEach(() => {
     process.env.TEST_STORAGE_DIR = CORRUPT_DIR;
-    mkdirSync(CORRUPT_DIR, { recursive: true });
+    mkdirSync(CORRUPT_DIR, {recursive: true});
   });
 
   afterEach(() => {
-    try { rmSync(CORRUPT_DIR, { recursive: true, force: true }); } catch {}
+    try {
+      rmSync(CORRUPT_DIR, {recursive: true, force: true});
+    } catch {}
+
     delete process.env.TEST_STORAGE_DIR;
   });
 
@@ -350,7 +391,7 @@ describe('Storage Corruption Resilience', () => {
     writeFileSync(join(CORRUPT_DIR, 'cases.json'), '{{{{not json at all}}}}');
 
     // Import fresh to use the corrupt dir
-    const { listTestCasesSync } = await import('../../lib/testing/local-storage');
+    const {listTestCasesSync} = await import('../../lib/testing/local-storage');
     const result = listTestCasesSync();
     // Should return empty rather than throwing
     expect(Array.isArray(result)).toBe(true);
@@ -360,22 +401,22 @@ describe('Storage Corruption Resilience', () => {
   it('must handle empty file gracefully', async () => {
     writeFileSync(join(CORRUPT_DIR, 'cases.json'), '');
 
-    const { listTestCasesSync } = await import('../../lib/testing/local-storage');
+    const {listTestCasesSync} = await import('../../lib/testing/local-storage');
     const result = listTestCasesSync();
     expect(Array.isArray(result)).toBe(true);
   });
 
   it('must handle missing storage directory by creating it', async () => {
     // Remove the dir
-    rmSync(CORRUPT_DIR, { recursive: true, force: true });
+    rmSync(CORRUPT_DIR, {recursive: true, force: true});
 
-    const { createTestCaseSync } = await import('../../lib/testing/local-storage');
+    const {createTestCaseSync} = await import('../../lib/testing/local-storage');
     // Should auto-create and not throw
     const tc = createTestCaseSync({
       type: 'webhook',
       name: 'Corruption test',
       description: 'Test after dir deletion',
-      input: { url: 'https://example.com' },
+      input: {url: 'https://example.com'},
       expected_output: {},
       tags: [],
       enabled: true,
@@ -394,12 +435,28 @@ describe('Export Completeness', () => {
 
     // Storage operations
     const requiredExports = [
-      'createTestCase', 'getTestCase', 'listTestCases', 'updateTestCase', 'deleteTestCase',
-      'createTestResult', 'getTestResult', 'listTestResults', 'getResultsByRun',
-      'createTestRun', 'getTestRun', 'listTestRuns', 'completeTestRun',
-      'createRequirement', 'getRequirement', 'listRequirements', 'updateRequirement',
-      'captureRequirement', 'linkTestToRequirement', 'getRequirementCoverage',
-      'clearAllDataSync', 'generateId',
+      'createTestCase',
+      'getTestCase',
+      'listTestCases',
+      'updateTestCase',
+      'deleteTestCase',
+      'createTestResult',
+      'getTestResult',
+      'listTestResults',
+      'getResultsByRun',
+      'createTestRun',
+      'getTestRun',
+      'listTestRuns',
+      'completeTestRun',
+      'createRequirement',
+      'getRequirement',
+      'listRequirements',
+      'updateRequirement',
+      'captureRequirement',
+      'linkTestToRequirement',
+      'getRequirementCoverage',
+      'clearAllDataSync',
+      'generateId',
     ];
 
     for (const name of requiredExports) {
@@ -411,7 +468,10 @@ describe('Export Completeness', () => {
     const mod = await import('../../lib/testing');
 
     const requiredClasses = [
-      'WebhookRunner', 'ElevenLabsRunner', 'N8nEvalRunner', 'McpRunner',
+      'WebhookRunner',
+      'ElevenLabsRunner',
+      'N8nEvalRunner',
+      'McpRunner',
       'TestOrchestrator',
     ];
 
@@ -438,16 +498,16 @@ describe('Type Contract Stability', () => {
   it('TestCase must have all required fields', async () => {
     const STORAGE_DIR = join(PROJECT_ROOT, '.test-data-typecheck-' + process.pid);
     process.env.TEST_STORAGE_DIR = STORAGE_DIR;
-    mkdirSync(STORAGE_DIR, { recursive: true });
+    mkdirSync(STORAGE_DIR, {recursive: true});
 
     try {
-      const { createTestCaseSync } = await import('../../lib/testing/local-storage');
+      const {createTestCaseSync} = await import('../../lib/testing/local-storage');
       const tc = createTestCaseSync({
         type: 'webhook',
         name: 'Type contract test',
         description: 'Verify all fields exist',
-        input: { url: 'https://example.com' },
-        expected_output: { status: 200 },
+        input: {url: 'https://example.com'},
+        expected_output: {status: 200},
         tags: ['contract'],
         enabled: true,
       });
@@ -467,7 +527,7 @@ describe('Type Contract Stability', () => {
       expect(() => new Date(tc.created_at)).not.toThrow();
       expect(new Date(tc.created_at).toISOString()).toBe(tc.created_at);
     } finally {
-      rmSync(STORAGE_DIR, { recursive: true, force: true });
+      rmSync(STORAGE_DIR, {recursive: true, force: true});
       delete process.env.TEST_STORAGE_DIR;
     }
   });
@@ -475,10 +535,10 @@ describe('Type Contract Stability', () => {
   it('TestRun must track all execution stats', async () => {
     const STORAGE_DIR = join(PROJECT_ROOT, '.test-data-runcheck-' + process.pid);
     process.env.TEST_STORAGE_DIR = STORAGE_DIR;
-    mkdirSync(STORAGE_DIR, { recursive: true });
+    mkdirSync(STORAGE_DIR, {recursive: true});
 
     try {
-      const { createTestRunSync, completeTestRunSync } = await import('../../lib/testing/local-storage');
+      const {createTestRunSync, completeTestRunSync} = await import('../../lib/testing/local-storage');
 
       const run = createTestRunSync({
         triggered_by: 'manual',
@@ -511,17 +571,18 @@ describe('Type Contract Stability', () => {
       expect(completed!.pass_rate).toBe(80);
       expect(completed!.completed_at).toBeDefined();
     } finally {
-      rmSync(STORAGE_DIR, { recursive: true, force: true });
+      rmSync(STORAGE_DIR, {recursive: true, force: true});
       delete process.env.TEST_STORAGE_DIR;
     }
   });
 
   it('ID generation must produce unique IDs under rapid creation', async () => {
-    const { generateId } = await import('../../lib/testing/local-storage');
+    const {generateId} = await import('../../lib/testing/local-storage');
     const ids = new Set<string>();
     for (let i = 0; i < 500; i++) {
       ids.add(generateId('TC'));
     }
+
     // With 500 rapid generations, collisions would indicate a broken generator
     // Allow very small collision rate (timestamp-based IDs can collide within same ms)
     expect(ids.size).toBeGreaterThanOrEqual(490);
@@ -540,9 +601,9 @@ describe('Package.json Integrity', () => {
 
   it('must have vitest as dependency', () => {
     const pkg = JSON.parse(readFileSync(join(PROJECT_ROOT, 'package.json'), 'utf-8'));
-    const hasVitest =
-      pkg.devDependencies?.vitest ||
-      pkg.dependencies?.vitest;
+    const hasVitest
+      = pkg.devDependencies?.vitest
+        || pkg.dependencies?.vitest;
     expect(hasVitest, 'Vitest must be a dependency').toBeDefined();
   });
 });
@@ -565,12 +626,15 @@ describe('Vitest Config', () => {
 
   it('must set appropriate timeouts per project type', () => {
     const content = readFileSync(join(PROJECT_ROOT, 'vitest.config.ts'), 'utf-8');
+    // Strip numeric separators so tests accept both `120000` and `120_000`
+    // forms (xo's unicorn/numeric-separators-style auto-fix toggles them).
+    const normalized = content.replaceAll(/(\d)_(?=\d)/g, '$1');
 
     // ElevenLabs tests are slow (conversation simulation) - need longer timeout
-    expect(content).toContain('120000'); // 2 min for elevenlabs
+    expect(normalized).toContain('120000'); // 2 min for elevenlabs
 
     // Integration tests need moderate timeout
-    expect(content).toContain('60000'); // 1 min for integration
+    expect(normalized).toContain('60000'); // 1 min for integration
   });
 });
 
@@ -580,7 +644,7 @@ describe('Vitest Config', () => {
 
 describe('Runner Architecture', () => {
   it('every runner must implement validate() and execute()', async () => {
-    const { WebhookRunner, ElevenLabsRunner, N8nEvalRunner, McpRunner } = await import('../../lib/testing');
+    const {WebhookRunner, ElevenLabsRunner, N8nEvalRunner, McpRunner} = await import('../../lib/testing');
 
     const runners = [
       new WebhookRunner(),
@@ -597,7 +661,7 @@ describe('Runner Architecture', () => {
   });
 
   it('runner types must match TestType enum values', async () => {
-    const { WebhookRunner, ElevenLabsRunner, N8nEvalRunner, McpRunner } = await import('../../lib/testing');
+    const {WebhookRunner, ElevenLabsRunner, N8nEvalRunner, McpRunner} = await import('../../lib/testing');
 
     const validTypes = ['webhook', 'elevenlabs', 'n8n-eval', 'mcp'];
 
@@ -608,9 +672,9 @@ describe('Runner Architecture', () => {
   });
 
   it('orchestrator must support failFast mode', async () => {
-    const { TestOrchestrator } = await import('../../lib/testing');
+    const {TestOrchestrator} = await import('../../lib/testing');
     const orch = new TestOrchestrator();
-    // failFast is an option - verify the class accepts it
+    // FailFast is an option - verify the class accepts it
     expect(typeof orch.run).toBe('function');
   });
 });
@@ -623,10 +687,10 @@ describe('Mutation Detection', () => {
   it('storage write then read must return identical data', async () => {
     const STORAGE_DIR = join(PROJECT_ROOT, '.test-data-mutation-' + process.pid);
     process.env.TEST_STORAGE_DIR = STORAGE_DIR;
-    mkdirSync(STORAGE_DIR, { recursive: true });
+    mkdirSync(STORAGE_DIR, {recursive: true});
 
     try {
-      const { createTestCaseSync, getTestCaseSync } = await import('../../lib/testing/local-storage');
+      const {createTestCaseSync, getTestCaseSync} = await import('../../lib/testing/local-storage');
 
       const input = {
         type: 'webhook' as const,
@@ -635,12 +699,12 @@ describe('Mutation Detection', () => {
         input: {
           url: 'https://example.com/api/v1/test',
           method: 'POST',
-          headers: { 'X-Custom': 'value' },
-          body: { nested: { deep: { value: 42 } } },
+          headers: {'X-Custom': 'value'},
+          body: {nested: {deep: {value: 42}}},
         },
         expected_output: {
           status: 200,
-          body: { success: true, data: [1, 2, 3] },
+          body: {success: true, data: [1, 2, 3]},
         },
         tags: ['mutation', 'roundtrip'],
         enabled: true,
@@ -655,7 +719,7 @@ describe('Mutation Detection', () => {
       expect(retrieved!.expected_output).toEqual(input.expected_output);
       expect(retrieved!.tags).toEqual(input.tags);
     } finally {
-      rmSync(STORAGE_DIR, { recursive: true, force: true });
+      rmSync(STORAGE_DIR, {recursive: true, force: true});
       delete process.env.TEST_STORAGE_DIR;
     }
   });
@@ -663,35 +727,35 @@ describe('Mutation Detection', () => {
   it('update must not lose unrelated fields', async () => {
     const STORAGE_DIR = join(PROJECT_ROOT, '.test-data-update-' + process.pid);
     process.env.TEST_STORAGE_DIR = STORAGE_DIR;
-    mkdirSync(STORAGE_DIR, { recursive: true });
+    mkdirSync(STORAGE_DIR, {recursive: true});
 
     try {
-      const { createTestCaseSync, updateTestCaseSync, getTestCaseSync } = await import('../../lib/testing/local-storage');
+      const {createTestCaseSync, updateTestCaseSync, getTestCaseSync} = await import('../../lib/testing/local-storage');
 
       const original = createTestCaseSync({
         type: 'webhook',
         name: 'Original name',
         description: 'Original description',
-        input: { url: 'https://original.com' },
-        expected_output: { status: 200 },
+        input: {url: 'https://original.com'},
+        expected_output: {status: 200},
         tags: ['original'],
         enabled: true,
       });
 
       // Update only the name
-      updateTestCaseSync(original.test_id, { name: 'Updated name' });
+      updateTestCaseSync(original.test_id, {name: 'Updated name'});
 
       const updated = getTestCaseSync(original.test_id);
       expect(updated!.name).toBe('Updated name');
       // All other fields must be preserved
       expect(updated!.description).toBe('Original description');
-      expect(updated!.input).toEqual({ url: 'https://original.com' });
-      expect(updated!.expected_output).toEqual({ status: 200 });
+      expect(updated!.input).toEqual({url: 'https://original.com'});
+      expect(updated!.expected_output).toEqual({status: 200});
       expect(updated!.tags).toEqual(['original']);
       expect(updated!.enabled).toBe(true);
       expect(updated!.type).toBe('webhook');
     } finally {
-      rmSync(STORAGE_DIR, { recursive: true, force: true });
+      rmSync(STORAGE_DIR, {recursive: true, force: true});
       delete process.env.TEST_STORAGE_DIR;
     }
   });
@@ -699,14 +763,20 @@ describe('Mutation Detection', () => {
   it('delete must not affect other records', async () => {
     const STORAGE_DIR = join(PROJECT_ROOT, '.test-data-delete-' + process.pid);
     process.env.TEST_STORAGE_DIR = STORAGE_DIR;
-    mkdirSync(STORAGE_DIR, { recursive: true });
+    mkdirSync(STORAGE_DIR, {recursive: true});
 
     try {
-      const { createTestCaseSync, deleteTestCaseSync, listTestCasesSync } = await import('../../lib/testing/local-storage');
+      const {createTestCaseSync, deleteTestCaseSync, listTestCasesSync} = await import('../../lib/testing/local-storage');
 
-      const tc1 = createTestCaseSync({ type: 'webhook', name: 'Keep', description: 'd', input: {}, expected_output: {}, tags: [], enabled: true });
-      const tc2 = createTestCaseSync({ type: 'webhook', name: 'Delete', description: 'd', input: {}, expected_output: {}, tags: [], enabled: true });
-      const tc3 = createTestCaseSync({ type: 'webhook', name: 'Keep too', description: 'd', input: {}, expected_output: {}, tags: [], enabled: true });
+      const tc1 = createTestCaseSync({
+        type: 'webhook', name: 'Keep', description: 'd', input: {}, expected_output: {}, tags: [], enabled: true,
+      });
+      const tc2 = createTestCaseSync({
+        type: 'webhook', name: 'Delete', description: 'd', input: {}, expected_output: {}, tags: [], enabled: true,
+      });
+      const tc3 = createTestCaseSync({
+        type: 'webhook', name: 'Keep too', description: 'd', input: {}, expected_output: {}, tags: [], enabled: true,
+      });
 
       deleteTestCaseSync(tc2.test_id);
 
@@ -716,7 +786,7 @@ describe('Mutation Detection', () => {
       expect(remaining.map(r => r.name)).toContain('Keep too');
       expect(remaining.map(r => r.name)).not.toContain('Delete');
     } finally {
-      rmSync(STORAGE_DIR, { recursive: true, force: true });
+      rmSync(STORAGE_DIR, {recursive: true, force: true});
       delete process.env.TEST_STORAGE_DIR;
     }
   });
@@ -730,10 +800,10 @@ describe('Concurrent Write Safety', () => {
   it('rapid sequential writes must not lose data', async () => {
     const STORAGE_DIR = join(PROJECT_ROOT, '.test-data-concurrent-' + process.pid);
     process.env.TEST_STORAGE_DIR = STORAGE_DIR;
-    mkdirSync(STORAGE_DIR, { recursive: true });
+    mkdirSync(STORAGE_DIR, {recursive: true});
 
     try {
-      const { createTestCaseSync, listTestCasesSync, clearAllDataSync } = await import('../../lib/testing/local-storage');
+      const {createTestCaseSync, listTestCasesSync, clearAllDataSync} = await import('../../lib/testing/local-storage');
 
       clearAllDataSync();
 
@@ -744,17 +814,17 @@ describe('Concurrent Write Safety', () => {
           type: 'webhook',
           name: `Rapid write ${i}`,
           description: `Test ${i}`,
-          input: { url: `https://example.com/${i}` },
+          input: {url: `https://example.com/${i}`},
           expected_output: {},
           tags: [],
           enabled: true,
         });
       }
 
-      const all = listTestCasesSync({ limit: 200 });
+      const all = listTestCasesSync({limit: 200});
       expect(all).toHaveLength(WRITE_COUNT);
     } finally {
-      rmSync(STORAGE_DIR, { recursive: true, force: true });
+      rmSync(STORAGE_DIR, {recursive: true, force: true});
       delete process.env.TEST_STORAGE_DIR;
     }
   });

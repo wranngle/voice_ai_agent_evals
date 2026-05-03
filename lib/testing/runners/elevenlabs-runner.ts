@@ -7,7 +7,7 @@
  * - POST /v1/convai/agents/{agent_id}/simulate-conversation
  */
 
-import type { TestCase } from '../types';
+import type {TestCase} from '../types';
 import type {
   TestRunner,
   TestExecutionResult,
@@ -17,12 +17,12 @@ import type {
 } from './types';
 
 const API_BASE = 'https://api.elevenlabs.io/v1';
-const DEFAULT_TIMEOUT = 120000; // 120s for voice agent tests (they can take a while)
+const DEFAULT_TIMEOUT = 120_000; // 120s for voice agent tests (they can take a while)
 
 /**
  * Expected output configuration for ElevenLabs tests
  */
-export interface ElevenLabsExpectedOutput {
+export type ElevenLabsExpectedOutput = {
   /** Keywords that should appear in agent response */
   response_contains?: string[];
   /** Keywords that should NOT appear in agent response */
@@ -40,12 +40,12 @@ export interface ElevenLabsExpectedOutput {
     name: string;
     description: string;
   }>;
-}
+};
 
 /**
  * Simulated conversation request
  */
-interface SimulateConversationRequest {
+type SimulateConversationRequest = {
   simulation_specification: {
     simulated_user_config: {
       first_message?: string;
@@ -67,12 +67,12 @@ interface SimulateConversationRequest {
     description: string;
   }>;
   new_turns_limit?: number;
-}
+};
 
 /**
  * Simulated conversation response
  */
-interface SimulateConversationResponse {
+type SimulateConversationResponse = {
   simulated_conversation: Array<{
     role: 'user' | 'agent';
     message: string;
@@ -94,11 +94,11 @@ interface SimulateConversationResponse {
     conversation_summary?: string;
     overall_passed?: boolean;
   };
-}
+};
 
 export class ElevenLabsRunner implements TestRunner {
   readonly type = 'elevenlabs' as const;
-  private apiKey: string;
+  private readonly apiKey: string;
 
   constructor(apiKey?: string) {
     this.apiKey = apiKey || process.env.ELEVENLABS_API_KEY || '';
@@ -116,7 +116,7 @@ export class ElevenLabsRunner implements TestRunner {
     if (!this.apiKey) {
       return {
         status: 'error',
-        actual_output: { error: 'ELEVENLABS_API_KEY not configured' },
+        actual_output: {error: 'ELEVENLABS_API_KEY not configured'},
         latency_ms: Date.now() - startTime,
         error_message: 'ELEVENLABS_API_KEY environment variable or constructor parameter required',
         assertions_passed: 0,
@@ -152,7 +152,7 @@ export class ElevenLabsRunner implements TestRunner {
       // Use analysis.overall_passed if available, otherwise use assertion results
       const analysisResult = response.analysis?.overall_passed;
       const allAssertionsPassed = assertionsFailed === 0;
-      const finalPassed = analysisResult !== undefined ? analysisResult && allAssertionsPassed : allAssertionsPassed;
+      const finalPassed = analysisResult === undefined ? allAssertionsPassed : analysisResult && allAssertionsPassed;
 
       return {
         status: finalPassed ? 'passed' : 'failed',
@@ -168,9 +168,9 @@ export class ElevenLabsRunner implements TestRunner {
         error_message: finalPassed
           ? undefined
           : assertions
-              .filter(a => !a.passed)
-              .map(a => a.message)
-              .join('; '),
+            .filter(a => !a.passed)
+            .map(a => a.message)
+            .join('; '),
       };
     } catch (error) {
       const latency_ms = Date.now() - startTime;
@@ -178,7 +178,7 @@ export class ElevenLabsRunner implements TestRunner {
 
       return {
         status: 'error',
-        actual_output: { error: errorMessage },
+        actual_output: {error: errorMessage},
         latency_ms,
         error_message: errorMessage,
         assertions_passed: 0,
@@ -187,7 +187,7 @@ export class ElevenLabsRunner implements TestRunner {
     }
   }
 
-  validate(testCase: TestCase): { valid: boolean; errors: string[] } {
+  validate(testCase: TestCase): {valid: boolean; errors: string[]} {
     const errors: string[] = [];
     const config = testCase.input as unknown as ElevenLabsTestConfig;
 
@@ -202,7 +202,7 @@ export class ElevenLabsRunner implements TestRunner {
       errors.push('test_prompt is required for conversation simulation');
     }
 
-    return { valid: errors.length === 0, errors };
+    return {valid: errors.length === 0, errors};
   }
 
   /**
@@ -245,12 +245,14 @@ export class ElevenLabsRunner implements TestRunner {
   private async simulateConversation(
     agentId: string,
     request: SimulateConversationRequest,
-    timeout: number
+    timeout: number,
   ): Promise<SimulateConversationResponse> {
     const url = `${API_BASE}/convai/agents/${agentId}/simulate-conversation`;
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, timeout);
 
     try {
       const response = await fetch(url, {
@@ -282,11 +284,11 @@ export class ElevenLabsRunner implements TestRunner {
     expected: ElevenLabsExpectedOutput,
     agentMessages: string,
     toolCalls: string[],
-    response: SimulateConversationResponse
+    response: SimulateConversationResponse,
   ): void {
     const agentMessagesLower = agentMessages.toLowerCase();
 
-    // response_contains assertions
+    // Response_contains assertions
     if (expected.response_contains && expected.response_contains.length > 0) {
       for (const keyword of expected.response_contains) {
         const found = agentMessagesLower.includes(keyword.toLowerCase());
@@ -300,7 +302,7 @@ export class ElevenLabsRunner implements TestRunner {
       }
     }
 
-    // response_not_contains assertions
+    // Response_not_contains assertions
     if (expected.response_not_contains && expected.response_not_contains.length > 0) {
       for (const keyword of expected.response_not_contains) {
         const found = agentMessagesLower.includes(keyword.toLowerCase());
@@ -314,7 +316,7 @@ export class ElevenLabsRunner implements TestRunner {
       }
     }
 
-    // expected_tool_calls assertions
+    // Expected_tool_calls assertions
     if (expected.expected_tool_calls && expected.expected_tool_calls.length > 0) {
       for (const toolName of expected.expected_tool_calls) {
         const called = toolCalls.includes(toolName);
@@ -328,7 +330,7 @@ export class ElevenLabsRunner implements TestRunner {
       }
     }
 
-    // forbidden_tool_calls assertions
+    // Forbidden_tool_calls assertions
     if (expected.forbidden_tool_calls && expected.forbidden_tool_calls.length > 0) {
       for (const toolName of expected.forbidden_tool_calls) {
         const called = toolCalls.includes(toolName);

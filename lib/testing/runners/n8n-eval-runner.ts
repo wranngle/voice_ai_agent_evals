@@ -1,5 +1,5 @@
 /**
- * n8n Eval Node Test Runner
+ * N8n Eval Node Test Runner
  *
  * Executes n8n workflow tests and evaluates results against expected outputs.
  * Integrates with n8n's built-in evaluation nodes for dataset-driven testing.
@@ -10,7 +10,7 @@
  * - Custom evaluation metrics (correctness, helpfulness, custom rubrics)
  */
 
-import type { TestCase } from '../types';
+import type {TestCase} from '../types';
 import type {
   TestRunner,
   TestExecutionResult,
@@ -19,12 +19,12 @@ import type {
   AssertionResult,
 } from './types';
 
-const DEFAULT_TIMEOUT = 120000; // 2 minutes for n8n workflows
+const DEFAULT_TIMEOUT = 120_000; // 2 minutes for n8n workflows
 
 /**
  * Expected output configuration for n8n Eval tests
  */
-export interface N8nEvalExpectedOutput {
+export type N8nEvalExpectedOutput = {
   /** Expected status of the workflow execution */
   execution_status?: 'success' | 'error';
   /** Minimum overall score (0-100) */
@@ -41,12 +41,12 @@ export interface N8nEvalExpectedOutput {
     path: string; // JSON path to check
     expected: unknown;
   }>;
-}
+};
 
 /**
- * n8n execution result structure
+ * N8n execution result structure
  */
-interface N8nExecutionResult {
+type N8nExecutionResult = {
   id?: string;
   executionId?: string;
   status?: 'success' | 'error' | 'waiting' | 'running';
@@ -55,24 +55,24 @@ interface N8nExecutionResult {
     resultData?: {
       runData?: Record<string, Array<{
         data?: {
-          main?: Array<Array<{ json: Record<string, unknown> }>>;
+          main?: Array<Array<{json: Record<string, unknown>}>>;
         };
-        error?: { message: string };
+        error?: {message: string};
       }>>;
       lastNodeExecuted?: string;
-      error?: { message: string };
+      error?: {message: string};
     };
   };
   startedAt?: string;
   stoppedAt?: string;
   mode?: string;
   workflowId?: string;
-}
+};
 
 export class N8nEvalRunner implements TestRunner {
   readonly type = 'n8n-eval' as const;
-  private apiUrl: string;
-  private apiKey: string;
+  private readonly apiUrl: string;
+  private readonly apiKey: string;
 
   constructor(apiUrl?: string, apiKey?: string) {
     this.apiUrl = apiUrl || process.env.N8N_API_URL || 'https://your-n8n-host.example.com/api/v1';
@@ -91,7 +91,7 @@ export class N8nEvalRunner implements TestRunner {
     if (!this.apiKey) {
       return {
         status: 'error',
-        actual_output: { error: 'N8N_API_KEY not configured' },
+        actual_output: {error: 'N8N_API_KEY not configured'},
         latency_ms: Date.now() - startTime,
         error_message: 'N8N_API_KEY environment variable or constructor parameter required',
         assertions_passed: 0,
@@ -170,8 +170,8 @@ export class N8nEvalRunner implements TestRunner {
       // Determine status based on execution and assertions
       // For webhooks, 'error' status (4xx/5xx) is a valid outcome if that's what we expected
       let finalStatus: 'passed' | 'failed' | 'error' = 'passed';
-      const webhookResult = executionResult as N8nExecutionResult & { _webhookResponse?: Record<string, unknown> };
-      const isWebhook = !!webhookResult._webhookResponse;
+      const webhookResult = executionResult as N8nExecutionResult & {_webhookResponse?: Record<string, unknown>};
+      const isWebhook = Boolean(webhookResult._webhookResponse);
 
       if (executionResult.status === 'error' && expected.execution_status !== 'error' && !isWebhook) {
         // Only treat as error if not a webhook (webhooks with errors are valid test outcomes)
@@ -197,9 +197,9 @@ export class N8nEvalRunner implements TestRunner {
         error_message: allPassed
           ? undefined
           : assertions
-              .filter(a => !a.passed)
-              .map(a => a.message)
-              .join('; '),
+            .filter(a => !a.passed)
+            .map(a => a.message)
+            .join('; '),
       };
     } catch (error) {
       const latency_ms = Date.now() - startTime;
@@ -207,7 +207,7 @@ export class N8nEvalRunner implements TestRunner {
 
       return {
         status: 'error',
-        actual_output: { error: errorMessage },
+        actual_output: {error: errorMessage},
         latency_ms,
         error_message: errorMessage,
         assertions_passed: 0,
@@ -216,7 +216,7 @@ export class N8nEvalRunner implements TestRunner {
     }
   }
 
-  validate(testCase: TestCase): { valid: boolean; errors: string[] } {
+  validate(testCase: TestCase): {valid: boolean; errors: string[]} {
     const errors: string[] = [];
     const config = testCase.input as unknown as N8nEvalTestConfig;
 
@@ -228,7 +228,7 @@ export class N8nEvalRunner implements TestRunner {
       errors.push('Missing required field: payload');
     }
 
-    return { valid: errors.length === 0, errors };
+    return {valid: errors.length === 0, errors};
   }
 
   /**
@@ -236,7 +236,7 @@ export class N8nEvalRunner implements TestRunner {
    */
   private async executeWorkflow(
     config: N8nEvalTestConfig,
-    timeout: number
+    timeout: number,
   ): Promise<N8nExecutionResult> {
     // First, try to trigger via webhook if webhook_path is provided
     if (config.webhook_path) {
@@ -252,7 +252,7 @@ export class N8nEvalRunner implements TestRunner {
    */
   private async executeViaWebhook(
     config: N8nEvalTestConfig,
-    timeout: number
+    timeout: number,
   ): Promise<N8nExecutionResult> {
     const webhookUrl = `${this.apiUrl.replace('/api/v1', '')}/webhook/${config.webhook_path}`;
 
@@ -271,7 +271,7 @@ export class N8nEvalRunner implements TestRunner {
     try {
       result = (await response.json()) as Record<string, unknown>;
     } catch {
-      result = { _raw_response: await response.text() };
+      result = {_raw_response: await response.text()};
     }
 
     // Attach HTTP status to the result for assertion purposes
@@ -289,7 +289,7 @@ export class N8nEvalRunner implements TestRunner {
       },
       // Store direct result for extraction
       _webhookResponse: result,
-    } as N8nExecutionResult & { _webhookResponse: Record<string, unknown> };
+    } as N8nExecutionResult & {_webhookResponse: Record<string, unknown>};
   }
 
   /**
@@ -297,7 +297,7 @@ export class N8nEvalRunner implements TestRunner {
    */
   private async executeViaApi(
     config: N8nEvalTestConfig,
-    timeout: number
+    timeout: number,
   ): Promise<N8nExecutionResult> {
     // Use the test workflow endpoint
     const url = `${this.apiUrl}/workflows/${config.workflow_id}/execute`;
@@ -323,7 +323,7 @@ export class N8nEvalRunner implements TestRunner {
 
     // If we got an execution ID, poll for completion
     if (result.executionId && !result.finished) {
-      return this.pollForCompletion(result.executionId as string, timeout);
+      return this.pollForCompletion(result.executionId, timeout);
     }
 
     return result;
@@ -334,7 +334,7 @@ export class N8nEvalRunner implements TestRunner {
    */
   private async pollForCompletion(
     executionId: string,
-    timeout: number
+    timeout: number,
   ): Promise<N8nExecutionResult> {
     const startTime = Date.now();
     const pollInterval = 1000; // 1 second
@@ -371,13 +371,15 @@ export class N8nEvalRunner implements TestRunner {
    */
   private extractOutput(result: N8nExecutionResult): Record<string, unknown> {
     // Check for direct webhook response first
-    const webhookResult = result as N8nExecutionResult & { _webhookResponse?: Record<string, unknown> };
+    const webhookResult = result as N8nExecutionResult & {_webhookResponse?: Record<string, unknown>};
     if (webhookResult._webhookResponse) {
       return webhookResult._webhookResponse;
     }
 
     const runData = result.data?.resultData?.runData;
-    if (!runData) return {};
+    if (!runData) {
+      return {};
+    }
 
     // Get output from the last node
     const lastNode = result.data?.resultData?.lastNodeExecuted;
@@ -404,7 +406,10 @@ export class N8nEvalRunner implements TestRunner {
    */
   private getExecutedNodes(result: N8nExecutionResult): string[] {
     const runData = result.data?.resultData?.runData;
-    if (!runData) return [];
+    if (!runData) {
+      return [];
+    }
+
     return Object.keys(runData);
   }
 
@@ -413,9 +418,11 @@ export class N8nEvalRunner implements TestRunner {
    */
   private calculateScore(
     result: N8nExecutionResult,
-    metrics: N8nEvalTestConfig['eval_metrics']
+    metrics: N8nEvalTestConfig['eval_metrics'],
   ): number {
-    if (!metrics) return 100;
+    if (!metrics) {
+      return 100;
+    }
 
     let score = 0;
     let totalWeight = 0;
@@ -459,7 +466,7 @@ export class N8nEvalRunner implements TestRunner {
 
   private assertOutputContains(
     actual: Record<string, unknown>,
-    expected: Record<string, unknown>
+    expected: Record<string, unknown>,
   ): AssertionResult {
     const passed = this.objectContains(actual, expected);
     return {
@@ -473,7 +480,7 @@ export class N8nEvalRunner implements TestRunner {
 
   private assertNodesExecuted(
     actual: string[],
-    expected: string[]
+    expected: string[],
   ): AssertionResult {
     const missing = expected.filter(n => !actual.includes(n));
     const passed = missing.length === 0;
@@ -488,7 +495,7 @@ export class N8nEvalRunner implements TestRunner {
 
   private assertCustom(
     output: Record<string, unknown>,
-    assertion: { name: string; path: string; expected: unknown }
+    assertion: {name: string; path: string; expected: unknown},
   ): AssertionResult {
     const actual = this.getValueByPath(output, assertion.path);
     const passed = this.deepEquals(actual, assertion.expected);
@@ -501,51 +508,78 @@ export class N8nEvalRunner implements TestRunner {
     };
   }
 
-  private getValueByPath(obj: Record<string, unknown>, path: string): unknown {
+  private getValueByPath(object: Record<string, unknown>, path: string): unknown {
     const parts = path.split('.');
-    let current: unknown = obj;
+    let current: unknown = object;
 
     for (const part of parts) {
-      if (current === null || current === undefined) return undefined;
-      if (typeof current !== 'object') return undefined;
+      if (current === null || current === undefined) {
+        return undefined;
+      }
+
+      if (typeof current !== 'object') {
+        return undefined;
+      }
+
       current = (current as Record<string, unknown>)[part];
     }
 
     return current;
   }
 
-  private objectContains(obj: Record<string, unknown>, subset: Record<string, unknown>): boolean {
+  private objectContains(object: Record<string, unknown>, subset: Record<string, unknown>): boolean {
     for (const [key, value] of Object.entries(subset)) {
-      if (!(key in obj)) return false;
+      if (!(key in object)) {
+        return false;
+      }
+
       if (typeof value === 'object' && value !== null) {
-        if (typeof obj[key] !== 'object' || obj[key] === null) return false;
-        if (!this.objectContains(obj[key] as Record<string, unknown>, value as Record<string, unknown>)) {
+        if (typeof object[key] !== 'object' || object[key] === null) {
           return false;
         }
-      } else if (obj[key] !== value) {
+
+        if (!this.objectContains(object[key] as Record<string, unknown>, value as Record<string, unknown>)) {
+          return false;
+        }
+      } else if (object[key] !== value) {
         return false;
       }
     }
+
     return true;
   }
 
   private deepEquals(a: unknown, b: unknown): boolean {
-    if (a === b) return true;
-    if (typeof a !== typeof b) return false;
-    if (a === null || b === null) return a === b;
+    if (a === b) {
+      return true;
+    }
+
+    if (typeof a !== typeof b) {
+      return false;
+    }
+
+    if (a === null || b === null) {
+      return a === b;
+    }
 
     if (Array.isArray(a) && Array.isArray(b)) {
-      if (a.length !== b.length) return false;
+      if (a.length !== b.length) {
+        return false;
+      }
+
       return a.every((item, i) => this.deepEquals(item, b[i]));
     }
 
     if (typeof a === 'object' && typeof b === 'object') {
-      const aObj = a as Record<string, unknown>;
-      const bObj = b as Record<string, unknown>;
-      const aKeys = Object.keys(aObj);
-      const bKeys = Object.keys(bObj);
-      if (aKeys.length !== bKeys.length) return false;
-      return aKeys.every(key => this.deepEquals(aObj[key], bObj[key]));
+      const aObject = a as Record<string, unknown>;
+      const bObject = b as Record<string, unknown>;
+      const aKeys = Object.keys(aObject);
+      const bKeys = Object.keys(bObject);
+      if (aKeys.length !== bKeys.length) {
+        return false;
+      }
+
+      return aKeys.every(key => this.deepEquals(aObject[key], bObject[key]));
     }
 
     return false;

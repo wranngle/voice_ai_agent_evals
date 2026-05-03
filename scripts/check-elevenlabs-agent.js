@@ -1,4 +1,4 @@
-const https = require('https');
+const https = require('node:https');
 require('./lib/env');
 
 const API_KEY = process.env.ELEVENLABS_API_KEY;
@@ -9,7 +9,7 @@ if (!API_KEY) {
   process.exit(1);
 }
 
-console.log('API Key:', API_KEY.substring(0, 10) + '...');
+console.log('API Key:', API_KEY.slice(0, 10) + '...');
 console.log('Agent ID:', AGENT_ID);
 console.log('\nFetching agent from ElevenLabs...\n');
 
@@ -19,11 +19,11 @@ const options = {
   method: 'GET',
   headers: {
     'xi-api-key': API_KEY,
-    'Accept': 'application/json'
-  }
+    Accept: 'application/json',
+  },
 };
 
-const req = https.request(options, res => {
+const request = https.request(options, res => {
   let data = '';
   res.on('data', chunk => data += chunk);
   res.on('end', () => {
@@ -58,7 +58,7 @@ const req = https.request(options, res => {
       const prompt = agentConfig.prompt?.prompt;
       if (prompt) {
         console.log('\n=== PROMPT PREVIEW (first 300 chars) ===');
-        console.log(prompt.substring(0, 300) + '...');
+        console.log(prompt.slice(0, 300) + '...');
 
         // Check for key v2.0 markers
         console.log('\n=== V2.0 MARKERS ===');
@@ -76,16 +76,15 @@ const req = https.request(options, res => {
       const tools = agentConfig.prompt?.tools || [];
       console.log('\n=== TOOLS ===');
       console.log('Tool count:', tools.length);
-      tools.forEach(t => {
+      for (const t of tools) {
         console.log(`  - ${t.name}: ${t.api_schema?.url || 'no URL'}`);
-      });
-
-    } catch (e) {
-      console.log('Parse error:', e.message);
-      console.log('Raw data:', data.substring(0, 500));
+      }
+    } catch (error) {
+      console.log('Parse error:', error.message);
+      console.log('Raw data:', data.slice(0, 500));
     }
   });
 });
 
-req.on('error', e => console.log('Request error:', e.message));
-req.end();
+request.on('error', e => console.log('Request error:', e.message));
+request.end();

@@ -11,23 +11,23 @@
  * @tags live-api
  */
 
-import { describe, test, expect } from "vitest";
+import {describe, test, expect} from 'vitest';
 
-const WEBHOOK_URL =
-  process.env.SMS_WEBHOOK_URL ||
-  "https://your-n8n-host.example.com/webhook/send-sms-v3";
-const WEBHOOK_SECRET = process.env.SMS_WEBHOOK_SECRET || "test-secret-placeholder";
+const WEBHOOK_URL
+  = process.env.SMS_WEBHOOK_URL
+    || 'https://your-n8n-host.example.com/webhook/send-sms-v3';
+const WEBHOOK_SECRET = process.env.SMS_WEBHOOK_SECRET || 'test-secret-placeholder';
 
-interface SmsRequest {
+type SmsRequest = {
   phone_number?: string;
   first_name?: string;
   company_name?: string;
   industry?: string;
   email?: string;
   template?: string;
-}
+};
 
-interface SmsResponse {
+type SmsResponse = {
   success: boolean;
   error?: string;
   message?: string;
@@ -44,18 +44,18 @@ interface SmsResponse {
   cleaned?: string;
   expected?: string;
   troubleshooting?: string;
-}
+};
 
 async function callSmsWebhook(
   payload: SmsRequest,
-  headers?: Record<string, string>
-): Promise<{ status: number; body: SmsResponse; latencyMs: number }> {
+  headers?: Record<string, string>,
+): Promise<{status: number; body: SmsResponse; latencyMs: number}> {
   const start = Date.now();
   const response = await fetch(WEBHOOK_URL, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
-      "x-webhook-secret": WEBHOOK_SECRET,
+      'Content-Type': 'application/json',
+      'x-webhook-secret': WEBHOOK_SECRET,
       ...headers,
     },
     body: JSON.stringify(payload),
@@ -66,46 +66,46 @@ async function callSmsWebhook(
   try {
     body = (await response.json()) as SmsResponse;
   } catch {
-    body = { success: false, error: "PARSE_ERROR", message: await response.text() } as any;
+    body = {success: false, error: 'PARSE_ERROR', message: await response.text()};
   }
 
-  return { status: response.status, body, latencyMs };
+  return {status: response.status, body, latencyMs};
 }
 
-describe.skipIf(process.env.CI)("SMS Tool Webhook", () => {
-  describe("Authentication", () => {
-    test("should reject requests without auth header", async () => {
+describe.skipIf(process.env.CI)('SMS Tool Webhook', () => {
+  describe('Authentication', () => {
+    test('should reject requests without auth header', async () => {
       const response = await fetch(WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone_number: "+15005550006" }),
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({phone_number: '+15005550006'}),
       });
 
       expect(response.status).toBe(401);
-      const body = (await response.json()) as { success?: boolean; error?: string };
+      const body = (await response.json()) as {success?: boolean; error?: string};
       expect(body.success).toBe(false);
-      expect(body.error).toBe("UNAUTHORIZED");
+      expect(body.error).toBe('UNAUTHORIZED');
     });
 
-    test("should reject requests with wrong secret", async () => {
+    test('should reject requests with wrong secret', async () => {
       const response = await fetch(WEBHOOK_URL, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
-          "x-webhook-secret": "wrong-secret",
+          'Content-Type': 'application/json',
+          'x-webhook-secret': 'wrong-secret',
         },
-        body: JSON.stringify({ phone_number: "+15005550006" }),
+        body: JSON.stringify({phone_number: '+15005550006'}),
       });
 
       expect(response.status).toBe(401);
-      const body = (await response.json()) as { error?: string };
-      expect(body.error).toBe("UNAUTHORIZED");
+      const body = (await response.json()) as {error?: string};
+      expect(body.error).toBe('UNAUTHORIZED');
     });
 
-    test("should accept requests with valid secret header", async () => {
+    test('should accept requests with valid secret header', async () => {
       const result = await callSmsWebhook({
-        phone_number: "+15005550006",
-        first_name: "Test",
+        phone_number: '+15005550006',
+        first_name: 'Test',
       });
 
       // Should get past auth (400 for unroutable is fine, just not 401)
@@ -113,115 +113,115 @@ describe.skipIf(process.env.CI)("SMS Tool Webhook", () => {
     });
   });
 
-  describe("Phone Validation", () => {
-    test("should return 400 for missing phone number", async () => {
+  describe('Phone Validation', () => {
+    test('should return 400 for missing phone number', async () => {
       const result = await callSmsWebhook({
-        first_name: "Test",
+        first_name: 'Test',
       });
 
       expect(result.status).toBe(400);
       expect(result.body.success).toBe(false);
-      expect(result.body.error).toBe("MISSING_PHONE_NUMBER");
-      expect(result.body.hint).toContain("E.164");
+      expect(result.body.error).toBe('MISSING_PHONE_NUMBER');
+      expect(result.body.hint).toContain('E.164');
     });
 
-    test("should return 400 for empty phone number", async () => {
+    test('should return 400 for empty phone number', async () => {
       const result = await callSmsWebhook({
-        phone_number: "",
-        first_name: "Test",
+        phone_number: '',
+        first_name: 'Test',
       });
 
       expect(result.status).toBe(400);
-      expect(result.body.error).toBe("MISSING_PHONE_NUMBER");
+      expect(result.body.error).toBe('MISSING_PHONE_NUMBER');
     });
 
-    test("should return 400 for invalid phone format", async () => {
+    test('should return 400 for invalid phone format', async () => {
       // Use a numeric string that doesn't match E.164 patterns
       const result = await callSmsWebhook({
-        phone_number: "+999",
-        first_name: "Test",
+        phone_number: '+999',
+        first_name: 'Test',
       });
 
       expect(result.status).toBe(400);
-      expect(result.body.error).toBe("INVALID_PHONE_FORMAT");
-      expect(result.body.expected).toContain("E.164");
+      expect(result.body.error).toBe('INVALID_PHONE_FORMAT');
+      expect(result.body.expected).toContain('E.164');
     });
 
-    test("should return 400 for phone without country code", async () => {
+    test('should return 400 for phone without country code', async () => {
       const result = await callSmsWebhook({
-        phone_number: "5551234567",
-        first_name: "Test",
+        phone_number: '5551234567',
+        first_name: 'Test',
       });
 
       expect(result.status).toBe(400);
-      expect(result.body.error).toBe("INVALID_PHONE_FORMAT");
+      expect(result.body.error).toBe('INVALID_PHONE_FORMAT');
     });
 
-    test("should accept US E.164 format (+1XXXXXXXXXX)", async () => {
+    test('should accept US E.164 format (+1XXXXXXXXXX)', async () => {
       const result = await callSmsWebhook({
-        phone_number: "+15005550006",
-        first_name: "Test",
+        phone_number: '+15005550006',
+        first_name: 'Test',
       });
 
       // Past validation = not 400 with phone error
-      expect(result.body.error).not.toBe("MISSING_PHONE_NUMBER");
-      expect(result.body.error).not.toBe("INVALID_PHONE_FORMAT");
+      expect(result.body.error).not.toBe('MISSING_PHONE_NUMBER');
+      expect(result.body.error).not.toBe('INVALID_PHONE_FORMAT');
     });
 
-    test("should accept international E.164 format", async () => {
+    test('should accept international E.164 format', async () => {
       const result = await callSmsWebhook({
-        phone_number: "+447700900000",
-        first_name: "Test",
+        phone_number: '+447700900000',
+        first_name: 'Test',
       });
 
-      expect(result.body.error).not.toBe("INVALID_PHONE_FORMAT");
+      expect(result.body.error).not.toBe('INVALID_PHONE_FORMAT');
     });
 
-    test("should strip non-numeric characters from phone", async () => {
+    test('should strip non-numeric characters from phone', async () => {
       const result = await callSmsWebhook({
-        phone_number: "+1 (555) 000-0001",
-        first_name: "Test",
+        phone_number: '+1 (555) 000-0001',
+        first_name: 'Test',
       });
 
       // After cleaning, +15550000001 should pass validation
-      expect(result.body.error).not.toBe("INVALID_PHONE_FORMAT");
+      expect(result.body.error).not.toBe('INVALID_PHONE_FORMAT');
     });
   });
 
-  describe("Parameter Defaults", () => {
-    test("should default first_name to 'there'", async () => {
+  describe('Parameter Defaults', () => {
+    test('should default first_name to \'there\'', async () => {
       const result = await callSmsWebhook({
-        phone_number: "+15005550006",
+        phone_number: '+15005550006',
       });
 
       // Can't directly check first_name in all responses, but success response includes it
-      expect(result.body.error).not.toBe("MISSING_PHONE_NUMBER");
+      expect(result.body.error).not.toBe('MISSING_PHONE_NUMBER');
     });
 
-    test("should default template to 'demo'", async () => {
+    test('should default template to \'demo\'', async () => {
       const result = await callSmsWebhook({
-        phone_number: "+15005550006",
-        first_name: "TestUser",
+        phone_number: '+15005550006',
+        first_name: 'TestUser',
       });
 
-      expect(result.body.error).not.toBe("MISSING_PHONE_NUMBER");
+      expect(result.body.error).not.toBe('MISSING_PHONE_NUMBER');
     });
   });
 
-  describe("Response Contract", () => {
-    test("should include request_id in error responses", async () => {
+  describe('Response Contract', () => {
+    test('should include request_id in error responses', async () => {
       const result = await callSmsWebhook({
-        phone_number: "",
+        phone_number: '',
       });
 
       expect(result.body.request_id).toBeDefined();
-      expect(typeof result.body.request_id).toBe("string");
+      expect(typeof result.body.request_id).toBe('string');
     });
 
-    test("should include request_id in success/pending responses", async () => {
+    test('should include request_id in success/pending responses', async () => {
       const result = await callSmsWebhook({
-        phone_number: "+15005550006",
-        first_name: "Test",
+        phone_number: '+15005550006',
+        first_name: 'Test',
       });
 
       if (result.status === 200 || result.status === 202) {
@@ -229,38 +229,38 @@ describe.skipIf(process.env.CI)("SMS Tool Webhook", () => {
       }
     });
 
-    test("error responses should have success: false", async () => {
+    test('error responses should have success: false', async () => {
       const result = await callSmsWebhook({
-        phone_number: "invalid",
+        phone_number: 'invalid',
       });
 
       expect(result.body.success).toBe(false);
     });
 
-    test("error responses should have error code string", async () => {
+    test('error responses should have error code string', async () => {
       const result = await callSmsWebhook({});
 
       expect(result.body.error).toBeDefined();
-      expect(typeof result.body.error).toBe("string");
+      expect(typeof result.body.error).toBe('string');
       expect(result.body.error).toMatch(/^[A-Z_]+$/);
     });
   });
 
-  describe("Performance", () => {
-    test("should respond to validation errors within 500ms", async () => {
+  describe('Performance', () => {
+    test('should respond to validation errors within 500ms', async () => {
       const result = await callSmsWebhook({
-        phone_number: "",
+        phone_number: '',
       });
 
       expect(result.latencyMs).toBeLessThan(500);
     });
 
-    test("should respond to auth errors within 500ms", async () => {
+    test('should respond to auth errors within 500ms', async () => {
       const start = Date.now();
       const response = await fetch(WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone_number: "+15005550006" }),
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({phone_number: '+15005550006'}),
       });
       const latencyMs = Date.now() - start;
       await response.json();
@@ -268,76 +268,75 @@ describe.skipIf(process.env.CI)("SMS Tool Webhook", () => {
       expect(latencyMs).toBeLessThan(500);
     });
 
-    test("should handle 3 concurrent validation requests", async () => {
-      const requests = Array(3)
+    test('should handle 3 concurrent validation requests', async () => {
+      const requests = Array.from({length: 3})
         .fill(null)
-        .map((_, i) =>
+        .map(async (_, i) =>
           callSmsWebhook({
-            phone_number: i === 0 ? "" : "bad-phone-" + i,
-          })
-        );
+            phone_number: i === 0 ? '' : 'bad-phone-' + i,
+          }));
 
       const results = await Promise.all(requests);
-      results.forEach((r) => {
+      for (const r of results) {
         expect(r.status).toBe(400);
         expect(r.latencyMs).toBeLessThan(1000);
-      });
+      }
     });
   });
 
-  describe("Template Selection", () => {
-    test("should accept 'demo' template", async () => {
+  describe('Template Selection', () => {
+    test('should accept \'demo\' template', async () => {
       const result = await callSmsWebhook({
-        phone_number: "+15005550006",
-        first_name: "Test",
-        template: "demo",
+        phone_number: '+15005550006',
+        first_name: 'Test',
+        template: 'demo',
       });
 
-      expect(result.body.error).not.toBe("MISSING_PHONE_NUMBER");
+      expect(result.body.error).not.toBe('MISSING_PHONE_NUMBER');
     });
 
-    test("should accept 'recap' template", async () => {
+    test('should accept \'recap\' template', async () => {
       const result = await callSmsWebhook({
-        phone_number: "+15005550006",
-        first_name: "Test",
-        template: "recap",
-        company_name: "TestCo",
+        phone_number: '+15005550006',
+        first_name: 'Test',
+        template: 'recap',
+        company_name: 'TestCo',
       });
 
-      expect(result.body.error).not.toBe("MISSING_PHONE_NUMBER");
+      expect(result.body.error).not.toBe('MISSING_PHONE_NUMBER');
     });
 
-    test("should accept 'followup' template", async () => {
+    test('should accept \'followup\' template', async () => {
       const result = await callSmsWebhook({
-        phone_number: "+15005550006",
-        first_name: "Test",
-        template: "followup",
-        industry: "plumbing",
+        phone_number: '+15005550006',
+        first_name: 'Test',
+        template: 'followup',
+        industry: 'plumbing',
       });
 
-      expect(result.body.error).not.toBe("MISSING_PHONE_NUMBER");
+      expect(result.body.error).not.toBe('MISSING_PHONE_NUMBER');
     });
 
-    test("should fallback to demo for unknown template", async () => {
+    test('should fallback to demo for unknown template', async () => {
       const result = await callSmsWebhook({
-        phone_number: "+15005550006",
-        first_name: "Test",
-        template: "nonexistent",
+        phone_number: '+15005550006',
+        first_name: 'Test',
+        template: 'nonexistent',
       });
 
       // Should not error on template — falls back to demo
-      expect(result.body.error).not.toBe("INVALID_TEMPLATE");
+      expect(result.body.error).not.toBe('INVALID_TEMPLATE');
     });
   });
 
-  describe("Body Nesting", () => {
-    test("should accept phone_number at top level", async () => {
+  describe('Body Nesting', () => {
+    test('should accept phone_number at top level', async () => {
       const result = await callSmsWebhook({
-        phone_number: "+15005550006",
-        first_name: "Test",
+        phone_number: '+15005550006',
+        first_name: 'Test',
       });
 
-      expect(result.body.error).not.toBe("MISSING_PHONE_NUMBER");
+      expect(result.body.error).not.toBe('MISSING_PHONE_NUMBER');
     });
   });
 });

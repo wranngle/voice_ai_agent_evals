@@ -6,9 +6,11 @@
  * Run: bun run scripts/setup-automation.ts
  */
 
-import { existsSync, mkdirSync, writeFileSync, chmodSync } from 'fs';
-import { join } from 'path';
-import { execSync } from 'child_process';
+import {
+  existsSync, mkdirSync, writeFileSync, chmodSync,
+} from 'node:fs';
+import {join} from 'node:path';
+import {execSync} from 'node:child_process';
 
 const PROJECT_ROOT = join(import.meta.dir, '..');
 const GIT_ROOT = join(PROJECT_ROOT, '..', '..', '..');
@@ -39,6 +41,7 @@ echo "✓ All tests passed"
   } catch {
     // Windows doesn't need chmod
   }
+
   console.log('   ✓ pre-push hook installed');
 } else {
   console.log('   ⚠ Git hooks directory not found - skipping');
@@ -47,7 +50,7 @@ echo "✓ All tests passed"
 // 2. Verify dependencies
 console.log('\n2. Verifying dependencies...');
 try {
-  execSync('bun --version', { stdio: 'pipe' });
+  execSync('bun --version', {stdio: 'pipe'});
   console.log('   ✓ Bun is installed');
 } catch {
   console.log('   ❌ Bun is not installed. Install from: https://bun.sh');
@@ -57,7 +60,7 @@ try {
 // 3. Install npm dependencies
 console.log('\n3. Installing dependencies...');
 try {
-  execSync('bun install', { cwd: PROJECT_ROOT, stdio: 'inherit' });
+  execSync('bun install', {cwd: PROJECT_ROOT, stdio: 'inherit'});
   console.log('   ✓ Dependencies installed');
 } catch {
   console.log('   ❌ Failed to install dependencies');
@@ -66,7 +69,7 @@ try {
 // 4. Verify test suite
 console.log('\n4. Verifying test suite...');
 try {
-  execSync('bun run test:run --reporter=dot', { cwd: PROJECT_ROOT, stdio: 'pipe' });
+  execSync('bun run test:run --reporter=dot', {cwd: PROJECT_ROOT, stdio: 'pipe'});
   console.log('   ✓ Test suite passes');
 } catch {
   console.log('   ⚠ Some tests are failing (this is OK for setup)');
@@ -76,8 +79,9 @@ try {
 console.log('\n5. Setting up test data directory...');
 const testDataDir = join(PROJECT_ROOT, '.test-data');
 if (!existsSync(testDataDir)) {
-  mkdirSync(testDataDir, { recursive: true });
+  mkdirSync(testDataDir, {recursive: true});
 }
+
 console.log('   ✓ .test-data directory ready');
 
 console.log('\n' + '═'.repeat(50));

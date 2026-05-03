@@ -4,9 +4,11 @@
  * Tests for the ElevenLabs voice agent test runner using simulate-conversation API.
  */
 
-import { describe, it, expect, test, beforeEach, vi, afterEach } from 'vitest';
-import { ElevenLabsRunner } from '../../lib/testing/runners/elevenlabs-runner';
-import type { TestCase } from '../../lib/testing/types';
+import {
+  describe, it, expect, test, beforeEach, vi, afterEach,
+} from 'vitest';
+import {ElevenLabsRunner} from '../../lib/testing/runners/elevenlabs-runner';
+import type {TestCase} from '../../lib/testing/types';
 
 describe('ElevenLabs Runner', () => {
   describe('Validation', () => {
@@ -138,12 +140,10 @@ describe('ElevenLabs Runner', () => {
     });
 
     test('should handle API error gracefully', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response('{"error": "Unauthorized"}', {
-          status: 401,
-          statusText: 'Unauthorized',
-        })
-      );
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response('{"error": "Unauthorized"}', {
+        status: 401,
+        statusText: 'Unauthorized',
+      }));
 
       const testCase: TestCase = {
         test_id: 'TC-EL-006',
@@ -168,7 +168,7 @@ describe('ElevenLabs Runner', () => {
     });
 
     test('should handle network errors gracefully', async () => {
-      vi.spyOn(global, 'fetch').mockRejectedValueOnce(new Error('Network error'));
+      vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('Network error'));
 
       const testCase: TestCase = {
         test_id: 'TC-EL-007',
@@ -193,21 +193,19 @@ describe('ElevenLabs Runner', () => {
     });
 
     test('should execute test successfully with mocked simulate-conversation API', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            simulated_conversation: [
-              { role: 'user', message: 'Hello, I need help' },
-              { role: 'agent', message: 'Hi there! Welcome to ExampleCo. How can I help you today?' },
-            ],
-            analysis: {
-              overall_passed: true,
-              conversation_summary: 'Agent greeted user properly',
-            },
-          }),
-          { status: 200 }
-        )
-      );
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
+        JSON.stringify({
+          simulated_conversation: [
+            {role: 'user', message: 'Hello, I need help'},
+            {role: 'agent', message: 'Hi there! Welcome to ExampleCo. How can I help you today?'},
+          ],
+          analysis: {
+            overall_passed: true,
+            conversation_summary: 'Agent greeted user properly',
+          },
+        }),
+        {status: 200},
+      ));
 
       const testCase: TestCase = {
         test_id: 'TC-EL-008',
@@ -234,20 +232,18 @@ describe('ElevenLabs Runner', () => {
     });
 
     test('should fail when response_contains assertion is not met', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            simulated_conversation: [
-              { role: 'user', message: 'Hello' },
-              { role: 'agent', message: 'Hi there! How can I help?' },
-            ],
-            analysis: {
-              overall_passed: true,
-            },
-          }),
-          { status: 200 }
-        )
-      );
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
+        JSON.stringify({
+          simulated_conversation: [
+            {role: 'user', message: 'Hello'},
+            {role: 'agent', message: 'Hi there! How can I help?'},
+          ],
+          analysis: {
+            overall_passed: true,
+          },
+        }),
+        {status: 200},
+      ));
 
       const testCase: TestCase = {
         test_id: 'TC-EL-009',
@@ -275,16 +271,14 @@ describe('ElevenLabs Runner', () => {
     });
 
     test('should check response_not_contains assertion', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            simulated_conversation: [
-              { role: 'agent', message: 'I cannot help with that request.' },
-            ],
-          }),
-          { status: 200 }
-        )
-      );
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
+        JSON.stringify({
+          simulated_conversation: [
+            {role: 'agent', message: 'I cannot help with that request.'},
+          ],
+        }),
+        {status: 200},
+      ));
 
       const testCase: TestCase = {
         test_id: 'TC-EL-010',
@@ -311,23 +305,21 @@ describe('ElevenLabs Runner', () => {
     });
 
     test('should check expected_tool_calls assertion', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            simulated_conversation: [
-              { role: 'user', message: 'Schedule a demo for tomorrow' },
-              {
-                role: 'agent',
-                message: 'I can help you schedule that.',
-                tool_calls: [
-                  { name: 'schedule_appointment', parameters: { date: 'tomorrow' } },
-                ],
-              },
-            ],
-          }),
-          { status: 200 }
-        )
-      );
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
+        JSON.stringify({
+          simulated_conversation: [
+            {role: 'user', message: 'Schedule a demo for tomorrow'},
+            {
+              role: 'agent',
+              message: 'I can help you schedule that.',
+              tool_calls: [
+                {name: 'schedule_appointment', parameters: {date: 'tomorrow'}},
+              ],
+            },
+          ],
+        }),
+        {status: 200},
+      ));
 
       const testCase: TestCase = {
         test_id: 'TC-EL-011',
@@ -354,16 +346,14 @@ describe('ElevenLabs Runner', () => {
     });
 
     test('should check forbidden_tool_calls assertion', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            simulated_conversation: [
-              { role: 'agent', message: 'Let me help you with that.' },
-            ],
-          }),
-          { status: 200 }
-        )
-      );
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
+        JSON.stringify({
+          simulated_conversation: [
+            {role: 'agent', message: 'Let me help you with that.'},
+          ],
+        }),
+        {status: 200},
+      ));
 
       const testCase: TestCase = {
         test_id: 'TC-EL-012',
@@ -390,19 +380,17 @@ describe('ElevenLabs Runner', () => {
     });
 
     test('should check min_turns assertion', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            simulated_conversation: [
-              { role: 'user', message: 'Hello' },
-              { role: 'agent', message: 'Hi!' },
-              { role: 'user', message: 'What services do you offer?' },
-              { role: 'agent', message: 'We offer after-hours coverage.' },
-            ],
-          }),
-          { status: 200 }
-        )
-      );
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
+        JSON.stringify({
+          simulated_conversation: [
+            {role: 'user', message: 'Hello'},
+            {role: 'agent', message: 'Hi!'},
+            {role: 'user', message: 'What services do you offer?'},
+            {role: 'agent', message: 'We offer after-hours coverage.'},
+          ],
+        }),
+        {status: 200},
+      ));
 
       const testCase: TestCase = {
         test_id: 'TC-EL-013',
@@ -428,16 +416,14 @@ describe('ElevenLabs Runner', () => {
     });
 
     test('should fail when min_turns not met', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            simulated_conversation: [
-              { role: 'agent', message: 'Hello!' },
-            ],
-          }),
-          { status: 200 }
-        )
-      );
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
+        JSON.stringify({
+          simulated_conversation: [
+            {role: 'agent', message: 'Hello!'},
+          ],
+        }),
+        {status: 200},
+      ));
 
       const testCase: TestCase = {
         test_id: 'TC-EL-014',
@@ -464,17 +450,15 @@ describe('ElevenLabs Runner', () => {
     });
 
     test('should check max_turns assertion', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            simulated_conversation: [
-              { role: 'agent', message: 'Hi!' },
-              { role: 'user', message: 'Bye' },
-            ],
-          }),
-          { status: 200 }
-        )
-      );
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
+        JSON.stringify({
+          simulated_conversation: [
+            {role: 'agent', message: 'Hi!'},
+            {role: 'user', message: 'Bye'},
+          ],
+        }),
+        {status: 200},
+      ));
 
       const testCase: TestCase = {
         test_id: 'TC-EL-015',
@@ -500,23 +484,21 @@ describe('ElevenLabs Runner', () => {
     });
 
     test('should include API evaluation criteria results', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            simulated_conversation: [
-              { role: 'agent', message: 'Hello!' },
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
+        JSON.stringify({
+          simulated_conversation: [
+            {role: 'agent', message: 'Hello!'},
+          ],
+          analysis: {
+            criteria_evaluations: [
+              {name: 'greeting_quality', passed: true, reason: 'Good greeting'},
+              {name: 'brand_mention', passed: false, reason: 'Did not mention brand'},
             ],
-            analysis: {
-              criteria_evaluations: [
-                { name: 'greeting_quality', passed: true, reason: 'Good greeting' },
-                { name: 'brand_mention', passed: false, reason: 'Did not mention brand' },
-              ],
-              overall_passed: false,
-            },
-          }),
-          { status: 200 }
-        )
-      );
+            overall_passed: false,
+          },
+        }),
+        {status: 200},
+      ));
 
       const testCase: TestCase = {
         test_id: 'TC-EL-016',
@@ -529,8 +511,8 @@ describe('ElevenLabs Runner', () => {
         },
         expected_output: {
           evaluation_criteria: [
-            { name: 'greeting_quality', description: 'Agent greets properly' },
-            { name: 'brand_mention', description: 'Agent mentions brand name' },
+            {name: 'greeting_quality', description: 'Agent greets properly'},
+            {name: 'brand_mention', description: 'Agent mentions brand name'},
           ],
         },
         tags: [],
@@ -543,8 +525,8 @@ describe('ElevenLabs Runner', () => {
 
       // Should fail because overall_passed is false and one criterion failed
       expect(result.status).toBe('failed');
-      expect(result.assertions_passed).toBe(1); // greeting_quality passed
-      expect(result.assertions_failed).toBe(1); // brand_mention failed
+      expect(result.assertions_passed).toBe(1); // Greeting_quality passed
+      expect(result.assertions_failed).toBe(1); // Brand_mention failed
     });
   });
 });

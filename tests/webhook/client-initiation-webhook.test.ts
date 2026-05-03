@@ -5,19 +5,21 @@
  * Run with: vitest tests/webhook/client-initiation-webhook.test.ts
  */
 
-import { describe, it, expect, test } from "vitest";
+import {
+  describe, it, expect, test,
+} from 'vitest';
 
 const WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || 'https://your-n8n-host.example.com/webhook/client-initiation-data';
 const VALID_AGENT_ID = 'agent_xxxx_demo';
 
-interface WebhookRequest {
+type WebhookRequest = {
   caller_id: string;
   agent_id: string;
   called_number?: string;
   call_sid?: string;
-}
+};
 
-interface DynamicVariables {
+type DynamicVariables = {
   customer_name: string;
   customer_first_name: string;
   company: string;
@@ -31,9 +33,9 @@ interface DynamicVariables {
   data_source: string;
   secret__crm_person_id: number;
   secret__crm_org_id: number;
-}
+};
 
-interface WebhookResponse {
+type WebhookResponse = {
   type: string;
   dynamic_variables: DynamicVariables;
   conversation_config_override?: {
@@ -41,13 +43,13 @@ interface WebhookResponse {
       first_message: string;
     };
   };
-}
+};
 
-async function callWebhook(payload: WebhookRequest): Promise<{ status: number; body: WebhookResponse | any; latencyMs: number }> {
+async function callWebhook(payload: WebhookRequest): Promise<{status: number; body: WebhookResponse | any; latencyMs: number}> {
   const start = Date.now();
   const response = await fetch(WEBHOOK_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(payload),
   });
   const latencyMs = Date.now() - start;
@@ -59,13 +61,11 @@ async function callWebhook(payload: WebhookRequest): Promise<{ status: number; b
     body = await response.text();
   }
 
-  return { status: response.status, body, latencyMs };
+  return {status: response.status, body, latencyMs};
 }
 
 describe.skipIf(process.env.CI)('Client Initiation Webhook', () => {
-
   describe('Valid Requests', () => {
-
     test('should return 200 for valid request with correct agent_id', async () => {
       const result = await callWebhook({
         caller_id: '+15551234567',
@@ -103,11 +103,9 @@ describe.skipIf(process.env.CI)('Client Initiation Webhook', () => {
 
       expect(result.latencyMs).toBeLessThan(500);
     });
-
   });
 
   describe('Unknown Caller (Fallback)', () => {
-
     test('should return default values for unknown phone number', async () => {
       const result = await callWebhook({
         caller_id: '+10000000000', // Unlikely to exist
@@ -132,11 +130,9 @@ describe.skipIf(process.env.CI)('Client Initiation Webhook', () => {
       // Note: This may be true if credentials are not configured
       expect(typeof result.body.dynamic_variables.lookup_success).toBe('boolean');
     });
-
   });
 
   describe('Invalid Requests', () => {
-
     test('should return 400 for invalid agent_id', async () => {
       const result = await callWebhook({
         caller_id: '+15551234567',
@@ -166,11 +162,9 @@ describe.skipIf(process.env.CI)('Client Initiation Webhook', () => {
       expect(result.status).toBe(200);
       expect(result.body.dynamic_variables.customer_name).toBe('there');
     });
-
   });
 
   describe('Account Tier Logic', () => {
-
     test('should return valid account tier values', async () => {
       const result = await callWebhook({
         caller_id: '+15551234567',
@@ -180,11 +174,9 @@ describe.skipIf(process.env.CI)('Client Initiation Webhook', () => {
       const validTiers = ['New', 'Bronze', 'Silver', 'Gold'];
       expect(validTiers).toContain(result.body.dynamic_variables.account_tier);
     });
-
   });
 
   describe('Data Source Tracking', () => {
-
     test('should return valid data_source value', async () => {
       const result = await callWebhook({
         caller_id: '+15551234567',
@@ -194,25 +186,22 @@ describe.skipIf(process.env.CI)('Client Initiation Webhook', () => {
       const validSources = ['crm', 'data_table', 'none'];
       expect(validSources).toContain(result.body.dynamic_variables.data_source);
     });
-
   });
 
   describe('Performance', () => {
-
     test('should handle 5 concurrent requests', async () => {
-      const requests = Array(5).fill(null).map((_, i) =>
+      const requests = Array.from({length: 5}).fill(null).map(async (_, i) =>
         callWebhook({
           caller_id: `+1555000000${i}`,
           agent_id: VALID_AGENT_ID,
-        })
-      );
+        }));
 
       const results = await Promise.all(requests);
 
-      results.forEach(result => {
+      for (const result of results) {
         expect(result.status).toBe(200);
         expect(result.latencyMs).toBeLessThan(1000);
-      });
+      }
     });
 
     test('average latency should be under 300ms', async () => {
@@ -230,11 +219,9 @@ describe.skipIf(process.env.CI)('Client Initiation Webhook', () => {
       const avgLatency = totalLatency / iterations;
       expect(avgLatency).toBeLessThan(300);
     });
-
   });
 
   describe('Secret Fields', () => {
-
     test('should include secret fields with numeric values', async () => {
       const result = await callWebhook({
         caller_id: '+15551234567',
@@ -245,9 +232,7 @@ describe.skipIf(process.env.CI)('Client Initiation Webhook', () => {
       expect(typeof dv.secret__crm_person_id).toBe('number');
       expect(typeof dv.secret__crm_org_id).toBe('number');
     });
-
   });
-
 });
 
 // Run tests if executed directly

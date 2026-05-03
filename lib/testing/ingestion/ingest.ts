@@ -5,17 +5,16 @@
  * Handles parsing, deduplication, and creation of framework test cases.
  */
 
-import { readFileSync, readdirSync, statSync } from 'fs';
-import { join, relative } from 'path';
-import { parseVitestFile, type ParsedTest } from './vitest-parser';
+import {readFileSync, readdirSync, statSync} from 'node:fs';
+import {join, relative} from 'node:path';
 import {
   createTestCase,
   listTestCases,
 } from '../local-storage';
-import type { TestCase } from '../types';
-import type { WebhookTestInput } from '../types';
+import {type TestCase, type WebhookTestInput} from '../types';
+import {parseVitestFile, type ParsedTest} from './vitest-parser';
 
-export interface IngestOptions {
+export type IngestOptions = {
   /** Directory to scan for test files */
   testDir: string;
   /** File pattern to match (default: *.test.ts) */
@@ -26,9 +25,9 @@ export interface IngestOptions {
   dryRun?: boolean;
   /** Verbose output */
   verbose?: boolean;
-}
+};
 
-export interface IngestResult {
+export type IngestResult = {
   /** Total files scanned */
   filesScanned: number;
   /** Files with parseable tests */
@@ -43,7 +42,7 @@ export interface IngestResult {
   errors: string[];
   /** Created test IDs */
   createdIds: string[];
-}
+};
 
 /**
  * Generate a deduplication key for a test
@@ -52,7 +51,7 @@ function getTestKey(webhookUrl: string, payload: Record<string, unknown>): strin
   // Key based on URL + sorted payload fields
   const payloadKey = Object.keys(payload)
     .sort()
-    .map((k) => `${k}:${JSON.stringify(payload[k])}`)
+    .map(k => `${k}:${JSON.stringify(payload[k])}`)
     .join('|');
   return `${webhookUrl}::${payloadKey}`;
 }
@@ -63,16 +62,21 @@ function getTestKey(webhookUrl: string, payload: Record<string, unknown>): strin
 async function isDuplicate(
   webhookUrl: string,
   payload: Record<string, unknown>,
-  existingTests: TestCase[]
+  existingTests: TestCase[],
 ): Promise<boolean> {
   const newKey = getTestKey(webhookUrl, payload);
 
   for (const existing of existingTests) {
-    if (existing.type !== 'webhook') continue;
-    const input = existing.input as unknown as WebhookTestInput;
-    if (!input.url || !input.body) continue;
+    if (existing.type !== 'webhook') {
+      continue;
+    }
 
-    const existingKey = getTestKey(input.url, input.body as Record<string, unknown>);
+    const input = existing.input as unknown as WebhookTestInput;
+    if (!input.url || !input.body) {
+      continue;
+    }
+
+    const existingKey = getTestKey(input.url, input.body);
     if (existingKey === newKey) {
       return true;
     }
@@ -99,17 +103,15 @@ function convertToTestCase(parsed: ParsedTest, tags: string[]): Parameters<typeo
   // Handle truthy/falsy/defined assertions
   // These need special handling in the runner, for now add to response_contains
   for (const field of parsed.truthyFields) {
-    if (!expectedOutput.response_contains) {
-      expectedOutput.response_contains = {};
-    }
+    expectedOutput.response_contains ||= {};
+
     // Truthy means the field should exist and be truthy
     (expectedOutput.response_contains as Record<string, unknown>)[`${field}__truthy`] = true;
   }
 
   for (const field of parsed.falsyFields) {
-    if (!expectedOutput.response_contains) {
-      expectedOutput.response_contains = {};
-    }
+    expectedOutput.response_contains ||= {};
+
     (expectedOutput.response_contains as Record<string, unknown>)[`${field}__falsy`] = true;
   }
 
@@ -122,8 +124,8 @@ function convertToTestCase(parsed: ParsedTest, tags: string[]): Parameters<typeo
   // Add suite-based tag
   const suiteTag = parsed.suite
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
+    .replaceAll(/[^a-z\d]+/g, '-')
+    .replaceAll(/^-|-$/g, '');
   if (suiteTag) {
     allTags.push(suiteTag);
   }
@@ -193,7 +195,7 @@ export async function ingestTests(options: IngestOptions): Promise<IngestResult>
   }
 
   // Get existing tests for deduplication
-  const existingResult = await listTestCases({ type: 'webhook' });
+  const existingResult = await listTestCases({type: 'webhook'});
   const existingTests = existingResult.data || [];
 
   if (options.verbose) {
@@ -241,6 +243,7 @@ export async function ingestTests(options: IngestOptions): Promise<IngestResult>
           if (options.verbose) {
             console.log(`  ⏭️  Skipped (duplicate): ${parsed.name}`);
           }
+
           continue;
         }
 
@@ -251,6 +254,7 @@ export async function ingestTests(options: IngestOptions): Promise<IngestResult>
           if (options.verbose) {
             console.log(`  📝 Would create: ${parsed.name}`);
           }
+
           result.testsCreated++;
         } else {
           const createResult = await createTestCase(testCaseInput);
@@ -267,8 +271,8 @@ export async function ingestTests(options: IngestOptions): Promise<IngestResult>
           }
         }
       }
-    } catch (err) {
-      result.errors.push(`${filePath}: ${err instanceof Error ? err.message : String(err)}`);
+    } catch (error) {
+      result.errors.push(`${filePath}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
