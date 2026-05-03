@@ -1,0 +1,34 @@
+{
+  "_comment": "Synthetic sample run — deterministic, no real customer data. Committed so reviewers can see the harness output shape on a FAILING scenario. The postmortem is in NOTE.md alongside this file.",
+  "scenario_id": "barge-in-mid-question",
+  "agent_id": "agent_xxxx_demo",
+  "prompt_tag": "prompt/primary/v3",
+  "harness_version": "0.0.1",
+  "started_at": "2026-04-22T15:34:48Z",
+  "duration_ms": 5102,
+  "verdict": "fail",
+  "score": {
+    "weighted": 0.45,
+    "axes": [
+      { "name": "barge_in_recovery", "pass": false, "weight": 1.0, "detail": "agent continued speaking 1.8s after caller began interrupting; expected yield within 400ms" },
+      { "name": "tool_call_schema", "pass": true, "weight": 1.0, "detail": "n/a — no tool call in this scenario" },
+      { "name": "ttfb_p95_ms", "pass": true, "weight": 0.5, "detail": "p95 = 698ms (budget ≤ 800ms)" },
+      { "name": "end_to_first_audio_p95_ms", "pass": true, "weight": 0.5, "detail": "p95 = 1320ms (budget ≤ 1400ms)" },
+      { "name": "total_turn_p95_ms", "pass": false, "weight": 0.5, "detail": "p95 = 3450ms (budget ≤ 3000ms) — driven by the post-barge-in re-plan latency" },
+      { "name": "tone_judge", "pass": true, "weight": 0.5, "detail": "tone remained polite after the interrupt; judge: claude-haiku-4-5" }
+    ]
+  },
+  "transcript_summary": [
+    { "turn": 1, "role": "agent", "text": "Sure — I can help with that. We have garages in Cheyenne, Laramie, and Casper, and the typical—" },
+    { "turn": 2, "role": "caller", "text": "[INTERRUPTS at 8.2s] Wait, just Cheyenne — I'm in Cheyenne." },
+    { "turn": "barge_in_event", "agent_yielded_at_ms_after_caller_start": 1820, "expected_max_ms": 400 },
+    { "turn": 3, "role": "agent", "text": "Got it, Cheyenne. Let me confirm — what's your address?" }
+  ],
+  "latency_breakdown_ms": {
+    "ttfb": [685, 690, 698, 705, 710],
+    "end_to_first_audio": [1290, 1305, 1320, 1335, 1340],
+    "total_turn": [3380, 3420, 3450, 3470, 3500],
+    "barge_in_yield_latency": [1820]
+  },
+  "tool_calls": []
+}

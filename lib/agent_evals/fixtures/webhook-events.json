@@ -1,0 +1,111 @@
+[
+  {
+    "type": "conversation.started",
+    "timestamp": "2026-05-02T00:00:00Z",
+    "conversationMetadata": {
+      "conversationId": "synth-webhook-001",
+      "agentId": "synth-agent-aria",
+      "startedAtMs": 1700000000000
+    }
+  },
+  {
+    "type": "transcript.ready",
+    "timestamp": "2026-05-02T00:24:00Z",
+    "transcriptData": {
+      "conversationId": "synth-webhook-001",
+      "turns": [
+        {
+          "role": "agent",
+          "text": "Hi, this is Aria from ExampleCo. How can I help?",
+          "startedAtMs": 0,
+          "durationMs": 4200
+        },
+        {
+          "role": "caller",
+          "text": "I want to know my call usage this month.",
+          "startedAtMs": 4500,
+          "durationMs": 3000
+        },
+        {
+          "role": "agent",
+          "text": "You used 218 minutes across 47 calls.",
+          "startedAtMs": 7800,
+          "durationMs": 4800
+        },
+        {
+          "role": "caller",
+          "text": "Thanks.",
+          "startedAtMs": 13000,
+          "durationMs": 1200
+        },
+        {
+          "role": "agent",
+          "text": "Anything else?",
+          "startedAtMs": 14400,
+          "durationMs": 2200
+        },
+        {
+          "role": "caller",
+          "text": "No, that's all.",
+          "startedAtMs": 16800,
+          "durationMs": 1500
+        }
+      ],
+      "completedAtMs": 24000
+    }
+  },
+  {
+    "type": "conversation.ended",
+    "timestamp": "2026-05-02T00:24:00Z",
+    "conversationMetadata": {
+      "conversationId": "synth-webhook-001",
+      "agentId": "synth-agent-aria",
+      "startedAtMs": 1700000000000,
+      "endedAtMs": 1700000024000
+    }
+  },
+  {
+    "type": "transcript.ready",
+    "timestamp": "2026-05-02T00:12:00Z",
+    "transcriptData": {
+      "conversationId": "synth-webhook-002",
+      "turns": [
+        {
+          "role": "caller",
+          "text": "Hello? Hello? Are you there?",
+          "startedAtMs": 0,
+          "durationMs": 4500
+        },
+        {
+          "role": "caller",
+          "text": "I think the line is dead.",
+          "startedAtMs": 5000,
+          "durationMs": 3500
+        },
+        {
+          "role": "agent",
+          "text": "Sorry, I was muted.",
+          "startedAtMs": 9000,
+          "durationMs": 2500
+        }
+      ],
+      "completedAtMs": 12000
+    }
+  },
+  {
+    "type": "analysis.complete",
+    "timestamp": "2026-05-02T00:24:10Z",
+    "conversationMetadata": {
+      "conversationId": "synth-webhook-001",
+      "agentId": "synth-agent-aria",
+      "startedAtMs": 1700000000000,
+      "endedAtMs": 1700000024000
+    },
+    "analysisData": {
+      "conversationId": "synth-webhook-001",
+      "sentiment": "positive",
+      "resolved": true,
+      "summaryText": "Caller asked about monthly call usage. Agent provided accurate totals. Resolved on first contact."
+    }
+  }
+]

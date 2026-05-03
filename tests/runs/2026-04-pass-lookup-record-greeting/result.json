@@ -1,0 +1,41 @@
+{
+  "_comment": "Synthetic sample run — deterministic, no real customer data. Committed so reviewers can see the harness output shape on a passing scenario.",
+  "scenario_id": "lookup-record-greeting",
+  "agent_id": "agent_xxxx_demo",
+  "prompt_tag": "prompt/primary/v3",
+  "harness_version": "0.0.1",
+  "started_at": "2026-04-22T15:32:11Z",
+  "duration_ms": 4287,
+  "verdict": "pass",
+  "score": {
+    "weighted": 1.0,
+    "axes": [
+      { "name": "barge_in_recovery", "pass": true, "weight": 1.0, "detail": "no caller barge-in in this scenario; axis n/a (skipped, not failed)" },
+      { "name": "tool_call_schema", "pass": true, "weight": 1.0, "detail": "lookup_record called with valid {id: string} args; response returned to LLM correctly" },
+      { "name": "tool_call_routing", "pass": true, "weight": 1.0, "detail": "agent chose tool over KB (correct: caller-specific lookup, not reference content)" },
+      { "name": "ttfb_p95_ms", "pass": true, "weight": 0.5, "detail": "p95 = 612ms (budget ≤ 800ms)" },
+      { "name": "end_to_first_audio_p95_ms", "pass": true, "weight": 0.5, "detail": "p95 = 1180ms (budget ≤ 1400ms)" },
+      { "name": "total_turn_p95_ms", "pass": true, "weight": 0.5, "detail": "p95 = 2640ms (budget ≤ 3000ms)" }
+    ]
+  },
+  "transcript_summary": [
+    { "turn": 1, "role": "agent", "text": "Hi, this is the assistant. Who am I speaking with?" },
+    { "turn": 2, "role": "caller", "text": "Hi, this is John from Acme HVAC." },
+    { "turn": 3, "role": "agent", "tool_call": { "name": "lookup_record", "arguments": { "id": "+15550100" } } },
+    { "turn": 3, "role": "tool_response", "result": { "name": "John Doe", "company": "Acme HVAC", "tier": "gold" } },
+    { "turn": 4, "role": "agent", "text": "Hi John, great to hear from you again. I see you're a gold-tier customer — how can I help today?" }
+  ],
+  "latency_breakdown_ms": {
+    "ttfb": [602, 590, 612, 615, 620],
+    "end_to_first_audio": [1150, 1175, 1180, 1185, 1195],
+    "total_turn": [2580, 2600, 2640, 2655, 2680]
+  },
+  "tool_calls": [
+    {
+      "name": "lookup_record",
+      "schema_pass": true,
+      "round_trip_ms": 410,
+      "response_consumed_in_next_turn": true
+    }
+  ]
+}

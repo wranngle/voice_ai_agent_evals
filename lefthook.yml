@@ -1,0 +1,18 @@
+# Pre-commit secret-scanning + lint gates for gtm_ops.
+# Run `lefthook install` once to wire git hooks.
+
+pre-commit:
+  parallel: true
+  commands:
+    gitleaks:
+      run: gitleaks protect --staged --redact --no-banner
+    trufflehog:
+      run: trufflehog filesystem . --since-commit HEAD --only-verified --no-update --fail
+      skip:
+        - merge
+        - rebase
+
+pre-push:
+  commands:
+    gitleaks-history:
+      run: gitleaks detect --redact --no-banner

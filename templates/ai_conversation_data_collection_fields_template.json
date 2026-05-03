@@ -1,0 +1,101 @@
+{
+  "requestor": {
+    "requestor_company_name": {
+      "type": "string",
+      "description": "Extract requestor's employer/company name from self-identification phrases. Valid triggers: 'I'm with...', 'calling from...', 'I work for...'. Critical exclusions: (a) Never extract service provider name from agent greeting, (b) Ignore company being called. Return null when no company affiliation stated. Prioritize direct, unambiguous company references only."
+    },
+    "requestor_first_name": {
+      "type": "string",
+      "description": "Extract first name of person calling from self-introduction. Target phrases: 'This is [name]', 'My name is [name]'. Focus on conversation opening for reliable identification. Extract ONLY first name component. Name resolution protocol: (a) Establish single canonical spelling for entire conversation, (b) Reuse identical spelling across all fields, (c) Prefer most explicit introduction containing full name plus company context (e.g., 'My name is Marcus Reilly with Northern Fleet Services'). Validation: names exclude numeric characters. Ignore ASR transcription artifacts. Return null if no first name provided."
+    },
+    "requestor_last_name": {
+      "type": "string",
+      "description": "Extract ONLY last name of person calling. Examples: 'My name is Janet Okonkwo' → output 'Okonkwo'. 'This is Raymond Castellano' → output 'Castellano'. Parsing rules: (a) Exclude first names, (b) Exclude titles/honorifics, (c) Capture compound surnames completely (e.g., 'De La Vega', 'Van der Berg'). Name resolution protocol: (a) Establish single canonical spelling for entire conversation, (b) When multiple surname spellings appear for same person (e.g., 'Thornburg' vs 'Thornberg'), select ONE canonical spelling and discard variants, (c) Prefer surname from most explicit self-introduction with full name plus company context (e.g., 'My name is Patricia Thornberg with Lakeside Logistics'), (d) Treat earlier conflicting variants as transcription errors - never echo discarded spellings. Validation: names exclude numeric characters. Return null only when no last name provided."
+    }
+  },
+
+  "contact": {
+    "contact_first_name": {
+      "type": "string",
+      "description": "Extract first name of person designated for request follow-up. Default behavior: set contact_first_name = requestor_first_name exactly (same spelling, no re-inference from transcript). Override condition: requestor explicitly designates alternate contact person (e.g., 'Please contact Miguel instead'). Change requires direct statement - implied references insufficient. Validation: names exclude numeric characters. Preserve canonical requestor name spelling unless explicit alternate contact designated."
+    },
+    "contact_last_name": {
+      "type": "string",
+      "description": "Extract last name of person designated for follow-up. Default: same as requestor's last name. Examples: 'Brenda Nakamura' → extract 'Nakamura'. 'Terrence Whitfield' → extract 'Whitfield'. Parsing rules: (a) Never include first names, (b) Capture compound surnames completely (e.g., 'Saint-Pierre'). Name resolution protocol: (a) Establish single canonical spelling, (b) When multiple surname spellings appear for same person (e.g., 'Johanssen' vs 'Johansen'), select ONE canonical spelling and discard variants, (c) Prefer surname from most explicit self-introduction with full name plus company context, (d) Treat earlier conflicting variants as transcription errors - never echo discarded spellings. Validation: names exclude numeric characters. Return null when no last name exists."
+    },
+    "contact_phone_number": {
+      "type": "string",
+      "description": "Extract final confirmed callback phone number in E.164 format.\n\nStep 1 - Candidate Selection: (a) Identify number user explicitly provided for callbacks, (b) If agent read number back and user confirmed, prioritize that number, (c) If user corrected a number (e.g., '773 actually 774'), discard error and use correction only.\n\nStep 2 - ASR Error Correction: (a) Transcript 'zero zero' = digits 00 not 000, (b) Transcript 'nine zero' = digits 90 not 090, (c) Convert all number words to digits ('seven' → '7').\n\nStep 3 - Digit Mapping and Validation: (a) Strip all non-numeric characters, (b) Map remaining digits to positions pos1 through pos10, (c) Count total digits.\n\nDecision Rules: (a) Count = 10 → format as +1XXXXXXXXXX and return, (b) Count = 11 starting with 1 → treat leading 1 as country code, validate remaining 10 digits, return +1XXXXXXXXXX, (c) Count < 10 → return null (never guess missing digits), (d) No number found → return null.\n\nOutput: E.164 string only (e.g., +13175559284) or null."
+    },
+    "contact_preferred_followup_channel": {
+      "type": "string",
+      "description": "Extract requestor's preferred method for follow-up communication. Valid values: phone, sms, email. Detection triggers: explicit instructions like 'call me', 'text me', 'send me an email', 'reach me by text'. Default to 'phone' when preference unclear or unstated. Prioritize most recent stated preference if multiple mentioned."
+    },
+    "contact_preferred_followup_time": {
+      "type": "string",
+      "description": "Extract follow-up timing preferences stated by requestor. Capture: time-of-day, day-of-week, and flexibility constraints. Examples: 'tomorrow afternoon', 'after 6 PM only', 'weekdays before noon', 'anytime except Tuesday', 'mornings work best'. Record exact phrasing as stated. Return null when no timing preference mentioned."
+    },
+    "requested_service_address": {
+      "type": "string",
+      "description": "Extract physical location where onsite service/dispatch is needed. Critical distinction: this is WHERE WORK HAPPENS (dispatch destination), NOT the branch being contacted. These are independent - requestor may contact one location for service elsewhere.\n\nCapture when: (a) Onsite/field service requested, (b) Technician dispatch to requestor location needed, (c) Asset/issue cannot be brought to company location.\n\nDo NOT capture when: (a) Requestor bringing asset TO company location, (b) Request is pickup, sales inquiry, billing, or general info, (c) Requestor indicates 'come in', 'drop it off', 'bring it by', (d) No dispatch required.\n\nAccepted formats - record as stated: (a) Full address: '2847 Industrial Pkwy, Centerville, OH 45459', (b) Cross streets: 'Corner of Maple and 5th', (c) Route markers: 'Interstate 70 westbound, mile marker 142', (d) Landmarks: 'Behind the distribution center on Commerce Drive', (e) Site names: 'At the Riverside processing facility', (f) Approximate: 'Somewhere on Factory Road' or 'East side of downtown'.\n\nFallback rules: (a) Location unknown after one clarifying question → record 'Address pending' or 'Requestor will provide', (b) Requestor coming to company location → return null, (c) No dispatch required → return null."
+    },
+    "requestor_is_contact": {
+      "type": "boolean",
+      "description": "Boolean flag: is requestor the designated contact for follow-up? Default: TRUE (requestor is primary contact). Set FALSE only when: requestor makes explicit, unambiguous statement designating alternate contact (e.g., 'Please contact my supervisor Elena Marchetti instead'). Requirements for FALSE: (a) Direct verbal instruction required, (b) Phrases like 'contact my manager/colleague/assistant' qualify, (c) Implied references do NOT qualify, (d) Mentions of other people in conversation do NOT qualify. Ambiguous scenarios → default TRUE. Never infer contact change from contextual hints or peripheral details. Strict binary: TRUE (requestor is contact) or FALSE (alternate explicitly designated)."
+    }
+  },
+
+  "request": {
+    "existing_request": {
+      "type": "boolean",
+      "description": "Boolean flag: is this regarding an existing request/ticket or new request? Detection criteria: (a) Explicit statement about ticket continuation, (b) Reference to case/ticket/request numbers, (c) Phrases like 'following up on', 'checking status of', 'we already have a ticket'. Default: FALSE when unclear or no existing ticket indication. Strict binary: TRUE (confirmed existing request reference) or FALSE (new request or uncertain). Analyze requestor language for continuation signals. Eliminate ambiguous or implied references. Never return null - always FALSE if uncertain."
+    },
+    "request_affected_asset": {
+      "type": "string",
+      "description": "Extract specific equipment, device, software, or system involved in the issue. Capture: (a) Model numbers, versions, specific identifiers if stated, (b) Equipment ID, unit number, asset identifier (e.g., 'Truck 847', 'Unit 23', 'Forklift F-19', 'Press Machine Delta-7').\n\nExamples:\n'The barcode reader at station 4 won't sync. It's a Honeywell Voyager 1450.' → Devices: Honeywell Voyager 1450 barcode reader | Asset ID: Station 4\n'Unit 23 is showing fault codes. The Caterpillar diagnostic shows error E0472.' → Devices: Caterpillar diagnostic system | Asset ID: Unit 23\n'QuickBooks keeps freezing during payroll runs.' → Devices: QuickBooks | Asset ID: null\n'I can't access the shared drive.' → Devices: shared drive | Asset ID: null\n'The warning light came on.' → Devices: null | Asset ID: null\n\nGuardrails: (a) Never guess asset identifiers from context clues, (b) Generic terms ('the system', 'the computer') without specifics = null for devices, (c) Numbers without context (e.g., phone numbers, dates) are NOT asset IDs, (d) Only extract explicitly stated technical references, (e) Do not infer or fabricate values. Return null when no specific asset mentioned."
+    },
+    "request_deadline": {
+      "type": "string",
+      "description": "Extract requestor-specified date or timeframe for request completion or follow-up. Capture explicit timing expectations directly stated. Examples: 'need this fixed by Friday', 'hoping for service within 48 hours', 'must be resolved before end of month'. Record exact phrasing. Return null when no deadline mentioned."
+    },
+    "request_description": {
+      "type": "string",
+      "description": "Generate single factual paragraph (80-120 words) using ONLY information explicitly stated in conversation. Always reuse canonical names from requestor_first_name, requestor_last_name, contact_first_name, contact_last_name - never introduce new spelling variants.\n\nStructure and Clarity: (a) Inverted-pyramid format - open with key situation/outcome, then supporting context, (b) Front-load most critical facts in first two sentences, (c) 80-120 words total, 2-3 sentences per paragraph (max 60 words each), (d) Left-aligned, linear sentence structure - no lists, bullets, line breaks.\n\nContent Extraction: (a) Include what happened, when noticed, observed symptoms/errors/abnormal behavior, steps already tried, (b) Note relevant people, departments, systems, equipment mentioned, (c) If timing/duration/outcome unknown, state explicitly (e.g., 'Requestor did not specify when problem began'), (d) Never invent or infer unspoken details.\n\nLanguage and Cognitive Load: (a) Plain, concrete language (8-12 words per sentence), (b) Avoid jargon, qualifiers, nested clauses, (c) One clear idea per sentence, one core request per paragraph, (d) Active voice, present or simple past tense only.\n\nReadability: (a) 45-75 characters per line equivalent, (b) No all caps, exclamation marks, emotive phrasing, (c) Natural punctuation - no parenthetical asides or enumerations, (d) No bold, italic, or formatting - plain text only.\n\nTone: (a) Neutral, factual, courteous - suitable for internal service documentation, (b) No greetings, thanks, or closings, (c) Do not address requestor directly or use 'you', (d) State each fact once - no restating same detail in different words.\n\nProhibitions: Never include 'will follow up', 'team member will', or any future commitments. End with facts only.\n\nOutput: Exactly one paragraph. No prefatory text, summaries, metadata, variability, or commentary."
+    },
+    "request_summary": {
+      "type": "string",
+      "description": "Generate precise ticket title (<80 chars) identifying WHAT is broken/needed and WHERE. Format: '[Equipment/Issue] - [Location]' (e.g., 'Hydraulic pump failure - Warehouse B', 'Login authentication error - Northeast branch').\n\nCore Rules: (1) Strictly follow '[Equipment/Issue] - [Location]' format, (2) Prioritize specificity and clarity over brevity - be as precise as possible within 80 characters, (3) Must clearly identify exact purpose, goal, or issue - not generic categories, (4) Always include equipment ID/number if provided, (5) Completely avoid generic terms: 'issue', 'problem', 'matter', 'situation', (6) Favor concrete actionable details over broad descriptions (e.g., 'Configure automated inventory alerts for low stock' instead of 'Inventory system work'), (7) Preserve critical business context: company names, product names, system identifiers, (8) Balance technical implementation details with underlying business purpose.\n\nMultiple Issues: (9) Combine multiple distinct issues into one generalized summary ONLY if completely unrelated topics, (10) Routine or vague ticket notes do NOT count as distinct issues, (11) If uncertain whether topics are distinct, treat as ONE overarching issue.\n\nNames: (12) Include person's first name ONLY if single specific individual experiencing issue requiring direct contact, (13) If multiple first names appear, omit ALL names, (14) Omit multiple user lists, vague work notes, unrelated information.\n\nFormatting: (15) Limit to 80 characters maximum - avoid full sentences, (16) Standard capitalization: capitalize proper nouns, acronyms, first word only - do not capitalize every word, (17) Never change only capitalization without substantive content changes.\n\nPreservation: (18) If current summary already meets ALL guidelines including specificity, clarity, grammar → set new value EXACTLY equal to input (preserve original capitalization), (19) Vague summaries MUST be improved even if under 80 characters.\n\nValidation: (20) Must be technically accurate without errors, (21) 'None' is not valid - always provide meaningful summary based on conversation content."
+    }
+  },
+
+  "routing": {
+    "conversation_transfer_destination": {
+      "type": "string",
+      "description": "If conversation_transferred = TRUE, capture concise label for transfer destination. Examples: 'Main operator', 'Columbus Service queue', 'After-hours answering service', 'Billing department', 'Technical support tier 2'. Prioritization: (a) Use canonical system routing label when available, (b) Otherwise summarize based on transfer target stated. Return null if no transfer occurred."
+    },
+    "conversation_transfer_reason": {
+      "type": "string",
+      "description": "Short free-text summary (≤120 chars) explaining WHY conversation was transferred. Base on explicit requestor statements or clear context only. Examples: 'Urgent field service request during business hours', 'Requestor requested live billing assistance', 'Technical issue beyond automated support scope', 'Requestor asked to speak with supervisor'. Guardrails: (a) Do not invent reasons, (b) If transfer occurred but reason unclear → use 'not specified', (c) Return null if no transfer occurred."
+    },
+    "conversation_transferred": {
+      "type": "boolean",
+      "description": "Boolean flag: was conversation transferred to live person or external destination? Set TRUE only when: actual transfer mechanism invoked (transfer_to_* system tool executed). Do NOT infer from: (a) Casual conversation mentions, (b) Phrases like 'I'll have someone call you', (c) Discussion of transferring without execution, (d) Hypothetical routing statements. Default: FALSE when transfer status unclear. Strict binary requiring verified transfer events only."
+    },
+    "requestor_requested_specific_person": {
+      "type": "string",
+      "description": "Extract name of SPECIFIC PERSON requestor explicitly asks to speak with. Valid triggers: direct person requests (e.g., 'Can I speak with Sandra Chen?', 'Is Victor in the parts department?', 'I need to talk to whoever handles fleet accounts'). Exclusions: (a) Never include requestor's own name, (b) Generic role requests without names do not qualify unless specific person implied. Name resolution: if multiple spellings appear for requested person, select ONE canonical spelling - never output alternate variants. Return null if no specific person requested by name."
+    },
+    "routing_department": {
+      "type": "string",
+      "description": "Deterministic classification - output EXACTLY one department label from authorized list. Never create new labels or output values outside this list.\n\nDepartment Taxonomy:\n- Service: Repairs, maintenance, diagnostics, technical support, troubleshooting, shop technician work, service scheduling\n- Field Service: Onsite dispatch, mobile technicians, remote location work, field service units\n- Sales: Purchases, quotes, orders, upgrades, product inquiries\n- Marketing: Campaigns, promotions, advertising, brand inquiries\n- Purchasing: Procurement, vendor management, purchase orders\n- Fulfillment: Parts, components, inventory, shipments, supplies, replacement accessories\n- Shipping: Freight, delivery status, tracking, logistics\n- Billing: Invoices, payments, statements, credits, billing errors\n- Finance: Treasury, tax, financial reporting, budgets\n- Accounting: Reconciliation, ledger, audits, expense reports\n- HR: Benefits, recruiting, employee relations, onboarding\n- Payroll: Compensation, timekeeping, wage inquiries\n- IT: Infrastructure, systems, software, network\n- IT Support: Helpdesk, user issues, access requests, password resets\n- Operations: Facilities, logistics, coordination, scheduling\n- Contracts: Leases, rentals, subscriptions, agreements, renewals, loaner requests\n- Administration: Executive support, correspondence, records\n- General: Requests not clearly matching another category\n\nClassification Rules: (a) Use contextual reasoning from requestor statements, (b) When context overlaps multiple departments, choose most specific match, (c) Equipment malfunction = Service (unless explicitly ordering parts only), (d) Ordering parts = Fulfillment, (e) Default to 'General' when department cannot be determined.\n\nOutput: Department name only - no explanations, punctuation, or extra text."
+    },
+    "routing_site_location": {
+      "type": "string",
+      "description": "Extract site or branch location relevant for routing/ticket assignment. This is the ORGANIZATIONAL location for internal routing purposes - may differ from physical service address (requested_service_address). Examples: 'Downtown branch', 'Northwest regional office', 'Henderson facility', 'Airport location'. Return null if no site location mentioned in conversation."
+    },
+    "routing_urgency": {
+      "type": "string",
+      "description": "Classify request urgency based on requestor language and context. Valid values:\n- emergency: Immediate safety concern or critical business impact (e.g., 'equipment on fire', 'production line stopped', 'safety hazard', 'we're completely down')\n- soon: Needs attention quickly but not immediately critical (e.g., 'as soon as possible', 'pretty urgent', 'need this today if you can')\n- routine: Standard service request with no urgency indicators (e.g., 'when you get a chance', 'sometime this week', 'no rush')\n- estimate: Requesting quote, assessment, or evaluation only (e.g., 'just looking for a quote', 'want to get an estimate', 'what would it cost')\n\nAnalyze contextual language for urgency signals. Default to 'routine' when classification unclear."
+    }
+  }
+}

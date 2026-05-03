@@ -1,0 +1,8 @@
+# gitleaks allowlist — fingerprints below are documented placeholder credentials,
+# not real secrets. Each entry is scoped to a specific file:rule:line tuple.
+
+# Twilio API reference doc — curl examples use literal "ACCOUNT_SID:AUTH_TOKEN"
+# placeholder strings, not real auth pairs. Verified manually 2026-05-03.
+docs/elevenlabs-twilio-voiceagent/docs/twilio/api-reference.md:curl-auth-user:13
+docs/elevenlabs-twilio-voiceagent/docs/twilio/api-reference.md:curl-auth-user:43
+docs/elevenlabs-twilio-voiceagent/docs/twilio/api-reference.md:curl-auth-user:84

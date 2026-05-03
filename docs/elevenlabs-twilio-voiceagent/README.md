@@ -1,6 +1,6 @@
-# ElevenLabs + Twilio Voice Agent
+# ElevenLabs + Twilio voice agent
 
-> **Status**: SEED (Initial scaffold - not yet implemented)
+> Smoke tests and reference scripts for the ElevenLabs + Twilio integration surface. Each test is a standalone shell script that exercises one API endpoint with placeholder credentials — useful when bringing up a new sandbox or verifying credential rotation.
 
 ## Overview
 

@@ -260,7 +260,7 @@ Call Ends → ElevenLabs → post_call_webhook
 ## File Structure
 
 ```
-voice_ai_agents/
+voice_ai_agent_evals/
 ├── ARCHITECTURE.md          # This file
 ├── CLAUDE.md                # AI assistant instructions
 ├── README.md                # Project overview

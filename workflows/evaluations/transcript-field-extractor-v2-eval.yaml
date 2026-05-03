@@ -1,0 +1,94 @@
+# Evaluation Configuration: Transcript Field Extractor v2 - 5-Component Architecture
+# Workflow ID: 54sXqqJVSctlSF6V
+# Complexity: High (10 nodes)
+
+workflow_id: "54sXqqJVSctlSF6V"
+workflow_name: "[DEV] Transcript Field Extractor v2 - 5-Component Architecture"
+webhook_path: "transcript-extractor-v2"
+
+# Workflow Structure:
+# Same as v1 but with 5-component bulk prompt and Gemini 3 Pro
+
+evaluation:
+  pass_threshold: 90
+  max_retries: 2
+  timeout_ms: 60000
+  mode: "ai_extraction"
+
+test_cases:
+  - id: TC001
+    name: "5-Component Extraction"
+    description: "Test all 5 component extraction in a single call"
+    input:
+      conversation_id: "conv-full-001"
+      agent_id: "agent_5701kdgf9s4vfe9rhe68ntjrms9g"
+    expected:
+      status: 200
+      response_contains:
+        - "component_1"
+        - "component_2"
+        - "component_3"
+        - "component_4"
+        - "component_5"
+    assertions:
+      - type: status_code
+        value: 200
+      - type: json_path
+        path: "$.components_extracted"
+        value: 5
+    weight: 35
+
+  - id: TC002
+    name: "Gemini 3 Pro Quality"
+    description: "Verify Gemini 3 Pro provides high-quality extraction"
+    input:
+      conversation_id: "conv-quality-v2"
+      agent_id: "agent_5701kdgf9s4vfe9rhe68ntjrms9g"
+    expected:
+      status: 200
+    assertions:
+      - type: json_path
+        path: "$.quality_score"
+        min: 0.85
+      - type: response_time_ms
+        max: 30000
+    weight: 25
+
+  - id: TC003
+    name: "Empty Transcript Handling"
+    description: "Test graceful handling of empty transcripts"
+    input:
+      conversation_id: "conv-empty-v2"
+      agent_id: "agent_5701kdgf9s4vfe9rhe68ntjrms9g"
+    expected:
+      status: 200
+    assertions:
+      - type: json_path
+        path: "$.transcript_empty"
+        value: true
+    weight: 20
+
+  - id: TC004
+    name: "Error Response Structure"
+    description: "Verify error responses have consistent structure"
+    input:
+      conversation_id: "invalid-id"
+      agent_id: "invalid-agent"
+    expected:
+      status: 200
+    assertions:
+      - type: json_path
+        path: "$.error"
+        exists: true
+      - type: json_path
+        path: "$.error_code"
+        exists: true
+    weight: 20
+
+metadata:
+  created: "2026-01-08"
+  author: "SRIS Auto-Eval"
+  dependencies:
+    - openai_api_key
+  integration_type: "ai_extraction"
+  notes: "v2 with 5-component architecture and Gemini 3 Pro"

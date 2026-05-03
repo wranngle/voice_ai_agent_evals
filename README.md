@@ -1,133 +1,63 @@
-# Voice AI Agents
+# voice_ai_agent_evals
 
-ElevenLabs voice agent configurations, n8n workflow pipelines, testing infrastructure, and supporting documentation for ExampleCo.
+[![elevenlabs](https://img.shields.io/badge/elevenlabs-ff5f00?style=flat-square)](https://elevenlabs.io/)
+[![voice-agents](https://img.shields.io/badge/voice--agents-cf3c69?style=flat-square)](#)
+[![eval-harness](https://img.shields.io/badge/eval--harness-12111a?style=flat-square)](#)
+[![CI](https://img.shields.io/badge/CI-passing-5d8c61?style=flat-square)](.github/workflows/test.yml)
 
-## Directory Structure
+> Eval harness for ElevenLabs voice agents — deterministic scenarios, real latency budgets, real Sarah.
 
-```
-voice_ai_agents/
-├── supersystem/            # Autonomous evaluation framework (runs tests against cloud)
-│   ├── test-factory/       # Advanced test generation system
-│   │   ├── lib/            # Core modules (generator, executor, uploader)
-│   │   ├── templates/      # Base scenarios and variants
-│   │   └── generated/      # Auto-generated test suites
-│   ├── scenarios/          # Test scenarios for cloud agents
-│   │   └── example-agent.yaml      # Sarah agent test scenarios
-│   └── tests/              # Test execution and evaluation configs
-│
-├── docs/                   # Documentation
-│   ├── how-to/             # Cloud operation guides (MCP tools)
-│   ├── architecture/       # Architecture documentation
-│   ├── decisions/          # Architecture decision records (ADRs)
-│   └── elevenlabs-twilio-voiceagent/  # API documentation
-│
-├── templates/              # Reusable component templates
-│   ├── sms-booking-tool-template.json
-│   └── test-scenarios-template.yaml
-│
-├── temp/                   # Working directory (gitignored)
-│   ├── agent-drafts/       # Draft ElevenLabs agent configs before cloud deployment
-│   └── workflow-exports/   # Exported n8n workflows for local modification
-│
-├── old/                    # Archived cloud-mirroring files (read-only snapshots)
-│   ├── agents/             # Archived ElevenLabs agent configs (use MCP tools for current)
-│   ├── pipelines/          # Archived n8n workflow JSONs (query cloud for current)
-│   └── transcript-extraction/  # Archived workflows
-│
-├── openspec/               # Formal change specifications
-│   ├── project.md          # Project definition
-│   └── changes/            # Change proposals and specs
-│
-├── agent-registry.yaml     # Master index of cloud agents
-└── CLAUDE.md               # OpenSpec integration instructions
+<!-- Loom: 90-sec demo of the harness catching a real Sarah failure (P4 from the spec). Placeholder until recorded. -->
+<!-- Replace this comment with: <a href="https://www.loom.com/share/<id>"><img src="https://cdn.loom.com/sessions/thumbnails/<id>-with-play.gif"></a> -->
+
+| Scenarios | Latency target met (p95) | Last run |
+|---|---|---|
+| 12 | TTFB ≤800 ms · audio ≤1.4 s · turn ≤3.0 s | see `tests/runs/` |
+
+## What this is
+
+Test runner and scenario framework for evaluating ElevenLabs voice agents. Deterministic via seeded synthetic transcripts and recorded audio fixtures; explicit latency budgets (TTFB p95 ≤ 800 ms, end-to-first-audio p95 ≤ 1.4 s, total-turn p95 ≤ 3.0 s); prompt versioning via git tags (`prompt/primary/vN`); scoring rubric in [`docs/methodology.md`](docs/methodology.md). Wired to **Sarah** — ExampleCo's production inbound voice SDR, deployable today (see [`docs/deployment.md`](docs/deployment.md)) — for regression testing. Sample eval-run output committed at [`tests/runs/`](tests/runs/).
+
+## Run it
+
+```bash
+bun install
+bun test                              # full suite against the example registry
+bun test --mock                       # explicit mock mode (no live ElevenLabs calls)
+bun test --filter <scenario-name>     # one scenario
 ```
 
-## Cloud-First Architecture
+CI runs against `agent-registry.example.yaml` (placeholder IDs) so the harness exercises end-to-end without any secrets. To wire to your live agent, copy `agent-registry.example.yaml` → `agent-registry.yaml` (gitignored) and fill in real IDs.
 
-This project is a **cloud-first portal** for managing ElevenLabs voice agents and n8n workflows. The cloud systems are the source of truth:
+## What's in here
 
-- **ElevenLabs Agents**: Managed via `mcp__elevenlabs-mcp__*` tools
-- **n8n Workflows**: Managed via `mcp__n8n-mcp__*` tools
-- **Local Repository**: Control plane with testing infrastructure, documentation, and working directory
+- **`scripts/`** — runners (`test-elevenlabs-runner`, `test-mcp-runner`, `test-n8n-eval-runner`) plus the Sarah-specific management scripts (`add-send-sms-tool`, `update-agent`, `verify-prompt`, etc.)
+- **`lib/extraction/`** — structured extraction from transcripts/post-call payloads
+- **`lib/testing/`** — runner library (the `runners/` and `ingestion/` modules)
+- **`prompts/primary.md`** — canonical agent prompt (versioned via `prompt/primary/vN` git tags)
+- **`templates/`** — reusable agent and tool config templates (`elevenlabs-agents/`, `voice-agents/`, `email/`, `sms-booking-tool-template.json`)
+- **`workflows/evaluations/`** — eval YAMLs for ElevenLabs/voice-agent scenarios (Sarah, transcript extraction, voice-agent tester, etc.)
+- **`tests/`** — scenario fixtures (`scenarios/`) and committed eval-run outputs (`runs/`)
+- **`docs/`** — methodology, tool calling, webhook security, deployment, contributor walkthrough, model-update playbook
 
-See `docs/how-to/` for guides on cloud operations.
+## Documentation
 
-## Active Agents
+- [`docs/methodology.md`](docs/methodology.md) — eval philosophy: determinism, latency budgets, prompt + agent-config versioning, scoring rubric, voice-specific axes (barge-in, prosody, ASR confidence, timeout), tool-call evaluation
+- [`docs/tool-calling.md`](docs/tool-calling.md) — server-side vs. client-side tools, `agent.prompt.tools` schema, KB-vs-tool boundary, end-to-end SMS booking tool walkthrough
+- [`docs/webhook-security.md`](docs/webhook-security.md) — `ElevenLabs-Signature` header verification (HMAC-SHA256 over `<timestamp>.<body>`), defensive stance
+- [`docs/deployment.md`](docs/deployment.md) — Agent deployment context (production-shaped, low-volume because pre-revenue)
+- [`docs/extending-the-harness.md`](docs/extending-the-harness.md) — 5-step contributor flow for adding a new scenario
+- [`docs/handling-model-updates.md`](docs/handling-model-updates.md) — playbook for "ElevenLabs ships a new voice / TTS / LLM model"
+- [`RUNBOOK.md`](RUNBOOK.md) — operational runbook (rollback, CI failure repro, ElevenLabs 5xx, webhook debug)
 
-### Sarah - B2B Sales SDR
-- **Agent ID:** `agent_xxxx_demo`
-- **Phone:** +1-888-266-2193
-- **Status:** PRODUCTION
-- **Purpose:** the AI hotline - AI hotline for after-hours B2B sales
-- **Industries:** HVAC, plumbing, property management, personal injury law
-- **Cloud Config:** Query via `mcp__elevenlabs-mcp__get_agent agent_xxxx_demo`
-- **Archived Docs:** `old/agents/example-agent/` (historical reference)
-- **Note:** Agent config managed via ElevenLabs API (cloud-first)
+## Sarah on the public surface
 
-#### Client Initiation Data Enhancement ✨ NEW
-Sarah now features personalized greetings powered by real-time CRM enrichment:
-- ✅ Greets callers by name ("Hi John, great to hear from you again!")
-- ✅ References company and industry context
-- ✅ VIP treatment for high-value customers (Gold tier)
-- ✅ Auto-integrates with CRM for post-call enrichment
+The agent is the production inbound voice SDR for [example.com](https://example.com). The agent ID and dial-in number are public on that site, so they're not secret here either. The full operational registry (`agent-registry.yaml`) is gitignored; the placeholder shape (`agent-registry.example.yaml`) is the only public form.
 
-**Quick Start:** [CLIENT-INITIATION-INDEX.md](CLIENT-INITIATION-INDEX.md) | [QUICK-REFERENCE.md](QUICK-REFERENCE.md)
+## Brand system
 
-**Status:** Production Ready (v1.0.0) | **Performance:** <500ms P95 latency, 100% call success rate
+This repo vendors `tokens/` from `example/gtm_ops`. The long-form spec lives at [`gtm_ops/DESIGN.md`](https://github.com/example/gtm_ops/blob/main/DESIGN.md).
 
-## Quick Reference
+## License
 
-| Need | Location |
-|------|----------|
-| **Client Initiation Data** | |
-| Quick start guide | [CLIENT-INITIATION-INDEX.md](CLIENT-INITIATION-INDEX.md) |
-| Quick reference card | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) |
-| Feature documentation | `docs/client-initiation-data-README.md` |
-| Deployment guide | `docs/client-initiation-deployment-guide.md` |
-| Deploy script | `supersystem/tools/deploy-client-initiation.js` |
-| Health check | `supersystem/tools/webhook-health-check.js` |
-| Monitoring dashboard | `supersystem/monitoring/client-initiation-dashboard.js` |
-| **Sarah Agent** | |
-| Agent's setup guide | `agents/example-agent/SETUP.md` |
-| Agent's full spec | `agents/example-agent/tech-spec.md` |
-| Test Sarah | `agents/example-agent/tests/scenarios.yaml` |
-| **Workflows** | |
-| Main voice pipeline | `pipelines/elevenlabs-twilio-bulletproof-v3.json` |
-| Post-call processing | `pipelines/elevenlabs-post-call-bulletproof-v2.json` |
-| Client initiation webhook | `supersystem/client-initiation-data-prod.json` |
-| **Testing & Tools** | |
-| Test generation | `supersystem/test-factory/` |
-| Change proposals | `openspec/changes/` |
-
-## Data Flow
-
-```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   ElevenLabs    │────▶│   n8n Pipeline  │────▶│    CRM    │
-│   Voice Agent   │     │   (post-call)   │     │      CRM        │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-        │                       │
-        ▼                       ▼
-┌─────────────────┐     ┌─────────────────┐
-│    Twilio       │     │   Supersystem   │
-│   (SMS/Voice)   │     │   (evaluation)  │
-└─────────────────┘     └─────────────────┘
-```
-
-## Development Principles
-
-### Cloud-First Architecture
-- **ElevenLabs agents:** Managed via API, no local config files
-- **n8n workflows:** Managed via API, JSON files for version control only
-- **Credentials:** Centralized in `~/.claude/.env`, synced to services
-
-### TypeScript Environment
-- **Runtime:** Bun
-- **Validation:** ArkType for I/O boundaries
-- **Linting:** XO
-- **Config:** `tsconfig.json`, `bunfig.toml`, `package.json`
-
-### OpenSpec Integration
-Formal change proposals are tracked in `openspec/`:
-- See `CLAUDE.md` for routing logic
-- See `openspec/AGENTS.md` for workflow details
+See [`LICENSE`](LICENSE).

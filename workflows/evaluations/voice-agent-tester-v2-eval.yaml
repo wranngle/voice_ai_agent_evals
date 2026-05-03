@@ -1,0 +1,128 @@
+# Evaluation Configuration: Voice Agent Tester v2.0
+# Workflow ID: KrqpJuyN8pjTouAo
+# Complexity: High (18 nodes)
+
+workflow_id: "KrqpJuyN8pjTouAo"
+workflow_name: "[DEV] Voice Agent Tester v2.0"
+webhook_path: "voice-agent-tester"
+
+# Workflow Structure:
+# [Webhook | Manual | Schedule] → Merge Triggers → Set Default Params (Code)
+#   → Load All Scenarios (Set) → Filter Scenarios (Code)
+#   → Loop Through Scenarios (SplitInBatches)
+#     → Simulate Conversation (HTTP) → [error branch] Rate Limit Wait
+#     → Parse Simulation Results (Code) → [loop back]
+#   → Aggregate Results → Calculate Metrics (Code) → Generate Report (Code)
+#   → Check Failures (Switch)
+#     → [critical] Send Critical Alert
+#     → [failures] Send Failure Alert
+#     → [success] Success Response
+
+evaluation:
+  pass_threshold: 85
+  max_retries: 1
+  timeout_ms: 600000
+  mode: "comprehensive_testing"
+
+test_cases:
+  - id: TC001
+    name: "Full Test Suite Execution"
+    description: "Run complete voice agent test suite"
+    input:
+      agent_id: "agent_5701kdgf9s4vfe9rhe68ntjrms9g"
+      scenario_filter: "all"
+      max_scenarios: 5
+    expected:
+      status: 200
+      response_contains:
+        - "report"
+        - "metrics"
+        - "scenarios_run"
+    assertions:
+      - type: status_code
+        value: 200
+      - type: json_path
+        path: "$.test_complete"
+        value: true
+    weight: 30
+
+  - id: TC002
+    name: "Scenario Filtering"
+    description: "Test scenario filtering by tag"
+    input:
+      agent_id: "agent_5701kdgf9s4vfe9rhe68ntjrms9g"
+      scenario_filter: "greeting"
+      max_scenarios: 10
+    expected:
+      status: 200
+    assertions:
+      - type: json_path
+        path: "$.scenarios_filtered"
+        value: true
+      - type: json_path
+        path: "$.filter_applied"
+        value: "greeting"
+    weight: 20
+
+  - id: TC003
+    name: "Critical Alert Triggered"
+    description: "Test critical alert on severe failures"
+    input:
+      agent_id: "agent_5701kdgf9s4vfe9rhe68ntjrms9g"
+      simulate_critical_failure: true
+    expected:
+      status: 200
+    assertions:
+      - type: json_path
+        path: "$.alert_level"
+        value: "critical"
+      - type: json_path
+        path: "$.alert_sent"
+        value: true
+    weight: 20
+
+  - id: TC004
+    name: "Rate Limit Handling"
+    description: "Test graceful handling of API rate limits"
+    input:
+      agent_id: "agent_5701kdgf9s4vfe9rhe68ntjrms9g"
+      scenario_count: 10
+      simulate_rate_limit: true
+    expected:
+      status: 200
+    assertions:
+      - type: json_path
+        path: "$.rate_limits_hit"
+        min: 1
+      - type: json_path
+        path: "$.test_complete"
+        value: true
+    weight: 15
+
+  - id: TC005
+    name: "Metrics Calculation Accuracy"
+    description: "Verify metrics are calculated correctly"
+    input:
+      agent_id: "agent_5701kdgf9s4vfe9rhe68ntjrms9g"
+      scenario_count: 4
+      known_pass_count: 3
+      known_fail_count: 1
+    expected:
+      status: 200
+    assertions:
+      - type: json_path
+        path: "$.metrics.pass_rate"
+        value: 0.75
+      - type: json_path
+        path: "$.metrics.total_scenarios"
+        value: 4
+    weight: 15
+
+metadata:
+  created: "2026-01-08"
+  author: "SRIS Auto-Eval"
+  dependencies:
+    - elevenlabs_api_key
+  integration_type: "comprehensive_testing"
+  notes: "Most complex workflow - full voice agent test suite with reporting"
+  special_handling: "Very long timeout (10 min) due to multiple API calls"

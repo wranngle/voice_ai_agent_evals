@@ -1,0 +1,112 @@
+# Evaluation Configuration: Transcript Field Extractor - AI Agent
+# Workflow ID: 5hvmE72qa4VYyPOK
+# Complexity: High (10 nodes)
+
+workflow_id: "5hvmE72qa4VYyPOK"
+workflow_name: "[DEV] Transcript Field Extractor - AI Agent"
+webhook_path: "transcript-extractor"
+
+# Workflow Structure:
+# Webhook → Fetch ElevenLabs Data (Code) → Check for Errors (IF)
+#   → [error] Error Response
+#   → [ok] Assemble Bulk Prompt (Code) → Check Transcript Error (IF)
+#     → [empty] Empty Transcript Response
+#     → [ok] Call Gemini (HTTP) → Parse Response (Code) → Success Response
+
+evaluation:
+  pass_threshold: 85
+  max_retries: 2
+  timeout_ms: 60000
+  mode: "ai_extraction"
+
+test_cases:
+  - id: TC001
+    name: "Valid Conversation Extraction"
+    description: "Extract fields from a complete conversation transcript"
+    input:
+      conversation_id: "conv-test-001"
+      agent_id: "agent_5701kdgf9s4vfe9rhe68ntjrms9g"
+      fields_to_extract:
+        - "caller_name"
+        - "phone_number"
+        - "appointment_date"
+        - "service_type"
+    expected:
+      status: 200
+      response_contains:
+        - "extracted_fields"
+        - "confidence"
+    assertions:
+      - type: status_code
+        value: 200
+      - type: response_time_ms
+        max: 45000
+    weight: 30
+
+  - id: TC002
+    name: "Empty Transcript Handling"
+    description: "Test with conversation that has no transcript"
+    input:
+      conversation_id: "conv-empty-transcript"
+      agent_id: "agent_5701kdgf9s4vfe9rhe68ntjrms9g"
+    expected:
+      status: 200
+      response_contains:
+        - "empty"
+    assertions:
+      - type: json_path
+        path: "$.transcript_empty"
+        value: true
+    weight: 20
+
+  - id: TC003
+    name: "Invalid Conversation ID"
+    description: "Test error handling for non-existent conversation"
+    input:
+      conversation_id: "conv-does-not-exist"
+      agent_id: "agent_5701kdgf9s4vfe9rhe68ntjrms9g"
+    expected:
+      status: 200
+    assertions:
+      - type: json_path
+        path: "$.error"
+        exists: true
+    weight: 20
+
+  - id: TC004
+    name: "Partial Field Extraction"
+    description: "Extract only some fields from transcript"
+    input:
+      conversation_id: "conv-partial-001"
+      agent_id: "agent_5701kdgf9s4vfe9rhe68ntjrms9g"
+      fields_to_extract:
+        - "caller_name"
+    expected:
+      status: 200
+    assertions:
+      - type: json_path
+        path: "$.extracted_fields.caller_name"
+        exists: true
+    weight: 15
+
+  - id: TC005
+    name: "Gemini Response Quality"
+    description: "Verify Gemini extracts with high confidence"
+    input:
+      conversation_id: "conv-quality-test"
+      agent_id: "agent_5701kdgf9s4vfe9rhe68ntjrms9g"
+    expected:
+      status: 200
+    assertions:
+      - type: json_path
+        path: "$.average_confidence"
+        min: 0.7
+    weight: 15
+
+metadata:
+  created: "2026-01-08"
+  author: "SRIS Auto-Eval"
+  dependencies:
+    - openai_api_key
+  integration_type: "ai_extraction"
+  notes: "Uses Gemini for field extraction from ElevenLabs conversation transcripts"

@@ -1,0 +1,97 @@
+# Evaluation Configuration: Get ElevenLabs Agent
+# ================================================
+# Target Workflow: D4GGMXFGC1PLOUT0
+# Complexity: Minimal (2 nodes)
+# Purpose: Fetch ElevenLabs agent configuration
+
+workflow_id: "D4GGMXFGC1PLOUT0"
+workflow_name: "[DEV] Get ElevenLabs Agent"
+evaluation_version: "1.0"
+created: "2026-01-08"
+
+# Workflow must be converted to webhook-triggered for programmatic testing
+requires_webhook: true
+webhook_path: "/webhook/eval-get-agent"
+
+# Test Cases
+test_cases:
+  - id: TC001
+    name: "Valid Agent Retrieval"
+    description: "Fetch existing agent with valid credentials"
+    input:
+      agent_id: "agent_5701kdgf9s4vfe9rhe68ntjrms9g"
+    expected:
+      status: 200
+      response_contains:
+        - "agent_id"
+        - "name"
+        - "conversation_config"
+      response_type: "object"
+    weight: 40
+
+  - id: TC002
+    name: "Invalid Agent ID"
+    description: "Attempt to fetch non-existent agent"
+    input:
+      agent_id: "agent_invalid_12345"
+    expected:
+      status: 404
+      error_message_contains: "not found"
+    weight: 20
+
+  - id: TC003
+    name: "Response Schema Validation"
+    description: "Verify response contains required fields"
+    input:
+      agent_id: "agent_5701kdgf9s4vfe9rhe68ntjrms9g"
+    expected:
+      status: 200
+      schema:
+        required_fields:
+          - agent_id
+          - name
+          - first_message
+          - system_prompt
+    weight: 30
+
+  - id: TC004
+    name: "Performance Check"
+    description: "Response time under threshold"
+    input:
+      agent_id: "agent_5701kdgf9s4vfe9rhe68ntjrms9g"
+    expected:
+      status: 200
+      max_response_time_ms: 3000
+    weight: 10
+
+# Scoring Configuration
+scoring:
+  pass_threshold: 80
+  weights:
+    functionality: 50
+    error_handling: 25
+    performance: 15
+    schema_compliance: 10
+
+# Self-Improvement Actions
+improvement_actions:
+  on_failure:
+    TC001:
+      - check_api_key_validity
+      - verify_agent_exists
+    TC002:
+      - add_error_handling_node
+      - implement_retry_logic
+    TC003:
+      - update_response_mapping
+    TC004:
+      - add_caching_layer
+      - optimize_request_headers
+
+# SRIS Integration
+sris_config:
+  evaluator_workflow: "RjLiUAiuUs5XPvBj"
+  orchestrator_workflow: "4TqaQ6kORDzZVwVP"
+  verification_loop: "KoQChBtjUa5F9bZg"
+  auto_fix_enabled: true
+  max_fix_iterations: 3

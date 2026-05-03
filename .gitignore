@@ -11,6 +11,17 @@ secrets*.json
 *.key
 *.pem
 
+# Real ElevenLabs/Twilio agent registry — placeholder version is the only public form
+agent-registry.yaml
+!agent-registry.example.yaml
+
+# n8n cloud instance dumps — never re-commit (these had verified live keys)
+workflows_list.json
+reconciliation-data/
+
+# OpenSpec working state (proposals churn — keep specs/ only)
+openspec/changes/
+
 # ===================
 # TEMPORARY & DEBUG FILES
 # ===================
@@ -96,11 +107,7 @@ _bmad-output/
 # ===================
 # WORKING DIRECTORIES
 # ===================
-# temp/ is for working drafts before cloud deployment (not committed)
-# temp/  # Preserving mock test data and working drafts
-
-# reconciliation-data/ is for cloud-local state analysis (not committed)
-# reconciliation-data/  # Preserving mock cloud-local state analysis
+temp/
 .test-data/
 .test-data-*/
 allure-results/

@@ -1,0 +1,75 @@
+# agent-registry.example.yaml
+#
+# Placeholder registry — every value is illustrative. The real registry
+# (agent-registry.yaml) is gitignored and lives only on operator machines
+# and CI secret stores.
+#
+# Structurally complete: every field a real registry has. Tool schemas
+# use generic shapes only — do NOT paste production tool schemas here.
+
+agents:
+  - id: agent_xxxx_demo
+    name: Sarah (placeholder)
+    role: inbound-voice-sdr
+    voice: voice_xxxx_demo
+    llm: gpt-4o-mini
+    phone: "+15550100"
+    knowledge_base:
+      - kb_xxxx_demo_locations
+    tools:
+      - name: lookup_record
+        description: "Look up an account record by id."
+        type: server-side
+        url: "${TOOL_LOOKUP_URL}"
+        parameters:
+          type: object
+          properties:
+            id:
+              type: string
+              description: "Record id."
+          required: [id]
+        response_timeout_secs: 5
+      - name: send_sms
+        description: "Send an SMS to the caller."
+        type: server-side
+        url: "${TOOL_SEND_SMS_URL}"
+        parameters:
+          type: object
+          properties:
+            phone_number:
+              type: string
+            message:
+              type: string
+          required: [phone_number, message]
+        response_timeout_secs: 8
+    prompt_ref: prompts/primary.md   # canonical agent prompt; tag prompt/primary/vN on commit
+    deployment:
+      env: example
+      status: active
+      last_deployed: 0  # unix epoch; set by deploy script
+    eval_thresholds:
+      ttfb_p95_ms: 800
+      end_to_first_audio_p95_ms: 1400
+      total_turn_p95_ms: 3000
+      tool_call_schema_pass_rate: 1.0
+      barge_in_recovery_rate: 0.95
+
+  - id: agent_yyyy_demo
+    name: SecondaryAgent (placeholder)
+    role: outbound-callback
+    voice: voice_yyyy_demo
+    llm: gpt-4o-mini
+    phone: "+15550101"
+    knowledge_base: []
+    tools: []
+    prompt_ref: prompts/secondary.md
+    deployment:
+      env: example
+      status: draft
+      last_deployed: 0
+    eval_thresholds:
+      ttfb_p95_ms: 800
+      end_to_first_audio_p95_ms: 1400
+      total_turn_p95_ms: 3000
+      tool_call_schema_pass_rate: 1.0
+      barge_in_recovery_rate: 0.95

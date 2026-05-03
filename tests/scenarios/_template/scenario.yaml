@@ -1,0 +1,52 @@
+# Scenario template — copy this directory to tests/scenarios/<scenario-id>/
+# and fill in or remove fields. Every key has a default in
+# lib/testing/scenario-defaults.ts; only override what you need.
+
+# Required. Kebab-case, descriptive. Must match the directory name.
+# Examples: barge-in-mid-question, tool-call-crm-503, low-asr-confidence-zip-code
+id: scenario-id
+
+# Required. One-line description of what this scenario exercises.
+description: One-line description of what this scenario exercises.
+
+# Required. Agent under test. Must match an id in agent-registry.yaml.
+# Use a placeholder id like agent_xxxx_demo for fixtures committed to the repo.
+agent: example-agent
+
+# Required. Either a transcript (deterministic, recommended) or audio (recorded).
+fixture:
+  transcript: transcript.json
+  # OR:
+  # audio: audio.wav
+
+# Required. Axes the harness will score. Each name must resolve to a built-in
+# axis or a custom assertion registered in lib/testing/assertions/index.ts.
+axes:
+  - name: barge_in_recovery
+  - name: tool_call_schema
+  - name: ttfb_p95
+
+# Optional. Hard latency thresholds. Override defaults from docs/methodology.md
+# only when the scenario has a stricter or looser SLA than the global default.
+thresholds:
+  ttfb_p95_ms: 800
+  total_turn_p95_ms: 3000
+
+# Required. Per-axis pass criteria with weights. Weights are relative — the
+# harness normalizes them before computing the weighted score.
+success_criteria:
+  - axis: barge_in_recovery
+    expected: true
+    weight: 1.0
+  - axis: tool_call_schema
+    expected: { name: lookup_record, parameters_pass: true }
+    weight: 1.0
+
+# Optional. If true, the scenario passes when weighted score >= 0.7. If false
+# (default), every axis must pass. Use partial_credit for noisy/subjective axes.
+partial_credit: true
+
+# Required when any axis is subjective (tone, empathy, clarity, etc.). The
+# harness rejects scenarios that ask the runner to "feel" something without
+# an explicit judge model declared here.
+judge_llm: claude-haiku-4-5

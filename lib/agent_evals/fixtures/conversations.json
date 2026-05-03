@@ -1,0 +1,25 @@
+[
+  {
+    "id": "synth-001",
+    "agentName": "Aria",
+    "closedAtMs": 24000,
+    "turns": [
+      { "role": "agent", "text": "Hi, this is Aria from ExampleCo. How can I help?", "startedAtMs": 0, "durationMs": 4200 },
+      { "role": "caller", "text": "I want to know my call usage this month.", "startedAtMs": 4500, "durationMs": 3000 },
+      { "role": "agent", "text": "You used 218 minutes across 47 calls.", "startedAtMs": 7800, "durationMs": 4800 },
+      { "role": "caller", "text": "Thanks.", "startedAtMs": 13000, "durationMs": 1200 },
+      { "role": "agent", "text": "Anything else?", "startedAtMs": 14400, "durationMs": 2200 },
+      { "role": "caller", "text": "No, that's all.", "startedAtMs": 16800, "durationMs": 1500 }
+    ]
+  },
+  {
+    "id": "synth-002",
+    "agentName": "Aria",
+    "closedAtMs": 12000,
+    "turns": [
+      { "role": "caller", "text": "Hello? Hello? Are you there?", "startedAtMs": 0, "durationMs": 4500 },
+      { "role": "caller", "text": "I think the line is dead.", "startedAtMs": 5000, "durationMs": 3500 },
+      { "role": "agent", "text": "Sorry, I was muted.", "startedAtMs": 9000, "durationMs": 2500 }
+    ]
+  }
+]

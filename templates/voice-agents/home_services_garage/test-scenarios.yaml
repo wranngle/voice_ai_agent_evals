@@ -1,0 +1,116 @@
+# Test Scenarios Template: Garage Door Service
+# Variables: {{company_name}}, {{region}}, {{slug}}
+
+version: "1.0"
+industry: home_services_garage
+
+scenarios:
+  # HAPPY PATH
+  - id: "{{slug}}-happy-repair"
+    name: "Happy Path - Caller Needs Repair"
+    category: happy_path
+    priority: critical
+    simulated_user_prompt: |
+      You're calling about your garage door that won't open. 
+      You think the spring might be broken. 
+      When offered, agree to receive an SMS for booking.
+      Your name is Mike.
+    expected_tool_calls: [send_sms]
+    evaluation_criteria:
+      - id: collected_name
+        prompt: "Agent collected caller's name before sending SMS"
+      - id: got_permission
+        prompt: "Agent asked for SMS permission"
+      - id: sent_sms
+        prompt: "Agent successfully sent SMS"
+
+  - id: "{{slug}}-new-door"
+    name: "Happy Path - New Door Installation"
+    category: happy_path
+    priority: high
+    simulated_user_prompt: |
+      You want to replace your old garage door with a new one.
+      You're interested in pricing and want to schedule a quote.
+      Your name is Jennifer.
+    expected_tool_calls: [send_sms]
+    evaluation_criteria:
+      - id: provided_pricing
+        prompt: "Agent gave ballpark pricing for new door"
+      - id: sent_sms
+        prompt: "Agent sent booking link"
+
+  # EMERGENCY
+  - id: "{{slug}}-emergency-spring"
+    name: "Emergency - Broken Spring"
+    category: edge_case
+    priority: critical
+    simulated_user_prompt: |
+      It's late evening and your garage door spring just snapped.
+      The door is stuck half-open and you can't secure your garage.
+      You need help urgently. Your name is David.
+    expected_tool_calls: [send_sms]
+    evaluation_criteria:
+      - id: expressed_urgency
+        prompt: "Agent recognized the urgency of the situation"
+      - id: prioritized_scheduling
+        prompt: "Agent prioritized getting the caller scheduled"
+
+  - id: "{{slug}}-car-trapped"
+    name: "Emergency - Car Trapped"
+    category: edge_case  
+    priority: critical
+    simulated_user_prompt: |
+      Your garage door crashed down and now your car is trapped inside.
+      You need to get to work. This is an emergency.
+      Your name is Sarah.
+    expected_tool_calls: [send_sms]
+    evaluation_criteria:
+      - id: urgent_response
+        prompt: "Agent responded with appropriate urgency"
+
+  # EDGE CASES
+  - id: "{{slug}}-price-shopper"
+    name: "Price Shopper - Wants Quote First"
+    category: edge_case
+    priority: medium
+    simulated_user_prompt: |
+      You're calling multiple companies for quotes.
+      Ask about pricing for spring replacement.
+      Be somewhat skeptical and compare to other quotes you've gotten.
+    expected_tool_calls: []
+    evaluation_criteria:
+      - id: gave_estimate
+        prompt: "Agent provided pricing estimates"
+      - id: not_pushy
+        prompt: "Agent wasn't overly pushy about booking"
+
+  - id: "{{slug}}-diy-question"
+    name: "DIY Question - Not Booking"
+    category: edge_case
+    priority: low
+    simulated_user_prompt: |
+      You want to know if you can fix your garage door yourself.
+      Ask technical questions about garage door mechanisms.
+      You're not ready to book a service call.
+    expected_tool_calls: []
+    evaluation_criteria:
+      - id: helpful_info
+        prompt: "Agent provided helpful information"
+      - id: safety_warning
+        prompt: "Agent mentioned safety concerns with DIY spring work"
+
+  # TOOL VALIDATION
+  - id: "{{slug}}-no-premature-confirm"
+    name: "Tool Validation - No Premature Confirmation"
+    category: tool_validation
+    priority: critical
+    simulated_user_prompt: |
+      You want to schedule a repair. Your name is Alex.
+      Pay attention to whether they say they sent the text
+      BEFORE you hear them actually do it.
+    expected_tool_calls: [send_sms]
+    evaluation_criteria:
+      - id: no_premature
+        prompt: "Agent did NOT claim SMS sent before tool executed"
+      - id: proper_sequence
+        prompt: "Agent: asked name → asked permission → called tool → confirmed"

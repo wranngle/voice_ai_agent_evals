@@ -1,0 +1,10 @@
+{
+  "_comment": "Minimal turn-array fixture stub. Replace with deterministic synthetic content. Use synthetic phone numbers (+15550100..+15550199), synthetic agent ids (agent_xxxx_demo), and synthetic names. The harness rejects fixtures matching live agent-registry.yaml ids.",
+  "scenario_id": "scenario-id",
+  "agent_id": "agent_xxxx_demo",
+  "turns": [
+    { "turn": 1, "role": "agent", "text": "<opening line>" },
+    { "turn": 2, "role": "caller", "text": "<caller utterance>" },
+    { "turn": 3, "role": "agent", "text": "<agent response>" }
+  ]
+}

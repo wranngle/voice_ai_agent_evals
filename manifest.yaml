@@ -1,7 +1,6 @@
-# Voice AI Agents - Business Process Manifest
-# Auto-generated: 2025-12-26
+# voice_ai_agent_evals — eval harness manifest
 
-name: voice_ai_agents
+name: voice_ai_agent_evals
 description: >
   Voice-based AI agent workflows combining speech synthesis,
   voice cloning, telephony, and conversational AI capabilities.

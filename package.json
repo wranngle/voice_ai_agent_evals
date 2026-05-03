@@ -1,5 +1,5 @@
 {
-  "name": "voice_ai_agents",
+  "name": "voice_ai_agent_evals",
   "version": "1.0.0",
   "type": "module",
   "xo": {
@@ -95,6 +95,7 @@
     "xo": "1.2.3"
   },
   "dependencies": {
-    "pg": "8.17.2"
+    "pg": "8.17.2",
+    "zod": "^3.23.8"
   }
 }

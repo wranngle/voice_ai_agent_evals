@@ -2,8 +2,11 @@
  * List all n8n workflows and identify potential duplicates
  */
 
-const API_URL = "https://your-n8n-host.example.com/api/v1/workflows?limit=100";
-const API_KEY = process.env.N8N_API_KEY || "REDACTED_N8N_JWT";
+const API_URL = process.env.N8N_API_URL || "https://your-n8n-host.example.com/api/v1/workflows?limit=100";
+const API_KEY = process.env.N8N_API_KEY;
+if (!API_KEY) {
+  throw new Error("N8N_API_KEY env var required");
+}
 
 interface Workflow {
   id: string;

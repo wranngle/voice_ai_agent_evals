@@ -16,7 +16,7 @@ import { describe, test, expect } from "vitest";
 const WEBHOOK_URL =
   process.env.SMS_WEBHOOK_URL ||
   "https://your-n8n-host.example.com/webhook/send-sms-v3";
-const WEBHOOK_SECRET = "test-secret-placeholder";
+const WEBHOOK_SECRET = process.env.SMS_WEBHOOK_SECRET || "test-secret-placeholder";
 
 interface SmsRequest {
   phone_number?: string;

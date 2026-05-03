@@ -21,7 +21,7 @@ const REPO_ROOT = resolve(PROJECT_ROOT, '../..');
 // ============================================
 
 describe('CI/CD Infrastructure', () => {
-  // ROOT CAUSE #1: Workflow was placed in workflows/voice_ai_agents/.github/ instead of repo root .github/
+  // ROOT CAUSE #1: Workflow was placed in workflows/voice_ai_agent_evals/.github/ instead of repo root .github/
   // GitHub only reads workflows from .github/workflows/ at repo root.
   const repoWorkflowDir = join(REPO_ROOT, '.github/workflows');
 
@@ -99,11 +99,11 @@ describe('Git Hooks', () => {
     expect(exists, `pre-push hook not found at ${huskyPath} or ${gitHookPath}`).toBe(true);
   });
 
-  it('pre-push hook must reference voice_ai_agents tests', () => {
+  it('pre-push hook must reference voice_ai_agent_evals tests', () => {
     const hookFile = existsSync(huskyPath) ? huskyPath : gitHookPath;
     if (!existsSync(hookFile)) return;
     const content = readFileSync(hookFile, 'utf-8');
-    expect(content).toContain('voice_ai_agents');
+    expect(content).toContain('voice_ai_agent_evals');
   });
 
   it('pre-push hook must fail on test failure', () => {
