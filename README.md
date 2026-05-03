@@ -7,8 +7,11 @@
 
 > Eval harness for ElevenLabs voice agents — deterministic scenarios, real latency budgets, real Sarah.
 
-<!-- Loom: 90-sec demo of the harness catching a real Sarah failure (P4 from the spec). Placeholder until recorded. -->
-<!-- Replace this comment with: <a href="https://www.loom.com/share/<id>"><img src="https://cdn.loom.com/sessions/thumbnails/<id>-with-play.gif"></a> -->
+## Demo
+
+🎬 _Loom walkthrough coming soon — 90-sec eval-harness run catching a real failure on the live agent._
+
+<!-- Replace with: <a href="https://www.loom.com/share/<id>"><img src="https://cdn.loom.com/sessions/thumbnails/<id>-with-play.gif" alt="Eval harness demo"></a> -->
 
 | Scenarios | Latency target met (p95) | Last run |
 |---|---|---|
