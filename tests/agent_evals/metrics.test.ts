@@ -102,4 +102,47 @@ describe('PrometheusMetricsSink', () => {
     await sink.flush();
     expect(captured).toHaveLength(0);
   });
+
+  test('payload groups samples by metric name even when increments are interleaved', async () => {
+    // Prometheus exposition format requires samples for the same metric to
+    // be contiguous. Map iteration follows insertion order, so an interleaved
+    // call sequence (foo, bar, foo, bar) would otherwise produce a malformed
+    // payload where foo's second sample comes after a different metric's
+    // header + sample.
+    captured = [];
+    nextStatus = 200;
+
+    const sink = createPrometheusMetricsSink({
+      endpoint: 'http://vm/api/v1/import/prometheus',
+      fetchImpl: fakeFetch(),
+    });
+
+    sink.incrementCounter('foo', 1, {x: '1'});
+    sink.incrementCounter('bar', 1, {y: '1'});
+    sink.incrementCounter('foo', 1, {x: '2'});
+    sink.incrementCounter('bar', 1, {y: '2'});
+
+    await sink.flush();
+    const body = captured[0]?.body ?? '';
+    const lines = body.trim().split('\n');
+
+    // Each `# TYPE` line must come exactly once and must precede every
+    // sample of that metric. After the type line, all samples for that
+    // metric must be contiguous before the next `# TYPE` line.
+    const typeIndices = lines
+      .map((line, i) => (line.startsWith('# TYPE ') ? {name: line.split(' ')[2], i} : null))
+      .filter((x): x is {name: string; i: number} => x !== null);
+
+    expect(typeIndices).toHaveLength(2);
+    for (const {name, i} of typeIndices) {
+      // Walk forward until we hit the next # TYPE; everything before that
+      // must start with this metric's name.
+      const nextTypeIdx = lines.slice(i + 1).findIndex(line => line.startsWith('# TYPE '));
+      const groupEnd = nextTypeIdx === -1 ? lines.length : i + 1 + nextTypeIdx;
+      const groupSamples = lines.slice(i + 1, groupEnd);
+      for (const sample of groupSamples) {
+        expect(sample.startsWith(`${name}{`), `sample "${sample}" should belong to metric "${name}"`).toBe(true);
+      }
+    }
+  });
 });

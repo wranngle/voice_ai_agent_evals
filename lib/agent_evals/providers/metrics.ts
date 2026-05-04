@@ -84,9 +84,15 @@ export function createPrometheusMetricsSink(options: PrometheusMetricsSinkOption
 }
 
 function buildPrometheusPayload(points: CounterPoint[]): string {
+  // Prometheus exposition format requires samples for the same metric to be
+  // contiguous, with the optional # TYPE line preceding the group. Map
+  // insertion order can interleave names (e.g. foo, bar, foo), so sort by
+  // name before emission. Stable sort keeps within-name order deterministic.
+  const sorted = [...points].sort((a, b) => a.name.localeCompare(b.name));
+
   const lines: string[] = [];
   const seenNames = new Set<string>();
-  for (const point of points) {
+  for (const point of sorted) {
     if (!seenNames.has(point.name)) {
       lines.push(`# TYPE ${point.name} counter`);
       seenNames.add(point.name);
