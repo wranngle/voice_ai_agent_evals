@@ -9,9 +9,11 @@
  */
 
 import {
-  existsSync, readFileSync, writeFileSync, mkdirSync, rmSync,
+  existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync,
 } from 'node:fs';
-import {join, resolve, dirname} from 'node:path';
+import {
+  join, resolve, dirname, sep,
+} from 'node:path';
 import {
   describe, it, expect, beforeEach, afterEach,
 } from 'vitest';
@@ -51,9 +53,18 @@ describe('CI/CD Infrastructure', () => {
   // GitHub only reads workflows from .github/workflows/ at repo root.
   const repoWorkflowDir = join(REPO_ROOT, '.github/workflows');
 
+  function readVoiceAiWorkflow(): string {
+    const file = readdirSync(repoWorkflowDir).find((f: string) => f.includes('vitest') || f.includes('voice-ai'));
+    if (!file) {
+      throw new Error('No vitest/voice-ai workflow file found in repo root .github/workflows/');
+    }
+
+    return readFileSync(join(repoWorkflowDir, file), 'utf-8');
+  }
+
   it('CI workflow must exist in repo root .github/workflows/ (NOT in child project)', () => {
     const files = existsSync(repoWorkflowDir)
-      ? require('node:fs').readdirSync(repoWorkflowDir).filter((f: string) => f.includes('vitest') || f.includes('voice-ai'))
+      ? readdirSync(repoWorkflowDir).filter((f: string) => f.includes('vitest') || f.includes('voice-ai'))
       : [];
     expect(files.length, 'No voice-ai workflow found in repo root .github/workflows/').toBeGreaterThan(0);
   });
@@ -64,7 +75,7 @@ describe('CI/CD Infrastructure', () => {
       return;
     } // Good - doesn't exist
 
-    const files = require('node:fs').readdirSync(childWorkflowDir);
+    const files = readdirSync(childWorkflowDir);
     const ciFiles = files.filter((f: string) => f.endsWith('.yml') || f.endsWith('.yaml'));
     // Advisory: these files won't be picked up by GitHub
     if (ciFiles.length > 0) {
@@ -73,21 +84,17 @@ describe('CI/CD Infrastructure', () => {
   });
 
   it('CI workflow must have scheduled trigger for hands-free monitoring', () => {
-    const file = require('node:fs').readdirSync(repoWorkflowDir).find((f: string) => f.includes('vitest') || f.includes('voice-ai'));
-    const content = readFileSync(join(repoWorkflowDir, file), 'utf-8');
+    const content = readVoiceAiWorkflow();
     expect(content).toContain('schedule:');
     expect(content).toMatch(/cron:/);
   });
 
   it('CI workflow must have workflow_dispatch for manual trigger', () => {
-    const file = require('node:fs').readdirSync(repoWorkflowDir).find((f: string) => f.includes('vitest') || f.includes('voice-ai'));
-    const content = readFileSync(join(repoWorkflowDir, file), 'utf-8');
-    expect(content).toContain('workflow_dispatch');
+    expect(readVoiceAiWorkflow()).toContain('workflow_dispatch');
   });
 
   it('CI workflow must run vitest with bun', () => {
-    const file = require('node:fs').readdirSync(repoWorkflowDir).find((f: string) => f.includes('vitest') || f.includes('voice-ai'));
-    const content = readFileSync(join(repoWorkflowDir, file), 'utf-8');
+    const content = readVoiceAiWorkflow();
     expect(content).toContain('vitest');
     expect(content).toContain('bun');
   });
@@ -95,21 +102,15 @@ describe('CI/CD Infrastructure', () => {
   // ROOT CAUSE #3: Live endpoint tests ran in CI unit job, failed without network
   // Convention fix: CI uses --project to select offline-only projects
   it('CI unit job must use --project flag (not --exclude) for offline tests', () => {
-    const file = require('node:fs').readdirSync(repoWorkflowDir).find((f: string) => f.includes('vitest') || f.includes('voice-ai'));
-    const content = readFileSync(join(repoWorkflowDir, file), 'utf-8');
-    expect(content, 'CI must use --project for convention-based selection').toContain('--project');
+    expect(readVoiceAiWorkflow(), 'CI must use --project for convention-based selection').toContain('--project');
   });
 
   it('CI must NOT use hardcoded --exclude paths (convention violation)', () => {
-    const file = require('node:fs').readdirSync(repoWorkflowDir).find((f: string) => f.includes('vitest') || f.includes('voice-ai'));
-    const content = readFileSync(join(repoWorkflowDir, file), 'utf-8');
-    expect(content, 'Hardcoded --exclude breaks the anything-machine convention').not.toContain('--exclude');
+    expect(readVoiceAiWorkflow(), 'Hardcoded --exclude breaks the anything-machine convention').not.toContain('--exclude');
   });
 
   it('CI must write test summary to GITHUB_STEP_SUMMARY', () => {
-    const file = require('node:fs').readdirSync(repoWorkflowDir).find((f: string) => f.includes('vitest') || f.includes('voice-ai'));
-    const content = readFileSync(join(repoWorkflowDir, file), 'utf-8');
-    expect(content).toContain('GITHUB_STEP_SUMMARY');
+    expect(readVoiceAiWorkflow()).toContain('GITHUB_STEP_SUMMARY');
   });
 });
 
@@ -165,16 +166,14 @@ describe('Convention: Offline/Live Project Classification', () => {
   });
 
   it('every test directory containing .test.ts files must be covered by a vitest project', () => {
-    const fs = require('node:fs');
-    const path = require('node:path');
     const testDir = join(PROJECT_ROOT, 'tests');
     const NON_TEST_DIRS = new Set(['setup', 'fixtures', '__mocks__', 'data', 'helpers', 'utils', 'runs', 'scenarios']);
 
     function containsTestFile(dir: string): boolean {
-      const entries = fs.readdirSync(dir, {withFileTypes: true});
+      const entries = readdirSync(dir, {withFileTypes: true});
       for (const entry of entries) {
         if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules') {
-          if (containsTestFile(path.join(dir, entry.name))) {
+          if (containsTestFile(join(dir, entry.name))) {
             return true;
           }
         } else if (entry.isFile() && entry.name.endsWith('.test.ts')) {
@@ -185,9 +184,9 @@ describe('Convention: Offline/Live Project Classification', () => {
       return false;
     }
 
-    const subdirs = fs.readdirSync(testDir, {withFileTypes: true})
+    const subdirs = readdirSync(testDir, {withFileTypes: true})
       .filter((d: any) => d.isDirectory() && !NON_TEST_DIRS.has(d.name))
-      .filter((d: any) => containsTestFile(path.join(testDir, d.name)))
+      .filter((d: any) => containsTestFile(join(testDir, d.name)))
       .map((d: any) => d.name);
 
     const configContent = readFileSync(vitestConfigPath, 'utf-8');
@@ -198,10 +197,18 @@ describe('Convention: Offline/Live Project Classification', () => {
     }
   });
 
+  function readCiWorkflow(): string {
+    const dir = join(REPO_ROOT, '.github/workflows');
+    const ciFile = readdirSync(dir).find((f: string) => f.includes('vitest') || f.includes('voice-ai'));
+    if (!ciFile) {
+      throw new Error('No vitest/voice-ai workflow file found in repo root .github/workflows/');
+    }
+
+    return readFileSync(join(dir, ciFile), 'utf-8');
+  }
+
   it('CI workflow must reference every offline project by --project flag', () => {
-    const fs = require('node:fs');
-    const ciFile = fs.readdirSync(join(REPO_ROOT, '.github/workflows')).find((f: string) => f.includes('vitest') || f.includes('voice-ai'));
-    const ciContent = readFileSync(join(REPO_ROOT, '.github/workflows', ciFile), 'utf-8');
+    const ciContent = readCiWorkflow();
     const configContent = readFileSync(vitestConfigPath, 'utf-8');
 
     // Extract offline project names from vitest config
@@ -214,17 +221,11 @@ describe('Convention: Offline/Live Project Classification', () => {
   });
 
   it('CI workflow must have a separate live tests job', () => {
-    const fs = require('node:fs');
-    const ciFile = fs.readdirSync(join(REPO_ROOT, '.github/workflows')).find((f: string) => f.includes('vitest') || f.includes('voice-ai'));
-    const ciContent = readFileSync(join(REPO_ROOT, '.github/workflows', ciFile), 'utf-8');
-    expect(ciContent).toContain('live-tests:');
+    expect(readCiWorkflow()).toContain('live-tests:');
   });
 
   it('CI live job must check for secrets before running', () => {
-    const fs = require('node:fs');
-    const ciFile = fs.readdirSync(join(REPO_ROOT, '.github/workflows')).find((f: string) => f.includes('vitest') || f.includes('voice-ai'));
-    const ciContent = readFileSync(join(REPO_ROOT, '.github/workflows', ciFile), 'utf-8');
-    expect(ciContent).toContain('Verify secrets');
+    expect(readCiWorkflow()).toContain('Verify secrets');
   });
 });
 
@@ -238,18 +239,15 @@ describe('Import Hygiene', () => {
   // Every test file must import from "vitest", never from "bun:test".
 
   it('no test file must import from bun:test', () => {
-    const glob = require('node:fs');
-    const path = require('node:path');
-
     function findTestFiles(dir: string): string[] {
       const results: string[] = [];
       if (!existsSync(dir)) {
         return results;
       }
 
-      const entries = glob.readdirSync(dir, {withFileTypes: true});
+      const entries = readdirSync(dir, {withFileTypes: true});
       for (const entry of entries) {
-        const fullPath = path.join(dir, entry.name);
+        const fullPath = join(dir, entry.name);
         if (entry.isDirectory() && !entry.name.includes('node_modules')) {
           results.push(...findTestFiles(fullPath));
         } else if (entry.name.endsWith('.test.ts')) {
@@ -267,7 +265,7 @@ describe('Import Hygiene', () => {
     for (const file of allTestFiles) {
       const content = readFileSync(file, 'utf-8');
       if (/^\s*import\s+.*from\s+['"]bun:test['"]/m.test(content)) {
-        violations.push(file.replace(PROJECT_ROOT + path.sep, ''));
+        violations.push(file.replace(PROJECT_ROOT + sep, ''));
       }
     }
 
@@ -275,18 +273,15 @@ describe('Import Hygiene', () => {
   });
 
   it('test files using describe/it/expect must import them from vitest', () => {
-    const glob = require('node:fs');
-    const path = require('node:path');
-
     function findTestFiles(dir: string): string[] {
       const results: string[] = [];
       if (!existsSync(dir)) {
         return results;
       }
 
-      const entries = glob.readdirSync(dir, {withFileTypes: true});
+      const entries = readdirSync(dir, {withFileTypes: true});
       for (const entry of entries) {
-        const fullPath = path.join(dir, entry.name);
+        const fullPath = join(dir, entry.name);
         if (entry.isDirectory() && !entry.name.includes('node_modules')) {
           results.push(...findTestFiles(fullPath));
         } else if (entry.name.endsWith('.test.ts')) {
