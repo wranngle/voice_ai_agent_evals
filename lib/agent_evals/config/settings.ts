@@ -3,7 +3,6 @@ import {type} from 'arktype';
 const SettingsSchema = type({
   maxTurnDurationMs: 'number.integer > 0',
   minAgentTurnRatio: '0 <= number <= 1',
-  fixturesDirectory: 'string > 0',
   'logFile?': 'string',
   // Endpoint that accepts Prometheus exposition format (NOT OTLP — see
   // lib/agent_evals/providers/metrics.ts for the wire-format rationale).
@@ -15,7 +14,6 @@ export type Settings = typeof SettingsSchema.infer;
 const DEFAULT_SETTINGS: Settings = {
   maxTurnDurationMs: 30_000,
   minAgentTurnRatio: 0.3,
-  fixturesDirectory: 'fixtures',
 };
 
 export function loadSettings(env: NodeJS.ProcessEnv = process.env): Settings {
@@ -26,8 +24,6 @@ export function loadSettings(env: NodeJS.ProcessEnv = process.env): Settings {
     minAgentTurnRatio: env.AGENT_EVALS_MIN_AGENT_TURN_RATIO
       ? Number(env.AGENT_EVALS_MIN_AGENT_TURN_RATIO)
       : DEFAULT_SETTINGS.minAgentTurnRatio,
-    fixturesDirectory:
-      env.AGENT_EVALS_FIXTURES_DIRECTORY ?? DEFAULT_SETTINGS.fixturesDirectory,
   };
   if (env.AGENT_EVALS_LOG_FILE !== undefined) {
     candidate.logFile = env.AGENT_EVALS_LOG_FILE;

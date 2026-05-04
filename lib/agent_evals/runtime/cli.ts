@@ -19,7 +19,7 @@ async function main(): Promise<void> {
   }
 
   const settings = loadSettings();
-  const repository = createFileConversationRepository(settings, fixturePath);
+  const repository = createFileConversationRepository(fixturePath);
   const sink = settings.logFile ? createFileSink(settings.logFile) : StderrSink;
   const logger = createJsonLogger(sink);
   const metrics = settings.metricsEndpoint
