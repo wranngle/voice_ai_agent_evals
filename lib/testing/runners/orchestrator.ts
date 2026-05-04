@@ -13,7 +13,7 @@ import {
   createTestResult,
   listTestCases,
 } from '../local-storage';
-import type {TestRunner, RunOptions} from './types';
+import type {TestRunner, RunOptions, TestExecutionResult} from './types';
 import {WebhookRunner} from './webhook-runner';
 import {ElevenLabsRunner} from './elevenlabs-runner';
 import {N8nEvalRunner} from './n8n-eval-runner';
@@ -318,8 +318,30 @@ export class TestOrchestrator {
       return result.data;
     }
 
-    // Execute test
-    const executionResult = await runner.execute(testCase, options);
+    // Execute test. Runners SHOULD return {status: 'error', ...} for
+    // handled failures (network errors, API errors, etc.) but a bug or
+    // unexpected throw would otherwise kill the whole orchestrator.run()
+    // call — every other test in the batch loses its result. Catch and
+    // convert into the same 'error' shape so the orchestrator stays
+    // resilient and the failing test surfaces in the run summary.
+    let executionResult: TestExecutionResult;
+    try {
+      executionResult = await runner.execute(testCase, options);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      const errorResult = await createTestResult({
+        test_id: testCase.test_id,
+        execution_id: executionId,
+        requirement_id: testCase.requirement_id,
+        status: 'error',
+        actual_output: {error: message},
+        latency_ms: 0,
+        error_message: `Runner threw: ${message}`,
+        assertions_passed: 0,
+        assertions_failed: 0,
+      });
+      return errorResult.data;
+    }
 
     // Record result
     const result = await createTestResult({

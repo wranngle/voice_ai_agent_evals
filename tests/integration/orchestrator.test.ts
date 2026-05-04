@@ -394,6 +394,63 @@ describe('Test Orchestrator', () => {
     });
   });
 
+  describe('Runner Throw Resilience', () => {
+    test('a thrown error from runner.execute() does not abort the run', async () => {
+      createTestCaseSync({
+        type: 'webhook',
+        name: 'Throwing test',
+        description: 'Runner throws on this one',
+        input: {url: 'https://example.com/webhook', method: 'POST', body: {}},
+        expected_output: {},
+        tags: ['throw-test'],
+        enabled: true,
+      });
+
+      createTestCaseSync({
+        type: 'webhook',
+        name: 'Passing test',
+        description: 'Runs after the throw',
+        input: {url: 'https://example.com/webhook', method: 'POST', body: {}},
+        expected_output: {},
+        tags: ['throw-test'],
+        enabled: true,
+      });
+
+      const orchestrator = new TestOrchestrator();
+      let callCount = 0;
+      const mockRunner: TestRunner = {
+        type: 'webhook',
+        execute: vi.fn().mockImplementation(() => {
+          callCount++;
+          if (callCount === 1) {
+            throw new Error('runner-internal failure');
+          }
+
+          return {
+            status: 'passed',
+            actual_output: {},
+            latency_ms: 50,
+            assertions_passed: 1,
+            assertions_failed: 0,
+          };
+        }),
+        validate: () => ({valid: true, errors: []}),
+      };
+      orchestrator.registerRunner(mockRunner);
+
+      const summary = await orchestrator.run({tag: 'throw-test'});
+
+      // Both tests ran — the throw didn't abort the orchestrator.
+      expect(callCount).toBe(2);
+      expect(summary.total_tests).toBe(2);
+      expect(summary.errors).toBe(1);
+      expect(summary.passed).toBe(1);
+      // The thrown error appears in failures with the diagnostic message.
+      expect(summary.failures.length).toBe(1);
+      expect(summary.failures[0].error_message).toContain('runner-internal failure');
+    });
+  });
+
   describe('Statistics', () => {
     test('should calculate pass rate correctly', async () => {
       for (let i = 0; i < 4; i++) {
