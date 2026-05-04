@@ -58,7 +58,7 @@ To wire to your live agent, copy `agent-registry.example.yaml` → `agent-regist
 - **`lib/testing/`** — runner library: `runners/` (elevenlabs, n8n-eval, mcp, webhook), `ingestion/`, CLI
 - **`lib/extraction/`** — structured extraction from transcripts and post-call payloads
 - **`lib/agent_evals/`** — agent-eval runtime + fixtures
-- **`scripts/`** — runner entry points (`test-elevenlabs-runner`, `test-mcp-runner`, `test-n8n-eval-runner`) and harness utilities (`health-check`, `monitor-executions`, `list-workflows`, `setup-automation`, `ingest-and-run`)
+- **`scripts/`** — runner entry points (`test-elevenlabs-runner`, `test-mcp-runner`, `test-n8n-eval-runner`) and harness utilities (`health-check`, `monitor-executions`, `list-workflows`, `ingest-and-run`)
 - **`templates/`** — reusable agent and tool config templates (`elevenlabs-agents/`, `voice-agents/`, `email/`, `sms-booking-tool-template.json`)
 - **`tests/scenarios/`** — runnable scenario fixtures (transcript + scenario.yaml). `_template/` is the canonical schema; copy and edit.
 - **`tests/runs/`** — committed eval-run outputs (proof of reproducibility)

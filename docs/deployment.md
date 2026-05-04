@@ -12,7 +12,7 @@ The harness assumes the agent runtime is fully hosted on ElevenLabs (any plan wi
 bun install
 cp agent-registry.example.yaml agent-registry.yaml
 # fill in real agent_id, voice_id, KB ids, tool URLs
-bun run scripts/setup-automation.ts       # optional idempotent provisioning
+lefthook install                          # wire git hooks (pre-commit gitleaks + pre-push)
 ```
 
 Secrets that must be set in `.env` (or your secrets store):
