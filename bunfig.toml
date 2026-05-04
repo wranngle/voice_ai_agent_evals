@@ -5,9 +5,7 @@
 # block is needed.
 
 [install]
-# Use exact versions for reproducibility
+# Use exact versions for reproducibility — pairs with the bun.lock /
+# package.json `"devDependencies": {...}` exact-pinning across the repo
+# (see git log for the dep audits).
 exact = true
-
-[install.lockfile]
-# Save lockfile in binary format (faster)
-save = true
