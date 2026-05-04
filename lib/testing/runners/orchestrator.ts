@@ -5,7 +5,7 @@
  */
 
 import type {
-  TestCase, TestResult, TestRun, TestType, TestRunSummary,
+  TestCase, TestResult, TestType, TestRunSummary,
 } from '../types';
 import {
   createTestRun,
@@ -13,7 +13,7 @@ import {
   createTestResult,
   listTestCases,
 } from '../local-storage';
-import type {TestRunner, RunOptions, TestExecutionResult} from './types';
+import type {TestRunner, RunOptions} from './types';
 import {WebhookRunner} from './webhook-runner';
 import {ElevenLabsRunner} from './elevenlabs-runner';
 import {N8nEvalRunner} from './n8n-eval-runner';

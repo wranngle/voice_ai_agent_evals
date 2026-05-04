@@ -9,10 +9,9 @@
  */
 
 import {
-  existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, chmodSync, statSync,
+  existsSync, readFileSync, writeFileSync, mkdirSync, rmSync,
 } from 'fs';
 import {join, resolve, dirname} from 'path';
-import {execSync} from 'child_process';
 import {
   describe, it, expect, beforeEach, afterEach,
 } from 'vitest';
@@ -298,22 +297,11 @@ describe('Import Hygiene', () => {
       return results;
     }
 
+    // Advisory walk — vitest's `globals: true` makes globalless usage work,
+    // so this only checks the directory layout. Per-file lint of explicit
+    // vitest imports is intentionally not enforced.
     const testDir = join(PROJECT_ROOT, 'tests');
-    const allTestFiles = findTestFiles(testDir);
-
-    const violations: string[] = [];
-    for (const file of allTestFiles) {
-      const content = readFileSync(file, 'utf-8');
-      const usesTestGlobals = /\b(describe|it|test|expect|beforeAll|afterAll|beforeEach|afterEach)\b/.test(content);
-      const importsVitest = content.includes('from "vitest"') || content.includes('from \'vitest\'');
-      const hasVitestGlobals = content.includes('// @vitest-environment') || content.includes('globals: true');
-
-      if (usesTestGlobals && !importsVitest) {
-        // Only flag if the file uses test APIs but doesn't import them from vitest
-        // (globals:true in vitest.config.ts allows this, but explicit imports are safer for CI)
-        // This is advisory - globals:true makes it work, but explicit is better
-      }
-    }
+    findTestFiles(testDir);
   });
 });
 
@@ -774,13 +762,13 @@ describe('Mutation Detection', () => {
     try {
       const {createTestCaseSync, deleteTestCaseSync, listTestCasesSync} = await import('../../lib/testing/local-storage');
 
-      const tc1 = createTestCaseSync({
+      createTestCaseSync({
         type: 'webhook', name: 'Keep', description: 'd', input: {}, expected_output: {}, tags: [], enabled: true,
       });
       const tc2 = createTestCaseSync({
         type: 'webhook', name: 'Delete', description: 'd', input: {}, expected_output: {}, tags: [], enabled: true,
       });
-      const tc3 = createTestCaseSync({
+      createTestCaseSync({
         type: 'webhook', name: 'Keep too', description: 'd', input: {}, expected_output: {}, tags: [], enabled: true,
       });
 

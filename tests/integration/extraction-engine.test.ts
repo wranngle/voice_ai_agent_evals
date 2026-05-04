@@ -4,7 +4,7 @@ import {defaultCategories} from '../../lib/extraction/categories.js';
 import {buildPrompt} from '../../lib/extraction/prompt-builder.js';
 import {repairValue, validateValue} from '../../lib/extraction/validation.js';
 import type {
-  ExtractionField, ExtractionCategory, ExtractionConfig, ExtractionOutput, FieldEnvelope,
+  ExtractionField, ExtractionCategory, ExtractionOutput, FieldEnvelope,
 } from '../../lib/extraction/types.js';
 
 // ─── Task 6.3: Strictness inference ───

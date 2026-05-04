@@ -8,7 +8,7 @@
  */
 
 import {
-  describe, it, expect, test, beforeAll, afterAll,
+  describe, expect, test, beforeAll, afterAll,
 } from 'vitest';
 import {
   generateId,
@@ -33,10 +33,6 @@ import {
   linkTestToRequirement,
   getRequirementCoverage,
   clearAllDataSync,
-  type TestRequirement,
-  type TestCase,
-  type TestResult,
-  type TestRun,
 } from '../../lib/testing';
 
 describe('Local Storage — Async API', () => {

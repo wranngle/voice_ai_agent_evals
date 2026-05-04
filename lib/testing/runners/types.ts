@@ -5,7 +5,7 @@
  */
 
 import type {
-  TestCase, TestResult, TestStatus, TestType,
+  TestCase, TestStatus, TestType,
 } from '../types';
 
 /**

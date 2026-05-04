@@ -7,7 +7,7 @@
 import {mkdirSync, rmSync} from 'node:fs';
 import {join} from 'node:path';
 import {
-  describe, it, expect, test, beforeEach, afterEach,
+  describe, expect, test, beforeEach, afterEach,
 } from 'vitest';
 import {
   createTestCaseSync,

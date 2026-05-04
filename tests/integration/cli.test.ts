@@ -8,7 +8,7 @@ import {spawn} from 'node:child_process';
 import {join} from 'node:path';
 import {mkdirSync, rmSync} from 'node:fs';
 import {
-  describe, it, expect, test, beforeEach, afterEach, vi,
+  describe, expect, test, beforeEach, afterEach,
 } from 'vitest';
 import {clearAllDataSync, createTestCase} from '../../lib/testing';
 

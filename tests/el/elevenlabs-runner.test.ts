@@ -5,7 +5,7 @@
  */
 
 import {
-  describe, it, expect, test, beforeEach, vi, afterEach,
+  describe, expect, test, beforeEach, vi, afterEach,
 } from 'vitest';
 import {ElevenLabsRunner} from '../../lib/testing/runners/elevenlabs-runner';
 import type {TestCase} from '../../lib/testing/types';

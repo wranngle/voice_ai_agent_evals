@@ -23,7 +23,6 @@ import type {TestType, TestCase, TestRunSummary} from './types';
 import {
   orchestrator,
   listTestCases,
-  getTestCase,
   clearAllDataSync,
   listTestRuns,
   getResultsByRun,
@@ -180,8 +179,6 @@ ${C.cyan}Environment Variables:${C.reset}
 }
 
 async function runTests(options: CliOptions): Promise<number> {
-  const startTime = Date.now();
-
   if (options.verbose) {
     console.log(`${C.cyan}Starting test run...${C.reset}\n`);
   }

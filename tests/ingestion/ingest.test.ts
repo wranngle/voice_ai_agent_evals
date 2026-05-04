@@ -7,9 +7,9 @@
 import {mkdirSync, writeFileSync, rmSync} from 'node:fs';
 import {join} from 'node:path';
 import {
-  describe, it, expect, test, beforeEach, afterEach, vi,
+  describe, expect, test, beforeEach, afterEach,
 } from 'vitest';
-import {ingestTests, type IngestResult} from '../../lib/testing/ingestion/ingest';
+import {ingestTests} from '../../lib/testing/ingestion/ingest';
 import {clearAllDataSync, listTestCasesSync} from '../../lib/testing/local-storage';
 
 const TEST_DIR = join(process.cwd(), '.test-ingestion-temp-' + Date.now());

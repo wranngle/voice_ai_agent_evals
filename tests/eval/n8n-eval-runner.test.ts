@@ -5,7 +5,7 @@
  */
 
 import {
-  describe, it, expect, test, beforeEach, vi, afterEach,
+  describe, expect, test, beforeEach, vi, afterEach,
 } from 'vitest';
 import {N8nEvalRunner} from '../../lib/testing/runners/n8n-eval-runner';
 import type {TestCase} from '../../lib/testing/types';

@@ -6,7 +6,7 @@
  */
 
 import {
-  describe, it, expect, test,
+  describe, expect, test,
 } from 'vitest';
 
 const WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || 'https://your-n8n-host.example.com/webhook/client-initiation-data';

@@ -7,7 +7,7 @@
 import {mkdirSync, rmSync} from 'node:fs';
 import {join} from 'node:path';
 import {
-  describe, it, expect, test, beforeEach, afterEach, vi,
+  describe, expect, test, beforeEach, afterEach, vi,
 } from 'vitest';
 import {TestOrchestrator, runTests} from '../../lib/testing/runners/orchestrator';
 import {
@@ -16,8 +16,8 @@ import {
   listTestRunsSync,
   listTestResultsSync,
 } from '../../lib/testing/local-storage';
-import type {TestRunner, TestExecutionResult} from '../../lib/testing/runners/types';
-import type {TestCase, TestType} from '../../lib/testing/types';
+import type {TestRunner} from '../../lib/testing/runners/types';
+import type {TestType} from '../../lib/testing/types';
 
 // Use unique storage directory for this test file
 const UNIQUE_STORAGE_DIR = join(process.cwd(), '.test-data-orchestrator-' + Date.now());
@@ -145,7 +145,7 @@ describe('Test Orchestrator', () => {
       };
       orchestrator.registerRunner(mockRunner);
 
-      const summary = await orchestrator.run({triggeredBy: 'ci'});
+      await orchestrator.run({triggeredBy: 'ci'});
 
       // Verify test run was created
       const runs = listTestRunsSync();
