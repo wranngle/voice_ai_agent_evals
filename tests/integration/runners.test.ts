@@ -179,6 +179,33 @@ describe('Test Runners', () => {
       expect(result.actual_output.status).toBe(200);
     });
 
+    test('should NOT attach body to implicit GET (regression: method undefined + body present)', async () => {
+      // When config.method is undefined the runner resolves it to 'GET'.
+      // Previously the body-attach check looked at config.method (still
+      // undefined), saw `undefined !== 'GET'`, and attached a body to
+      // what became a GET request — invalid for many HTTP servers.
+      const response = new Response('{"ok":true}', {status: 200, headers: {'Content-Type': 'application/json'}});
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(response);
+      const testCase: TestCase = {
+        test_id: 'TC-TEST-005-regression',
+        type: 'webhook',
+        name: 'Implicit GET with body present',
+        description: 'method undefined, body present',
+        input: {url: 'https://example.com/get', body: {oops: 'should not be sent'}},
+        expected_output: {status: 200},
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      await runner.execute(testCase, {timeout: 10_000});
+
+      const [, init] = fetchSpy.mock.calls[0];
+      expect(init?.method).toBe('GET');
+      expect(init?.body).toBeUndefined();
+    });
+
     test('should fail when status does not match', async () => {
       mockFetch(200, {ok: true});
       const testCase: TestCase = {

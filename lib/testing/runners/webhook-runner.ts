@@ -28,9 +28,14 @@ export class WebhookRunner implements TestRunner {
     const assertions: AssertionResult[] = [];
 
     try {
-      // Build request
+      // Build request. Resolve method ONCE — the body-attach check below
+      // must consult the resolved value, not config.method (which is
+      // optional). Previously `config.method !== 'GET'` was true when
+      // config.method was undefined, attaching a body to what becomes a
+      // GET request — invalid for many HTTP servers.
+      const method = config.method ?? 'GET';
       const requestInit: RequestInit = {
-        method: config.method || 'GET',
+        method,
         headers: {
           'Content-Type': 'application/json',
           ...config.headers,
@@ -39,7 +44,7 @@ export class WebhookRunner implements TestRunner {
         signal: AbortSignal.timeout(timeout),
       };
 
-      if (config.body && config.method !== 'GET') {
+      if (config.body !== undefined && method !== 'GET') {
         requestInit.body = JSON.stringify(config.body);
       }
 
