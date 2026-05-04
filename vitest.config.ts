@@ -126,10 +126,7 @@ export default defineConfig({
     reporters: [
       'verbose',
       ['html', {outputFile: './reports/html/index.html'}],
-      ['allure-vitest/reporter', {resultsDir: './allure-results'}],
     ],
-
-    setupFiles: ['allure-vitest/setup'],
 
     coverage: {
       provider: 'v8',

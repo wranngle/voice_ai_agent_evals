@@ -19,8 +19,6 @@
     "testing:validate": "bun run lib/testing/cli.ts validate",
     "testing:report": "bun run lib/testing/cli.ts report",
     "testing:ingest": "bun run lib/testing/cli.ts ingest",
-    "test:report": "npx allure serve allure-results",
-    "test:report:generate": "npx allure generate allure-results -o reports/allure --clean",
     "testing:live": "bun run scripts/test-elevenlabs-runner.ts && bun run scripts/test-n8n-eval-runner.ts && bun run scripts/test-mcp-runner.ts",
     "testing:live:el": "bun run scripts/test-elevenlabs-runner.ts",
     "testing:live:n8n": "bun run scripts/test-n8n-eval-runner.ts",
@@ -32,8 +30,6 @@
   "devDependencies": {
     "@vitest/coverage-v8": "4.1.5",
     "@vitest/ui": "4.1.5",
-    "allure-js-commons": "3.7.1",
-    "allure-vitest": "3.7.1",
     "arktype": "2.2.0",
     "bun-types": "1.3.13",
     "typescript": "5.9.3",

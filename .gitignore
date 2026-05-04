@@ -123,6 +123,5 @@ exported_conversations/
 .archived-workflows/
 .test-data/
 .test-data-*/
-allure-results/
 reports/
 coverage/
