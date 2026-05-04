@@ -38,12 +38,8 @@ module.exports = [
       //    that complain about "unsupported features" mis-trigger.
       'n/prefer-global/process': 'off',
       'n/prefer-global/buffer': 'off',
-      'n/file-extension-in-import': 'off',
-      // -- Imports: bundler resolution + bun handles extensionless imports;
-      //    rule renamed from `import/extensions` to `import-x/extensions`.
-      'import/extensions': 'off',
+      // -- Imports: bundler resolution + bun handles extensionless imports.
       'import-x/extensions': 'off',
-      'import-x/no-unassigned-import': 'off',
       // -- Style preferences (prettier-style nits xo --fix could not resolve).
       '@stylistic/max-statements-per-line': 'off',
       '@stylistic/no-mixed-operators': 'off',
