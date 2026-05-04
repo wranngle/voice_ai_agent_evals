@@ -28,7 +28,7 @@ Without this, you can't roll back. With it, rollback is a one-line `git checkout
 
 ### 2. Run the regression set against the new model
 
-In the ElevenLabs dashboard, select the new model on a **non-production agent** (clone your prod agent to a `<name>-staging` agent if you don't have one). Update `agent-registry.yaml` (or the `ELEVENLABS_AGENT_ID` env var) to point the harness at the staging agent.
+In the ElevenLabs dashboard, select the new model on a **non-production agent** (clone your prod agent to a `<name>-staging` agent if you don't have one). Set `ELEVENLABS_AGENT_ID` to the staging agent and re-run. (Update `agent-registry.yaml` in parallel if your deploy tooling reads it; the harness itself only consults the env var.)
 
 ```bash
 bun run testing:live:el                                            # full regression set against new model

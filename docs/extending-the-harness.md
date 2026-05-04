@@ -18,7 +18,7 @@ Use `tests/scenarios/_template/` as the starting point. Pick a scenario id that'
 ```yaml
 id: <scenario-id>
 description: One-line description of what this scenario exercises.
-agent: <your-agent-key>           # matches an entry in agent-registry.yaml
+agent: <your-agent-key>           # operator-convention key; resolved by your own tooling
 fixture:
   transcript: transcript.json
   # OR audio: audio.wav
@@ -70,7 +70,7 @@ CI runs the offline suite on every push.
 ## Anti-patterns that will get caught in review
 
 - **Non-deterministic fixtures.** Scenarios that call wall-clock `Date.now()` or rely on the live agent for fixture generation. Every fixture must be reproducible bit-for-bit.
-- **Real customer data in fixtures.** Use synthetic phone numbers (`+15550100`–`+15550199`), synthetic names, synthetic agent IDs (`agent_xxxx_demo`). The harness will refuse a fixture matching the live `agent-registry.yaml` IDs.
+- **Real customer data in fixtures.** Use synthetic phone numbers (`+15550100`–`+15550199`), synthetic names, synthetic agent IDs (`agent_xxxx_demo`). The harness does not enforce this — review-level discipline only.
 - **Subjective axis without a judge.** Any `tone`, `empathy`, `clarity`-style axis must declare `judge_llm` in the scenario YAML.
 - **Missing thresholds.** A scenario without thresholds for at least one latency axis fails to register. The platform is voice; latency is not optional.
 

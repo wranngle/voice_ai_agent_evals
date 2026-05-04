@@ -1,11 +1,20 @@
 # agent-registry.example.yaml
 #
-# Placeholder registry — every value is illustrative. The real registry
-# (agent-registry.yaml) is gitignored and lives only on operator machines
-# and CI secret stores.
+# OPERATOR CONVENTION — this file is documentation, not a harness-loaded
+# config. No code in lib/, scripts/, or tests/ parses agent-registry.yaml.
 #
-# Structurally complete: every field a real registry has. Tool schemas
-# use generic shapes only — do NOT paste production tool schemas here.
+# What the harness actually reads:
+#   - ELEVENLABS_AGENT_ID  env var (default agent for the runner scripts)
+#   - ELEVENLABS_API_KEY   env var
+#   - N8N_API_URL, N8N_API_KEY env vars (for n8n-eval / mcp runners)
+#
+# What this file is for:
+#   A place to keep your live agent IDs / voice IDs / tool URL bindings in
+#   source control alongside your prompts, so reviewers can see the agent's
+#   shape at a glance and so per-prompt-tag rollbacks have a structured
+#   record of what the agent looked like at that revision. Your own deploy
+#   pipeline reads this file (or its real sibling agent-registry.yaml,
+#   which is gitignored); the harness does not.
 
 agents:
   - id: agent_xxxx_demo
@@ -15,7 +24,7 @@ agents:
     llm: gpt-4o-mini
     phone: "+15550100"
     knowledge_base:
-      - kb_xxxx_demo_locations
+      - kb_xxxx_demo
     tools:
       - name: lookup_record
         description: "Look up an account record by id."
@@ -42,17 +51,9 @@ agents:
               type: string
           required: [phone_number, message]
         response_timeout_secs: 8
-    prompt_ref: prompts/primary.md   # your prompt source file; tag prompt/<name>/vN on commit
-    deployment:
-      env: example
-      status: active
-      last_deployed: 0  # unix epoch; set by deploy script
-    eval_thresholds:
-      ttfb_p95_ms: 800
-      end_to_first_audio_p95_ms: 1400
-      total_turn_p95_ms: 3000
-      tool_call_schema_pass_rate: 1.0
-      barge_in_recovery_rate: 0.95
+    # Convention: keep your prompt source file alongside the registry and
+    # tag every change `prompt/<name>/v<N>` so rollbacks are addressable.
+    prompt_ref: prompts/primary.md
 
   - id: agent_yyyy_demo
     name: SecondaryAgent (placeholder)
@@ -63,13 +64,3 @@ agents:
     knowledge_base: []
     tools: []
     prompt_ref: prompts/secondary.md
-    deployment:
-      env: example
-      status: draft
-      last_deployed: 0
-    eval_thresholds:
-      ttfb_p95_ms: 800
-      end_to_first_audio_p95_ms: 1400
-      total_turn_p95_ms: 3000
-      tool_call_schema_pass_rate: 1.0
-      barge_in_recovery_rate: 0.95
