@@ -93,21 +93,26 @@ Variables prefixed `secret__` are hidden from the LLM but still passed to server
 
 ## Performance targets
 
-| Metric | Target | Critical |
-|--------|--------|----------|
-| Client-init response | <200 ms | <500 ms (hard limit) |
-| Tool webhook latency | <800 ms | <2 s |
-| Post-call webhook | <2 s | <5 s |
+These are the design intents the harness was built around. Today the runner captures one round-trip latency per test (`latency_ms` per result, `avg_latency_ms` and slowest-test in the run summary); per-segment thresholds below are documented intent — **not yet enforced as hard gates** (see `docs/methodology.md` "What's not implemented yet").
+
+| Metric | Target | Critical | Enforced today? |
+|---|---|---|---|
+| Client-init response | <200 ms | <500 ms (ElevenLabs hard limit) | ❌ |
+| Tool webhook latency | <800 ms | <2 s | ❌ |
+| Post-call webhook | <2 s | <5 s | ❌ |
+
+The 500 ms ElevenLabs hard limit on client-init is enforced by ElevenLabs itself, not by this harness — your receiver will time out on ElevenLabs's side. The other rows are operator targets you'd assert on once the scoring engine lands.
 
 ## Wiring your own deployment
 
-1. Set environment variables (or copy `agent-registry.example.yaml` → `agent-registry.yaml`):
+1. Set environment variables (env vars are what the harness actually reads — see `.env.example` for the full list with `[HARNESS-READS]` markers):
    - `ELEVENLABS_API_KEY`, `ELEVENLABS_AGENT_ID`
    - `N8N_API_URL`, `N8N_API_KEY` (only if testing n8n workflows)
    - `N8N_POST_CALL_WORKFLOW_ID`, `N8N_POST_CALL_WEBHOOK_PATH`
-2. Run offline tests: `bun run test:offline`
-3. Run live tests: `bun run testing:live:el` (or `:n8n`, `:mcp`)
-4. Add scenarios under `tests/scenarios/<your-id>/` using `tests/scenarios/_template/` as the starting shape
+2. Optionally copy `agent-registry.example.yaml` → `agent-registry.yaml` if your own deploy tooling reads it (the harness itself does not — see the file header for the convention).
+3. Run offline tests: `bun run test:offline`
+4. Run live tests: `bun run testing:live:el` (or `:n8n`, `:mcp`)
+5. Add scenarios under `tests/scenarios/<your-id>/` using `tests/scenarios/_template/` as the starting shape
 
 ## Related documentation
 
