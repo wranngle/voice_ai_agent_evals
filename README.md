@@ -4,11 +4,29 @@
 [![voice-agents](https://img.shields.io/badge/voice--agents-cf3c69?style=flat-square)](#)
 [![eval-harness](https://img.shields.io/badge/eval--harness-12111a?style=flat-square)](#)
 
-> Bulk eval harness for ElevenLabs voice agents — deterministic scenarios, explicit latency budgets, regression-grade.
+> Bulk eval harness for ElevenLabs voice agents — deterministic scenarios, total-turn latency capture, prompt versioning via git tags.
 
 ## What this is
 
-Test runner and scenario framework for evaluating ElevenLabs Conversational AI voice agents in bulk. Deterministic via seeded synthetic transcripts; explicit latency budgets (TTFB, end-to-first-audio, total-turn p95s); prompt versioning via git tags. Bring-your-own agent — point the harness at any agent ID, drop in a scenario YAML, get pass/fail with assertion-level detail. See [`docs/methodology.md`](docs/methodology.md) for the scoring rubric and voice-specific axes (barge-in, prosody, ASR confidence, timeout).
+Test runner and scenario framework for evaluating ElevenLabs Conversational AI voice agents in bulk. Deterministic via seeded synthetic transcripts; total-turn latency captured per test (`latency_ms` per result, `avg_latency_ms` and slowest-test in the run summary); prompt versioning via git tags. Bring-your-own agent — point the harness at any agent ID, drop in a scenario YAML, get pass/fail with assertion-level detail.
+
+### What's implemented today
+
+- **Total-turn latency** captured per test as `latency_ms`; `avg_latency_ms` and slowest-test surfaced in the run summary.
+- **Webhook + n8n + ElevenLabs + MCP runners**, each with its own assertion shape (`response_contains`, `output_contains`, `execution_status`, etc.).
+- **Scenario YAMLs** with declared thresholds (`ttfb_p95_ms`, `end_to_first_audio_p95_ms`, `total_turn_p95_ms`, `barge_in_yield_ms`) — see `tests/scenarios/`.
+- **Vitest project layout** that segregates offline (no secrets) from live (needs API keys) tests.
+
+### What's *not* implemented yet (known gaps)
+
+The following are documented intent and YAML conventions, **not yet enforced by the runner**:
+
+- **TTFB / end-to-first-audio split.** The runner measures one round-trip number per test, not separate TTFB / first-audio / total-turn. Per-segment budgets in `tests/scenarios/*/scenario.yaml` are aspirational.
+- **p95 / p99 aggregation across runs.** Per-test latency is captured, but no rolling-window p95 enforcement.
+- **Voice-specific scoring axes** (barge-in recovery, ASR confidence, TTS prosody, timeout handling) — declared in scenario YAMLs, but no scoring engine yet reads them.
+- **LLM-judge axes** (tone, empathy) — same: declared, not wired.
+
+These are the next slices of work, not a finished feature.
 
 ## Run it
 
@@ -43,7 +61,7 @@ To wire to your live agent, copy `agent-registry.example.yaml` → `agent-regist
 
 ## Documentation
 
-- [`docs/methodology.md`](docs/methodology.md) — eval philosophy: determinism, latency budgets, prompt versioning, scoring rubric, voice-specific axes
+- [`docs/methodology.md`](docs/methodology.md) — eval philosophy: determinism, prompt versioning, scoring rubric, voice-specific axes (most are aspirational — see "known gaps" above)
 - [`docs/tool-calling.md`](docs/tool-calling.md) — server-side vs. client-side tools, `agent.prompt.tools` schema, KB-vs-tool boundary
 - [`docs/webhook-security.md`](docs/webhook-security.md) — `ElevenLabs-Signature` header verification (HMAC-SHA256 over `<timestamp>.<body>`)
 - [`docs/extending-the-harness.md`](docs/extending-the-harness.md) — adding a new scenario

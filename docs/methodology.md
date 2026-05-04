@@ -34,16 +34,18 @@ See `tests/runs/` for committed sample outputs that prove the suite reproduces c
 
 ## 2. Latency budgets
 
-Latency is a first-class scoring axis, not a "nice-to-have" line in a report. The thresholds the harness enforces by default:
+Latency matters more for voice than for any other agent surface — every 100 ms shows up as a noticeable hesitation. The harness's intent is to score four separate axes:
 
-| Axis | p95 budget | Where it's measured |
-|---|---|---|
-| Time-to-first-byte (TTFB) | **≤ 800 ms** | Outbound `convai.send` to first byte returned |
-| End-to-first-audio | **≤ 1.4 s** | Caller's last word to first audio sample of the agent's reply |
-| Total-turn | **≤ 3.0 s** | Caller's last word to agent's last word of the same turn |
-| Tool-call round-trip | **≤ 2.0 s** | LLM tool-call emission to tool result delivered back to LLM |
+| Axis | Target p95 budget | Where it's measured | Implemented? |
+|---|---|---|---|
+| Time-to-first-byte (TTFB) | **≤ 800 ms** | Outbound `convai.send` to first byte returned | ❌ not yet |
+| End-to-first-audio | **≤ 1.4 s** | Caller's last word to first audio sample of the agent's reply | ❌ not yet |
+| Total-turn | **≤ 3.0 s** | Caller's last word to agent's last word of the same turn | ⚠️ partial — captured per-test as `latency_ms`, no p95 aggregation |
+| Tool-call round-trip | **≤ 2.0 s** | LLM tool-call emission to tool result delivered back to LLM | ❌ not yet |
 
-These numbers are not vapor — `tests/runs/` contains committed runs that show whether the live agent met them and which scenarios drove the p95. A scenario that exceeds budget fails CI; the failure surface in `tests/runs/<id>/NOTE.md` shows the contributing turns.
+**Current state.** Each runner records one round-trip latency per test (`latency_ms` on the result, `avg_latency_ms` on the run summary). Scenario YAMLs declare the axes and budgets above as conventions; nothing in `lib/testing/` yet reads them and asserts. Treat the budgets as design intent, not a runtime gate. See `tests/scenarios/barge-in-mid-question/scenario.yaml` for the canonical YAML shape.
+
+**What needs to land** for the budgets to bite: (1) per-segment timing capture in the ElevenLabs runner (TTFB vs first-audio vs total-turn — likely from the `convai` event stream), (2) a scenario-loader that pulls `thresholds.*_p95_ms`, (3) a rolling-window p95 aggregator in the orchestrator, (4) failure mode that emits a per-axis breakdown to `tests/runs/<id>/NOTE.md`.
 
 ## 3. Prompt and agent-config versioning
 
@@ -95,7 +97,7 @@ Subjective axes (tone, empathy, clarity) are scored by an explicit judge LLM. Th
 
 ## 5. Voice-specific axes
 
-Generic LLM evals don't catch voice-specific failure modes. This harness scores:
+Generic LLM evals don't catch voice-specific failure modes. The intended axes:
 
 - **Barge-in recovery** — caller interrupts mid-utterance; does the agent yield, listen, and re-plan? Failure mode: agent talks over the caller.
 - **Interruption recovery** — caller's audio drops mid-turn; does the agent pick up coherently when audio resumes?
@@ -103,7 +105,7 @@ Generic LLM evals don't catch voice-specific failure modes. This harness scores:
 - **ASR confidence handling** — when the agent's STT confidence is low, does it confirm or escalate rather than guess?
 - **Timeout behavior** — silence handling: how long before the agent prompts again? When does it gracefully end the call?
 
-Each axis has a YAML key, a fixture, and an assertion in `lib/testing/`. See `tests/runs/2026-04-fail-barge-in/NOTE.md` for a committed example of what a failing barge-in scenario looks like (and how the harness localized it).
+**Implementation status.** Each axis has a YAML key in `tests/scenarios/_template/scenario.yaml` and at least one fixture (`tests/scenarios/barge-in-mid-question/`). **The scoring engine that reads these axes does not exist yet.** `tests/runs/2026-04-fail-barge-in/NOTE.md` is a hand-authored example of the postmortem shape — not produced by an automated scoring pass. Wiring this up is on the roadmap, not in main.
 
 ## 6. Tool-call evaluation
 
@@ -111,7 +113,7 @@ Phone-based ElevenLabs agents (Twilio inbound) are server-side by construction �
 
 The harness validates:
 
-- **Schema conformance** — the emitted tool call's `name` and `parameters` match `agent.prompt.tools[*]`'s JSON Schema (Zod validation on the runner side).
+- **Schema conformance** — the emitted tool call's `name` and `parameters` match `agent.prompt.tools[*]`'s JSON Schema (arktype validation on the runner side).
 - **Error-path coverage** — for every tool, at least one scenario exercises a tool-error response (4xx, 5xx, timeout) and asserts the agent recovers gracefully.
 - **Server-side vs. client-side** — explicit. The harness refuses to run a "client-side tool" scenario against a server-side tool definition.
 - **Knowledge-base vs. tool boundary** — when an agent should use a KB lookup vs. a tool call: see [`tool-calling.md`](tool-calling.md).

@@ -8,9 +8,15 @@ Bring your own ElevenLabs agent ID, drop in scenario YAMLs, get pass/fail with a
 
 **Primary goals:**
 - Deterministic regression on every commit (no "did the model change?" guessing)
-- Voice-specific scoring axes — barge-in recovery, ASR confidence, TTS prosody, timeout handling
-- Latency budgets as hard thresholds: TTFB p95 ≤ 800 ms, end-to-first-audio p95 ≤ 1.4 s, total-turn p95 ≤ 3.0 s
+- Voice-specific scoring axes — barge-in recovery, ASR confidence, TTS prosody, timeout handling *(intent — scoring engine not yet implemented; see "Status" below)*
+- Latency budgets — TTFB p95 ≤ 800 ms, end-to-first-audio p95 ≤ 1.4 s, total-turn p95 ≤ 3.0 s *(intent — runner currently captures one round-trip latency per test, no per-segment / p95 enforcement yet)*
 - Optional integration testing for downstream n8n workflows (tool webhooks, post-call processing)
+
+## Status
+
+**Implemented**: runners (ElevenLabs, n8n-eval, MCP, webhook), single-number `latency_ms` capture per test, scenario YAML loading via Vitest, prompt-versioning convention via git tags, offline test suite (269 tests), 4 specialized live test projects.
+
+**Not yet implemented** (documented intent, no runtime enforcement): per-segment latency split (TTFB / first-audio / total-turn), p95 aggregation across runs, voice-axis scoring (barge-in / prosody / ASR-confidence / timeout), LLM-judge axes for tone/empathy. Scenario YAMLs declare these as conventions; the orchestrator does not yet read them.
 
 ## Tech Stack
 
