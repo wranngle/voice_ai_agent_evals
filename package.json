@@ -2,6 +2,12 @@
   "name": "voice_ai_agent_evals",
   "version": "1.0.0",
   "type": "module",
+  "license": "MIT",
+  "author": "Wranngle Systems LLC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wranngle/voice_ai_agent_evals.git"
+  },
   "scripts": {
     "test": "vitest",
     "test:run": "vitest run",
