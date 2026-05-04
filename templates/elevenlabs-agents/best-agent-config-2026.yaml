@@ -170,9 +170,9 @@ first_message_templates:
 #    - book_appointment: Direct calendar integration
 #    - lookup_customer: CRM data injection
 #
-# 4. NAMING CONVENTION: All agents must use phase prefix
-#    Format: [PHASE] Company Name - Voice Name
-#    Example: [DEV] Acme Corp - Sarah
+# 4. NAMING CONVENTION: agents you don't want this harness to touch
+#    should be tagged in your registry/dashboard so the runner can skip
+#    them. The harness itself is name-agnostic.
 #
-# 5. TESTING: Always test in DEV phase before promoting to PROD
-#    Use test scenarios in workflows/voice_ai_agent_evals/test-scenarios.yaml
+# 5. TESTING: drop scenario YAMLs under tests/scenarios/<scenario-id>/
+#    using tests/scenarios/_template/scenario.yaml as the starting shape.

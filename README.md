@@ -55,8 +55,8 @@ To wire to your live agent, copy `agent-registry.example.yaml` → `agent-regist
 - **`lib/agent_evals/`** — agent-eval runtime + fixtures
 - **`scripts/`** — runner entry points (`test-elevenlabs-runner`, `test-mcp-runner`, `test-n8n-eval-runner`) and harness utilities (`health-check`, `monitor-executions`, `list-workflows`, `setup-automation`, `ingest-and-run`)
 - **`templates/`** — reusable agent and tool config templates (`elevenlabs-agents/`, `voice-agents/`, `email/`, `sms-booking-tool-template.json`)
-- **`workflows/evaluations/`** — example eval YAMLs (transcript extraction, voice-agent-tester, get-elevenlabs-agent)
-- **`tests/`** — scenario fixtures (`scenarios/`) and committed eval-run outputs (`runs/`)
+- **`tests/scenarios/`** — runnable scenario fixtures (transcript + scenario.yaml). `_template/` is the canonical schema; copy and edit.
+- **`tests/runs/`** — committed eval-run outputs (proof of reproducibility)
 - **`docs/`** — methodology, tool calling, webhook security, contributor walkthrough, model-update playbook
 
 ## Documentation
