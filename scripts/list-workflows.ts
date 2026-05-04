@@ -1,12 +1,14 @@
 /**
- * List all n8n workflows and identify potential duplicates
+ * List all n8n workflows and identify potential duplicates.
+ *
+ * Required env: N8N_API_KEY, N8N_API_URL (base URL, e.g.
+ * https://your-n8n-host.example.com/api/v1).
+ *
+ * Usage: bun scripts/list-workflows.ts
  */
 
-const API_URL = process.env.N8N_API_URL || 'https://your-n8n-host.example.com/api/v1/workflows?limit=100';
-const API_KEY: string = process.env.N8N_API_KEY ?? '';
-if (!API_KEY) {
-  throw new Error('N8N_API_KEY env var required');
-}
+const API_URL = process.env.N8N_API_URL || 'https://your-n8n-host.example.com/api/v1';
+const API_KEY = process.env.N8N_API_KEY ?? '';
 
 type Workflow = {
   id: string;
@@ -18,7 +20,12 @@ type Workflow = {
 };
 
 async function main() {
-  const response = await fetch(API_URL, {
+  if (!API_KEY) {
+    console.error('Error: N8N_API_KEY environment variable not set');
+    process.exit(1);
+  }
+
+  const response = await fetch(`${API_URL}/workflows?limit=100`, {
     headers: {'X-N8N-API-KEY': API_KEY},
   });
 
@@ -74,6 +81,8 @@ async function main() {
   console.log(`Total duplicate workflows: ${duplicates.reduce((sum, [_, items]) => sum + items.length, 0)}`);
 }
 
-main().catch(console.error);
-
-export {};
+main().catch((error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error('Fatal error:', message);
+  process.exit(1);
+});
