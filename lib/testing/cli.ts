@@ -1,28 +1,16 @@
 #!/usr/bin/env bun
 /**
- * Test Framework CLI
+ * voice_ai_agent_evals CLI
  *
- * Command-line interface for running n8n workflow and voice agent tests.
+ * Command-line interface for the ElevenLabs voice-agent eval harness.
+ * Drives the same runners (elevenlabs, n8n-eval, mcp, webhook) as the
+ * Vitest projects, but with stored test cases and runs persisted under
+ * `.test-data/` (override via TEST_STORAGE_DIR).
  *
  * Usage:
- *   bun run lib/testing/cli.ts [command] [options]
+ *   bun run testing [command] [options]
  *
- * Commands:
- *   run          Run tests (default)
- *   list         List available tests
- *   validate     Validate test configurations
- *   report       Generate test report
- *   ingest       Ingest tests from Vitest files
- *
- * Options:
- *   --type       Filter by test type (webhook, elevenlabs, n8n-eval, mcp)
- *   --tag        Filter by tag (can be used multiple times)
- *   --id         Run specific test by ID
- *   --fail-fast  Stop on first failure
- *   --timeout    Override default timeout (ms)
- *   --json       Output results as JSON
- *   --verbose    Show detailed output
- *   --help       Show help
+ * See `bun run testing --help` for the full surface.
  */
 
 import {parseArgs} from 'node:util';
@@ -147,10 +135,10 @@ function parseCliArgs(): CliOptions {
 
 function showHelp(): void {
   console.log(`
-${C.bold}n8n Testing Framework CLI${C.reset}
+${C.bold}voice_ai_agent_evals CLI${C.reset} — ElevenLabs voice-agent eval harness
 
 ${C.cyan}Usage:${C.reset}
-  bun run lib/testing/cli.ts [command] [options]
+  bun run testing [command] [options]
 
 ${C.cyan}Commands:${C.reset}
   run          Run tests (default)
@@ -172,20 +160,22 @@ ${C.cyan}Options:${C.reset}
   -h, --help           Show this help
 
 ${C.cyan}Examples:${C.reset}
-  bun run lib/testing/cli.ts run                    # Run all tests
-  bun run lib/testing/cli.ts run -t webhook         # Run webhook tests only
-  bun run lib/testing/cli.ts run -g smoke           # Run tests tagged 'smoke'
-  bun run lib/testing/cli.ts run --id TC-001        # Run specific test
-  bun run lib/testing/cli.ts list                   # List all tests
-  bun run lib/testing/cli.ts list -t elevenlabs     # List ElevenLabs tests
-  bun run lib/testing/cli.ts validate               # Validate all test configs
-  bun run lib/testing/cli.ts ingest                 # Ingest from tests/
-  bun run lib/testing/cli.ts ingest -d tests/webhook  # Ingest from specific dir
+  bun run testing run                    # Run all stored tests
+  bun run testing run -t webhook         # Run webhook tests only
+  bun run testing run -g smoke           # Run tests tagged 'smoke'
+  bun run testing run --id TC-001        # Run specific test by ID
+  bun run testing list                   # List all stored tests
+  bun run testing list -t elevenlabs     # List ElevenLabs tests
+  bun run testing validate               # Validate all test configs
+  bun run testing ingest                 # Ingest from tests/
+  bun run testing ingest -d tests/webhook  # Ingest from specific dir
 
 ${C.cyan}Environment Variables:${C.reset}
+  ELEVENLABS_API_KEY   ElevenLabs API key (required for elevenlabs runner)
+  ELEVENLABS_AGENT_ID  Default agent ID for elevenlabs runner
   N8N_API_URL          n8n API URL (default: https://your-n8n-host.example.com/api/v1)
-  N8N_API_KEY          n8n API key (required for n8n tests)
-  ELEVENLABS_API_KEY   ElevenLabs API key (required for voice agent tests)
+  N8N_API_KEY          n8n API key (required for n8n-eval / mcp runners)
+  TEST_STORAGE_DIR     Override .test-data/ location for stored cases & runs
 `);
 }
 

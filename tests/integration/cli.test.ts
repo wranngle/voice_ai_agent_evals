@@ -58,7 +58,7 @@ describe('CLI', () => {
     test('should show help with --help', async () => {
       const result = await runCli(['--help']);
       expect(result.code).toBe(0);
-      expect(result.stdout).toContain('n8n Testing Framework CLI');
+      expect(result.stdout).toContain('voice_ai_agent_evals CLI');
       expect(result.stdout).toContain('Commands:');
       expect(result.stdout).toContain('run');
       expect(result.stdout).toContain('list');
@@ -68,7 +68,7 @@ describe('CLI', () => {
     test('should show help with -h', async () => {
       const result = await runCli(['-h']);
       expect(result.code).toBe(0);
-      expect(result.stdout).toContain('n8n Testing Framework CLI');
+      expect(result.stdout).toContain('voice_ai_agent_evals CLI');
     });
   });
 
