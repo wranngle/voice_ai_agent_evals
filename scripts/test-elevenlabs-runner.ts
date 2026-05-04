@@ -7,7 +7,7 @@
 import {ElevenLabsRunner} from '../lib/testing/runners/elevenlabs-runner';
 import type {TestCase} from '../lib/testing/types';
 
-const SARAH_AGENT_ID = 'agent_xxxx_demo';
+const AGENT_ID = process.env.ELEVENLABS_AGENT_ID ?? 'agent_xxxx_demo';
 
 async function main() {
   console.log('🎤 Testing ElevenLabs Runner Against Real API\n');
@@ -36,15 +36,13 @@ async function main() {
     test_id: 'TEST-EL-001',
     type: 'elevenlabs',
     name: 'Agent responds to greeting',
-    description: 'Test that Agent responds appropriately to a simple greeting',
+    description: 'Test that the agent responds appropriately to a simple greeting',
     input: {
-      agent_id: SARAH_AGENT_ID,
+      agent_id: AGENT_ID,
       test_prompt: 'Hi, I\'m interested in learning more about your services.',
     },
     expected_output: {
-      // Agent identifies as ExampleCo Digital Dispatcher
-      response_contains: ['welcome'],
-      // Agent's discovery conversations can go 20+ turns
+      response_contains: process.env.EXPECT_RESPONSE_CONTAINS?.split(',') ?? [],
       max_turns: 25,
     },
     tags: ['smoke', 'greeting'],
@@ -96,7 +94,7 @@ async function main() {
   process.exit(result.status === 'passed' ? 0 : 1);
 }
 
-main().catch(error => {
+main().catch((error: unknown) => {
   console.error('Fatal error:', error);
   process.exit(1);
 });

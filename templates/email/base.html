@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{subject}}</title>
   <style>
-    /* ExampleCo Brand Colors */
+    /* Brand Colors */
     :root {
       --primary: #2563eb;
       --primary-dark: #1d4ed8;
@@ -139,8 +139,8 @@
       <!-- Header -->
       <div class="email-header">
         <!-- Logo placeholder - replace with actual logo URL -->
-        <img src="https://example.com/logo.png" alt="ExampleCo" onerror="this.style.display='none'">
-        <h1>ExampleCo</h1>
+        <img src="{{logo_url}}" alt="{{company_name}}" onerror="this.style.display='none'">
+        <h1>{{company_name}}</h1>
       </div>
 
       <!-- Body - Content inserted here -->
@@ -151,20 +151,20 @@
       <!-- Footer -->
       <div class="email-footer">
         <div class="social-links">
-          <a href="https://linkedin.com/company/example">LinkedIn</a>
-          <a href="https://twitter.com/example">Twitter</a>
+          <a href="{{linkedin_url}}">LinkedIn</a>
+          <a href="{{twitter_url}}">Twitter</a>
         </div>
         <p>
-          ExampleCo, Inc.<br>
-          <a href="https://example.com">example.com</a>
+          {{company_name}}<br>
+          <a href="{{company_url}}">{{company_domain}}</a>
         </p>
         <p>
           <a href="{{unsubscribe_url}}">Unsubscribe</a> |
-          <a href="https://example.com/privacy">Privacy Policy</a>
+          <a href="{{privacy_url}}">Privacy Policy</a>
         </p>
         <p style="color: #94a3b8;">
-          You're receiving this because you interacted with ExampleCo.<br>
-          &copy; {{year}} ExampleCo, Inc. All rights reserved.
+          You're receiving this because you interacted with {{company_name}}.<br>
+          &copy; {{year}} {{company_name}}. All rights reserved.
         </p>
       </div>
     </div>

@@ -15,24 +15,24 @@ The harness exists in part to catch this. The playbook below is what an operator
 Before you change anything, freeze the current state:
 
 ```bash
-git tag prompt/primary/v<N>          # current prompt
-git push origin prompt/primary/v<N>
+git tag prompt/<name>/v<N>          # current prompt
+git push origin prompt/<name>/v<N>
 
 # Also snapshot the live agent config:
-node scripts/check-elevenlabs-agent.js --snapshot > tests/runs/pre-update-snapshot.json
+bun run scripts/check-elevenlabs-agent.ts --snapshot > tests/runs/pre-update-snapshot.json
 git add tests/runs/pre-update-snapshot.json
-git commit -m "snapshot: pre-update agent config (tag prompt/primary/v<N>)"
+git commit -m "snapshot: pre-update agent config (tag prompt/<name>/v<N>)"
 ```
 
 Without this, you can't roll back. With it, rollback is a one-line `git checkout`.
 
 ### 2. Run the regression set against the new model
 
-In the ElevenLabs dashboard, select the new model on a **non-production agent** (clone Sarah to a `agent-staging` agent if you don't have one). Update `agent-registry.yaml` to point the harness at the staging agent.
+In the ElevenLabs dashboard, select the new model on a **non-production agent** (clone your prod agent to a `<name>-staging` agent if you don't have one). Update `agent-registry.yaml` (or the `ELEVENLABS_AGENT_ID` env var) to point the harness at the staging agent.
 
 ```bash
-bun test                          # full regression set against new model
-bun test --output-json > tests/runs/<date>-new-model.json
+bun run testing:live:el                                            # full regression set against new model
+bun run testing:live:el --output-json > tests/runs/<date>-new-model.json
 ```
 
 Any scenario that was passing against the old model and now fails is **a candidate regression** — but it could also be a real improvement that broke a too-strict assertion. Read the runs folder; don't auto-trust the harness's verdict.
@@ -55,7 +55,7 @@ Three outcomes. Pick one before any production deploy:
 | Drift type | Decision |
 |---|---|
 | **Latency budgets blown across the board** (e.g. p95 TTFB +200ms) | **Rollback**. Pin the old model in the agent config until the new model is mature. |
-| **One axis regressed by a fixable amount** (e.g. agent over-uses filler words) | **Re-tune the prompt**. Add explicit instructions, re-run the harness, commit a `prompt/primary/v<N+1>`. |
+| **One axis regressed by a fixable amount** (e.g. agent over-uses filler words) | **Re-tune the prompt**. Add explicit instructions, re-run the harness, commit a `prompt/<name>/v<N+1>`. |
 | **A few legacy scenarios fail because the new model is genuinely better** (e.g. it routes to KB instead of tool, which was actually correct) | **Accept**. Update those scenarios' `success_criteria`, note the rationale in `CHANGELOG.md`. |
 
 Document the decision in `CHANGELOG.md` — every reader of this repo should be able to see what the new-model decision was and why.
@@ -65,9 +65,9 @@ Document the decision in `CHANGELOG.md` — every reader of this repo should be 
 **To promote** the new model:
 
 ```bash
-node scripts/stepwise-agent-update.js --apply
-git tag prompt/primary/v<N+1>
-git push origin prompt/primary/v<N+1>
+# (your own prompt deploy script)
+git tag prompt/<name>/v<N+1>
+git push origin prompt/<name>/v<N+1>
 ```
 
 **To pin** the old model (defer the new one until later):

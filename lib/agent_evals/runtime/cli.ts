@@ -6,7 +6,7 @@ import {
   createFileSink,
   createJsonLogger,
   NoopMetricsSink,
-  createOtlpHttpMetricsSink,
+  createPrometheusMetricsSink,
 } from '../providers';
 import {createEvaluator} from '../service';
 import {renderResultsMarkdown} from '../ui';
@@ -23,7 +23,7 @@ async function main(): Promise<void> {
   const sink = settings.logFile ? createFileSink(settings.logFile) : StderrSink;
   const logger = createJsonLogger(sink);
   const metrics = settings.otlpEndpoint
-    ? createOtlpHttpMetricsSink({endpoint: settings.otlpEndpoint})
+    ? createPrometheusMetricsSink({endpoint: settings.otlpEndpoint})
     : NoopMetricsSink;
   const evaluator = createEvaluator(
     repository,

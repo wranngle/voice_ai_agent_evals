@@ -1,8 +1,10 @@
-const https = require('node:https');
-require('./lib/env');
+import https from 'node:https';
+// @ts-nocheck
 
 const API_KEY = process.env.ELEVENLABS_API_KEY;
-const AGENT_ID = 'agent_xxxx_demo';
+const AGENT_ID = process.argv.includes('--agent-id')
+  ? process.argv[process.argv.indexOf('--agent-id') + 1]
+  : 'agent_xxxx_demo';
 
 if (!API_KEY) {
   console.log('ERROR: No API key found');
@@ -25,7 +27,9 @@ const options = {
 
 const request = https.request(options, res => {
   let data = '';
-  res.on('data', chunk => data += chunk);
+  res.on('data', chunk => {
+    data += chunk;
+  });
   res.on('end', () => {
     console.log('HTTP Status:', res.statusCode);
 
@@ -86,5 +90,8 @@ const request = https.request(options, res => {
   });
 });
 
-request.on('error', e => console.log('Request error:', e.message));
+request.on('error', e => {
+  console.log('Request error:', e.message);
+});
 request.end();
+

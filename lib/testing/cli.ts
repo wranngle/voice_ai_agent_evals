@@ -652,7 +652,8 @@ async function main(): Promise<void> {
   process.exit(exitCode);
 }
 
-main().catch(error => {
-  console.error(`${C.red}Fatal error: ${error.message}${C.reset}`);
+main().catch((error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(`${C.red}Fatal error: ${message}${C.reset}`);
   process.exit(1);
 });

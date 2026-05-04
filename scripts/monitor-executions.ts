@@ -5,7 +5,7 @@
  */
 
 const WORKFLOW_ID = process.argv[2] || '81W6PAGZfSi81ZQ9';
-const LIMIT = Number.parseInt(process.argv[3] || '10');
+const LIMIT = Number.parseInt(process.argv[3] || '10', 10);
 const API_KEY = process.env.N8N_API_KEY || '';
 const API_URL = process.env.N8N_API_URL || 'https://your-n8n-host.example.com';
 
@@ -117,6 +117,6 @@ async function main() {
   }
 }
 
-main();
+void main();
 
 export {};

@@ -2,7 +2,7 @@
 # =========================================================
 # Version: 2026-Q1 (User-Approved Defaults)
 # Last Updated: 2025-12-27
-# Source: Production-tested with ExampleCo voice agents
+# Source: Production-tested with live ElevenLabs voice agents
 #
 # These parameters represent the optimal balance of:
 # - Response latency (sub-second)

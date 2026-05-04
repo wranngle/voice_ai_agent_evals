@@ -2,7 +2,7 @@
 # Result shape committed at tests/runs/2026-04-fail-barge-in/result.json
 id: barge-in-mid-question
 description: Caller interrupts the agent mid-question; agent must yield within 400ms.
-agent: example-agent
+agent: primary
 
 fixture:
   transcript: transcript.json

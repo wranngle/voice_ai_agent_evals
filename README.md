@@ -3,63 +3,52 @@
 [![elevenlabs](https://img.shields.io/badge/elevenlabs-ff5f00?style=flat-square)](https://elevenlabs.io/)
 [![voice-agents](https://img.shields.io/badge/voice--agents-cf3c69?style=flat-square)](#)
 [![eval-harness](https://img.shields.io/badge/eval--harness-12111a?style=flat-square)](#)
-[![CI](https://img.shields.io/badge/CI-passing-5d8c61?style=flat-square)](.github/workflows/test.yml)
 
-> Eval harness for ElevenLabs voice agents — deterministic scenarios, real latency budgets, real Sarah.
-
-## Demo
-
-🎬 _Loom walkthrough coming soon — 90-sec eval-harness run catching a real failure on the live agent._
-
-<!-- Replace with: <a href="https://www.loom.com/share/<id>"><img src="https://cdn.loom.com/sessions/thumbnails/<id>-with-play.gif" alt="Eval harness demo"></a> -->
-
-| Scenarios | Latency target met (p95) | Last run |
-|---|---|---|
-| 12 | TTFB ≤800 ms · audio ≤1.4 s · turn ≤3.0 s | see `tests/runs/` |
+> Bulk eval harness for ElevenLabs voice agents — deterministic scenarios, explicit latency budgets, regression-grade.
 
 ## What this is
 
-Test runner and scenario framework for evaluating ElevenLabs voice agents. Deterministic via seeded synthetic transcripts and recorded audio fixtures; explicit latency budgets (TTFB p95 ≤ 800 ms, end-to-first-audio p95 ≤ 1.4 s, total-turn p95 ≤ 3.0 s); prompt versioning via git tags (`prompt/primary/vN`); scoring rubric in [`docs/methodology.md`](docs/methodology.md). Wired to **Sarah** — ExampleCo's production inbound voice SDR, deployable today (see [`docs/deployment.md`](docs/deployment.md)) — for regression testing. Sample eval-run output committed at [`tests/runs/`](tests/runs/).
+Test runner and scenario framework for evaluating ElevenLabs Conversational AI voice agents in bulk. Deterministic via seeded synthetic transcripts; explicit latency budgets (TTFB, end-to-first-audio, total-turn p95s); prompt versioning via git tags. Bring-your-own agent — point the harness at any agent ID, drop in a scenario YAML, get pass/fail with assertion-level detail. See [`docs/methodology.md`](docs/methodology.md) for the scoring rubric and voice-specific axes (barge-in, prosody, ASR confidence, timeout).
 
 ## Run it
 
 ```bash
 bun install
-bun test                              # full suite against the example registry
-bun test --mock                       # explicit mock mode (no live ElevenLabs calls)
-bun test --filter <scenario-name>     # one scenario
+
+# Offline tests — runs against fixtures, no secrets needed
+bun run test:offline
+
+# Live tests — require ELEVENLABS_API_KEY (and N8N_API_URL/N8N_API_KEY for n8n-eval)
+bun run testing:live:el       # ElevenLabs runner against a real agent
+bun run testing:live:n8n      # n8n eval runner against a deployed workflow
+bun run testing:live:mcp      # MCP runner
+
+# CLI
+bun run testing list
+bun run testing run <test-id>
 ```
 
-CI runs against `agent-registry.example.yaml` (placeholder IDs) so the harness exercises end-to-end without any secrets. To wire to your live agent, copy `agent-registry.example.yaml` → `agent-registry.yaml` (gitignored) and fill in real IDs.
+To wire to your live agent, copy `agent-registry.example.yaml` → `agent-registry.yaml` (gitignored) and fill in real IDs, or set `ELEVENLABS_AGENT_ID` directly.
 
 ## What's in here
 
-- **`scripts/`** — runners (`test-elevenlabs-runner`, `test-mcp-runner`, `test-n8n-eval-runner`) plus the Sarah-specific management scripts (`add-send-sms-tool`, `update-agent`, `verify-prompt`, etc.)
-- **`lib/extraction/`** — structured extraction from transcripts/post-call payloads
-- **`lib/testing/`** — runner library (the `runners/` and `ingestion/` modules)
-- **`prompts/primary.md`** — canonical agent prompt (versioned via `prompt/primary/vN` git tags)
+- **`lib/testing/`** — runner library: `runners/` (elevenlabs, n8n-eval, mcp, webhook), `ingestion/`, CLI
+- **`lib/extraction/`** — structured extraction from transcripts and post-call payloads
+- **`lib/agent_evals/`** — agent-eval runtime + fixtures
+- **`scripts/`** — runner entry points (`test-elevenlabs-runner`, `test-mcp-runner`, `test-n8n-eval-runner`) and harness utilities (`health-check`, `monitor-executions`, `list-workflows`, `setup-automation`, `ingest-and-run`)
 - **`templates/`** — reusable agent and tool config templates (`elevenlabs-agents/`, `voice-agents/`, `email/`, `sms-booking-tool-template.json`)
-- **`workflows/evaluations/`** — eval YAMLs for ElevenLabs/voice-agent scenarios (Sarah, transcript extraction, voice-agent tester, etc.)
+- **`workflows/evaluations/`** — example eval YAMLs (transcript extraction, voice-agent-tester, get-elevenlabs-agent)
 - **`tests/`** — scenario fixtures (`scenarios/`) and committed eval-run outputs (`runs/`)
-- **`docs/`** — methodology, tool calling, webhook security, deployment, contributor walkthrough, model-update playbook
+- **`docs/`** — methodology, tool calling, webhook security, contributor walkthrough, model-update playbook
 
 ## Documentation
 
-- [`docs/methodology.md`](docs/methodology.md) — eval philosophy: determinism, latency budgets, prompt + agent-config versioning, scoring rubric, voice-specific axes (barge-in, prosody, ASR confidence, timeout), tool-call evaluation
-- [`docs/tool-calling.md`](docs/tool-calling.md) — server-side vs. client-side tools, `agent.prompt.tools` schema, KB-vs-tool boundary, end-to-end SMS booking tool walkthrough
-- [`docs/webhook-security.md`](docs/webhook-security.md) — `ElevenLabs-Signature` header verification (HMAC-SHA256 over `<timestamp>.<body>`), defensive stance
-- [`docs/deployment.md`](docs/deployment.md) — Agent deployment context (production-shaped, low-volume because pre-revenue)
-- [`docs/extending-the-harness.md`](docs/extending-the-harness.md) — 5-step contributor flow for adding a new scenario
-- [`docs/handling-model-updates.md`](docs/handling-model-updates.md) — playbook for "ElevenLabs ships a new voice / TTS / LLM model"
-- [`RUNBOOK.md`](RUNBOOK.md) — operational runbook (rollback, CI failure repro, ElevenLabs 5xx, webhook debug)
-
-## Sarah on the public surface
-
-The agent is the production inbound voice SDR for [example.com](https://example.com). The agent ID and dial-in number are public on that site, so they're not secret here either. The full operational registry (`agent-registry.yaml`) is gitignored; the placeholder shape (`agent-registry.example.yaml`) is the only public form.
-
-## Brand system
-
-This repo vendors `tokens/` from `example/gtm_ops`. The long-form spec lives at [`gtm_ops/DESIGN.md`](https://github.com/example/gtm_ops/blob/main/DESIGN.md).
+- [`docs/methodology.md`](docs/methodology.md) — eval philosophy: determinism, latency budgets, prompt versioning, scoring rubric, voice-specific axes
+- [`docs/tool-calling.md`](docs/tool-calling.md) — server-side vs. client-side tools, `agent.prompt.tools` schema, KB-vs-tool boundary
+- [`docs/webhook-security.md`](docs/webhook-security.md) — `ElevenLabs-Signature` header verification (HMAC-SHA256 over `<timestamp>.<body>`)
+- [`docs/extending-the-harness.md`](docs/extending-the-harness.md) — adding a new scenario
+- [`docs/handling-model-updates.md`](docs/handling-model-updates.md) — playbook for ElevenLabs model updates
+- [`RUNBOOK.md`](RUNBOOK.md) — operational runbook
 
 ## License
 

@@ -1,8 +1,10 @@
-# Voice AI Agents - System Architecture
+# Architecture
 
 ## Overview
 
-This system powers conversational AI voice agents using ElevenLabs, with n8n orchestrating data enrichment, CRM integration, and post-call processing.
+This repo evaluates ElevenLabs voice agents in bulk. Optionally, it also evaluates downstream n8n workflows that the agent calls during a conversation (server-side tools, post-call webhooks, client-initiation lookups).
+
+The harness is **agent-agnostic**: bring your own ElevenLabs agent ID, point the runners at it, drop in scenario YAMLs. The architecture below describes the *integration surface* the harness was designed to test, not a specific deployment.
 
 ## System Diagram
 
@@ -16,17 +18,16 @@ This system powers conversational AI voice agents using ElevenLabs, with n8n orc
 |                              ElevenLabs Conversational AI                           |
 |  +-------------+    +------------------+    +----------------+    +--------------+  |
 |  | Voice Agent |    | Client Initiation|    | Tool Execution |    | Post-Call    |  |
-|  | (Sarah)     |<-->| Data Webhook     |<-->| (SMS, etc.)    |<-->| Webhook      |  |
+|  | (your-agent)|<-->| Data Webhook     |<-->| (SMS, etc.)    |<-->| Webhook      |  |
 |  +-------------+    +--------+---------+    +-------+--------+    +------+-------+  |
 +------------------------------------------+-------------------------------------------+
                                |                      |                    |
                                v                      v                    v
 +------------------------------------------+-------------------------------------------+
-|                              n8n Workflow Engine                                    |
+|                              n8n Workflow Engine (optional)                         |
 |  +------------------+    +------------------+    +------------------+               |
-|  | Client Initiation|    | Sarah SMS Tool   |    | Post-Call        |               |
-|  | Workflow         |    | Workflow         |    | Workflow         |               |
-|  | ID: 81W6PAGZfSi8 |    |                  |    |                  |               |
+|  | Client Initiation|    | Tool Webhook     |    | Post-Call        |               |
+|  | Workflow         |    | (SMS / lookup)   |    | Webhook          |               |
 |  +--------+---------+    +--------+---------+    +--------+---------+               |
 +------------------------------------------+-------------------------------------------+
             |                      |                    |
@@ -34,245 +35,84 @@ This system powers conversational AI voice agents using ElevenLabs, with n8n orc
 +------------------------------------------+-------------------------------------------+
 |                              External Services                                      |
 |  +----------+  +---------+  +----------+  +---------+  +----------+                |
-|  | CRM|  | Google  |  | Twilio   |  | Cal.com |  | SMTP2GO  |                |
-|  | CRM      |  | Sheets  |  | SMS      |  | Booking |  | Email    |                |
+|  | CRM      |  | Sheets  |  | Twilio   |  | Booking |  | Email    |                |
+|  | (any)    |  | (any)   |  | SMS      |  | (any)   |  | (any)    |                |
 |  +----------+  +---------+  +----------+  +---------+  +----------+                |
 +------------------------------------------------------------------------------------|
 ```
 
-## Call Lifecycle
+## Three call lifecycle phases the harness tests
 
-### 1. Incoming Call (Client Initiation)
+### 1. Client Initiation
 
-```
-Phone Call → Twilio → ElevenLabs Agent
-                          ↓
-              client_initiation_data webhook
-                          ↓
-              n8n: Client Initiation Workflow
-                          ↓
-         ┌────────────────┴────────────────┐
-         ↓                                 ↓
-   CRM Lookup              Google Sheets Lookup
-   (CRM customer data)           (Call history)
-         ↓                                 ↓
-         └────────────────┬────────────────┘
-                          ↓
-                   Merge & Transform
-                          ↓
-              Return dynamic_variables to ElevenLabs
-              - customer_name
-              - account_tier (New/Bronze/Silver/Gold)
-              - call_history
-              - interaction_count
-```
+When a call connects, ElevenLabs fires `client_initiation_data` against your webhook. Your handler returns dynamic variables and (optionally) a per-call first-message override. Latency budget: **<500 ms hard limit from ElevenLabs**.
 
-### 2. During Call (Tool Execution)
+The harness tests this surface via `tests/webhook/client-initiation-webhook.test.ts` — assertion against response shape, schema, and latency.
 
-```
-User Request → Sarah Agent → Tool Call
-                               ↓
-                    n8n: Tool Webhook (e.g., SMS)
-                               ↓
-                    Validate Parameters
-                               ↓
-                    Execute Action (Twilio)
-                               ↓
-                    Return Result to Agent
-```
+### 2. Tool Execution
 
-### 3. Post-Call Processing
+During a call, the agent emits tool calls (server-side, since voice has no client). Your tool webhook validates parameters, executes the action, returns the result. Tested via `tests/webhook/sms-tool-webhook.test.ts` and the `n8n-eval` runner against any deployed tool workflow.
 
-```
-Call Ends → ElevenLabs → post_call_webhook
-                              ↓
-              n8n: Post-Call Workflow
-                              ↓
-         ┌────────────────────┼────────────────────┐
-         ↓                    ↓                    ↓
-   Update CRM         Send Follow-up        Log Analytics
-   (call outcome)     (email/SMS)          (duration, outcome)
-```
+### 3. Post-Call Webhook
 
-## Workflow Details
+When the call ends, ElevenLabs fires `post_call_webhook` with the full conversation. Your handler logs analytics, updates downstream systems, sends follow-ups. Tested via `tests/webhook/post-call-webhook.test.ts`.
 
-### Client Initiation Data Workflow
+## Webhook contract (reference)
 
-**Webhook:** `POST /webhook/client-initiation-data`
-**Workflow ID:** `81W6PAGZfSi81ZQ9`
-**Timeout:** 500ms (hard limit from ElevenLabs)
-
-#### Nodes
-
-| Node | Type | Purpose |
-|------|------|---------|
-| Webhook: Client Lookup | webhook | Entry point, receives caller_id, agent_id |
-| Extract & Validate Call Metadata | set | Parse body, set start_time |
-| Validate Agent ID | if | Ensure correct agent |
-| CRM: Lookup Person | httpRequest | CRM customer lookup by phone |
-| Google Sheets: Lookup Call History | googleSheets | Historical interaction data |
-| Merge & Transform Data | code | Combine sources, calculate tier |
-| Log Execution Metrics | set | Performance tracking |
-| Check Performance Threshold | if | Alert if >500ms |
-| Respond: Client Initiation Data | respondToWebhook | Return ElevenLabs format |
-
-#### Response Format
-
-```json
-{
-  "type": "conversation_initiation_client_data",
-  "dynamic_variables": {
-    "customer_name": "John Smith",
-    "customer_first_name": "John",
-    "company": "Acme Corp",
-    "industry": "Technology",
-    "account_tier": "Gold",
-    "call_history": "Last call: 2026-01-15",
-    "interaction_count": 12,
-    "last_topic": "Pricing discussion",
-    "notes": "Interested in enterprise plan",
-    "lookup_success": true,
-    "data_source": "crm",
-    "secret__crm_person_id": 12345,
-    "secret__crm_org_id": 67890,
-    "secret__google_sheet_row": 42
-  },
-  "conversation_config_override": {
-    "agent": {
-      "first_message": "Hi John, this is Sarah from ExampleCo. I see you're one of our premium clients - how can I help you today?"
-    }
-  }
-}
-```
-
-### Account Tier Logic
-
-| Tier | Condition | Greeting Style |
-|------|-----------|----------------|
-| Gold | CRM account_tier = Gold | VIP personalized |
-| Silver | 6-15 past interactions | Returning customer |
-| Bronze | 1-5 past interactions | Familiar |
-| New | 0 past interactions | Generic welcome |
-
-## Data Flow
-
-### Incoming Request
+### Client-Initiation request shape
 
 ```json
 {
   "caller_id": "+15551234567",
-  "agent_id": "agent_xxxx_demo",
+  "agent_id": "your-agent-id",
   "called_number": "+15550100",
   "call_sid": "CA1234567890"
 }
 ```
 
-### Data Sources Priority
-
-1. **CRM** (highest priority) - Real-time CRM data
-2. **Google Sheets** - Historical call logs
-3. **Defaults** - Fallback for unknown callers
-
-### Merge Strategy
-
-- Customer name: CRM > Sheets > "there"
-- Company: CRM only
-- Interaction count: Sheets only
-- Account tier: CRM > Calculated from interaction count
-
-## Error Handling
-
-### Graceful Degradation
-
-| Failure | Behavior |
-|---------|----------|
-| CRM timeout | Continue with Sheets data |
-| Sheets timeout | Continue with CRM data |
-| Both fail | Return default response |
-| Invalid agent_id | Return 400 error |
-
-### Fallback Response
+### Client-Initiation response shape
 
 ```json
 {
   "type": "conversation_initiation_client_data",
   "dynamic_variables": {
-    "customer_name": "there",
-    "customer_first_name": "there",
-    "account_tier": "New",
-    "call_history": "First-time caller",
-    "lookup_success": false,
-    "data_source": "none"
+    "customer_name": "Jane Doe",
+    "account_tier": "Gold",
+    "lookup_success": true,
+    "data_source": "crm"
+  },
+  "conversation_config_override": {
+    "agent": {
+      "first_message": "Hi Jane, thanks for calling — how can I help?"
+    }
   }
 }
 ```
 
-## Performance Requirements
+Variables prefixed `secret__` are hidden from the LLM but still passed to server-side tools — useful for IDs and tokens that the agent shouldn't quote back.
+
+## Performance targets
 
 | Metric | Target | Critical |
 |--------|--------|----------|
-| Response time | <200ms | <500ms |
-| Success rate | >99% | >95% |
-| Data enrichment rate | >80% | >50% |
+| Client-init response | <200 ms | <500 ms (hard limit) |
+| Tool webhook latency | <800 ms | <2 s |
+| Post-call webhook | <2 s | <5 s |
 
-## Credentials Required
+## Wiring your own deployment
 
-| Service | Credential Type | n8n Credential ID |
-|---------|-----------------|-------------------|
-| CRM | API Token | crmApi |
-| Google Sheets | OAuth2 | googleSheetsOAuth2 |
-| Twilio | API Key + Secret | twilioApi |
-| ElevenLabs | API Key | (env var) |
+1. Set environment variables (or copy `agent-registry.example.yaml` → `agent-registry.yaml`):
+   - `ELEVENLABS_API_KEY`, `ELEVENLABS_AGENT_ID`
+   - `N8N_API_URL`, `N8N_API_KEY` (only if testing n8n workflows)
+   - `N8N_POST_CALL_WORKFLOW_ID`, `N8N_POST_CALL_WEBHOOK_PATH`
+2. Run offline tests: `bun run test:offline`
+3. Run live tests: `bun run testing:live:el` (or `:n8n`, `:mcp`)
+4. Add scenarios under `tests/scenarios/<your-id>/` using `tests/scenarios/_template/` as the starting shape
 
-## Monitoring
-
-### Key Metrics
-
-- `execution_time_ms` - Webhook response latency
-- `enrichment_success` - Whether customer data was found
-- `data_source` - Which source provided data
-- `account_tier` - Customer tier distribution
-
-### Alerts
-
-- Response time >500ms sustained
-- Error rate >5%
-- Credential failures
-
-## Troubleshooting
-
-### Common Issues
-
-| Symptom | Likely Cause | Fix |
-|---------|--------------|-----|
-| Empty response | Data flow broken | Check includeOtherFields |
-| "Credentials not found" | Missing n8n credentials | Configure in n8n UI |
-| Timeout errors | External API slow | Check CRM/Sheets status |
-| Wrong routing | If node misconfigured | Verify connections |
-
-### Debug Steps
-
-1. Check n8n execution history for the workflow
-2. Verify webhook URL is correct
-3. Test with curl: `curl -X POST https://your-n8n-host.example.com/webhook/client-initiation-data -H "Content-Type: application/json" -d '{"caller_id":"+15551234567","agent_id":"agent_xxxx_demo"}'`
-4. Check credential status in n8n
-
-## File Structure
-
-```
-voice_ai_agent_evals/
-├── ARCHITECTURE.md          # This file
-├── CLAUDE.md                # AI assistant instructions
-├── README.md                # Project overview
-├── supersystem/
-│   ├── client-initiation-data-prod.json  # Main workflow
-│   ├── tools/               # Tool configurations
-│   └── monitoring/          # Dashboards
-└── tests/                   # Test scripts
-```
-
-## Related Documentation
+## Related documentation
 
 - [ElevenLabs Conversational AI Docs](https://elevenlabs.io/docs/conversational-ai)
 - [n8n Workflow Documentation](https://docs.n8n.io)
-- [CRM API Reference](https://developers.crm.com/docs/api/v1)
+- [`docs/methodology.md`](docs/methodology.md) — eval scoring rubric
+- [`docs/tool-calling.md`](docs/tool-calling.md) — tool integration patterns
+- [`docs/webhook-security.md`](docs/webhook-security.md) — HMAC verification

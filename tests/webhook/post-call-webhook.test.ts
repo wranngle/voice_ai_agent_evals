@@ -7,8 +7,8 @@
 
 import {describe, it, expect} from 'vitest';
 
-const WEBHOOK_URL = 'https://your-n8n-host.example.com/webhook/post-call';
-const VALID_AGENT_ID = 'agent_xxxx_demo';
+const WEBHOOK_URL = process.env.POST_CALL_WEBHOOK_URL || 'https://your-n8n-host.example.com/webhook/post-call';
+const VALID_AGENT_ID = process.env.ELEVENLABS_AGENT_ID || 'agent_xxxx_demo';
 
 type WebhookResponse = {
   success?: boolean;
@@ -30,9 +30,9 @@ async function sendWebhook(payload: Record<string, unknown>): Promise<{status: n
     body: JSON.stringify(payload),
   });
 
-  const body = response.status === 200 || response.status === 400
+  const body: WebhookResponse = response.status === 200 || response.status === 400
     ? await response.json() as WebhookResponse
-    : {} as WebhookResponse;
+    : {};
 
   return {status: response.status, body};
 }

@@ -18,7 +18,7 @@ Use `tests/scenarios/_template/` as the starting point — it has the canonical 
 ```yaml
 id: <scenario-id>
 description: One-line description of what this scenario exercises.
-agent: example-agent
+agent: <your-agent-key>           # matches an entry in agent-registry.yaml
 fixture:
   transcript: transcript.json
   # OR audio: audio.wav
@@ -72,9 +72,9 @@ Register it in `lib/testing/assertions/index.ts`. The runner picks up new axes a
 ## 4. Run locally
 
 ```bash
-bun test --filter <scenario-id>            # just this one
-bun test --filter <scenario-id> --watch    # live re-run on edit
-bun test --mock                            # full suite, no live agent calls
+bun run test --project agent_evals -- <scenario-id>   # just this one
+bun run test:watch                                    # live re-run on edit
+bun run test:offline                                  # full suite, no live agent calls
 ```
 
 A passing run drops a sample output at `tests/runs/<scenario-id>-<timestamp>/`; a failing run also writes a `NOTE.md` postmortem stub.
@@ -92,7 +92,7 @@ CI runs the full suite on every push. Your scenario lands in the regression set 
 ## Anti-patterns that will get caught in review
 
 - **Non-deterministic fixtures.** Scenarios that call wall-clock `Date.now()` or rely on the live agent for fixture generation. Every fixture must be reproducible bit-for-bit.
-- **Synthesized "real" customer data.** Use synthetic phone numbers (`+15550100`–`+15550199`), synthetic names, synthetic agent IDs (`agent_xxxx_demo`). The harness will refuse a fixture matching the live `agent-registry.yaml` IDs.
+- **Real customer data in fixtures.** Use synthetic phone numbers (`+15550100`–`+15550199`), synthetic names, synthetic agent IDs (`agent_xxxx_demo`). The harness will refuse a fixture matching the live `agent-registry.yaml` IDs.
 - **Subjective axis without a judge.** Any `tone`, `empathy`, `clarity`-style axis must declare `judge_llm` in the scenario YAML. The harness rejects scenarios that ask the runner to "feel" something without an explicit judge.
 - **Missing thresholds.** A scenario without thresholds for at least one latency axis fails to register. The platform is voice; latency is not optional.
 

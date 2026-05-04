@@ -11,7 +11,7 @@ description: One-line description of what this scenario exercises.
 
 # Required. Agent under test. Must match an id in agent-registry.yaml.
 # Use a placeholder id like agent_xxxx_demo for fixtures committed to the repo.
-agent: example-agent
+agent: primary
 
 # Required. Either a transcript (deterministic, recommended) or audio (recorded).
 fixture:

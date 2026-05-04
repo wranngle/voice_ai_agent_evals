@@ -14,7 +14,7 @@ import {defaultCategories} from '../../lib/extraction/categories';
 
 const WORKFLOW_ID = '2Z4wykQk0x1Y67Sr';
 
-const sampleTranscript = `agent: Thank you for calling ExampleCo, this is Sarah. How can I help you today?
+const sampleTranscript = `agent: Thank you for calling, this is the assistant. How can I help you today?
 user: Hi, my name is John Martinez. I'm calling from Acme Corp, we're looking for a new automation platform.
 agent: Great to hear from you, John! What kind of automation are you looking for?
 user: We need something to handle our customer support calls. We have about 200 employees and get around 500 calls a day.
@@ -25,10 +25,10 @@ user: We need something up and running by Q2 this year. I'm the VP of Operations
 agent: Perfect. Let me schedule a demo for you. What's the best number to reach you?
 user: You can call me at 555-867-5309 or email me at john.martinez@acmecorp.com
 agent: Got it. I'll have our team reach out to schedule that demo. Anything else I can help with?
-user: No, that's all. Thanks Sarah!
+user: No, that's all. Thanks!
 agent: Thank you, John! Have a great day.`;
 
-const sampleAgentPrompt = 'You are Sarah, an AI SDR for ExampleCo. You qualify inbound sales leads using BANT methodology.';
+const sampleAgentPrompt = 'You are an AI SDR. You qualify inbound sales leads using BANT methodology.';
 
 function makeTestCase(overrides: Partial<TestCase> & {input: Record<string, unknown>; expected_output: Record<string, unknown>}): TestCase {
   return {

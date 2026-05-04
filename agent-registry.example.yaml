@@ -9,7 +9,7 @@
 
 agents:
   - id: agent_xxxx_demo
-    name: Sarah (placeholder)
+    name: PrimaryAgent (placeholder)
     role: inbound-voice-sdr
     voice: voice_xxxx_demo
     llm: gpt-4o-mini
@@ -42,7 +42,7 @@ agents:
               type: string
           required: [phone_number, message]
         response_timeout_secs: 8
-    prompt_ref: prompts/primary.md   # canonical agent prompt; tag prompt/primary/vN on commit
+    prompt_ref: prompts/primary.md   # your prompt source file; tag prompt/<name>/vN on commit
     deployment:
       env: example
       status: active

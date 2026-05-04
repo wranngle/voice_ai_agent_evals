@@ -2,7 +2,7 @@
 # Result shape committed at tests/runs/2026-04-pass-lookup-record-greeting/result.json
 id: lookup-record-greeting
 description: Agent greets a known caller and routes via lookup_record tool with valid args.
-agent: example-agent
+agent: primary
 
 fixture:
   transcript: transcript.json

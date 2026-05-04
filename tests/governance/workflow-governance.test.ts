@@ -18,9 +18,9 @@ function getAllWorkflowFiles(dir: string): string[] {
     for (const file of list) {
       const filePath = path.join(dir, file);
       const stat = fs.statSync(filePath);
-      if (stat && stat.isDirectory()) {
+      if (stat?.isDirectory()) {
         if (!file.startsWith('.') && !SKIP_DIRS.has(file)) {
-          results = results.concat(getAllWorkflowFiles(filePath));
+          results = [...results, ...getAllWorkflowFiles(filePath)];
         }
       } else if (file.endsWith('.json')) {
         try {

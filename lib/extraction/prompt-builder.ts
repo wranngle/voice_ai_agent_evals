@@ -30,7 +30,11 @@ function buildComponentC(fields: ExtractionField[]): string {
         break;
       }
 
-      default: {schema[f.field_id] = 'string | null';
+      case 'string':
+      case 'phone':
+      case 'email': {
+        schema[f.field_id] = 'string | null';
+        break;
       }
     }
   }

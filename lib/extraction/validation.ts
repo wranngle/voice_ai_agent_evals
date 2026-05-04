@@ -73,8 +73,7 @@ export function validateValue(field: ExtractionField, value: unknown): boolean {
 
     case 'string': {return typeof value === 'string' && value.length > 0;
     }
-
-    default: {return true;
-    }
   }
+
+  return true;
 }

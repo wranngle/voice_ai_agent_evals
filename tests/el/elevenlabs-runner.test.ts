@@ -197,7 +197,7 @@ describe('ElevenLabs Runner', () => {
         JSON.stringify({
           simulated_conversation: [
             {role: 'user', message: 'Hello, I need help'},
-            {role: 'agent', message: 'Hi there! Welcome to ExampleCo. How can I help you today?'},
+            {role: 'agent', message: 'Hi there! Welcome. How can I help you today?'},
           ],
           analysis: {
             overall_passed: true,

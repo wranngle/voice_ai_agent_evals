@@ -7,8 +7,8 @@
 import {McpRunner} from '../lib/testing/runners/mcp-runner';
 import type {TestCase} from '../lib/testing/types';
 
-const POST_CALL_WORKFLOW_ID = 'GZsLwzpsTvl9jIEs';
-const SARAH_AGENT_ID = 'agent_xxxx_demo';
+const POST_CALL_WORKFLOW_ID = process.env.N8N_POST_CALL_WORKFLOW_ID ?? 'workflow_xxxx_demo';
+const AGENT_ID = process.env.ELEVENLABS_AGENT_ID ?? 'agent_xxxx_demo';
 
 async function main() {
   console.log('🔌 Testing MCP Runner Against Real API\n');
@@ -37,7 +37,7 @@ async function main() {
       workflow_id: POST_CALL_WORKFLOW_ID,
       trigger_type: 'webhook',
       payload: {
-        agent_id: SARAH_AGENT_ID,
+        agent_id: AGENT_ID,
         conversation_id: 'mcp-test-001',
         call_status: 'completed',
         call_duration_seconds: 60,
@@ -124,7 +124,7 @@ async function main() {
   process.exit(result1.status === 'passed' ? 0 : 1);
 }
 
-main().catch(error => {
+main().catch((error: unknown) => {
   console.error('Fatal error:', error);
   process.exit(1);
 });

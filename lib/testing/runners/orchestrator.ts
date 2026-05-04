@@ -155,7 +155,10 @@ export class TestOrchestrator {
             case 'skipped': {skipped++;
               break;
             }
-					// No default
+
+            case 'pending': {
+              break;
+            }
           }
 
           totalLatency += result.latency_ms;
@@ -209,7 +212,10 @@ export class TestOrchestrator {
           case 'skipped': {skipped++;
             break;
           }
-				// No default
+
+          case 'pending': {
+            break;
+          }
         }
 
         totalLatency += result.latency_ms;

@@ -1,11 +1,13 @@
 /**
  * SMS Tool Webhook Test Suite
  *
- * Tests the Sarah SMS Tool - BULLETPROOF v3.0 webhook.
- * Workflow: send-sms-v3 (n8n ID: uFFwYcr7XgdRCvdW)
+ * Generic test suite for an SMS tool webhook. Set SMS_WEBHOOK_URL to your
+ * own webhook endpoint and SMS_WEBHOOK_SECRET to its shared secret.
  *
- * NOTE: Valid phone tests actually send SMS via Twilio.
- * Use +15005550006 (Twilio test "unroutable" number) for safe tests.
+ * NOTE: Valid phone tests will actually send SMS via your configured provider.
+ * Use +15005550006 (Twilio test "unroutable" number) or your provider's
+ * equivalent test number for safe runs.
+ *
  * Run with: vitest tests/webhook/sms-tool-webhook.test.ts
  *
  * @tags live-api
@@ -15,7 +17,7 @@ import {describe, test, expect} from 'vitest';
 
 const WEBHOOK_URL
   = process.env.SMS_WEBHOOK_URL
-    || 'https://your-n8n-host.example.com/webhook/send-sms-v3';
+    || 'https://your-n8n-host.example.com/webhook/send-sms';
 const WEBHOOK_SECRET = process.env.SMS_WEBHOOK_SECRET || 'test-secret-placeholder';
 
 type SmsRequest = {

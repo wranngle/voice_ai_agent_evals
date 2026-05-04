@@ -53,23 +53,23 @@ The harness versions the **full `agent.prompt` shape**, not just the prose:
 # Versioned per scenario commit:
 agent:
   prompt:
-    prompt: <markdown body>           # the canonical agent prompt at prompts/primary.md
+    prompt: <markdown body>           # your prompt source file (kept under prompts/)
     llm: <model id>                   # e.g. gpt-4o-mini
     temperature: <float>
     tools: <tool array>               # full server-side tool definitions
     knowledge_base: <kb attachments>  # which KBs are mounted
 ```
 
-Every change to `prompts/primary.md` is tagged `prompt/primary/v<N>` on commit. Rollback path:
+Recommended convention: tag every prompt change `prompt/<name>/v<N>` on commit so rollbacks are addressable:
 
 ```bash
-git checkout prompt/primary/v<N-1> -- prompts/primary.md
-# then redeploy via scripts/stepwise-agent-update.js
+git checkout prompt/<name>/v<N-1> -- prompts/<name>.md
+# then redeploy via your own deploy script
 ```
 
 Tool-schema changes get the same treatment via `agent-registry.yaml` (gitignored; example shape in `agent-registry.example.yaml`).
 
-The eval harness reads the agent state at run-time, not from a pinned config file, so a "prompt promotion" PR that changes `prompts/primary.md` automatically re-runs the whole regression set against the new prompt before merge.
+The eval harness reads the agent state at run-time, not from a pinned config file, so a "prompt promotion" PR that changes a prompt file automatically re-runs the whole regression set against the new prompt before merge.
 
 ## 4. Scoring rubric
 
@@ -107,7 +107,7 @@ Each axis has a YAML key, a fixture, and an assertion in `lib/testing/`. See `te
 
 ## 6. Tool-call evaluation
 
-The agent is a phone-based agent (Twilio inbound), so all tools are **server-side** — the LLM emits a tool call and the n8n workflow handler responds. Client-side tools don't apply here; that distinction matters because the eval surface is different (we assert on webhook delivery + response shape, not on the LLM client's local execution).
+Phone-based ElevenLabs agents (Twilio inbound) are server-side by construction — the LLM emits a tool call and a webhook handler (n8n or any other receiver) responds. Client-side tools don't apply here; that distinction matters because the eval surface is different (we assert on webhook delivery + response shape, not on a client's local execution).
 
 The harness validates:
 

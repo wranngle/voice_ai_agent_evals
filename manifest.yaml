@@ -2,20 +2,24 @@
 
 name: voice_ai_agent_evals
 description: >
-  Voice-based AI agent workflows combining speech synthesis,
-  voice cloning, telephony, and conversational AI capabilities.
+  Bulk evaluation harness for ElevenLabs Conversational AI voice agents.
+  Deterministic scenarios, latency budgets, prompt versioning via git tags.
 
-
+components:
   transcript-field-extractor:
-    status: deployed
-    description: Extracts structured data from ElevenLabs voice transcripts using Gemini bulk prompts
+    status: example
+    description: Extracts structured data from ElevenLabs voice transcripts using bulk LLM prompts.
     integrations:
       - elevenlabs
-      - google_gemini
     capabilities:
       - transcript-extraction
       - llm-data-parsing
-    n8n_nodes_required:
-      http_request:
-        - elevenlabs-api
-        - gemini-api
+
+  voice-agent-tester:
+    status: example
+    description: Runs scenario YAMLs against an ElevenLabs agent, scores against latency + voice axes.
+    integrations:
+      - elevenlabs
+    capabilities:
+      - regression-evals
+      - latency-budget-enforcement

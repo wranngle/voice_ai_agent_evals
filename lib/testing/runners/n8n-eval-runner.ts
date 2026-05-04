@@ -278,7 +278,7 @@ export class N8nEvalRunner implements TestRunner {
     result._http_status = response.status;
 
     // Return with direct output (no wrapping)
-    return {
+    const webhookResult: N8nExecutionResult & {_webhookResponse: Record<string, unknown>} = {
       status: response.ok ? 'success' : 'error',
       finished: true,
       data: {
@@ -287,9 +287,9 @@ export class N8nEvalRunner implements TestRunner {
           lastNodeExecuted: 'webhook_response',
         },
       },
-      // Store direct result for extraction
       _webhookResponse: result,
-    } as N8nExecutionResult & {_webhookResponse: Record<string, unknown>};
+    };
+    return webhookResult;
   }
 
   /**

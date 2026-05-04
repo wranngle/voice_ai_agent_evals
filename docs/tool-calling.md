@@ -9,7 +9,7 @@ ElevenLabs supports two tool-execution models:
 - **Server-side** — the agent emits a tool call; an HTTP endpoint (your server) handles it; the response is fed back to the LLM. Used for phone-based agents because the call leg is held server-side anyway.
 - **Client-side** — the agent emits a tool call to the SDK running in the user's browser/app, which executes locally. Used for embedded conversational widgets where the user has local context (clipboard, current page, etc.).
 
-**The agent is server-side.** Phone-based, no browser context. Every tool in this repo is implemented as an HTTP webhook hit by ElevenLabs and answered by `example/n8n` workflows. The harness refuses to evaluate a "client-side" scenario against a server-side tool definition; the runner asserts on **webhook delivery + response shape**, not local execution.
+**Phone agents are server-side by construction** — no browser context. Every tool the harness ships examples for is implemented as an HTTP webhook hit by ElevenLabs and answered by your own backend (n8n, custom HTTP service, etc.). The harness refuses to evaluate a "client-side" scenario against a server-side tool definition; the runner asserts on **webhook delivery + response shape**, not local execution.
 
 ## Tool schema in `agent.prompt.tools`
 
@@ -31,7 +31,7 @@ Each tool is declared as:
   response_timeout_secs: <int>        # ElevenLabs gives up after this; harness asserts <=
 ```
 
-The harness reads this directly from the live agent (via `mcp__elevenlabs-mcp__get_agent`) at scenario start; the tool definitions in `agent-registry.example.yaml` are illustrative only. **Production tool schemas are NOT committed** — they reveal data-model and integration architecture.
+The harness reads tool definitions directly from the live agent (via the ElevenLabs API) at scenario start; the tool definitions in `agent-registry.example.yaml` are illustrative only. **Production tool schemas are NOT committed** — they reveal data-model and integration architecture.
 
 ## Knowledge base vs. tool boundary
 
@@ -44,7 +44,7 @@ When the agent needs information, the choice is:
 | The agent should cite the source verbatim | The agent should compute / look up by id |
 | Latency budget allows the embedding lookup | The lookup needs to hit a CRM/ERP/DB |
 
-Concrete: Agent uses a KB attachment (`kb_xxxx_demo_locations` in the example) for the Example garage location list — the data changes once a quarter and the agent benefits from quoting it precisely. She uses an `lookup_record` server-side tool for caller account lookup — that's per-call data behind a CRM API.
+Concrete example: an agent might use a KB attachment (`kb_xxxx_demo_locations` in the placeholder shape) for a fixed location list — data that changes once a quarter and benefits from being quoted precisely. The same agent uses a `lookup_record` server-side tool for per-caller account lookup — per-call data behind a CRM API.
 
 A scenario that asks the agent to use the wrong source (KB-shaped question routed to a tool, or vice versa) is a **routing-axis failure**, scored under `tool_routing` in the rubric.
 
@@ -98,6 +98,6 @@ This is the only tool walked through end-to-end; the same template applies to `s
 - The production tool URLs (live in `${ENV_VAR}` references only)
 - The shared webhook secret (lives in `${N8N_WEBHOOK_SECRET}`)
 - The Twilio Account SID (live; placeholder `AC00000000000000000000000000000000` in example shapes)
-- Agent's full proprietary trades-domain objection-handling sections of the prompt (redacted from `prompts/primary.md`)
+- Operator-specific prompt content (objection handling, scripts, customer data) — bring your own under `prompts/`
 
 These are operational secrets, not pattern documentation.

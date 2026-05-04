@@ -1,4 +1,4 @@
-# Voice AI Agents - Git Ignore
+# voice_ai_agent_evals - Git Ignore
 
 # ===================
 # CREDENTIALS & SECRETS
@@ -11,13 +11,12 @@ secrets*.json
 *.key
 *.pem
 
-# Real ElevenLabs/Twilio agent registry — placeholder version is the only public form
+# Real ElevenLabs/Twilio agent registry — operator-local; placeholder version is the only public form
 agent-registry.yaml
 !agent-registry.example.yaml
 
-# n8n cloud instance dumps — never re-commit (these had verified live keys)
+# n8n cloud instance dumps — never re-commit (operator-local)
 workflows_list.json
-reconciliation-data/
 
 # OpenSpec working state (proposals churn — keep specs/ only)
 openspec/changes/
@@ -115,17 +114,13 @@ _bmad-output/
 .husky/_/
 
 # ===================
-# ARCHIVED FILES
-# ===================
-# old/ directory contains archived cloud-mirroring files (committed for reference)
-.absorbed/
-# Local workflow JSON files are NOT source of truth - n8n server is
-.archived-workflows/
-
-# ===================
 # WORKING DIRECTORIES
 # ===================
 temp/
+old/
+exported_conversations/
+.absorbed/
+.archived-workflows/
 .test-data/
 .test-data-*/
 allure-results/

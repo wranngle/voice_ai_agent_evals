@@ -131,6 +131,7 @@ export class WebhookRunner implements TestRunner {
 
     if (config.url) {
       try {
+        // eslint-disable-next-line no-new
         new URL(config.url);
       } catch {
         errors.push(`Invalid URL: ${config.url}`);

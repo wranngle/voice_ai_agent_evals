@@ -4,9 +4,12 @@ import type {ConversationRepository} from '../../lib/agent_evals/repo';
 import type {Conversation} from '../../lib/agent_evals/types';
 import {createFixedClock} from '../../lib/agent_evals/providers/clock';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+const noop = (): void => {};
+
 const silentLogger = {
-  info(): void {},
-  warn(): void {},
+  info: noop,
+  warn: noop,
 };
 
 function repo(conversations: Conversation[]): ConversationRepository {

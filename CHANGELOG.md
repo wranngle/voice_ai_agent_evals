@@ -55,7 +55,7 @@ Webhook Trigger (POST to workflow runtime)
     |
 Parallel Lookup (300ms timeout each)
     |---- Primary CRM API
-    |---- Google Sheets API
+    |---- Fallback datasource API
     |
 Field-Level Merge + Transform
     |
