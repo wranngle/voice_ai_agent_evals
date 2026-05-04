@@ -10,8 +10,8 @@
 
 import {
   existsSync, readFileSync, writeFileSync, mkdirSync, rmSync,
-} from 'fs';
-import {join, resolve, dirname} from 'path';
+} from 'node:fs';
+import {join, resolve, dirname} from 'node:path';
 import {
   describe, it, expect, beforeEach, afterEach,
 } from 'vitest';

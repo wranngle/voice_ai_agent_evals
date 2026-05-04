@@ -19,10 +19,7 @@ module.exports = [
       'unicorn/prevent-abbreviations': 'off',
       'unicorn/no-null': 'off',
       'unicorn/prefer-module': 'off',
-      'unicorn/prefer-node-protocol': 'off',
-      'unicorn/no-anonymous-default-export': 'off',
       'unicorn/text-encoding-identifier-case': 'off', // fs API accepts utf-8 and utf8
-      'unicorn/no-array-for-each': 'off',
       'unicorn/prefer-structured-clone': 'off',
       'unicorn/prefer-single-call': 'off',
       'unicorn/no-nested-ternary': 'off',

@@ -67,7 +67,7 @@ export const GovernanceValidator = {
 
     // --- RULE 4: NODE RULES ---
     if (workflow.nodes) {
-      workflow.nodes.forEach((node: any) => {
+      for (const node of workflow.nodes as any[]) {
         const isTrigger = node.type.includes('trigger') || node.type.includes('webhook');
 
         if (isTrigger) {
@@ -85,26 +85,12 @@ export const GovernanceValidator = {
         if (node.type === 'n8n-nodes-base.if') {
           errors.push(`Node '${node.name}': Must not be an IF node (use Switch)`);
         }
-
-        // Code Node Checks
-        if (node.type === 'n8n-nodes-base.code') {
-          const code = node.parameters?.jsCode || '';
-          // Simple heuristic for insecure access
-          if (code.includes('$json.') && !code.includes('$json.body') && !code.includes('$json.json')) {
-            // We won't block strictly on this regex as it can have false positives,
-            // but we'll flag obvious ones if needed. For now, adhering to the previous test logic:
-            // The previous test logged it but didn't strictly fail unless it was a specific assert.
-            // We'll leave it as a warning or omit strict failure for now to match exact previous behavior,
-            // or enforce strictness:
-            // errors.push(`Node '${node.name}': Code may use insecure $json.property access`);
-          }
-        }
-      });
+      }
     }
 
     // --- RULE 5: WEBHOOK STRUCTURE ---
     if (workflow.nodes) {
-      workflow.nodes.forEach((node: any) => {
+      for (const node of workflow.nodes as any[]) {
         if (node.type.includes('webhook')) {
           const pathParameter = node.parameters?.path;
           if (pathParameter) {
@@ -117,7 +103,7 @@ export const GovernanceValidator = {
             }
           }
         }
-      });
+      }
     }
 
     // --- RULE 6: RESEARCH PREACTION ---
