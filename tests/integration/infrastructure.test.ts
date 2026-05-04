@@ -326,8 +326,8 @@ describe('Test Isolation Enforcement', () => {
     'tests/integration/local-storage.test.ts',
     'tests/integration/orchestrator.test.ts',
     'tests/integration/cli.test.ts',
+    'tests/integration/runners.test.ts',
     'tests/ingestion/ingest.test.ts',
-    'tests/runners.test.ts',
   ];
 
   for (const file of testFiles) {
