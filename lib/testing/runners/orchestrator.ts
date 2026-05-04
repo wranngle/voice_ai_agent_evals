@@ -130,10 +130,15 @@ export class TestOrchestrator {
       const concurrency = options.concurrency || 5;
       const chunks = this.chunkArray(testCases, concurrency);
 
+      // Promise.all preserves order, so chunkResults[i] corresponds to
+      // chunk[i]. Iterate the pair directly — avoids the O(n²)
+      // testCases.find(t => t.test_id === result.test_id) the previous
+      // shape required (and stays robust to non-unique test_ids).
       for (const chunk of chunks) {
         const chunkResults = await Promise.all(chunk.map(async tc => this.executeTest(tc, executionId, options)));
 
-        for (const result of chunkResults) {
+        for (const [i, result] of chunkResults.entries()) {
+          const testCase = chunk[i];
           results.push(result);
 
           switch (result.status) {
@@ -161,19 +166,17 @@ export class TestOrchestrator {
           totalLatency += result.latency_ms;
 
           if (!slowestTest || result.latency_ms > slowestTest.latency_ms) {
-            const tc = testCases.find(t => t.test_id === result.test_id);
             slowestTest = {
               test_id: result.test_id,
-              name: tc?.name || result.test_id,
+              name: testCase.name,
               latency_ms: result.latency_ms,
             };
           }
 
           if (result.status === 'failed' || result.status === 'error') {
-            const tc = testCases.find(t => t.test_id === result.test_id);
             failures.push({
               test_id: result.test_id,
-              name: tc?.name || result.test_id,
+              name: testCase.name,
               error_message: result.error_message || 'Unknown error',
             });
 
