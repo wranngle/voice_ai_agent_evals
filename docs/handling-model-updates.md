@@ -56,9 +56,9 @@ Three outcomes. Pick one before any production deploy:
 |---|---|
 | **Latency budgets blown across the board** (e.g. p95 TTFB +200ms) | **Rollback**. Pin the old model in the agent config until the new model is mature. |
 | **One axis regressed by a fixable amount** (e.g. agent over-uses filler words) | **Re-tune the prompt**. Add explicit instructions, re-run the harness, commit a `prompt/<name>/v<N+1>`. |
-| **A few legacy scenarios fail because the new model is genuinely better** (e.g. it routes to KB instead of tool, which was actually correct) | **Accept**. Update those scenarios' `success_criteria`, note the rationale in `CHANGELOG.md`. |
+| **A few legacy scenarios fail because the new model is genuinely better** (e.g. it routes to KB instead of tool, which was actually correct) | **Accept**. Update those scenarios' `success_criteria`, note the rationale in the PR description and the affected `tests/runs/<id>/NOTE.md`. |
 
-Document the decision in `CHANGELOG.md` — every reader of this repo should be able to see what the new-model decision was and why.
+Document the decision in the PR description and tag-message of the `prompt/<name>/v<N+1>` rollout — every reader should be able to retrace the decision.
 
 ### 5. Promote (or pin)
 
