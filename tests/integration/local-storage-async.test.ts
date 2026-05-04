@@ -1,10 +1,10 @@
 /**
- * Data Table API Test Suite
+ * Local Storage — Async API Test Suite
  *
  * Tests the local storage API for CRUD operations.
  * Validates the testing framework data layer.
  *
- * Run with: vitest tests/data-table-api.test.ts
+ * Run with: vitest tests/integration/local-storage-async.test.ts
  */
 
 import {
@@ -37,9 +37,9 @@ import {
   type TestCase,
   type TestResult,
   type TestRun,
-} from '../lib/testing';
+} from '../../lib/testing';
 
-describe('Data Table API', () => {
+describe('Local Storage — Async API', () => {
   // Clear all data before running tests
   beforeAll(() => {
     clearAllDataSync();

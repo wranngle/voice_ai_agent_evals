@@ -40,7 +40,7 @@ const offlineProjects = [
     test: {
       name: 'integration',
       root: '.',
-      include: ['tests/integration/**/*.test.ts', 'tests/runners.test.ts', 'tests/data-table-api.test.ts'],
+      include: ['tests/integration/**/*.test.ts', 'tests/runners.test.ts'],
       environment: 'node' as const,
       testTimeout: 60_000,
     },
