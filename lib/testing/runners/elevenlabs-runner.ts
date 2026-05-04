@@ -15,6 +15,7 @@ import type {
   ElevenLabsTestConfig,
   AssertionResult,
 } from './types';
+import {missingApiKeyResult} from './missing-config';
 
 const API_BASE = 'https://api.elevenlabs.io/v1';
 const DEFAULT_TIMEOUT = 120_000; // 120s for voice agent tests (they can take a while)
@@ -112,16 +113,8 @@ export class ElevenLabsRunner implements TestRunner {
     const startTime = Date.now();
     const assertions: AssertionResult[] = [];
 
-    // Check API key
     if (!this.apiKey) {
-      return {
-        status: 'error',
-        actual_output: {error: 'ELEVENLABS_API_KEY not configured'},
-        latency_ms: Date.now() - startTime,
-        error_message: 'ELEVENLABS_API_KEY environment variable or constructor parameter required',
-        assertions_passed: 0,
-        assertions_failed: 0,
-      };
+      return missingApiKeyResult('ELEVENLABS_API_KEY', startTime);
     }
 
     try {

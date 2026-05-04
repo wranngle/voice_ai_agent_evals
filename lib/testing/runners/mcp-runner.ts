@@ -18,6 +18,7 @@ import type {
   McpTestConfig,
   AssertionResult,
 } from './types';
+import {missingApiKeyResult} from './missing-config';
 
 const DEFAULT_TIMEOUT = 120_000; // 2 minutes
 
@@ -61,16 +62,8 @@ export class McpRunner implements TestRunner {
     const startTime = Date.now();
     const assertions: AssertionResult[] = [];
 
-    // Check API key
     if (!this.apiKey) {
-      return {
-        status: 'error',
-        actual_output: {error: 'N8N_API_KEY not configured'},
-        latency_ms: Date.now() - startTime,
-        error_message: 'N8N_API_KEY environment variable or constructor parameter required',
-        assertions_passed: 0,
-        assertions_failed: 0,
-      };
+      return missingApiKeyResult('N8N_API_KEY', startTime);
     }
 
     try {
