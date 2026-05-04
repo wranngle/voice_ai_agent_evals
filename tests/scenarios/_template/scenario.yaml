@@ -1,6 +1,7 @@
 # Scenario template — copy this directory to tests/scenarios/<scenario-id>/
-# and fill in or remove fields. Every key has a default in
-# lib/testing/scenario-defaults.ts; only override what you need.
+# and fill in or remove fields. The scoring engine that reads these axes is
+# on the roadmap (see docs/methodology.md "What's not implemented yet"); the
+# YAML below documents the canonical shape and survives the engine landing.
 
 # Required. Kebab-case, descriptive. Must match the directory name.
 # Examples: barge-in-mid-question, tool-call-crm-503, low-asr-confidence-zip-code
@@ -19,8 +20,8 @@ fixture:
   # OR:
   # audio: audio.wav
 
-# Required. Axes the harness will score. Each name must resolve to a built-in
-# axis or a custom assertion registered in lib/testing/assertions/index.ts.
+# Required. Axes the harness will score. Each name is a convention the
+# scoring engine will dispatch on once landed.
 axes:
   - name: barge_in_recovery
   - name: tool_call_schema

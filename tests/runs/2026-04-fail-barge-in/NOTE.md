@@ -39,4 +39,6 @@ Path 2 is the pragmatic answer.
 
 - Scenario YAML: `tests/scenarios/barge-in-mid-question/scenario.yaml`
 - Result JSON: `result.json` (this directory)
-- Harness assertion: `lib/testing/assertions/barge-in-recovery.ts`
+- Harness assertion: TBD — the per-axis scoring engine that would automate
+  this verdict is still on the roadmap (see `docs/methodology.md`); this
+  postmortem was hand-authored to document the intended failure shape.
