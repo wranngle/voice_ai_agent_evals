@@ -116,8 +116,8 @@ session:
 # =============================================================================
 recommended_voices:
   # Professional female voices
-  example-agent:
-    voice_id: "EXAVITQu4vr4xnSDxMaL"  # Default Sarah
+  sarah:
+    voice_id: "EXAVITQu4vr4xnSDxMaL"  # Default Sarah voice in ElevenLabs catalog
     description: "Warm, professional American female"
     use_cases:
       - "Customer service"
