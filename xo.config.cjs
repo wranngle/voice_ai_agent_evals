@@ -20,9 +20,6 @@ module.exports = [
       'unicorn/no-null': 'off',
       'unicorn/prefer-module': 'off',
       'unicorn/text-encoding-identifier-case': 'off', // fs API accepts utf-8 and utf8
-      'unicorn/prefer-structured-clone': 'off',
-      'unicorn/prefer-single-call': 'off',
-      'unicorn/no-nested-ternary': 'off',
       camelcase: 'off',
       '@typescript-eslint/consistent-type-definitions': 'off',
       '@typescript-eslint/naming-convention': 'off',
@@ -37,9 +34,6 @@ module.exports = [
       '@typescript-eslint/restrict-template-expressions': 'off',
       '@typescript-eslint/restrict-plus-operands': 'off',
       '@typescript-eslint/no-base-to-string': 'off',
-      // ESLint type-narrowing disagrees with tsc here — removing the cast
-      // breaks `tsc --noEmit` (string vs literal-union widening).
-      '@typescript-eslint/no-unnecessary-type-assertion': 'off',
       // -- Node features: project pins Node 20+ via bun-types, so the n/* rules
       //    that complain about "unsupported features" mis-trigger.
       'n/prefer-global/process': 'off',

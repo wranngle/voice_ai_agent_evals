@@ -503,14 +503,13 @@ function printReport(report: {
 
   if (report.results.length > 0) {
     console.log(`\n${C.bold}Results:${C.reset}`);
+    const statusIcons: Record<string, string> = {
+      passed: C.green + '✓',
+      failed: C.red + '✗',
+      error: C.yellow + '⚠',
+    };
     for (const result of report.results) {
-      const statusIcon = result.status === 'passed'
-        ? C.green + '✓'
-        : result.status === 'failed'
-          ? C.red + '✗'
-          : result.status === 'error'
-            ? C.yellow + '⚠'
-            : C.dim + '○';
+      const statusIcon = statusIcons[result.status] ?? C.dim + '○';
       console.log(`  ${statusIcon}${C.reset} ${result.test_id} (${result.latency_ms}ms)`);
     }
   }
