@@ -1,16 +1,29 @@
 #!/usr/bin/env bun
 /**
- * Monitor n8n workflow executions
- * Usage: bun scripts/monitor-executions.ts [workflow_id] [limit]
+ * Monitor n8n workflow executions.
+ *
+ * Usage:
+ *   bun scripts/monitor-executions.ts <workflow_id> [limit]
+ *
+ * Required env: N8N_API_KEY, N8N_API_URL.
+ *
+ * Resolves the workflow id from (in order): argv[2], env
+ * N8N_POST_CALL_WORKFLOW_ID, or fails with usage.
  */
 
-const WORKFLOW_ID = process.argv[2] || '81W6PAGZfSi81ZQ9';
+const WORKFLOW_ID = process.argv[2] || process.env.N8N_POST_CALL_WORKFLOW_ID;
 const LIMIT = Number.parseInt(process.argv[3] || '10', 10);
 const API_KEY = process.env.N8N_API_KEY || '';
 const API_URL = process.env.N8N_API_URL || 'https://your-n8n-host.example.com';
 
 if (!API_KEY) {
   console.error('Error: N8N_API_KEY environment variable not set');
+  process.exit(1);
+}
+
+if (!WORKFLOW_ID) {
+  console.error('Error: workflow id required as argv[2] or N8N_POST_CALL_WORKFLOW_ID env var');
+  console.error('Usage: bun scripts/monitor-executions.ts <workflow_id> [limit]');
   process.exit(1);
 }
 
