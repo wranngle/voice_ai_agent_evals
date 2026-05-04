@@ -298,7 +298,10 @@ export class McpRunner implements TestRunner {
   }
 
   /**
-   * Poll for execution completion
+   * Poll for execution completion. Each per-poll fetch is bounded by the
+   * remaining time before the overall deadline so a hung n8n response
+   * can't block the loop indefinitely (the outer `Date.now() - startTime
+   * < timeout` check only fires BETWEEN iterations).
    */
   private async pollForCompletion(
     executionId: string,
@@ -306,12 +309,14 @@ export class McpRunner implements TestRunner {
   ): Promise<Record<string, unknown>> {
     const startTime = Date.now();
     const pollInterval = 1000;
+    const url = `${this.apiUrl}/executions/${executionId}`;
 
     while (Date.now() - startTime < timeout) {
-      const url = `${this.apiUrl}/executions/${executionId}`;
+      const remaining = timeout - (Date.now() - startTime);
 
       const response = await fetch(url, {
         headers: {'X-N8N-API-KEY': this.apiKey},
+        signal: AbortSignal.timeout(remaining),
       });
 
       if (!response.ok) {
