@@ -30,14 +30,14 @@
     "lint:fix": "xo --fix"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "4.0.18",
-    "@vitest/ui": "4.0.18",
-    "allure-js-commons": "3.4.5",
-    "allure-vitest": "3.4.5",
-    "arktype": "2.1.29",
-    "bun-types": "1.3.6",
+    "@vitest/coverage-v8": "4.1.5",
+    "@vitest/ui": "4.1.5",
+    "allure-js-commons": "3.7.1",
+    "allure-vitest": "3.7.1",
+    "arktype": "2.2.0",
+    "bun-types": "1.3.13",
     "typescript": "5.9.3",
-    "vitest": "4.0.18",
+    "vitest": "4.1.5",
     "xo": "1.2.3"
   }
 }
