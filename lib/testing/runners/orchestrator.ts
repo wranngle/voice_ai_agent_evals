@@ -135,9 +135,6 @@ export class TestOrchestrator {
 
         for (const result of chunkResults) {
           results.push(result);
-          this.updateStats(result, {
-            passed, failed, errors, skipped, totalLatency,
-          });
 
           switch (result.status) {
             case 'passed': {passed++;
@@ -327,13 +324,6 @@ export class TestOrchestrator {
     });
 
     return result.data;
-  }
-
-  private updateStats(
-    _result: TestResult,
-    _stats: {passed: number; failed: number; errors: number; skipped: number; totalLatency: number},
-  ): void {
-    // Stats are updated in the main loop
   }
 
   private chunkArray<T>(array: T[], size: number): T[][] {
