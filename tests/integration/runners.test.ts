@@ -7,7 +7,7 @@
 import {mkdirSync, rmSync} from 'node:fs';
 import {join} from 'node:path';
 import {
-  describe, expect, test, beforeAll, afterAll, beforeEach,
+  describe, expect, test, beforeAll, afterAll, beforeEach, afterEach, vi,
 } from 'vitest';
 import {
   WebhookRunner,
@@ -20,6 +20,21 @@ import {
 } from '../../lib/testing';
 
 const UNIQUE_STORAGE_DIR = join(process.cwd(), '.test-data-runners-' + process.pid);
+
+/**
+ * Mock globalThis.fetch with a JSON response. Use `times` for tests that
+ * run multiple test cases through the orchestrator (each test case = one
+ * fetch); default times=1 covers single-runner-call tests.
+ */
+function mockFetch(status: number, body: unknown, times = 1) {
+  const spy = vi.spyOn(globalThis, 'fetch');
+  for (let i = 0; i < times; i++) {
+    spy.mockResolvedValueOnce(new Response(JSON.stringify(body), {
+      status,
+      headers: {'Content-Type': 'application/json'},
+    }));
+  }
+}
 
 describe('Test Runners', () => {
   beforeAll(() => {
@@ -111,19 +126,19 @@ describe('Test Runners', () => {
       expect(validation.errors[0]).toMatch(/Invalid URL/);
     });
 
-    test.skipIf(process.env.CI)('should execute GET request successfully', async () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    test('should execute GET request successfully', async () => {
+      mockFetch(200, {ok: true});
       const testCase: TestCase = {
         test_id: 'TC-TEST-004',
         type: 'webhook',
         name: 'GET request test',
-        description: 'Test GET request to httpbin',
-        input: {
-          url: 'https://httpbin.org/get',
-          method: 'GET',
-        },
-        expected_output: {
-          status: 200,
-        },
+        description: 'Test GET request',
+        input: {url: 'https://example.com/get', method: 'GET'},
+        expected_output: {status: 200},
         tags: [],
         enabled: true,
         created_at: new Date().toISOString(),
@@ -134,25 +149,24 @@ describe('Test Runners', () => {
 
       expect(result.status).toBe('passed');
       expect(result.actual_output.status).toBe(200);
-      expect(result.latency_ms).toBeGreaterThan(0);
+      expect(result.latency_ms).toBeGreaterThanOrEqual(0);
       expect(result.assertions_passed).toBeGreaterThan(0);
       expect(result.assertions_failed).toBe(0);
     });
 
-    test.skipIf(process.env.CI)('should execute POST request successfully', async () => {
+    test('should execute POST request successfully', async () => {
+      mockFetch(200, {ok: true});
       const testCase: TestCase = {
         test_id: 'TC-TEST-005',
         type: 'webhook',
         name: 'POST request test',
-        description: 'Test POST request to httpbin',
+        description: 'Test POST request',
         input: {
-          url: 'https://httpbin.org/post',
+          url: 'https://example.com/post',
           method: 'POST',
           body: {test: 'data', number: 42},
         },
-        expected_output: {
-          status: 200,
-        },
+        expected_output: {status: 200},
         tags: [],
         enabled: true,
         created_at: new Date().toISOString(),
@@ -165,19 +179,15 @@ describe('Test Runners', () => {
       expect(result.actual_output.status).toBe(200);
     });
 
-    test.skipIf(process.env.CI)('should fail when status does not match', async () => {
+    test('should fail when status does not match', async () => {
+      mockFetch(200, {ok: true});
       const testCase: TestCase = {
         test_id: 'TC-TEST-006',
         type: 'webhook',
         name: 'Status mismatch test',
         description: 'Test expecting wrong status',
-        input: {
-          url: 'https://httpbin.org/get',
-          method: 'GET',
-        },
-        expected_output: {
-          status: 404, // Wrong expectation
-        },
+        input: {url: 'https://example.com/get', method: 'GET'},
+        expected_output: {status: 404},
         tags: [],
         enabled: true,
         created_at: new Date().toISOString(),
@@ -191,45 +201,15 @@ describe('Test Runners', () => {
       expect(result.error_message).toMatch(/Expected status 404/);
     });
 
-    test.skipIf(process.env.CI)('should check latency constraint', async () => {
-      const testCase: TestCase = {
-        test_id: 'TC-TEST-007',
-        type: 'webhook',
-        name: 'Latency test',
-        description: 'Test with unrealistic latency constraint',
-        input: {
-          url: 'https://httpbin.org/get',
-          method: 'GET',
-        },
-        expected_output: {
-          status: 200,
-          latency_max_ms: 1, // Unrealistically low
-        },
-        tags: [],
-        enabled: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      const result = await runner.execute(testCase, {timeout: 10_000});
-
-      expect(result.status).toBe('failed');
-      expect(result.error_message).toMatch(/exceeds max/);
-    });
-
-    test.skipIf(process.env.CI)('should handle network errors gracefully', async () => {
+    test('should handle network errors gracefully', async () => {
+      vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('Network error'));
       const testCase: TestCase = {
         test_id: 'TC-TEST-008',
         type: 'webhook',
         name: 'Network error test',
         description: 'Test to non-existent host',
-        input: {
-          url: 'https://this-domain-does-not-exist-12345.com/api',
-          method: 'GET',
-        },
-        expected_output: {
-          status: 200,
-        },
+        input: {url: 'https://example.com/get', method: 'GET'},
+        expected_output: {status: 200},
         tags: [],
         enabled: true,
         created_at: new Date().toISOString(),
@@ -242,23 +222,17 @@ describe('Test Runners', () => {
       expect(result.error_message).toBeDefined();
     });
 
-    test.skipIf(process.env.CI)('should check body contains', async () => {
+    test('should check body contains', async () => {
+      mockFetch(200, {slideshow: {title: 'Sample Slide Show', author: 'Yours Truly'}});
       const testCase: TestCase = {
         test_id: 'TC-TEST-009',
         type: 'webhook',
         name: 'Body contains test',
         description: 'Test body contains check',
-        input: {
-          url: 'https://httpbin.org/json',
-          method: 'GET',
-        },
+        input: {url: 'https://example.com/json', method: 'GET'},
         expected_output: {
           status: 200,
-          body_contains: {
-            slideshow: {
-              title: 'Sample Slide Show',
-            },
-          },
+          body_contains: {slideshow: {title: 'Sample Slide Show'}},
         },
         tags: [],
         enabled: true,
@@ -271,11 +245,38 @@ describe('Test Runners', () => {
       expect(result.status).toBe('passed');
       expect(result.assertions_passed).toBeGreaterThan(0);
     });
+
+    // Latency-constraint test stays local-only: mocked fetch returns
+    // sub-millisecond, so a `latency_max_ms: 1` threshold can't be
+    // reliably exceeded. Real-network exercise required.
+    test.skipIf(process.env.CI)('should check latency constraint', async () => {
+      const testCase: TestCase = {
+        test_id: 'TC-TEST-007',
+        type: 'webhook',
+        name: 'Latency test',
+        description: 'Test with unrealistic latency constraint',
+        input: {url: 'https://httpbin.org/get', method: 'GET'},
+        expected_output: {status: 200, latency_max_ms: 1},
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const result = await runner.execute(testCase, {timeout: 10_000});
+
+      expect(result.status).toBe('failed');
+      expect(result.error_message).toMatch(/exceeds max/);
+    });
   });
 
   describe('TestOrchestrator', () => {
     beforeEach(() => {
       clearAllDataSync();
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
     });
 
     test('should have webhook runner registered', () => {
@@ -293,28 +294,20 @@ describe('Test Runners', () => {
       expect(summary.execution_id).toMatch(/^RUN-/);
     });
 
-    test.skipIf(process.env.CI)('should run tests and record results', async () => {
-      // Create a test case
+    test('should run tests and record results', async () => {
+      mockFetch(200, {ok: true});
       await createTestCase({
         type: 'webhook',
         name: 'Orchestrator test case',
         description: 'Test for orchestrator',
-        input: {
-          url: 'https://httpbin.org/get',
-          method: 'GET',
-        },
-        expected_output: {
-          status: 200,
-        },
+        input: {url: 'https://example.com/get', method: 'GET'},
+        expected_output: {status: 200},
         tags: ['orchestrator-test'],
         enabled: true,
       });
 
-      // Run tests
       const summary = await runTests({
-        type: 'webhook',
-        tag: 'orchestrator-test',
-        timeout: 10_000,
+        type: 'webhook', tag: 'orchestrator-test', timeout: 10_000,
       });
 
       expect(summary.total_tests).toBe(1);
@@ -322,54 +315,39 @@ describe('Test Runners', () => {
       expect(summary.failed).toBe(0);
       expect(summary.pass_rate).toBe(100);
 
-      // Verify results were recorded
       const results = await getResultsByRun(summary.execution_id);
       expect(results.data).toHaveLength(1);
       expect(results.data[0].status).toBe('passed');
 
-      // Verify run was recorded
       const runs = await listTestRuns({limit: 1});
       expect(runs.data).toHaveLength(1);
       expect(runs.data[0].execution_id).toBe(summary.execution_id);
     });
 
-    test.skipIf(process.env.CI)('should handle mixed pass/fail results', async () => {
-      // Create passing test
+    test('should handle mixed pass/fail results', async () => {
+      mockFetch(200, {ok: true}, 2);
       await createTestCase({
         type: 'webhook',
         name: 'Passing test',
         description: 'Should pass',
-        input: {
-          url: 'https://httpbin.org/get',
-          method: 'GET',
-        },
-        expected_output: {
-          status: 200,
-        },
+        input: {url: 'https://example.com/get', method: 'GET'},
+        expected_output: {status: 200},
         tags: ['mixed-test'],
         enabled: true,
       });
 
-      // Create failing test
       await createTestCase({
         type: 'webhook',
         name: 'Failing test',
         description: 'Should fail',
-        input: {
-          url: 'https://httpbin.org/get',
-          method: 'GET',
-        },
-        expected_output: {
-          status: 404, // Will fail
-        },
+        input: {url: 'https://example.com/get', method: 'GET'},
+        expected_output: {status: 404},
         tags: ['mixed-test'],
         enabled: true,
       });
 
       const summary = await runTests({
-        type: 'webhook',
-        tag: 'mixed-test',
-        timeout: 10_000,
+        type: 'webhook', tag: 'mixed-test', timeout: 10_000,
       });
 
       expect(summary.total_tests).toBe(2);
@@ -379,56 +357,44 @@ describe('Test Runners', () => {
       expect(summary.failures).toHaveLength(1);
     });
 
-    test.skipIf(process.env.CI)('should respect failFast option', async () => {
-      // Create failing test first
+    test('should respect failFast option', async () => {
+      // Both fetches return 404; first test (expecting 200) fails;
+      // failFast should stop the second from running.
+      mockFetch(404, {error: 'not found'}, 2);
       await createTestCase({
         type: 'webhook',
         name: 'Failing test',
         description: 'Should fail first',
-        input: {
-          url: 'https://httpbin.org/status/404',
-          method: 'GET',
-        },
-        expected_output: {
-          status: 200, // Will fail
-        },
+        input: {url: 'https://example.com/get', method: 'GET'},
+        expected_output: {status: 200},
         tags: ['failfast-test'],
         enabled: true,
       });
 
-      // Create passing test second
       await createTestCase({
         type: 'webhook',
         name: 'Passing test',
         description: 'Should not run',
-        input: {
-          url: 'https://httpbin.org/get',
-          method: 'GET',
-        },
-        expected_output: {
-          status: 200,
-        },
+        input: {url: 'https://example.com/get', method: 'GET'},
+        expected_output: {status: 200},
         tags: ['failfast-test'],
         enabled: true,
       });
 
       const summary = await runTests({
-        type: 'webhook',
-        tag: 'failfast-test',
-        failFast: true,
-        timeout: 10_000,
+        type: 'webhook', tag: 'failfast-test', failFast: true, timeout: 10_000,
       });
 
-      // With failFast, should stop after first failure
       expect(summary.failures).toHaveLength(1);
     });
 
-    test.skipIf(process.env.CI)('should filter by tag', async () => {
+    test('should filter by tag', async () => {
+      mockFetch(200, {ok: true}, 2);
       await createTestCase({
         type: 'webhook',
         name: 'Tagged test A',
         description: 'Has tag A',
-        input: {url: 'https://httpbin.org/get', method: 'GET'},
+        input: {url: 'https://example.com/get', method: 'GET'},
         expected_output: {status: 200},
         tags: ['tag-a'],
         enabled: true,
@@ -438,7 +404,7 @@ describe('Test Runners', () => {
         type: 'webhook',
         name: 'Tagged test B',
         description: 'Has tag B',
-        input: {url: 'https://httpbin.org/get', method: 'GET'},
+        input: {url: 'https://example.com/get', method: 'GET'},
         expected_output: {status: 200},
         tags: ['tag-b'],
         enabled: true,
@@ -451,12 +417,13 @@ describe('Test Runners', () => {
       expect(summaryB.total_tests).toBe(1);
     });
 
-    test.skipIf(process.env.CI)('should skip disabled tests by default', async () => {
+    test('should skip disabled tests by default', async () => {
+      mockFetch(200, {ok: true});
       await createTestCase({
         type: 'webhook',
         name: 'Enabled test',
         description: 'Should run',
-        input: {url: 'https://httpbin.org/get', method: 'GET'},
+        input: {url: 'https://example.com/get', method: 'GET'},
         expected_output: {status: 200},
         tags: ['enabled-test'],
         enabled: true,
@@ -466,7 +433,7 @@ describe('Test Runners', () => {
         type: 'webhook',
         name: 'Disabled test',
         description: 'Should not run',
-        input: {url: 'https://httpbin.org/get', method: 'GET'},
+        input: {url: 'https://example.com/get', method: 'GET'},
         expected_output: {status: 200},
         tags: ['enabled-test'],
         enabled: false,
