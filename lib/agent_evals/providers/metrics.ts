@@ -21,7 +21,7 @@ type CounterPoint = {
   startTimeUnixNano: string;
 };
 
-export type PrometheusMetricsSinkOptions = {
+type PrometheusMetricsSinkOptions = {
   /**
    * Endpoint that accepts Prometheus exposition format. For VictoriaMetrics:
    * `http://<host>:8428/api/v1/import/prometheus`.

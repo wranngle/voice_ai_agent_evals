@@ -1,9 +1,8 @@
 import {type} from 'arktype';
 
-export const TurnRoleSchema = type('\'agent\' | \'caller\'');
-export type TurnRole = typeof TurnRoleSchema.infer;
+const TurnRoleSchema = type('\'agent\' | \'caller\'');
 
-export const TurnSchema = type({
+const TurnSchema = type({
   role: TurnRoleSchema,
   text: 'string > 0',
   startedAtMs: 'number.integer >= 0',
@@ -19,14 +18,14 @@ export const ConversationSchema = type({
 });
 export type Conversation = typeof ConversationSchema.infer;
 
-export const EvaluationFindingSchema = type({
+const EvaluationFindingSchema = type({
   rule: 'string > 0',
   passed: 'boolean',
   detail: 'string',
 });
 export type EvaluationFinding = typeof EvaluationFindingSchema.infer;
 
-export const EvaluationResultSchema = type({
+const EvaluationResultSchema = type({
   conversationId: 'string > 0',
   evaluatedAt: 'string > 0',
   findings: EvaluationFindingSchema.array(),

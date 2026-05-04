@@ -291,7 +291,7 @@ export function listTestResultsSync(parameters?: {
   return items.slice(offset, offset + limit);
 }
 
-export function getResultsByRunSync(executionId: string): TestResult[] {
+function getResultsByRunSync(executionId: string): TestResult[] {
   return listTestResultsSync({executionId});
 }
 

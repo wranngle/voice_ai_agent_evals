@@ -5,7 +5,7 @@ export type Logger = {
   warn(message: string, fields?: Record<string, unknown>): void;
 };
 
-export type LogSink = {
+type LogSink = {
   write(line: string): void;
 };
 
@@ -33,8 +33,6 @@ export function createJsonLogger(sink: LogSink = StderrSink): Logger {
     },
   };
 }
-
-export const StderrJsonLogger: Logger = createJsonLogger(StderrSink);
 
 function emit(
   sink: LogSink,

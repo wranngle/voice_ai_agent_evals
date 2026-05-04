@@ -1,17 +1,15 @@
 import {type} from 'arktype';
 
 export const WebhookEventTypeSchema = type('\'conversation.started\' | \'conversation.ended\' | \'transcript.ready\' | \'analysis.complete\'');
-export type WebhookEventType = typeof WebhookEventTypeSchema.infer;
 
-export const ConversationMetadataSchema = type({
+const ConversationMetadataSchema = type({
   conversationId: 'string > 0',
   agentId: 'string > 0',
   startedAtMs: 'number.integer >= 0',
   'endedAtMs?': 'number.integer >= 0',
 });
-export type ConversationMetadata = typeof ConversationMetadataSchema.infer;
 
-export const TranscriptDataSchema = type({
+const TranscriptDataSchema = type({
   conversationId: 'string > 0',
   turns: type({
     role: '\'agent\' | \'caller\'',
@@ -23,7 +21,6 @@ export const TranscriptDataSchema = type({
     .atLeastLength(1),
   completedAtMs: 'number.integer > 0',
 });
-export type TranscriptData = typeof TranscriptDataSchema.infer;
 
 export const AnalysisDataSchema = type({
   conversationId: 'string > 0',
@@ -41,9 +38,3 @@ export const WebhookPayloadSchema = type({
   'analysisData?': AnalysisDataSchema,
 });
 export type WebhookPayload = typeof WebhookPayloadSchema.infer;
-
-export const WebhookRequestSchema = type({
-  headers: 'Record<string, string>',
-  body: WebhookPayloadSchema,
-});
-export type WebhookRequest = typeof WebhookRequestSchema.infer;
