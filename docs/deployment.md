@@ -17,13 +17,11 @@ lefthook install                          # wire git hooks (pre-commit gitleaks 
 
 Secrets that must be set in `.env` (or your secrets store):
 
-- `ELEVENLABS_API_KEY`
-- `ELEVENLABS_AGENT_ID`
-- `ELEVENLABS_POST_CALL_SECRET` — webhook HMAC shared secret
-- `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` (only if testing the Twilio leg)
-- `N8N_API_KEY`, `N8N_WEBHOOK_SECRET`, `N8N_API_URL` (only if testing n8n workflows)
+- `ELEVENLABS_API_KEY`, `ELEVENLABS_AGENT_ID` — required for the live ElevenLabs runner.
+- `ELEVENLABS_POST_CALL_SECRET` — webhook HMAC shared secret your post-call receiver verifies against.
+- `N8N_API_KEY`, `N8N_API_URL`, `N8N_WEBHOOK_SECRET` — only if you also evaluate n8n workflows that the agent calls.
 
-`.env.example` enumerates the full list.
+`.env.example` enumerates the full set with `[HARNESS-READS]` vs `[CONVENTION]` markers — the harness only loads the former; the latter are operator-side names referenced from docs/templates.
 
 ## Promotion flow (prompt change)
 
