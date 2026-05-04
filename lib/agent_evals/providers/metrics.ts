@@ -37,6 +37,12 @@ type PrometheusMetricsSinkOptions = {
   endpoint: string;
   serviceName?: string;
   fetchImpl?: typeof fetch;
+  /**
+   * Per-flush timeout in ms. A hung metrics endpoint would otherwise block
+   * `agent_evals/runtime/cli.ts` indefinitely after a successful run.
+   * Default 5s — metrics export is best-effort, not in the critical path.
+   */
+  flushTimeoutMs?: number;
 };
 
 export function createPrometheusMetricsSink(options: PrometheusMetricsSinkOptions): MetricsSink {
@@ -74,6 +80,7 @@ export function createPrometheusMetricsSink(options: PrometheusMetricsSinkOption
         method: 'POST',
         headers: {'Content-Type': 'text/plain'},
         body: payload,
+        signal: AbortSignal.timeout(options.flushTimeoutMs ?? 5000),
       });
       if (!response.ok) {
         throw new Error(`metrics export failed: ${response.status} ${response.statusText}`);

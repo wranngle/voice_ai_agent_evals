@@ -198,10 +198,13 @@ export class McpRunner implements TestRunner {
     config: McpTestConfig,
     timeout: number,
   ): Promise<Record<string, unknown>> {
-    // Get workflow details to find webhook path
+    // Get workflow details to find webhook path. Bound to the same
+    // timeout as the rest of the runner so a hung n8n response can't
+    // block before the poll loop even starts.
     const workflowUrl = `${this.apiUrl}/workflows/${config.workflow_id}`;
     const workflowResponse = await fetch(workflowUrl, {
       headers: {'X-N8N-API-KEY': this.apiKey},
+      signal: AbortSignal.timeout(timeout),
     });
 
     if (!workflowResponse.ok) {
