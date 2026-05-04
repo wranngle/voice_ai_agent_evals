@@ -239,7 +239,13 @@ export class TestOrchestrator {
       }
     }
 
-    const totalTests = testCases.length;
+    // total_tests reports tests ACTUALLY EXECUTED, not the scheduled
+    // count. Under `failFast: true` the loops break early and
+    // `results.length < testCases.length`; using the scheduled count
+    // there would (a) violate the invariant
+    // total = passed + failed + errors + skipped and (b) skew avg_latency
+    // and pass_rate by the unrun denominator.
+    const totalTests = results.length;
     const avgLatency = totalTests > 0 ? Math.round(totalLatency / totalTests) : 0;
     const duration = Date.now() - startTime;
 

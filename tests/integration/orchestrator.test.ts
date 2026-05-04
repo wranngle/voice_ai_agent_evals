@@ -387,6 +387,10 @@ describe('Test Orchestrator', () => {
       expect(summary.passed).toBe(1);
       expect(summary.failed).toBe(1);
       expect(summary.failures.length).toBe(1);
+      // total_tests reports actual executions, not scheduled count —
+      // invariant: total = passed + failed + errors + skipped.
+      expect(summary.total_tests).toBe(2);
+      expect(summary.total_tests).toBe(summary.passed + summary.failed + summary.errors + summary.skipped);
     });
   });
 
