@@ -76,8 +76,9 @@ describe('Local Storage', () => {
         ids.add(generateId('TC'));
       }
 
-      // Allow for very rare timing collisions (99+ is acceptable)
-      expect(ids.size).toBeGreaterThanOrEqual(99);
+      // Random suffix is 32 bits of crypto.randomBytes — birthday collision
+      // probability for 100 entries ≈ 1 in 800 million. No tolerance needed.
+      expect(ids.size).toBe(100);
     });
   });
 

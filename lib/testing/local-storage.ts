@@ -9,6 +9,7 @@ import {
   existsSync, mkdirSync, readFileSync, writeFileSync,
 } from 'node:fs';
 import {join} from 'node:path';
+import {randomBytes} from 'node:crypto';
 import type {
   TestRequirement,
   TestCase,
@@ -94,11 +95,19 @@ function writeStorage<T>(file: string, data: StorageData<T>): void {
 }
 
 /**
- * Generate unique IDs for different entity types
+ * Generate a unique ID for a stored entity.
+ *
+ * Format: `<PREFIX>-<base36-timestamp>-<8-hex-chars>` — the timestamp segment
+ * keeps creation-order roughly recoverable from the ID; the suffix is 32 bits
+ * of crypto.randomBytes for collision-resistance under tight loops.
+ *
+ * Birthday-collision resistance: 32 random bits ≈ 65k entries before 50%
+ * chance of one collision. The earlier `Math.random().toString(36).slice(2, 5)`
+ * surface (≈15.5 bits / 46k values) collided ~10% of runs at 100 IDs.
  */
 export function generateId(prefix: 'REQ' | 'TC' | 'RUN' | 'RES'): string {
   const timestamp = Date.now().toString(36).toUpperCase();
-  const random = Math.random().toString(36).slice(2, 5).toUpperCase();
+  const random = randomBytes(4).toString('hex').toUpperCase();
   return `${prefix}-${timestamp}-${random}`;
 }
 
