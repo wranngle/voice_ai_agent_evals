@@ -50,7 +50,11 @@ function ensureStorageDir(): void {
 }
 
 /**
- * Read data from a storage file
+ * Read data from a storage file.
+ *
+ * On parse failure or unexpected shape, throws — silently returning an empty
+ * store would let a corrupt file masquerade as "no data yet" and the next
+ * write would clobber whatever was actually on disk.
  */
 function readStorage<T>(file: string): StorageData<T> {
   ensureStorageDir();
@@ -58,12 +62,26 @@ function readStorage<T>(file: string): StorageData<T> {
     return {items: [], lastUpdated: new Date().toISOString()};
   }
 
+  const content = readFileSync(file, 'utf-8');
+
+  let parsed: unknown;
   try {
-    const content = readFileSync(file, 'utf-8');
-    return JSON.parse(content);
-  } catch {
-    return {items: [], lastUpdated: new Date().toISOString()};
+    parsed = JSON.parse(content);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to parse storage file ${file}: ${message}. Inspect or delete the file before retrying.`);
   }
+
+  if (
+    typeof parsed !== 'object'
+    || parsed === null
+    || !Array.isArray((parsed as {items?: unknown}).items)
+    || typeof (parsed as {lastUpdated?: unknown}).lastUpdated !== 'string'
+  ) {
+    throw new Error(`Storage file ${file} is malformed: expected {items: T[], lastUpdated: string}. Inspect or delete the file before retrying.`);
+  }
+
+  return parsed as StorageData<T>;
 }
 
 /**

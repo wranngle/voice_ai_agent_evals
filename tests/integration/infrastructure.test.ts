@@ -386,24 +386,29 @@ describe('Storage Corruption Resilience', () => {
     delete process.env.TEST_STORAGE_DIR;
   });
 
-  it('must handle corrupted JSON gracefully', async () => {
-    // Write garbage to storage file
+  it('throws on corrupted JSON instead of silently returning empty', async () => {
+    // Write garbage to storage file. Silent recovery would mask the corruption
+    // and let the next write clobber whatever was actually on disk — so we
+    // throw a descriptive error and let the caller decide what to do.
     writeFileSync(join(CORRUPT_DIR, 'cases.json'), '{{{{not json at all}}}}');
 
-    // Import fresh to use the corrupt dir
     const {listTestCasesSync} = await import('../../lib/testing/local-storage');
-    const result = listTestCasesSync();
-    // Should return empty rather than throwing
-    expect(Array.isArray(result)).toBe(true);
-    expect(result).toHaveLength(0);
+    expect(() => listTestCasesSync()).toThrow(/Failed to parse storage file/);
   });
 
-  it('must handle empty file gracefully', async () => {
+  it('throws on empty file instead of silently returning empty', async () => {
     writeFileSync(join(CORRUPT_DIR, 'cases.json'), '');
 
     const {listTestCasesSync} = await import('../../lib/testing/local-storage');
-    const result = listTestCasesSync();
-    expect(Array.isArray(result)).toBe(true);
+    expect(() => listTestCasesSync()).toThrow(/Failed to parse storage file/);
+  });
+
+  it('throws when JSON parses but shape is wrong', async () => {
+    // null parses as valid JSON but isn't a StorageData shape.
+    writeFileSync(join(CORRUPT_DIR, 'cases.json'), 'null');
+
+    const {listTestCasesSync} = await import('../../lib/testing/local-storage');
+    expect(() => listTestCasesSync()).toThrow(/malformed/);
   });
 
   it('must handle missing storage directory by creating it', async () => {
