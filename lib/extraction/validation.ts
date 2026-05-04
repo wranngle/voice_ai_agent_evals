@@ -29,6 +29,12 @@ export function repairValue(field: ExtractionField, raw: unknown): unknown {
   }
 
   if (field.type === 'enum' && field.values) {
+    // Only stringify primitives — String(rawObject) yields "[object Object]",
+    // which would falsely propagate into the enum-not-found return below.
+    if (typeof raw !== 'string' && typeof raw !== 'number' && typeof raw !== 'boolean') {
+      return null;
+    }
+
     const string_ = String(raw).trim();
     const exact = field.values.find(v => v === string_);
     if (exact) {

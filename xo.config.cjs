@@ -33,7 +33,6 @@ module.exports = [
       '@typescript-eslint/no-redundant-type-constituents': 'off',
       '@typescript-eslint/restrict-template-expressions': 'off',
       '@typescript-eslint/restrict-plus-operands': 'off',
-      '@typescript-eslint/no-base-to-string': 'off',
       // -- Node features: project pins Node 20+ via bun-types, so the n/* rules
       //    that complain about "unsupported features" mis-trigger.
       'n/prefer-global/process': 'off',

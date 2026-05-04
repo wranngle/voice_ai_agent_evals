@@ -29,7 +29,11 @@ describe('PrometheusMetricsSink', () => {
 
   function fakeFetch(): typeof fetch {
     return (async (input: string | URL | Request, init?: RequestInit) => {
-      const url = typeof input === 'string' ? input : input.toString();
+      // String(URL) → URL string. Request needs `.url` because its default
+      // toString yields "[object Request]". Bare string passes through.
+      const url = typeof input === 'string'
+        ? input
+        : (input instanceof URL ? input.href : input.url);
       const body = (init?.body as string) ?? '';
       captured.push({url, body});
       return new Response('', {status: nextStatus});
