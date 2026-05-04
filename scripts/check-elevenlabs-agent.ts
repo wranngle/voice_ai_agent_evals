@@ -10,7 +10,10 @@ if (!API_KEY) {
   process.exit(1);
 }
 
-console.log('API Key:', API_KEY.slice(0, 10) + '...');
+// Don't log any portion of the secret — log a stable last-4 fingerprint that's
+// just enough for "is the env var pointing at the key I think it is?" without
+// leaking enough to identify or correlate the credential elsewhere.
+console.log('API Key: ****' + API_KEY.slice(-4));
 console.log('Agent ID:', AGENT_ID);
 console.log('\nFetching agent from ElevenLabs...\n');
 

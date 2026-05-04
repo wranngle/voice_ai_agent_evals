@@ -44,7 +44,7 @@ function verifyElevenLabsSignature(
 }
 ```
 
-A working implementation lives in [`scripts/secure-elevenlabs-hmac.js`](../scripts/secure-elevenlabs-hmac.js); the Node version in this repo wires it into n8n's pre-webhook gate.
+A working implementation lives in [`lib/security/elevenlabs-signature.ts`](../lib/security/elevenlabs-signature.ts) — `verifyElevenLabsSignature(rawBody, headerValue, sharedSecret, options?)` returns `{ok: true}` on success or `{ok: false, reason: 'malformed_header' | 'stale_or_missing_signature' | 'signature_mismatch'}`. Test coverage lives at `tests/integration/elevenlabs-signature.test.ts` (12 cases — header parsing, tolerance window, body-tampering detection, custom-clock injection).
 
 ## Timestamp tolerance (replay defense)
 
@@ -82,4 +82,4 @@ Other fields exist on the wire but aren't consumed — they're available if a fu
 
 ## Rotating the shared secret
 
-ElevenLabs returns a webhook's HMAC secret only at creation time. The webhook URL itself is **immutable**, so rotation = create new webhook + repoint references + delete old. The script `scripts/secure-elevenlabs-hmac.js` handles the create + repoint flow; manually update the secret in your secrets store after the new webhook is created.
+ElevenLabs returns a webhook's HMAC secret only at creation time. The webhook URL itself is **immutable**, so rotation = create new webhook + repoint references + delete old. Operators run this manually against the ElevenLabs API; this repo only ships the verifier (`lib/security/elevenlabs-signature.ts`), not the create/rotate orchestration.
