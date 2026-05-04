@@ -64,8 +64,10 @@ To wire to your live agent, copy `agent-registry.example.yaml` → `agent-regist
 - [`docs/methodology.md`](docs/methodology.md) — eval philosophy: determinism, prompt versioning, scoring rubric, voice-specific axes (most are aspirational — see "known gaps" above)
 - [`docs/tool-calling.md`](docs/tool-calling.md) — server-side vs. client-side tools, `agent.prompt.tools` schema, KB-vs-tool boundary
 - [`docs/webhook-security.md`](docs/webhook-security.md) — `ElevenLabs-Signature` header verification (HMAC-SHA256 over `<timestamp>.<body>`)
+- [`docs/deployment.md`](docs/deployment.md) — operator setup: env vars, prompt-promotion flow, rollback flow
 - [`docs/extending-the-harness.md`](docs/extending-the-harness.md) — adding a new scenario
 - [`docs/handling-model-updates.md`](docs/handling-model-updates.md) — playbook for ElevenLabs model updates
+- [`docs/elevenlabs-twilio-voiceagent/`](docs/elevenlabs-twilio-voiceagent/) — standalone smoke-test bundle (shell scripts + API references) for verifying ElevenLabs and Twilio credentials in a fresh sandbox
 - [`RUNBOOK.md`](RUNBOOK.md) — operational runbook
 
 ## License
