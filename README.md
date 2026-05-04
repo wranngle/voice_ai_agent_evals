@@ -1,8 +1,7 @@
 # voice_ai_agent_evals
 
-[![elevenlabs](https://img.shields.io/badge/elevenlabs-ff5f00?style=flat-square)](https://elevenlabs.io/)
-[![voice-agents](https://img.shields.io/badge/voice--agents-cf3c69?style=flat-square)](#)
-[![eval-harness](https://img.shields.io/badge/eval--harness-12111a?style=flat-square)](#)
+[![CI](https://github.com/wranngle/voice_ai_agent_evals/actions/workflows/vitest.yml/badge.svg)](https://github.com/wranngle/voice_ai_agent_evals/actions/workflows/vitest.yml)
+[![License: MIT](https://img.shields.io/github/license/wranngle/voice_ai_agent_evals?style=flat-square)](LICENSE)
 
 > Bulk eval harness for ElevenLabs voice agents — deterministic scenarios, total-turn latency capture, prompt versioning via git tags.
 
