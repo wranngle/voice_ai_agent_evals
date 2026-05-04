@@ -170,6 +170,24 @@ describe('Local Storage', () => {
       expect(limited.length).toBe(1);
     });
 
+    test('should list all test cases unless pagination is requested', () => {
+      for (let i = 0; i < 125; i++) {
+        createTestCaseSync({
+          type: 'webhook',
+          name: `Bulk Test ${i}`,
+          description: 'Bulk list regression',
+          input: {},
+          expected_output: {},
+          tags: ['bulk'],
+          enabled: true,
+        });
+      }
+
+      expect(listTestCasesSync()).toHaveLength(125);
+      expect(listTestCasesSync({offset: 100})).toHaveLength(25);
+      expect(listTestCasesSync({offset: 100, limit: 10})).toHaveLength(10);
+    });
+
     test('should update a test case', async () => {
       const created = createTestCaseSync({
         type: 'webhook',

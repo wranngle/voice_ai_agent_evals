@@ -40,6 +40,11 @@ type StorageData<T> = {
   lastUpdated: string;
 };
 
+type PaginationParameters = {
+  limit?: number;
+  offset?: number;
+};
+
 /**
  * Ensure storage directory exists
  */
@@ -94,6 +99,15 @@ function writeStorage<T>(file: string, data: StorageData<T>): void {
   writeFileSync(file, JSON.stringify(data, null, 2));
 }
 
+function paginate<T>(items: T[], parameters?: PaginationParameters): T[] {
+  const offset = parameters?.offset ?? 0;
+  if (parameters?.limit === undefined) {
+    return items.slice(offset);
+  }
+
+  return items.slice(offset, offset + parameters.limit);
+}
+
 /**
  * Generate a unique ID for a stored entity.
  *
@@ -132,11 +146,9 @@ export function getRequirementSync(requirementId: string): TestRequirement | und
   return data.items.find(r => r.requirement_id === requirementId);
 }
 
-export function listRequirementsSync(parameters?: {limit?: number; offset?: number}): TestRequirement[] {
+export function listRequirementsSync(parameters?: PaginationParameters): TestRequirement[] {
   const data = readStorage<TestRequirement>(getFiles().requirements);
-  const offset = parameters?.offset || 0;
-  const limit = parameters?.limit || 100;
-  return data.items.slice(offset, offset + limit);
+  return paginate(data.items, parameters);
 }
 
 export function updateRequirementSync(
@@ -216,9 +228,7 @@ export function listTestCasesSync(parameters?: {
     items = items.filter(c => c.enabled === parameters.enabled);
   }
 
-  const offset = parameters?.offset || 0;
-  const limit = parameters?.limit || 100;
-  return items.slice(offset, offset + limit);
+  return paginate(items, parameters);
 }
 
 export function updateTestCaseSync(
@@ -295,9 +305,7 @@ export function listTestResultsSync(parameters?: {
     items = items.filter(r => r.status === parameters.status);
   }
 
-  const offset = parameters?.offset || 0;
-  const limit = parameters?.limit || 100;
-  return items.slice(offset, offset + limit);
+  return paginate(items, parameters);
 }
 
 function getResultsByRunSync(executionId: string): TestResult[] {
@@ -337,9 +345,7 @@ export function listTestRunsSync(parameters?: {
     items = items.filter(r => r.triggered_by === parameters.triggeredBy);
   }
 
-  const offset = parameters?.offset || 0;
-  const limit = parameters?.limit || 100;
-  return items.slice(offset, offset + limit);
+  return paginate(items, parameters);
 }
 
 export function completeTestRunSync(

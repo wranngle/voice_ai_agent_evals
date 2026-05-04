@@ -186,6 +186,40 @@ describe('Test Orchestrator', () => {
       expect(results[0].status).toBe('passed');
       expect(results[0].latency_ms).toBe(250);
     });
+
+    test('should run every matching test case when suite exceeds 100 cases', async () => {
+      for (let i = 0; i < 105; i++) {
+        createTestCaseSync({
+          type: 'webhook',
+          name: `Bulk Test ${i}`,
+          description: 'Regression for unpaginated orchestrator reads',
+          input: {url: 'https://example.com/webhook', method: 'POST', body: {i}},
+          expected_output: {},
+          tags: ['bulk'],
+          enabled: true,
+        });
+      }
+
+      const orchestrator = new TestOrchestrator();
+      const mockRunner: TestRunner = {
+        type: 'webhook',
+        execute: vi.fn().mockResolvedValue({
+          status: 'passed',
+          actual_output: {},
+          latency_ms: 10,
+          assertions_passed: 1,
+          assertions_failed: 0,
+        }),
+        validate: () => ({valid: true, errors: []}),
+      };
+      orchestrator.registerRunner(mockRunner);
+
+      const summary = await orchestrator.run({tag: 'bulk'});
+
+      expect(summary.total_tests).toBe(105);
+      expect(summary.passed).toBe(105);
+      expect(mockRunner.execute).toHaveBeenCalledTimes(105);
+    });
   });
 
   describe('Test Filtering', () => {
