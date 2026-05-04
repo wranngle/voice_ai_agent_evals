@@ -5,30 +5,27 @@ import {defineConfig} from 'vitest/config';
  *
  * Drop a .test.ts file in the right directory and it auto-classifies:
  *
- *   tests/unit/**        → Pure logic, no network, runs everywhere
  *   tests/governance/**  → File/config validation, no network
  *   tests/ingestion/**   → Parser tests, no network
  *   tests/integration/** → Cross-module, may need local storage
- *   tests/webhook/**     → LIVE: hits real n8n endpoints
- *   tests/el/**          → LIVE: hits real ElevenLabs API
- *   tests/eval/**        → LIVE: hits real n8n API
- *   tests/mcp/**         → LIVE: hits real MCP server
+ *   tests/agent_evals/** → agent_evals runtime tests, no network
+ *   tests/el/**          → ElevenLabs runner UNIT tests (mocked fetch)
+ *   tests/eval/**        → n8n-eval runner UNIT tests (mocked fetch)
+ *   tests/mcp/**         → MCP runner UNIT tests (mocked fetch)
+ *   tests/webhook/**     → MIXED: skipIf(CI)-guarded live HTTP + some mocked
  *   tests/*.test.ts      → Legacy root-level (treated as integration)
  *
- * CI runs:
- *   Unit job   → "offline" group (no network needed)
- *   Live job   → "live" group (needs secrets + network)
+ * CI runs the offline projects only. The webhook project's live tests are
+ * gated by `describe.skipIf(process.env.CI)` so they auto-skip in CI; the
+ * unguarded mocked tests in tests/webhook/ still run.
  *
- * Local `bun test` → runs ALL groups
- *
- * To add a new test domain:
- *   1. Create tests/<domain>/
- *   2. Add a project entry below
- *   3. Tag it needsNetwork: true/false in the comment
- *   That's it. CI exclusions are driven by vitest project names, not hardcoded paths.
+ * Live API exercise — i.e. actually hitting ElevenLabs / n8n / MCP — happens
+ * via the `bun run testing:live:el|n8n|mcp` scripts in package.json, which
+ * call scripts/test-*-runner.ts. Those are NOT vitest tests; they require
+ * real API keys and run locally or via workflow_dispatch.
  */
 
-// Offline projects (no network, run in CI unit job)
+// Offline projects (no network calls — fetch is mocked everywhere these run)
 const offlineProjects = [
   {
     test: {
@@ -66,42 +63,49 @@ const offlineProjects = [
       testTimeout: 30_000,
     },
   },
+  {
+    // Despite the name, these are runner UNIT tests with mocked fetch — no
+    // ElevenLabs API key required. The live ElevenLabs exercise lives in
+    // scripts/test-elevenlabs-runner.ts (not a vitest test).
+    test: {
+      name: 'elevenlabs',
+      root: '.',
+      include: ['tests/el/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
+  {
+    // Same: runner UNIT tests with mocked fetch — no n8n credentials needed.
+    test: {
+      name: 'n8n-eval',
+      root: '.',
+      include: ['tests/eval/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
+  {
+    // Same: runner UNIT tests with mocked fetch.
+    test: {
+      name: 'mcp',
+      root: '.',
+      include: ['tests/mcp/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
 ];
 
-// Live projects (need network + secrets, only run in CI live job or locally)
+// Mixed-live projects: at least one describe block calls real HTTP behind a
+// `describe.skipIf(process.env.CI)` guard. CI runs the unguarded portion
+// (mocked); local runs hit the real endpoint when env vars are configured.
 const liveProjects = [
   {
     test: {
       name: 'webhook',
       root: '.',
       include: ['tests/webhook/**/*.test.ts'],
-      environment: 'node' as const,
-      testTimeout: 30_000,
-    },
-  },
-  {
-    test: {
-      name: 'elevenlabs',
-      root: '.',
-      include: ['tests/el/**/*.test.ts'],
-      environment: 'node' as const,
-      testTimeout: 120_000,
-    },
-  },
-  {
-    test: {
-      name: 'n8n-eval',
-      root: '.',
-      include: ['tests/eval/**/*.test.ts'],
-      environment: 'node' as const,
-      testTimeout: 60_000,
-    },
-  },
-  {
-    test: {
-      name: 'mcp',
-      root: '.',
-      include: ['tests/mcp/**/*.test.ts'],
       environment: 'node' as const,
       testTimeout: 30_000,
     },

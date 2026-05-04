@@ -33,6 +33,9 @@ jobs:
             --project integration \
             --project governance \
             --project agent_evals \
+            --project elevenlabs \
+            --project n8n-eval \
+            --project mcp \
             2>&1 | tee /tmp/vitest.log
       - name: Write GITHUB_STEP_SUMMARY
         if: always()
@@ -81,9 +84,6 @@ jobs:
         run: |
           bun run vitest run \
             --project webhook \
-            --project elevenlabs \
-            --project n8n-eval \
-            --project mcp \
             2>&1 | tee /tmp/vitest-live.log
       - name: Write GITHUB_STEP_SUMMARY
         if: always()

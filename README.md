@@ -33,15 +33,20 @@ These are the next slices of work, not a finished feature.
 ```bash
 bun install
 
-# Offline tests — runs against fixtures, no secrets needed
+# Offline tests — pure logic + runner UNIT tests (mocked fetch). No secrets needed.
+# Covers: ingestion, integration, governance, agent_evals, elevenlabs, n8n-eval, mcp.
 bun run test:offline
 
-# Live tests — require ELEVENLABS_API_KEY (and N8N_API_URL/N8N_API_KEY for n8n-eval)
-bun run testing:live:el       # ElevenLabs runner against a real agent
-bun run testing:live:n8n      # n8n eval runner against a deployed workflow
-bun run testing:live:mcp      # MCP runner
+# Live tests — actually hit real endpoints. Require API keys and run locally.
+# These are STANDALONE SCRIPTS, not vitest tests.
+bun run testing:live:el       # POSTs to api.elevenlabs.io/v1/convai/agents/<id>/simulate-conversation
+bun run testing:live:n8n      # POSTs to your n8n webhook host
+bun run testing:live:mcp      # POSTs to your n8n MCP-style workflow
 
-# CLI
+# Webhook tests against a deployed receiver — vitest project that auto-skips in CI.
+bun run test:webhook
+
+# CLI (stored test cases & runs under .test-data/)
 bun run testing list
 bun run testing run <test-id>
 ```

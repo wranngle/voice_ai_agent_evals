@@ -631,15 +631,16 @@ describe('Vitest Config', () => {
 
   it('must set appropriate timeouts per project type', () => {
     const content = readFileSync(join(PROJECT_ROOT, 'vitest.config.ts'), 'utf-8');
-    // Strip numeric separators so tests accept both `120000` and `120_000`
+    // Strip numeric separators so tests accept both `60000` and `60_000`
     // forms (xo's unicorn/numeric-separators-style auto-fix toggles them).
     const normalized = content.replaceAll(/(\d)_(?=\d)/g, '$1');
 
-    // ElevenLabs tests are slow (conversation simulation) - need longer timeout
-    expect(normalized).toContain('120000'); // 2 min for elevenlabs
-
-    // Integration tests need moderate timeout
+    // Integration tests need moderate timeout (cross-module + local storage)
     expect(normalized).toContain('60000'); // 1 min for integration
+
+    // Default per-project timeout for the rest is 30s — enough headroom for
+    // mocked-fetch unit tests but tight enough that a hung test surfaces fast.
+    expect(normalized).toContain('30000');
   });
 });
 

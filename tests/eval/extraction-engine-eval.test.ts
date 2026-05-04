@@ -1,8 +1,12 @@
 /**
- * LLM Extraction Engine — n8n Eval Tests
+ * LLM Extraction Engine — n8n Eval runner unit tests.
  *
- * Tests the [DEV] LLM Extraction Engine subworkflow (ID: 2Z4wykQk0x1Y67Sr)
- * via the n8n workflow execution API.
+ * Exercises the N8nEvalRunner contract for the structured-extraction
+ * use case (lib/extraction). All HTTP is mocked via vi.spyOn(globalThis,
+ * 'fetch'); no real n8n instance is contacted.
+ *
+ * The placeholder workflow ID below is fixture data only — no operator
+ * needs to deploy that workflow for this test to run.
  */
 
 import {
@@ -12,7 +16,7 @@ import {N8nEvalRunner} from '../../lib/testing/runners/n8n-eval-runner';
 import type {TestCase} from '../../lib/testing/types';
 import {defaultCategories} from '../../lib/extraction/categories';
 
-const WORKFLOW_ID = '2Z4wykQk0x1Y67Sr';
+const WORKFLOW_ID = 'workflow_xxxx_demo';
 
 const sampleTranscript = `agent: Thank you for calling, this is the assistant. How can I help you today?
 user: Hi, my name is John Martinez. I'm calling from Acme Corp, we're looking for a new automation platform.
