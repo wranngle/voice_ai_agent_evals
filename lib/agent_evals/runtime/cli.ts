@@ -22,8 +22,8 @@ async function main(): Promise<void> {
   const repository = createFileConversationRepository(settings, fixturePath);
   const sink = settings.logFile ? createFileSink(settings.logFile) : StderrSink;
   const logger = createJsonLogger(sink);
-  const metrics = settings.otlpEndpoint
-    ? createPrometheusMetricsSink({endpoint: settings.otlpEndpoint})
+  const metrics = settings.metricsEndpoint
+    ? createPrometheusMetricsSink({endpoint: settings.metricsEndpoint})
     : NoopMetricsSink;
   const evaluator = createEvaluator(
     repository,
@@ -38,7 +38,7 @@ async function main(): Promise<void> {
   const results = evaluator.evaluateAll();
   process.stdout.write(renderResultsMarkdown(results));
 
-  if (settings.otlpEndpoint) {
+  if (settings.metricsEndpoint) {
     try {
       await metrics.flush();
     } catch (error: unknown) {

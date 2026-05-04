@@ -5,7 +5,9 @@ const SettingsSchema = type({
   minAgentTurnRatio: '0 <= number <= 1',
   fixturesDirectory: 'string > 0',
   'logFile?': 'string',
-  'otlpEndpoint?': 'string.url',
+  // Endpoint that accepts Prometheus exposition format (NOT OTLP — see
+  // lib/agent_evals/providers/metrics.ts for the wire-format rationale).
+  'metricsEndpoint?': 'string.url',
 });
 
 export type Settings = typeof SettingsSchema.infer;
@@ -31,8 +33,8 @@ export function loadSettings(env: NodeJS.ProcessEnv = process.env): Settings {
     candidate.logFile = env.AGENT_EVALS_LOG_FILE;
   }
 
-  if (env.AGENT_EVALS_OTLP_ENDPOINT !== undefined) {
-    candidate.otlpEndpoint = env.AGENT_EVALS_OTLP_ENDPOINT;
+  if (env.AGENT_EVALS_METRICS_ENDPOINT !== undefined) {
+    candidate.metricsEndpoint = env.AGENT_EVALS_METRICS_ENDPOINT;
   }
 
   return SettingsSchema.assert(candidate);
