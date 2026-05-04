@@ -60,7 +60,7 @@ To wire to your live agent, copy `agent-registry.example.yaml` → `agent-regist
 - **`scripts/`** — runner entry points (`test-elevenlabs-runner`, `test-mcp-runner`, `test-n8n-eval-runner`) and harness utilities (`health-check`, `monitor-executions`, `list-workflows`, `ingest-and-run`)
 - **`templates/`** — reusable agent and tool config templates (`elevenlabs-agents/`, `voice-agents/`, `email/`, `sms-booking-tool-template.json`)
 - **`tests/scenarios/`** — runnable scenario fixtures (transcript + scenario.yaml). `_template/` is the canonical schema; copy and edit.
-- **`tests/runs/`** — committed eval-run outputs (proof of reproducibility)
+- **`tests/runs/`** — hand-authored synthetic result.json + NOTE.md examples that document the intended shape of a passing and failing run. Once the per-axis scoring engine lands (see "known gaps"), real eval-run outputs will be produced into the same shape.
 - **`docs/`** — methodology, tool calling, webhook security, contributor walkthrough, model-update playbook
 
 ## Documentation

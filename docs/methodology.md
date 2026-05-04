@@ -30,7 +30,7 @@ Every scenario in `tests/scenarios/` is reproducible because we control every in
 
 Determinism rule: a scenario's pass/fail must depend only on the agent under test, not on the network, wall clock, or model temperature. Temperature is pinned per scenario; an LLM-judge is invoked with `seed` set when the runner supports it.
 
-See `tests/runs/` for committed sample outputs that prove the suite reproduces clean across machines.
+`tests/runs/` holds hand-authored synthetic result.json + NOTE.md files that document the intended output shape on a passing and failing run. They are NOT produced by an automated eval pass — see "What's not implemented yet" above. Once the scoring engine lands, real runs will be written into the same shape.
 
 ## 2. Latency budgets
 

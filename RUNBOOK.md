@@ -17,7 +17,7 @@ git status tests/scenarios/        # untracked or stale fixtures often cause CI/
 bun run test --project <project-name>     # ingestion, integration, governance, agent_evals
 ```
 
-Expected output shape on a green run is in `tests/runs/`; diff against that for the failing scenario.
+`tests/runs/` holds hand-authored shape examples (synthetic; the scoring engine that would produce them automatically is on the roadmap — see `docs/methodology.md`). Diff against those when authoring or debugging a scenario YAML.
 
 If it's a flaky scenario (passes 80% of the time): the scenario isn't deterministic. See [`docs/extending-the-harness.md`](docs/extending-the-harness.md) — most likely a wall-clock or unseeded LLM call leaked in. Fix the fixture, don't retry the test.
 
