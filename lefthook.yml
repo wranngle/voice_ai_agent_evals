@@ -1,4 +1,4 @@
-# Pre-commit secret-scanning + lint gates for gtm_ops.
+# Pre-commit secret-scanning + pre-push history-scan for voice_ai_agent_evals.
 # Run `lefthook install` once to wire git hooks.
 
 pre-commit:

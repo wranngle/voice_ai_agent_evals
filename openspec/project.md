@@ -35,7 +35,7 @@ Bring your own ElevenLabs agent ID, drop in scenario YAMLs, get pass/fail with a
 - Judge LLMs are scenario-specified (e.g. `claude-haiku-4-5` for tone/empathy axes)
 
 ### Runtime
-- **Bun** for execution (`bun run`, `bun test`)
+- **Bun** for execution (`bun run`, `bun install`). Tests use Vitest, not `bun test`.
 - **TypeScript 5.9** with strict types
 - **xo** for linting (per the user's global JS/TS regime)
 
