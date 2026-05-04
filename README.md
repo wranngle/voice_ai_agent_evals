@@ -13,13 +13,14 @@ Test runner and scenario framework for evaluating ElevenLabs Conversational AI v
 
 - **Total-turn latency** captured per test as `latency_ms`; `avg_latency_ms` and slowest-test surfaced in the run summary.
 - **Webhook + n8n + ElevenLabs + MCP runners**, each with its own assertion shape (`response_contains`, `output_contains`, `execution_status`, etc.).
-- **Scenario YAMLs** with declared thresholds (`ttfb_p95_ms`, `end_to_first_audio_p95_ms`, `total_turn_p95_ms`, `barge_in_yield_ms`) — see `tests/scenarios/`.
 - **Vitest project layout** that segregates offline (no secrets) from live (needs API keys) tests.
+- **Scenario YAML discoverability**: `bun run testing list` surfaces every `tests/scenarios/<id>/scenario.yaml` alongside ingested test cases. The CLI extracts the `description:` line; deeper fields aren't parsed yet.
 
 ### What's *not* implemented yet (known gaps)
 
 The following are documented intent and YAML conventions, **not yet enforced by the runner**:
 
+- **Scenario YAMLs as runnable test cases.** The YAML schema in `tests/scenarios/_template/scenario.yaml` declares `axes`, `thresholds`, `success_criteria`, `judge_llm` — none of those keys are read by code today. Scenarios show up in `testing list` (description-only); they don't execute.
 - **TTFB / end-to-first-audio split.** The runner measures one round-trip number per test, not separate TTFB / first-audio / total-turn. Per-segment budgets in `tests/scenarios/*/scenario.yaml` are aspirational.
 - **p95 / p99 aggregation across runs.** Per-test latency is captured, but no rolling-window p95 enforcement.
 - **Voice-specific scoring axes** (barge-in recovery, ASR confidence, TTS prosody, timeout handling) — declared in scenario YAMLs, but no scoring engine yet reads them.
