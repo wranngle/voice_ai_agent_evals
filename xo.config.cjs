@@ -70,17 +70,4 @@ module.exports = [
       'capitalized-comments': 'off',
     },
   },
-  {
-    files: ['hooks/**/*.ts'],
-    rules: {
-      'unicorn/no-process-exit': 'off',
-    },
-  },
-  {
-    files: ['**/*.test.ts', '**/*.spec.ts'],
-    rules: {
-      '@typescript-eslint/no-unsafe-assignment': 'off',
-      '@typescript-eslint/no-explicit-any': 'off',
-    },
-  },
 ];
