@@ -83,11 +83,4 @@ module.exports = [
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
-  {
-    // XSS / security probes legitimately need `javascript:` URLs as fixtures.
-    files: ['tests/n8n-postcall/framework/**/*.{ts,js}'],
-    rules: {
-      'no-script-url': 'off',
-    },
-  },
 ];
