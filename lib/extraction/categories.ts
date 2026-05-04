@@ -1,11 +1,15 @@
 /**
- * 6 default extraction categories — Task 1.3
+ * Default extraction categories used by lib/extraction.
  *
- * Supersession sources:
- * - archived v2: transcript-field-extractor-v2.json (22 fields, 4 sections: requestor/contact/request/routing)
- * - parent workflow: [DEV] Post-Call Bulletproof v2 (BANT from ElevenLabs data_collection_results, CRM qualification logic)
+ * Six categories cover the common surfaces a voice agent's transcript
+ * yields: sales (BANT-style qualification), support (issues + requests),
+ * external_contacts (caller identity + callback details), internal_contacts
+ * (transfer/routing), external_company (caller's organization), and
+ * internal_company (the business receiving the call).
  *
- * Field micro-prompts ported from archived v2 Component D where applicable.
+ * Each category lists fields with type, prompt, strictness, and default
+ * value. Override the set by passing your own ExtractionCategory[] to
+ * the prompt builder; this constant is only the out-of-the-box default.
  */
 
 import type {ExtractionCategory} from './types.js';
@@ -13,7 +17,7 @@ import type {ExtractionCategory} from './types.js';
 export const defaultCategories: ExtractionCategory[] = [
   {
     category_id: 'sales',
-    description: 'Sales qualification fields (BANT) — supersedes parent workflow ElevenLabs data_collection_results extraction and CRM qualification logic',
+    description: 'Sales qualification fields (BANT-style: budget, authority, need, timing).',
     context_rules: {default_strictness: 'medium', require_rationale: true, null_behavior: 'return_null_with_rationale'},
     fields: [
       {
@@ -41,7 +45,7 @@ export const defaultCategories: ExtractionCategory[] = [
   },
   {
     category_id: 'support',
-    description: 'Customer support, issue tracking, and service request fields — absorbs archived v2 "request" section',
+    description: 'Customer support, issue tracking, and service request fields.',
     context_rules: {default_strictness: 'medium', require_rationale: true, null_behavior: 'return_null_with_rationale'},
     fields: [
       {
@@ -56,7 +60,6 @@ export const defaultCategories: ExtractionCategory[] = [
       {
         field_id: 'escalation_needed', type: 'boolean', prompt: 'Does this call require escalation to a human agent or specialist?', strictness: 'high', required: true, default_value: false,
       },
-      // Absorbed from archived v2 "request" section
       {
         field_id: 'existing_request', type: 'boolean', prompt: 'Is this regarding an existing request/ticket? Detection: reference to case/ticket numbers, "following up on", "checking status of". Default FALSE when unclear.', strictness: 'high', required: true, default_value: false,
       },
@@ -76,10 +79,9 @@ export const defaultCategories: ExtractionCategory[] = [
   },
   {
     category_id: 'external_contacts',
-    description: 'Contact information for external parties — absorbs archived v2 "requestor" + "contact" sections with detailed micro-prompts',
+    description: 'Contact information for external parties (caller identity + callback details).',
     context_rules: {default_strictness: 'high', require_rationale: false, null_behavior: 'return_null_with_rationale'},
     fields: [
-      // Absorbed from archived v2 "requestor" section
       {
         field_id: 'requestor_first_name', type: 'string', prompt: 'Extract first name of person calling from self-introduction. Target phrases: "This is [name]", "My name is [name]". Extract ONLY first name component. Return null if no first name provided.', strictness: 'high', required: false,
       },
@@ -89,7 +91,6 @@ export const defaultCategories: ExtractionCategory[] = [
       {
         field_id: 'requestor_company_name', type: 'string', prompt: 'Extract requestor\'s employer/company name from self-identification phrases. Valid triggers: "I\'m with...", "calling from...", "I work for...". Critical exclusions: (a) Never extract service provider name from agent greeting, (b) Ignore company being called. Return null when no company affiliation stated.', strictness: 'medium', required: false,
       },
-      // Absorbed from archived v2 "contact" section
       {
         field_id: 'contact_phone', type: 'phone', prompt: 'Extract final confirmed callback phone number in E.164 format (+1XXXXXXXXXX). If user corrected a number, use correction only. Convert number words to digits. Return null if count < 10 digits or no number found.', strictness: 'high', required: false,
       },
@@ -112,7 +113,7 @@ export const defaultCategories: ExtractionCategory[] = [
   },
   {
     category_id: 'internal_contacts',
-    description: 'Internal staff or departments referenced — absorbs archived v2 "routing" section transfer fields',
+    description: 'Internal staff or departments referenced; transfer/routing destinations.',
     context_rules: {default_strictness: 'medium', require_rationale: false, null_behavior: 'return_null_with_rationale'},
     fields: [
       {
@@ -124,7 +125,6 @@ export const defaultCategories: ExtractionCategory[] = [
       {
         field_id: 'transfer_reason', type: 'string', prompt: 'Short summary (<=120 chars) explaining WHY transferred. Return null if no transfer.', strictness: 'low', required: false,
       },
-      // Absorbed from archived v2 "routing" section
       {
         field_id: 'conversation_transferred', type: 'boolean', prompt: 'Was conversation transferred to live person? Set TRUE only when actual transfer mechanism invoked. Default FALSE.', strictness: 'high', required: true, default_value: false,
       },
@@ -151,7 +151,7 @@ export const defaultCategories: ExtractionCategory[] = [
   },
   {
     category_id: 'internal_company',
-    description: 'Information about the business receiving the call — absorbs archived v2 routing site/urgency fields',
+    description: 'Information about the business receiving the call (site, service area, account status).',
     context_rules: {default_strictness: 'medium', require_rationale: false, null_behavior: 'return_null_with_rationale'},
     fields: [
       {
