@@ -14,7 +14,7 @@ import {renderResultsMarkdown} from '../ui';
 async function main(): Promise<void> {
   const fixturePath = process.argv[2];
   if (!fixturePath) {
-    process.stderr.write('usage: bun run src/runtime/cli.ts <conversations.json>\n');
+    process.stderr.write('usage: bun run lib/agent_evals/runtime/cli.ts <conversations.json>\n');
     process.exit(2);
   }
 
@@ -41,8 +41,9 @@ async function main(): Promise<void> {
   if (settings.otlpEndpoint) {
     try {
       await metrics.flush();
-    } catch (error) {
-      process.stderr.write(`metrics flush failed: ${(error as Error).message}\n`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      process.stderr.write(`metrics flush failed: ${message}\n`);
     }
   }
 
