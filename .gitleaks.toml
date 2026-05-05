@@ -1,0 +1,21 @@
+title = "dotfiles-managed gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Test fixtures, examples, and obvious-dummy patterns."
+paths = [
+  '''(.*?)(_|/)?test_?fixtures(.*?)\.(json|yml|yaml|txt|md)$''',
+  '''(.*?)(_|/)?examples?/(.*?)\.(env\.example|env\.template|env\.sample)$''',
+  '''\.env\.example$''',
+  '''\.env\.template$''',
+  '''\.env\.sample$''',
+  '''\.gitleaks\.toml$''',
+  '''\.gitleaksignore$''',
+]
+regexes = [
+  '''(?i)(example|dummy|fake|placeholder|test)[_-]?(api[_-]?key|secret|token|password)''',
+  '''(?i)your[_-]?(api[_-]?key|secret|token|password)[_-]?here''',
+  '''(?i)xxx+[a-z0-9]{0,4}(api[_-]?key|secret|token)?''',
+]

@@ -1,0 +1,42 @@
+name: pr-link-check
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+permissions:
+  contents: read
+jobs:
+  check-issue-link:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: write
+    steps:
+      - name: Verify PR body links an issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          # Bypassing WIP branches automatically
+          if [[ "$HEAD_REF" == wip/* ]]; then
+            gh pr edit "$PR_NUMBER" --repo "$REPO" --remove-label pr-needs-issue 2>/dev/null || true
+            echo "WIP PRs bypass issue link requirement; cleared pr-needs-issue if present"
+            exit 0
+          fi
+
+          if printf '%s' "$PR_BODY" | grep -qiE '(closes|fixes|resolves)[[:space:]]+#[0-9]+'; then
+            gh pr edit "$PR_NUMBER" --repo "$REPO" --remove-label pr-needs-issue 2>/dev/null || true
+            echo "PR has issue link; cleared pr-needs-issue if present"
+            exit 0
+          fi
+          gh pr edit "$PR_NUMBER" --repo "$REPO" --add-label pr-needs-issue 2>/dev/null || true
+          existing=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json comments \
+            --jq '[.comments[] | select(.author.login == "github-actions[bot]" and (.body | test("needs an issue link"))) ] | length' 2>/dev/null || echo 0)
+          if [[ "$existing" -eq 0 ]]; then
+            gh pr comment "$PR_NUMBER" --repo "$REPO" --body $'This PR needs an issue link.\n\nAdd `Closes #N` / `Fixes #N` / `Resolves #N` to the description — or file an issue first via `gh-issue.sh`. Convention: every PR has an audit trail back to a problem statement.'
+          fi

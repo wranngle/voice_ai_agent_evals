@@ -1,0 +1,99 @@
+name: automerge
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, labeled]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: Pull request number to arm for auto-merge
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: automerge-${{ github.event.pull_request.number || inputs.pr || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  arm:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.draft == false
+    permissions:
+      checks: read
+      contents: write
+      pull-requests: write
+      statuses: read
+    steps:
+      - name: Resolve PR metadata
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_PR_NUMBER: ${{ github.event.pull_request.number }}
+          INPUT_PR_NUMBER: ${{ inputs.pr }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          pr_number="${INPUT_PR_NUMBER:-${EVENT_PR_NUMBER:-}}"
+          if [[ -z "$pr_number" ]]; then
+            echo "No PR number supplied"; exit 0
+          fi
+          pr_json=$(gh pr view "$pr_number" --repo "$REPO" --json author,headRefName,isDraft,labels)
+          head_ref=$(jq -r '.headRefName' <<<"$pr_json")
+          author=$(jq -r '.author.login' <<<"$pr_json")
+          is_draft=$(jq -r '.isDraft' <<<"$pr_json")
+          labels=$(jq -r '[.labels[].name] | join(",")' <<<"$pr_json")
+          {
+            echo "number=$pr_number"
+            echo "head_ref=$head_ref"
+            echo "author=$author"
+            echo "is_draft=$is_draft"
+            echo "labels=$labels"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Fetch Dependabot metadata
+        if: steps.pr.outputs.author == 'dependabot[bot]'
+        id: dependabot
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98  # v3.1.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Arm auto-merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          HEAD_REF: ${{ steps.pr.outputs.head_ref }}
+          AUTHOR: ${{ steps.pr.outputs.author }}
+          IS_DRAFT: ${{ steps.pr.outputs.is_draft }}
+          LABELS: ${{ steps.pr.outputs.labels }}
+          DEP_UPDATE_TYPE: ${{ steps.dependabot.outputs.update-type }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -n "$PR_NUMBER" ]] || { echo "no PR number"; exit 0; }
+          [[ "$IS_DRAFT" != "true" ]] || { echo "draft PR; skipping"; exit 0; }
+
+          eligible=0
+          reason=""
+          if [[ "$HEAD_REF" == wip/* ]]; then
+            eligible=1
+            reason="wip autosync branch"
+          elif [[ ",$LABELS," == *",automerge,"* ]]; then
+            eligible=1
+            reason="automerge label"
+          elif [[ "$AUTHOR" == "dependabot[bot]" && "$DEP_UPDATE_TYPE" =~ ^version-update:semver-(patch|minor)$ ]]; then
+            eligible=1
+            reason="dependabot ${DEP_UPDATE_TYPE}"
+          fi
+
+          if [[ "$eligible" != 1 ]]; then
+            echo "not eligible for auto-merge: author=$AUTHOR head=$HEAD_REF labels=$LABELS update=$DEP_UPDATE_TYPE"
+            exit 0
+          fi
+
+          gh pr merge "$PR_NUMBER" --repo "$REPO" --auto --squash --delete-branch \
+            && echo "auto-merge armed: $reason"

@@ -1,0 +1,67 @@
+{
+  "$schema": "https://wranngle.local/schemas/automation-policy.v1.json",
+  "version": 1,
+  "mode": "managed",
+  "repo_class": "owned-greenfield",
+  "integration": {
+    "default": "integrate_when_green",
+    "quiet_seconds": 300,
+    "require_pr": true,
+    "require_green": true,
+    "require_human_review": false,
+    "allow_immediate_merge_fallback": false,
+    "merge_method": "squash",
+    "delete_branch_on_merge": true,
+    "integrate_branches": [
+      "main",
+      "master"
+    ],
+    "skip_branches": [
+      "wip/**",
+      "scratch/**",
+      "dependabot/**"
+    ]
+  },
+  "checks": {
+    "required": [
+      "shell-lint",
+      "yaml-lint",
+      "test",
+      "gitleaks",
+      "actionlint",
+      "zizmor"
+    ],
+    "lint": "auto_fix_then_block_if_failed",
+    "tests": "run_detected_stack",
+    "secret_scan": "block"
+  },
+  "dirty_work": {
+    "checkpoint": true,
+    "cluster_with_llm": true,
+    "open_pr_after_quiet": true,
+    "open_pr_after_quiet_seconds": 300,
+    "max_repair_attempts": 3
+  },
+  "paths": {
+    "safe_automerge": [
+      "docs/**",
+      ".github/**",
+      ".agents/**",
+      "scripts/**"
+    ],
+    "review_required": [
+      "src/**",
+      "lib/**",
+      "app/**",
+      "apps/**",
+      "packages/**"
+    ],
+    "never_commit": [
+      ".env",
+      ".env.*",
+      "secrets/**",
+      "**/*.key",
+      "**/*.pem"
+    ]
+  }
+}

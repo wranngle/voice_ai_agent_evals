@@ -1,0 +1,157 @@
+name: security
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+  schedule:
+    - cron: "23 11 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  ACTIONLINT_VERSION: "1.7.12"
+  ZIZMOR_VERSION: "1.24.1"
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Install actionlint
+        shell: bash
+        run: |
+          set -euo pipefail
+          asset="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          base_url="https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}"
+          curl -fsSLO "${base_url}/${asset}"
+          curl -fsSLO "${base_url}/actionlint_${ACTIONLINT_VERSION}_checksums.txt"
+          grep " ${asset}$" "actionlint_${ACTIONLINT_VERSION}_checksums.txt" | sha256sum -c -
+          tar -xzf "$asset" actionlint
+          sudo install -m 0755 actionlint /usr/local/bin/actionlint
+          actionlint -version
+      - name: Run actionlint
+        shell: bash
+        run: actionlint
+
+  zizmor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.x"
+      - name: Run zizmor
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv .zizmor-venv
+          . .zizmor-venv/bin/activate
+          python -m pip install --quiet --upgrade pip
+          python -m pip install --quiet "zizmor==${ZIZMOR_VERSION}"
+          zizmor --offline --no-progress --min-severity low .github/workflows .github/dependabot.yml
+
+  dependency-review:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && (github.event.repository.private == false || vars.ENABLE_DEPENDENCY_REVIEW == 'true')
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Dependency review
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48  # v4.9.0
+        with:
+          fail-on-severity: moderate
+          comment-summary-in-pr: on-failure
+
+  scorecard:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' && (github.event.repository.private == false || vars.ENABLE_SCORECARD == 'true')
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      security-events: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Run OpenSSF Scorecard
+        uses: ossf/scorecard-action@99c09fe975337306107572b4fdf4db224cf8e2f2  # v2.4.3
+        with:
+          results_file: scorecard.sarif
+          results_format: sarif
+          publish_results: ${{ github.event.repository.private == false && github.ref_name == github.event.repository.default_branch }}
+      - name: Upload Scorecard SARIF
+        if: always() && hashFiles('scorecard.sarif') != ''
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@ed410739ba306e4ebe5e123421a6bd694e494a2b  # v4
+        with:
+          sarif_file: scorecard.sarif
+
+  detect-codeql:
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.detect.outputs.enabled }}
+      matrix: ${{ steps.detect.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+      - id: detect
+        shell: bash
+        run: |
+          set -euo pipefail
+          find_code() {
+            find . \
+              \( -path './.git' -o -path './old' -o -path './node_modules' -o -path '*/node_modules' -o -path '*/vendor' -o -path '*/deps' \) -prune -o \
+              \( "$@" \) -type f -print -quit | grep -q .
+          }
+          langs=()
+          find_code -name '*.js' -o -name '*.jsx' -o -name '*.ts' -o -name '*.tsx' -o -name 'package.json' && langs+=('{"language":"javascript-typescript"}')
+          find_code -name '*.py' -o -name 'pyproject.toml' -o -name 'requirements.txt' && langs+=('{"language":"python"}')
+          find_code -name '*.go' -o -name 'go.mod' && langs+=('{"language":"go"}')
+          find_code -name '*.c' -o -name '*.cc' -o -name '*.cpp' -o -name '*.h' -o -name '*.hpp' -o -name 'CMakeLists.txt' && langs+=('{"language":"c-cpp"}')
+          find_code -name '*.cs' -o -name '*.csproj' -o -name '*.sln' && langs+=('{"language":"csharp"}')
+          find_code -name '*.java' -o -name '*.kt' -o -name 'pom.xml' -o -name 'build.gradle' -o -name 'build.gradle.kts' && langs+=('{"language":"java-kotlin"}')
+          find_code -name '*.rb' -o -name 'Gemfile' && langs+=('{"language":"ruby"}')
+          find_code -name '*.swift' -o -name 'Package.swift' && langs+=('{"language":"swift"}')
+          if ((${#langs[@]} == 0)); then
+            echo 'enabled=false' >> "$GITHUB_OUTPUT"
+            echo 'matrix={"include":[]}' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          matrix=$(printf '%s\n' "${langs[@]}" | jq -sc '{include: .}')
+          echo 'enabled=true' >> "$GITHUB_OUTPUT"
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
+  codeql:
+    needs: detect-codeql
+    runs-on: ubuntu-latest
+    if: needs.detect-codeql.outputs.enabled == 'true' && (github.event.repository.private == false || vars.ENABLE_CODEQL == 'true')
+    permissions:
+      contents: read
+      packages: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.detect-codeql.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: github/codeql-action/init@ed410739ba306e4ebe5e123421a6bd694e494a2b  # v4
+        with:
+          languages: ${{ matrix.language }}
+      - uses: github/codeql-action/autobuild@ed410739ba306e4ebe5e123421a6bd694e494a2b  # v4
+      - uses: github/codeql-action/analyze@ed410739ba306e4ebe5e123421a6bd694e494a2b  # v4

@@ -1,0 +1,42 @@
+name: ✨ Feature
+description: Something new
+title: "feat: "
+labels: [t.feat, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Tip: state the problem before the solution. "Wouldn't it be cool if…" requests get deprioritized.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem & Why now
+      description: What's the user pain? What changed that makes this matter?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed approach
+      description: Sketch the API / UX. Code snippets welcome. If you don't know yet, file a research issue instead.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - core
+        - cli
+        - api
+        - docs
+        - ci
+        - infra
+        - other
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What else did you think about? Why not those?

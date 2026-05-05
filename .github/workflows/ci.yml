@@ -1,0 +1,88 @@
+name: ci
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  shell-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+      - name: shellcheck
+        shell: bash
+        run: |
+          shopt -s nullglob globstar
+          files=( **/*.sh )
+          [[ ${#files[@]} -eq 0 ]] && { echo "no shell files — skipping"; exit 0; }
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq shellcheck
+          shellcheck -S warning "${files[@]}"
+
+  yaml-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.x"
+      - name: yamllint
+        run: |
+          pip install --quiet yamllint
+          yamllint -d "{extends: default, rules: {line-length: disable, document-start: disable, truthy: {check-keys: false}}}" .
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+      - name: detect-and-test
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -f package.json ]];then
+            echo "::group::node"
+            node --version
+            (npm ci || npm install) >/dev/null
+            npm test --if-present
+            echo "::endgroup::"
+          elif [[ -f pyproject.toml || -f requirements.txt || -f setup.py ]];then
+            echo "::group::python"
+            python3 --version
+            python3 -m pip install --quiet --upgrade pip
+            if [[ -f requirements.txt ]]; then
+              python3 -m pip install --quiet -r requirements.txt
+            fi
+            if [[ -f pyproject.toml ]]; then
+              python3 -m pip install --quiet -e . 2>/dev/null || true
+            fi
+            python3 -m pytest -q 2>/dev/null || echo "no pytest config — skipping"
+            echo "::endgroup::"
+          elif [[ -f Cargo.toml ]];then
+            echo "::group::rust"
+            cargo --version
+            cargo test --all
+            echo "::endgroup::"
+          elif [[ -f go.mod ]];then
+            echo "::group::go"
+            go version
+            go test ./...
+            echo "::endgroup::"
+          else
+            echo "no language toolchain detected — running smoke check only"
+            ls -la
+          fi

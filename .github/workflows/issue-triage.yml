@@ -1,0 +1,64 @@
+name: issue-triage
+on:
+  issues:
+    types: [opened, edited]
+  pull_request:
+    types: [opened]
+permissions:
+  contents: read
+jobs:
+  apply-area-label:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues'
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Apply a/<area> label from form body
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          area=$(printf '%s' "$ISSUE_BODY" \
+            | awk '/^### Area$/{flag=1; next} flag && NF{print; exit}' \
+            | tr -d '[:space:]')
+          if [[ -z "$area" || "$area" == _No* ]]; then
+            echo "no Area field; skipping"; exit 0
+          fi
+          if gh label list --repo "$REPO" --json name -q '.[].name' | grep -qx "a/$area"; then
+            gh issue edit "$ISSUE_NUMBER" --repo "$REPO" --add-label "a/$area"
+            echo "applied a/$area"
+          else
+            echo "label a/$area not seeded in this repo; skipping"
+          fi
+
+  add-to-triage-project:
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened'
+    permissions:
+      contents: read
+    steps:
+      - name: Add issue to user-level Triage project
+        env:
+          GH_TOKEN: ${{ secrets.PROJECTS_TOKEN || secrets.GITHUB_TOKEN }}
+          ISSUE_URL: ${{ github.event.issue.html_url || github.event.pull_request.html_url }}
+          PROJECT_NUMBER: ${{ vars.TRIAGE_PROJECT_NUMBER }}
+          PROJECT_OWNER: ${{ vars.TRIAGE_PROJECT_OWNER }}
+          PROJECTS_TOKEN_CONFIGURED: ${{ secrets.PROJECTS_TOKEN != '' }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$PROJECT_NUMBER" || -z "$PROJECT_OWNER" ]]; then
+            echo "no TRIAGE_PROJECT_NUMBER / OWNER vars; skipping (set via dotfiles bootstrap)"; exit 0
+          fi
+          # GITHUB_TOKEN cannot mutate user-level Projects v2. If a PROJECTS_TOKEN
+          # PAT secret is configured (with project scope), use it; otherwise log
+          # and skip — the dotfiles bootstrap link is still valuable as a record.
+          if [[ "$PROJECTS_TOKEN_CONFIGURED" != "true" ]]; then
+            echo "default GITHUB_TOKEN cannot mutate user projects; configure secrets.PROJECTS_TOKEN (PAT with 'project' scope) to enable"; exit 0
+          fi
+          gh project item-add "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --url "$ISSUE_URL" \
+            && echo "added to project $PROJECT_OWNER#$PROJECT_NUMBER" \
+            || echo "project add failed (token may lack project scope or item already present)"

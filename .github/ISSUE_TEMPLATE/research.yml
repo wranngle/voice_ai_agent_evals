@@ -1,0 +1,44 @@
+name: 🔬 Research / spike
+description: Investigate, prototype, or evaluate
+title: "research: "
+labels: [t.research, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this for time-boxed investigations. The goal is a *decision*, not code.
+  - type: textarea
+    id: question
+    attributes:
+      label: Question / hypothesis
+    validations:
+      required: true
+  - type: textarea
+    id: deliverable
+    attributes:
+      label: Deliverable
+      description: What artifact answers the question? (RFC, prototype, benchmark, decision doc.)
+    validations:
+      required: true
+  - type: input
+    id: timebox
+    attributes:
+      label: Timebox
+      description: How long should this run before forcing a decision?
+      placeholder: "1 day | 1 week max"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - core
+        - cli
+        - api
+        - docs
+        - ci
+        - infra
+        - other
+    validations:
+      required: true
