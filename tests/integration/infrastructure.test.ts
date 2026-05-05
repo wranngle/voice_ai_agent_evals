@@ -633,13 +633,14 @@ describe('Vitest Config', () => {
 
 describe('Runner Architecture', () => {
   it('every runner must implement validate() and execute()', async () => {
-    const {WebhookRunner, ElevenLabsRunner, N8nEvalRunner, McpRunner} = await import('../../lib/testing');
+    const {WebhookRunner, ElevenLabsRunner, N8nEvalRunner, McpRunner, ExternalCommandRunner} = await import('../../lib/testing');
 
     const runners = [
       new WebhookRunner(),
       new ElevenLabsRunner(),
       new N8nEvalRunner(),
       new McpRunner(),
+      new ExternalCommandRunner(),
     ];
 
     for (const runner of runners) {
@@ -650,14 +651,15 @@ describe('Runner Architecture', () => {
   });
 
   it('runner types must match TestType enum values', async () => {
-    const {WebhookRunner, ElevenLabsRunner, N8nEvalRunner, McpRunner} = await import('../../lib/testing');
+    const {WebhookRunner, ElevenLabsRunner, N8nEvalRunner, McpRunner, ExternalCommandRunner} = await import('../../lib/testing');
 
-    const validTypes = ['webhook', 'elevenlabs', 'n8n-eval', 'mcp'];
+    const validTypes = ['webhook', 'elevenlabs', 'n8n-eval', 'mcp', 'external-command'];
 
     expect(validTypes).toContain(new WebhookRunner().type);
     expect(validTypes).toContain(new ElevenLabsRunner().type);
     expect(validTypes).toContain(new N8nEvalRunner().type);
     expect(validTypes).toContain(new McpRunner().type);
+    expect(validTypes).toContain(new ExternalCommandRunner().type);
   });
 
   it('orchestrator must support failFast mode', async () => {

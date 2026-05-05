@@ -112,10 +112,12 @@ describe('ElevenLabs Runner', () => {
 
     afterEach(() => {
       vi.restoreAllMocks();
+      vi.unstubAllEnvs();
     });
 
     test('should return error when API key is not configured', async () => {
-      const runnerWithoutKey = new ElevenLabsRunner('');
+      vi.stubEnv('ELEVENLABS_API_KEY', '');
+      const runnerWithoutKey = new ElevenLabsRunner();
 
       const testCase: TestCase = {
         test_id: 'TC-EL-005',

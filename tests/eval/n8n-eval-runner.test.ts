@@ -113,10 +113,12 @@ describe('n8n Eval Runner', () => {
 
     afterEach(() => {
       vi.restoreAllMocks();
+      vi.unstubAllEnvs();
     });
 
     test('should return error when API key is not configured', async () => {
-      const runnerWithoutKey = new N8nEvalRunner('https://n8n.example.com/api/v1', '');
+      vi.stubEnv('N8N_API_KEY', '');
+      const runnerWithoutKey = new N8nEvalRunner('https://n8n.example.com/api/v1');
 
       const testCase: TestCase = {
         test_id: 'TC-N8N-005',
@@ -540,6 +542,7 @@ describe('n8n Eval Runner', () => {
 
     afterEach(() => {
       vi.restoreAllMocks();
+      vi.unstubAllEnvs();
     });
 
     test('should execute via webhook when webhook_path is provided', async () => {

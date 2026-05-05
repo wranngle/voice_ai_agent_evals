@@ -161,10 +161,12 @@ describe('MCP Runner', () => {
 
     afterEach(() => {
       vi.restoreAllMocks();
+      vi.unstubAllEnvs();
     });
 
     test('should return error when API key is not configured', async () => {
-      const runnerWithoutKey = new McpRunner('https://n8n.example.com/api/v1', '');
+      vi.stubEnv('N8N_API_KEY', '');
+      const runnerWithoutKey = new McpRunner('https://n8n.example.com/api/v1');
 
       const testCase: TestCase = {
         test_id: 'TC-MCP-007',
@@ -495,6 +497,7 @@ describe('MCP Runner', () => {
 
     afterEach(() => {
       vi.restoreAllMocks();
+      vi.unstubAllEnvs();
     });
 
     test('should execute via webhook when trigger_type is webhook', async () => {

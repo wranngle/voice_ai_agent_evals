@@ -6,7 +6,7 @@
  */
 
 // Test case types supported by the framework
-export type TestType = 'webhook' | 'elevenlabs' | 'n8n-eval' | 'mcp';
+export type TestType = 'webhook' | 'elevenlabs' | 'n8n-eval' | 'mcp' | 'external-command';
 
 // Test execution status
 export type TestStatus = 'passed' | 'failed' | 'error' | 'skipped' | 'pending';
@@ -66,6 +66,8 @@ export type TestResult = {
   executed_at: string; // ISO timestamp
   assertions_passed?: number;
   assertions_failed?: number;
+  artifacts?: EvaluationArtifact[];
+  dimensions?: EvaluationDimension[];
 };
 
 /**
@@ -135,6 +137,41 @@ export type McpTestInput = {
   trigger_type: 'webhook' | 'manual';
   payload: Record<string, unknown>;
   expected_execution_time_ms?: number;
+};
+
+/**
+ * External command test input format
+ */
+export type ExternalCommandTestInput = {
+  command: string;
+  cwd?: string;
+  env?: Record<string, string>;
+  timeout_ms?: number;
+  expected_exit_code?: number;
+  artifacts?: EvaluationArtifact[];
+  dimensions?: EvaluationDimension[];
+};
+
+/**
+ * Artifact emitted by an app or integration evaluation.
+ */
+export type EvaluationArtifact = {
+  name: string;
+  path?: string;
+  url?: string;
+  kind: 'json' | 'junit' | 'html' | 'trace' | 'screenshot' | 'video' | 'log' | 'coverage' | 'other';
+  producer?: string;
+};
+
+/**
+ * A normalized scoring/check dimension from a runner or adapter.
+ */
+export type EvaluationDimension = {
+  name: string;
+  status: TestStatus;
+  score?: number;
+  detail?: string;
+  weight?: number;
 };
 
 /**

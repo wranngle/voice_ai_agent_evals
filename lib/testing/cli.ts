@@ -3,7 +3,8 @@
  * voice_ai_agent_evals CLI
  *
  * Command-line interface for the ElevenLabs voice-agent eval harness.
- * Drives the same runners (elevenlabs, n8n-eval, mcp, webhook) as the
+ * Drives the same runners (elevenlabs, n8n-eval, mcp, webhook,
+ * external-command) as the
  * Vitest projects, but with stored test cases and runs persisted under
  * `.test-data/` (override via TEST_STORAGE_DIR).
  *
@@ -148,7 +149,7 @@ ${C.cyan}Commands:${C.reset}
   clear        Clear all test data
 
 ${C.cyan}Options:${C.reset}
-  -t, --type <type>    Filter by test type (webhook, elevenlabs, n8n-eval, mcp)
+  -t, --type <type>    Filter by test type (webhook, elevenlabs, n8n-eval, mcp, external-command)
   -g, --tag <tag>      Filter by tag (can be used multiple times)
       --id <id>        Run specific test by ID
   -f, --fail-fast      Stop on first failure

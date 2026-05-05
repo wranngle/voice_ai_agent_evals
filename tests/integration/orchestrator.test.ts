@@ -51,6 +51,7 @@ describe('Test Orchestrator', () => {
       expect(orchestrator.getRunner('elevenlabs')).toBeDefined();
       expect(orchestrator.getRunner('n8n-eval')).toBeDefined();
       expect(orchestrator.getRunner('mcp')).toBeDefined();
+      expect(orchestrator.getRunner('external-command')).toBeDefined();
     });
 
     test('should allow registering custom runners', () => {

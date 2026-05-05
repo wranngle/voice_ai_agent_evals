@@ -18,6 +18,9 @@ export type {
   ElevenLabsTestInput,
   N8nEvalTestInput,
   McpTestInput,
+  ExternalCommandTestInput,
+  EvaluationArtifact,
+  EvaluationDimension,
   RequirementCoverage,
   TestRunSummary,
 } from './types';
@@ -69,6 +72,8 @@ export {
   type N8nEvalExpectedOutput,
   type McpTestConfig,
   type McpExpectedOutput,
+  type ExternalCommandTestConfig,
+  type ExternalCommandExpectedOutput,
   type OrchestratorOptions,
   // Runners
   WebhookRunner,
@@ -79,8 +84,21 @@ export {
   n8nEvalRunner,
   McpRunner,
   mcpRunner,
+  ExternalCommandRunner,
+  externalCommandRunner,
   // Orchestrator
   TestOrchestrator,
   orchestrator,
   runTests,
 } from './runners';
+
+// App adapters
+export {
+  createGtmOpsTestCases,
+  loadGtmOpsHarnessManifest,
+  runGtmOpsAdapter,
+  type GtmOpsAdapterOptions,
+  type GtmOpsAdapterRun,
+  type GtmOpsHarnessCommand,
+  type GtmOpsHarnessManifest,
+} from './adapters';

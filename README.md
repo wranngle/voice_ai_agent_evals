@@ -3,7 +3,7 @@
 [![CI](https://github.com/wranngle/voice_ai_agent_evals/actions/workflows/vitest.yml/badge.svg)](https://github.com/wranngle/voice_ai_agent_evals/actions/workflows/vitest.yml)
 [![License: MIT](https://img.shields.io/github/license/wranngle/voice_ai_agent_evals?style=flat-square)](LICENSE)
 
-> Bulk eval harness for ElevenLabs voice agents — deterministic scenarios, total-turn latency capture, prompt versioning via git tags.
+> Bulk eval harness for ElevenLabs voice agents and app-owned eval suites — deterministic scenarios, total-turn latency capture, prompt versioning via git tags, and external-app adapters.
 
 ## What this is
 
@@ -12,7 +12,8 @@ Test runner and scenario framework for evaluating ElevenLabs Conversational AI v
 ### What's implemented today
 
 - **Total-turn latency** captured per test as `latency_ms`; `avg_latency_ms` and slowest-test surfaced in the run summary.
-- **Webhook + n8n + ElevenLabs + MCP runners**, each with its own assertion shape (`response_contains`, `output_contains`, `execution_status`, etc.).
+- **Webhook + n8n + ElevenLabs + MCP + external-command runners**, each with its own assertion shape (`response_contains`, `output_contains`, `execution_status`, exit code/output checks, etc.).
+- **`gtm_ops` adapter**: reads `../gtm_ops/eval-harness.manifest.json` and runs the app-owned validation/eval commands without duplicating Playwright or Vitest semantics here.
 - **Vitest project layout** that segregates offline (no secrets) from live (needs API keys) tests.
 - **Scenario YAML discoverability**: `bun run testing list` surfaces every `tests/scenarios/<id>/scenario.yaml` alongside ingested test cases. The CLI extracts the `description:` line; deeper fields aren't parsed yet.
 
@@ -49,13 +50,17 @@ bun run test:webhook
 # CLI (stored test cases & runs under .test-data/)
 bun run testing list
 bun run testing run <test-id>
+
+# App adapter: run gtm_ops through its manifest-owned test surface.
+bun run testing:gtm-ops --root ../gtm_ops
+bun run testing:gtm-ops --root ../gtm_ops --tag ui
 ```
 
 To wire to your live agent, copy `agent-registry.example.yaml` → `agent-registry.yaml` (gitignored) and fill in real IDs, or set `ELEVENLABS_AGENT_ID` directly.
 
 ## What's in here
 
-- **`lib/testing/`** — runner library: `runners/` (elevenlabs, n8n-eval, mcp, webhook), `ingestion/`, CLI
+- **`lib/testing/`** — runner library: `runners/` (elevenlabs, n8n-eval, mcp, webhook, external-command), `adapters/`, `ingestion/`, CLI
 - **`lib/extraction/`** — structured extraction from transcripts and post-call payloads
 - **`lib/agent_evals/`** — agent-eval runtime + fixtures
 - **`scripts/`** — runner entry points (`test-elevenlabs-runner`, `test-mcp-runner`, `test-n8n-eval-runner`) and harness utilities (`health-check`, `monitor-executions`, `list-workflows`, `ingest-and-run`)
@@ -70,6 +75,7 @@ To wire to your live agent, copy `agent-registry.example.yaml` → `agent-regist
 - [`docs/tool-calling.md`](docs/tool-calling.md) — server-side vs. client-side tools, `agent.prompt.tools` schema, KB-vs-tool boundary
 - [`docs/webhook-security.md`](docs/webhook-security.md) — `ElevenLabs-Signature` header verification (HMAC-SHA256 over `<timestamp>.<body>`)
 - [`docs/deployment.md`](docs/deployment.md) — operator setup: env vars, prompt-promotion flow, rollback flow
+- [`docs/external-app-adapters.md`](docs/external-app-adapters.md) — app-owned command manifests and the `gtm_ops` adapter
 - [`docs/extending-the-harness.md`](docs/extending-the-harness.md) — adding a new scenario
 - [`docs/handling-model-updates.md`](docs/handling-model-updates.md) — playbook for ElevenLabs model updates
 - [`docs/elevenlabs-twilio-voiceagent/`](docs/elevenlabs-twilio-voiceagent/) — standalone smoke-test bundle (shell scripts + API references) for verifying ElevenLabs and Twilio credentials in a fresh sandbox

@@ -18,6 +18,8 @@ export type {
   N8nEvalExpectedOutput,
   McpTestConfig,
   McpExpectedOutput,
+  ExternalCommandTestConfig,
+  ExternalCommandExpectedOutput,
 } from './types';
 
 // Runners
@@ -25,6 +27,7 @@ export {WebhookRunner, webhookRunner} from './webhook-runner';
 export {ElevenLabsRunner, elevenlabsRunner} from './elevenlabs-runner';
 export {N8nEvalRunner, n8nEvalRunner} from './n8n-eval-runner';
 export {McpRunner, mcpRunner} from './mcp-runner';
+export {ExternalCommandRunner, externalCommandRunner} from './external-command-runner';
 
 // Orchestrator
 export {

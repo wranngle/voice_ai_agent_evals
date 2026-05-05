@@ -18,6 +18,7 @@ import {WebhookRunner} from './webhook-runner';
 import {ElevenLabsRunner} from './elevenlabs-runner';
 import {N8nEvalRunner} from './n8n-eval-runner';
 import {McpRunner} from './mcp-runner';
+import {ExternalCommandRunner} from './external-command-runner';
 
 /**
  * Options for the test orchestrator
@@ -59,6 +60,7 @@ export class TestOrchestrator {
     this.registerRunner(new ElevenLabsRunner());
     this.registerRunner(new N8nEvalRunner());
     this.registerRunner(new McpRunner());
+    this.registerRunner(new ExternalCommandRunner());
   }
 
   /**

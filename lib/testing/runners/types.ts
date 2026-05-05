@@ -5,7 +5,7 @@
  */
 
 import type {
-  TestCase, TestStatus, TestType,
+  EvaluationArtifact, EvaluationDimension, TestCase, TestStatus, TestType,
 } from '../types';
 
 /**
@@ -18,6 +18,8 @@ export type TestExecutionResult = {
   error_message?: string;
   assertions_passed: number;
   assertions_failed: number;
+  artifacts?: EvaluationArtifact[];
+  dimensions?: EvaluationDimension[];
 };
 
 /**
@@ -174,4 +176,28 @@ export type McpExpectedOutput = {
   expected_output?: Record<string, unknown>;
   /** Max execution time */
   max_execution_time_ms?: number;
+};
+
+/**
+ * External command test input.
+ */
+export type ExternalCommandTestConfig = {
+  command: string;
+  cwd?: string;
+  env?: Record<string, string>;
+  timeout_ms?: number;
+  expected_exit_code?: number;
+  artifacts?: EvaluationArtifact[];
+  dimensions?: EvaluationDimension[];
+};
+
+/**
+ * External command expected output.
+ */
+export type ExternalCommandExpectedOutput = {
+  exit_code?: number;
+  stdout_contains?: string[];
+  stderr_contains?: string[];
+  stdout_not_contains?: string[];
+  stderr_not_contains?: string[];
 };
