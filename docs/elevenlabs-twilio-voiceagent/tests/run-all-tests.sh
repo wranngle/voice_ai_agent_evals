@@ -19,8 +19,9 @@ SKIP_COUNT=0
 
 run_test() {
   local test_script="$1"
-  local test_name=$(basename "$test_script" .sh)
-  local integration=$(dirname "$test_script" | xargs basename)
+  local test_name integration
+  test_name=$(basename "$test_script" .sh)
+  integration=$(dirname "$test_script" | xargs basename)
 
   echo "--- $integration / $test_name ---"
 

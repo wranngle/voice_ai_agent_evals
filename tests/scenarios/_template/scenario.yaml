@@ -45,13 +45,13 @@ thresholds:
 # harness normalizes them before computing the weighted score.
 success_criteria:
   - axis: tool_call_schema
-    expected: { name: lookup_record, parameters_pass: true, response_consumed_in_next_turn: true }
+    expected: {name: lookup_record, parameters_pass: true, response_consumed_in_next_turn: true}
     weight: 1.0
   - axis: tool_call_routing
-    expected: { route: tool, name: lookup_record }
+    expected: {route: tool, name: lookup_record}
     weight: 1.0
   - axis: tool_call_round_trip_ms
-    expected: { name: lookup_record }
+    expected: {name: lookup_record}
     weight: 0.5
   - axis: ttfb_p95_ms
     expected: pass
