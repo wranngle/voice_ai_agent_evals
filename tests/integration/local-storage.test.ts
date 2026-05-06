@@ -290,11 +290,15 @@ describe('Local Storage', () => {
         errors: 1,
         skipped: 0,
         avg_latency_ms: 150,
+        p95_latency_ms: 300,
+        p99_latency_ms: 450,
       });
 
       expect(completed?.total_tests).toBe(10);
       expect(completed?.passed).toBe(8);
       expect(completed?.pass_rate).toBe(80);
+      expect(completed?.p95_latency_ms).toBe(300);
+      expect(completed?.p99_latency_ms).toBe(450);
       expect(completed?.completed_at).toBeDefined();
     });
   });
@@ -485,6 +489,42 @@ describe('Local Storage', () => {
       expect(result.requirement?.linked_tests).toContain(testCase.test_id);
     });
 
+    test('linkTestToRequirementSync should detach the test from its previous requirement on relink', () => {
+      const oldRequest = createRequirementSync({
+        user_intent: 'Old requirement',
+        status: 'captured',
+        source: 'manual',
+        linked_tests: [],
+      });
+      const newRequest = createRequirementSync({
+        user_intent: 'New requirement',
+        status: 'captured',
+        source: 'manual',
+        linked_tests: [],
+      });
+      const testCase = createTestCaseSync({
+        type: 'webhook',
+        name: 'Relinked test',
+        description: 'Test',
+        input: {},
+        expected_output: {},
+        tags: [],
+        enabled: true,
+      });
+
+      // Link to old, then relink to new.
+      linkTestToRequirementSync(testCase.test_id, oldRequest.requirement_id);
+      linkTestToRequirementSync(testCase.test_id, newRequest.requirement_id);
+
+      const oldAfter = getRequirementSync(oldRequest.requirement_id);
+      const newAfter = getRequirementSync(newRequest.requirement_id);
+
+      // Old must no longer reference the test (otherwise coverage reports lie).
+      expect(oldAfter?.linked_tests).not.toContain(testCase.test_id);
+      // New should be the sole owner.
+      expect(newAfter?.linked_tests).toContain(testCase.test_id);
+    });
+
     test('getRequirementCoverageSync should return coverage status', () => {
       // Create requirement with linked test
       const coveredRequest = createRequirementSync({
@@ -524,6 +564,72 @@ describe('Local Storage', () => {
       const uncovered = coverage.find(c => c.coverage_status === 'uncovered');
       expect(uncovered).toBeDefined();
       expect(uncovered?.test_count).toBe(0);
+    });
+
+    test('getRequirementCoverageSync should report uncovered when all linked tests have been deleted', () => {
+      const orphanRequest = createRequirementSync({
+        user_intent: 'Requirement whose tests will be deleted',
+        status: 'captured',
+        source: 'manual',
+        linked_tests: [],
+      });
+
+      const linkedCase = createTestCaseSync({
+        type: 'webhook',
+        name: 'About to be deleted',
+        description: 'Test',
+        input: {},
+        expected_output: {},
+        tags: [],
+        enabled: true,
+      });
+
+      linkTestToRequirementSync(linkedCase.test_id, orphanRequest.requirement_id);
+
+      // Delete the test out from under the requirement. linked_tests still
+      // names it, but storage no longer has the case.
+      deleteTestCaseSync(linkedCase.test_id);
+
+      const orphan = getRequirementCoverageSync()
+        .find(c => c.requirement_id === orphanRequest.requirement_id);
+      expect(orphan?.coverage_status).toBe('uncovered');
+      expect(orphan?.test_count).toBe(0);
+    });
+
+    test('getRequirementCoverageSync should report partial when a linked test is disabled', () => {
+      const partialRequest = createRequirementSync({
+        user_intent: 'Partially covered requirement',
+        status: 'captured',
+        source: 'manual',
+        linked_tests: [],
+      });
+
+      const enabledCase = createTestCaseSync({
+        type: 'webhook',
+        name: 'Enabled linked',
+        description: 'Test',
+        input: {},
+        expected_output: {},
+        tags: [],
+        enabled: true,
+      });
+      const disabledCase = createTestCaseSync({
+        type: 'webhook',
+        name: 'Disabled linked',
+        description: 'Test',
+        input: {},
+        expected_output: {},
+        tags: [],
+        enabled: false,
+      });
+
+      linkTestToRequirementSync(enabledCase.test_id, partialRequest.requirement_id);
+      linkTestToRequirementSync(disabledCase.test_id, partialRequest.requirement_id);
+
+      const partial = getRequirementCoverageSync()
+        .find(c => c.requirement_id === partialRequest.requirement_id);
+      expect(partial?.coverage_status).toBe('partial');
+      expect(partial?.test_count).toBe(2);
     });
 
     test('clearAllDataSync should remove all data', () => {

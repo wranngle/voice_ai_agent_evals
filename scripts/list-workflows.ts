@@ -7,7 +7,12 @@
  * Usage: bun scripts/list-workflows.ts
  */
 
-const API_URL = process.env.N8N_API_URL || 'https://your-n8n-host.example.com/api/v1';
+import {normalizeN8nApiUrl} from '../lib/n8n-url';
+
+// `N8N_API_URL` is documented as required. Falling back to a placeholder
+// host silently aimed past the user's actual n8n; surface the omission with
+// usage instead.
+const API_URL = process.env.N8N_API_URL ?? '';
 const API_KEY = process.env.N8N_API_KEY ?? '';
 
 type Workflow = {
@@ -19,18 +24,60 @@ type Workflow = {
   updatedAt: string;
 };
 
+type WorkflowsPage = {
+  data: Workflow[];
+  nextCursor?: string;
+};
+
+const PAGE_SIZE = 100;
+// Safety cap: if pagination ever loops, refuse to walk more than this many
+// pages so the script can't melt under a misbehaving server response.
+const MAX_PAGES = 200;
+
+async function fetchAllWorkflows(): Promise<Workflow[]> {
+  const baseUrl = normalizeN8nApiUrl(API_URL);
+  const out: Workflow[] = [];
+  let cursor: string | undefined;
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const url = new URL(`${baseUrl}/workflows`);
+    url.searchParams.set('limit', String(PAGE_SIZE));
+    if (cursor) {
+      url.searchParams.set('cursor', cursor);
+    }
+
+    const response = await fetch(url, {headers: {'X-N8N-API-KEY': API_KEY}});
+    if (!response.ok) {
+      throw new Error(`n8n API ${response.status} ${response.statusText} for ${url.toString()}`);
+    }
+
+    const body = await response.json() as WorkflowsPage;
+    const items = body.data ?? [];
+    out.push(...items);
+
+    if (!body.nextCursor || items.length === 0) {
+      return out;
+    }
+
+    cursor = body.nextCursor;
+  }
+
+  throw new Error(`workflow pagination exceeded ${MAX_PAGES} pages — refusing to continue`);
+}
+
 async function main() {
   if (!API_KEY) {
     console.error('Error: N8N_API_KEY environment variable not set');
     process.exit(1);
   }
 
-  const response = await fetch(`${API_URL}/workflows?limit=100`, {
-    headers: {'X-N8N-API-KEY': API_KEY},
-  });
+  if (!API_URL) {
+    console.error('Error: N8N_API_URL environment variable not set');
+    console.error('   Export the base URL of your n8n instance (e.g.');
+    console.error('   https://n8n.your-host.example/api/v1) before running this script.');
+    process.exit(1);
+  }
 
-  const data = await response.json() as {data: Workflow[]};
-  const workflows = data.data || [];
+  const workflows = await fetchAllWorkflows();
 
   console.log('\n=== n8n Workflow Analysis ===');
   console.log(`Total workflows: ${workflows.length}\n`);

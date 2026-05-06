@@ -32,6 +32,21 @@ describe('verifyElevenLabsSignature', () => {
     expect(result).toEqual({ok: false, reason: 'malformed_header'});
   });
 
+  test('accepts optional spaces around comma-separated signature fields', () => {
+    const header = signElevenLabsPayload(BODY, SECRET, NOW_SECS).replace(',', ', ');
+    const result = verifyElevenLabsSignature(BODY, header, SECRET, {now: fakeNow});
+    expect(result).toEqual({ok: true});
+  });
+
+  test('rejects non-numeric timestamp suffixes instead of parsing a prefix', () => {
+    const header = signElevenLabsPayload(BODY, SECRET, NOW_SECS).replace(
+      `t=${NOW_SECS}`,
+      `t=${NOW_SECS}junk`,
+    );
+    const result = verifyElevenLabsSignature(BODY, header, SECRET, {now: fakeNow});
+    expect(result).toEqual({ok: false, reason: 'malformed_header'});
+  });
+
   test('rejects header with non-hex v0', () => {
     const result = verifyElevenLabsSignature(BODY, `t=${NOW_SECS},v0=NOT_HEX!!`, SECRET, {now: fakeNow});
     expect(result).toEqual({ok: false, reason: 'malformed_header'});
@@ -83,10 +98,30 @@ describe('verifyElevenLabsSignature', () => {
     expect(result).toEqual({ok: true});
   });
 
+  test('verifies Uint8Array raw bytes without UTF-8 normalization', () => {
+    const rawBody = Uint8Array.from([0x7B, 0x22, 0xFF, 0x00, 0x22, 0x7D]);
+    const header = signElevenLabsPayload(rawBody, SECRET, NOW_SECS);
+    const result = verifyElevenLabsSignature(rawBody, header, SECRET, {now: fakeNow});
+    expect(result).toEqual({ok: true});
+  });
+
   test('rejects v0 with mismatched length', () => {
     // Truncated v0 — same prefix, different length
     const header = signElevenLabsPayload(BODY, SECRET, NOW_SECS).slice(0, -2);
     const result = verifyElevenLabsSignature(BODY, header, SECRET, {now: fakeNow});
     expect(result).toEqual({ok: false, reason: 'signature_mismatch'});
+  });
+
+  test('throws on empty shared secret instead of silently verifying with an empty key', () => {
+    const header = signElevenLabsPayload(BODY, SECRET, NOW_SECS);
+    expect(() => verifyElevenLabsSignature(BODY, header, '', {now: fakeNow}))
+      .toThrow(/sharedSecret is empty/);
+  });
+});
+
+describe('signElevenLabsPayload', () => {
+  test('throws on empty shared secret', () => {
+    expect(() => signElevenLabsPayload(BODY, '', NOW_SECS))
+      .toThrow(/sharedSecret is empty/);
   });
 });

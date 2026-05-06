@@ -4,20 +4,32 @@
  * Ingests all existing Vitest webhook tests into the framework,
  * deduplicates, and runs the full suite.
  *
- * Run: bun run scripts/ingest-and-run.ts
+ * Run: bun run scripts/ingest-and-run.ts [--clear]
+ *
+ * Pass --clear to wipe existing test data (cases, results, runs) before
+ * ingestion. Default is non-destructive — duplicate ingestion is already
+ * deduplicated by the ingestion engine.
  */
 
 import {join} from 'node:path';
 import {ingestTests} from '../lib/testing/ingestion';
 import {clearAllDataSync, runTests, listTestCases} from '../lib/testing';
 
+const shouldClear = process.argv.includes('--clear');
+
 async function main() {
   console.log('🔄 Test Ingestion & Execution\n');
   console.log('═'.repeat(60));
 
-  // Clear existing test data for clean run
-  console.log('\n📋 Clearing existing test data...');
-  clearAllDataSync();
+  if (shouldClear) {
+    // Destructive — wipes prior runs/results/cases. Only when explicitly
+    // requested so that re-running ingestion in a populated workspace
+    // doesn't silently destroy the user's run history.
+    console.log('\n📋 Clearing existing test data (--clear specified)...');
+    clearAllDataSync();
+  } else {
+    console.log('\n📋 Preserving existing test data (pass --clear to wipe).');
+  }
 
   // Ingest tests from webhook directory
   console.log('\n📥 Ingesting tests from tests/webhook/...\n');
@@ -93,7 +105,14 @@ async function main() {
   console.log('\n' + '═'.repeat(60));
   console.log('\n✨ Complete!\n');
 
-  // Exit with appropriate code
+  // Exit with appropriate code. Zero tests run is a failure mode for this
+  // script (ingest + run) — an empty `tests/webhook/` or a failed scan
+  // otherwise produces a green report with no actual coverage.
+  if (summary.total_tests === 0) {
+    console.log('\n  ⚠️  No tests were ingested or executed — treating as failure.');
+    process.exit(1);
+  }
+
   process.exit(summary.failed > 0 || summary.errors > 0 ? 1 : 0);
 }
 

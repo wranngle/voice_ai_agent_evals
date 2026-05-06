@@ -26,13 +26,14 @@ Secrets that must be set in `.env` (or your secrets store):
 ## Promotion flow (prompt change)
 
 1. Edit your prompt source file on a branch.
-2. Run `bun run test:offline` — the regression suite exercises every committed scenario against fixtures.
-3. (Optional) Run `bun run testing:live:el` against a sandbox agent to confirm live behavior.
-4. Open a PR. CI re-runs the offline suite on every push; the harness fails the build if any scenario regresses.
-5. After merge, push the new prompt to the live ElevenLabs agent via your own deploy script.
-6. Tag the commit `prompt/<name>/v<N>` for rollback addressability (see [`methodology.md` §3](methodology.md)).
+2. Run `bun run test:offline` — this proves the harness, runners, parser, storage, and adapter contracts.
+3. Run `bun run testing run -t scenario` — this executes every committed scenario fixture and exits nonzero on any regression.
+4. (Optional) Run `bun run testing:live:el` against a sandbox agent to confirm live behavior.
+5. Open a PR. CI re-runs the offline suite on every push; wire scenario CLI execution into your promotion workflow when committed fixtures are expected to be green.
+6. After merge, push the new prompt to the live ElevenLabs agent via your own deploy script.
+7. Tag the commit `prompt/<name>/v<N>` for rollback addressability (see [`methodology.md` §3](methodology.md)).
 
-Promotion is gated on the harness; never promote a prompt change that didn't run through `bun run test:offline`.
+Promotion is gated on the harness; never promote a prompt change that did not run through `bun run test:offline` and the relevant `bun run testing run --id SCEN-...` or full scenario suite.
 
 ## Rollback flow (live regression)
 

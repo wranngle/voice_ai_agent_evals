@@ -357,6 +357,8 @@ export function completeTestRunSync(
     errors: number;
     skipped: number;
     avg_latency_ms: number;
+    p95_latency_ms?: number;
+    p99_latency_ms?: number;
   },
 ): TestRun | undefined {
   const data = readStorage<TestRun>(getFiles().runs);
@@ -405,7 +407,24 @@ export function linkTestToRequirementSync(
   testId: string,
   requirementId: string,
 ): {testCase: TestCase | undefined; requirement: TestRequirement | undefined} {
+  // Capture the test's prior requirement before overwriting so we can
+  // detach it from the old requirement's linked_tests; otherwise relinking
+  // a test leaves a stale reference and getRequirementCoverageSync still
+  // counts the old requirement as covered by a test that no longer points
+  // to it.
+  const previousTestCase = getTestCaseSync(testId);
+  const previousRequirementId = previousTestCase?.requirement_id;
+
   const testCase = updateTestCaseSync(testId, {requirement_id: requirementId});
+
+  if (previousRequirementId && previousRequirementId !== requirementId) {
+    const previous = getRequirementSync(previousRequirementId);
+    if (previous?.linked_tests?.includes(testId)) {
+      updateRequirementSync(previousRequirementId, {
+        linked_tests: previous.linked_tests.filter(id => id !== testId),
+      });
+    }
+  }
 
   const requirement = getRequirementSync(requirementId);
   if (requirement) {
@@ -426,12 +445,51 @@ export function getRequirementCoverageSync(): Array<{
   coverage_status: 'covered' | 'partial' | 'uncovered';
 }> {
   const requirements = listRequirementsSync();
-  return requirements.map(request => ({
-    requirement_id: request.requirement_id,
-    user_intent: request.user_intent,
-    test_count: request.linked_tests?.length || 0,
-    coverage_status: (request.linked_tests?.length || 0) > 0 ? 'covered' : 'uncovered' as const,
-  }));
+  // Resolve every linked test once so a requirement with N links pays one
+  // storage read for the whole call, not N.
+  const testCasesById = new Map<string, TestCase>();
+  for (const testCase of listTestCasesSync({})) {
+    testCasesById.set(testCase.test_id, testCase);
+  }
+
+  return requirements.map(request => {
+    const linkedIds = request.linked_tests ?? [];
+    if (linkedIds.length === 0) {
+      return {
+        requirement_id: request.requirement_id,
+        user_intent: request.user_intent,
+        test_count: 0,
+        coverage_status: 'uncovered' as const,
+      };
+    }
+
+    // Distinguish "linked but deleted" from "linked and disabled". A
+    // requirement whose tests have all been deleted out from under it is
+    // effectively uncovered, not partial — reporting 'partial' with
+    // test_count: <linked.length> misled operators into thinking the
+    // tests were just disabled and needed re-enabling. Count present
+    // linked tests so test_count reflects what actually backs the
+    // requirement right now.
+    const presentLinkedIds = linkedIds.filter(id => testCasesById.has(id));
+    if (presentLinkedIds.length === 0) {
+      return {
+        requirement_id: request.requirement_id,
+        user_intent: request.user_intent,
+        test_count: 0,
+        coverage_status: 'uncovered' as const,
+      };
+    }
+
+    const allLinkedPresent = presentLinkedIds.length === linkedIds.length;
+    const allPresentEnabled = presentLinkedIds.every(id => testCasesById.get(id)?.enabled === true);
+
+    return {
+      requirement_id: request.requirement_id,
+      user_intent: request.user_intent,
+      test_count: presentLinkedIds.length,
+      coverage_status: (allLinkedPresent && allPresentEnabled) ? 'covered' as const : 'partial' as const,
+    };
+  });
 }
 
 /**
@@ -485,7 +543,16 @@ export async function getTestCase(testId: string): Promise<{success: boolean; da
   return data ? {success: true, data} : {success: false};
 }
 
-export async function listTestCases(parameters?: {limit?: number; offset?: number; type?: TestType; requirementId?: string; tag?: string; enabled?: boolean}): Promise<{success: true; data: TestCase[]}> {
+export type ListTestCasesParameters = {
+  limit?: number;
+  offset?: number;
+  type?: TestType;
+  requirementId?: string;
+  tag?: string;
+  enabled?: boolean;
+};
+
+export async function listTestCases(parameters?: ListTestCasesParameters): Promise<{success: true; data: TestCase[]}> {
   return {success: true, data: listTestCasesSync(parameters)};
 }
 
@@ -533,7 +600,16 @@ export async function listTestRuns(parameters?: {limit?: number; offset?: number
 
 export async function completeTestRun(
   executionId: string,
-  stats: {total_tests: number; passed: number; failed: number; errors: number; skipped: number; avg_latency_ms: number},
+  stats: {
+    total_tests: number;
+    passed: number;
+    failed: number;
+    errors: number;
+    skipped: number;
+    avg_latency_ms: number;
+    p95_latency_ms?: number;
+    p99_latency_ms?: number;
+  },
 ): Promise<{success: boolean; data?: TestRun}> {
   const data = completeTestRunSync(executionId, stats);
   return data ? {success: true, data} : {success: false};
@@ -550,6 +626,16 @@ export async function linkTestToRequirement(
   };
 }
 
-export async function getRequirementCoverage(): Promise<{success: true; data: Array<{requirement_id: string; user_intent: string; test_count: number; coverage_status: 'covered' | 'partial' | 'uncovered'}>}> {
+export type RequirementCoverageRow = {
+  requirement_id: string;
+  user_intent: string;
+  test_count: number;
+  coverage_status: 'covered' | 'partial' | 'uncovered';
+};
+
+export async function getRequirementCoverage(): Promise<{
+  success: true;
+  data: RequirementCoverageRow[];
+}> {
   return {success: true, data: getRequirementCoverageSync()};
 }

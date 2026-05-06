@@ -35,10 +35,12 @@ function parseHeader(value: string): ParsedHeader | undefined {
   let v0: string | undefined;
 
   for (const part of value.split(',')) {
-    const [k, v] = part.split('=', 2);
+    const [rawKey, rawValue] = part.split('=', 2);
+    const k = rawKey?.trim();
+    const v = rawValue?.trim();
     if (k === 't' && v) {
-      const n = Number.parseInt(v, 10);
-      if (Number.isFinite(n)) {
+      if (/^\d+$/.test(v)) {
+        const n = Number(v);
         timestamp = n;
       }
     } else if (k === 'v0' && v) {
@@ -80,6 +82,15 @@ export function verifyElevenLabsSignature(
   sharedSecret: string,
   options: VerifyOptions = {},
 ): VerifyResult {
+  // An empty shared secret is a developer/deployment error, not a runtime
+  // auth failure. With `sharedSecret === ''` HMAC still runs but the "secret"
+  // is now public, so any forger who knows it is empty can mint valid
+  // signatures. Fail loudly so misconfigured receivers can't quietly accept
+  // forgeries.
+  if (typeof sharedSecret !== 'string' || sharedSecret === '') {
+    throw new Error('verifyElevenLabsSignature: sharedSecret is empty — refusing to verify with an empty key');
+  }
+
   if (!headerValue) {
     return {ok: false, reason: 'malformed_header'};
   }
@@ -96,9 +107,9 @@ export function verifyElevenLabsSignature(
     return {ok: false, reason: 'stale_or_missing_signature'};
   }
 
-  const bodyString = typeof rawBody === 'string' ? rawBody : Buffer.from(rawBody).toString('utf8');
   const expected = createHmac('sha256', sharedSecret)
-    .update(`${parsed.t}.${bodyString}`)
+    .update(`${parsed.t}.`, 'utf8')
+    .update(typeof rawBody === 'string' ? Buffer.from(rawBody, 'utf8') : Buffer.from(rawBody))
     .digest('hex');
 
   if (!constantTimeHexEqual(parsed.v0, expected)) {
@@ -114,12 +125,17 @@ export function verifyElevenLabsSignature(
  * the format and drift from the verifier.
  */
 export function signElevenLabsPayload(
-  rawBody: string,
+  rawBody: string | Uint8Array,
   sharedSecret: string,
   timestampSeconds: number,
 ): string {
+  if (typeof sharedSecret !== 'string' || sharedSecret === '') {
+    throw new Error('signElevenLabsPayload: sharedSecret is empty — refusing to sign with an empty key');
+  }
+
   const v0 = createHmac('sha256', sharedSecret)
-    .update(`${timestampSeconds}.${rawBody}`)
+    .update(`${timestampSeconds}.`, 'utf8')
+    .update(typeof rawBody === 'string' ? Buffer.from(rawBody, 'utf8') : Buffer.from(rawBody))
     .digest('hex');
   return `t=${timestampSeconds},v0=${v0}`;
 }

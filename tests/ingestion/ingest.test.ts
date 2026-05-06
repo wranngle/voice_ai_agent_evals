@@ -237,6 +237,34 @@ describe('Test Ingestion Engine', () => {
 
       expect(result.testsFound).toBe(3);
     });
+
+    test('should not ingest non-webhook tests from mixed files', async () => {
+      writeFileSync(
+        join(TEST_DIR, 'mixed.test.ts'),
+        `
+        const WEBHOOK_URL = "https://example.com/webhook";
+        describe('Mixed Tests', () => {
+          it('replays post-call metadata', async () => {
+            const response = await sendWebhook({ conversation_id: 'conv_synth_001' });
+            expect(response.status).toBe(200);
+          });
+          it('unit-checks a local helper', () => {
+            expect(1 + 1).toBe(2);
+          });
+        });
+        `,
+      );
+
+      const result = await ingestTests({
+        testDir: TEST_DIR,
+        dryRun: true,
+      });
+
+      expect(result.filesWithTests).toBe(1);
+      expect(result.testsFound).toBe(1);
+      expect(result.testsCreated).toBe(1);
+      expect(result.errors).toEqual([]);
+    });
   });
 
   describe('Test Case Creation', () => {
@@ -393,6 +421,56 @@ describe('Test Ingestion Engine', () => {
       expect(result2.testsSkipped).toBeGreaterThanOrEqual(1);
     });
 
+    test('should deduplicate nested payloads independent of object key order', async () => {
+      writeFileSync(
+        join(TEST_DIR, 'nested-first.test.ts'),
+        `
+        const WEBHOOK_URL = "https://example.com/webhook";
+        describe('Nested First', () => {
+          it('same nested payload', async () => {
+            const response = await sendWebhook({
+              agent_id: 'agent_same',
+              metadata: { outcome: 'booked', label: 'hot-lead' },
+            });
+            expect(response.status).toBe(200);
+          });
+        });
+        `,
+      );
+
+      const first = await ingestTests({
+        testDir: TEST_DIR,
+        dryRun: false,
+      });
+
+      expect(first.testsCreated).toBe(1);
+
+      writeFileSync(
+        join(TEST_DIR, 'nested-second.test.ts'),
+        `
+        const WEBHOOK_URL = "https://example.com/webhook";
+        describe('Nested Second', () => {
+          it('same nested payload different key order', async () => {
+            const response = await sendWebhook({
+              metadata: { label: 'hot-lead', outcome: 'booked' },
+              agent_id: 'agent_same',
+            });
+            expect(response.status).toBe(200);
+          });
+        });
+        `,
+      );
+
+      const second = await ingestTests({
+        testDir: TEST_DIR,
+        dryRun: false,
+      });
+
+      expect(second.testsCreated).toBe(0);
+      expect(second.testsSkipped).toBeGreaterThanOrEqual(2);
+      expect(listTestCasesSync()).toHaveLength(1);
+    });
+
     test('should create tests with different payloads', async () => {
       writeFileSync(
         join(TEST_DIR, 'different.test.ts'),
@@ -446,6 +524,42 @@ describe('Test Ingestion Engine', () => {
 
       const testCases = listTestCasesSync();
       expect(testCases.length).toBe(0);
+    });
+
+    test('should deduplicate duplicate payloads within a dry run preview', async () => {
+      writeFileSync(
+        join(TEST_DIR, 'dryrun-dupes.test.ts'),
+        `
+        const N8N_WEBHOOK_URL = "https://example.com/webhook/post-call";
+        describe('Dry Run Duplicates', () => {
+          it('first replay', async () => {
+            const response = await sendWebhook({
+              conversation_id: 'conv_synth_001',
+              webhook_payload: { event: 'post_call' },
+            });
+            expect(response.status).toBe(200);
+          });
+          it('same replay renamed', async () => {
+            const response = await sendWebhook({
+              webhook_payload: { event: 'post_call' },
+              conversation_id: 'conv_synth_001',
+            });
+            expect(response.status).toBe(200);
+          });
+        });
+        `,
+      );
+
+      const result = await ingestTests({
+        testDir: TEST_DIR,
+        dryRun: true,
+      });
+
+      expect(result.testsFound).toBe(2);
+      expect(result.testsCreated).toBe(1);
+      expect(result.testsSkipped).toBe(1);
+      expect(result.errors).toEqual([]);
+      expect(listTestCasesSync()).toHaveLength(0);
     });
   });
 
@@ -530,6 +644,114 @@ describe('Test Ingestion Engine', () => {
       expect(input.body.duration).toBe(180);
     });
 
+    test('should ingest historical replay helpers that pass URL and payload separately', async () => {
+      writeFileSync(
+        join(TEST_DIR, 'two-arg-replay.test.ts'),
+        `
+        const WEBHOOK_URL = process.env.WEBHOOK_URL ?? "https://example.com/webhook/post-call";
+        const HISTORICAL_CALL = {
+          conversation_id: 'conv_synth_456',
+          transcript: [
+            { role: 'caller', text: 'I am disappointed this is taking so long.' },
+            { role: 'agent', text: 'I can escalate this for you.' },
+          ],
+          recording: { duration_secs: 91, has_audio: true },
+          caller_labels: ['disappointed', 'escalation'],
+          outcome: 'escalated',
+          tool_trace: [{ name: 'lookup_record', status: 'success' }],
+        };
+
+        describe('Historical Call Replay', () => {
+          it('should replay a two-argument fixture helper', async () => {
+            const response = await sendWebhook(WEBHOOK_URL, HISTORICAL_CALL);
+            expect(response.status).toBe(200);
+          });
+        });
+        `,
+      );
+
+      const result = await ingestTests({
+        testDir: TEST_DIR,
+        dryRun: false,
+      });
+
+      expect(result.errors).toEqual([]);
+      expect(result.testsCreated).toBe(1);
+
+      const testCases = listTestCasesSync();
+      const input = testCases[0].input as {url: string; method: string; body: Record<string, unknown>};
+
+      expect(input.url).toBe('https://example.com/webhook/post-call');
+      expect(input.method).toBe('POST');
+      expect(input.body).toEqual({
+        conversation_id: 'conv_synth_456',
+        transcript: [
+          {role: 'caller', text: 'I am disappointed this is taking so long.'},
+          {role: 'agent', text: 'I can escalate this for you.'},
+        ],
+        recording: {duration_secs: 91, has_audio: true},
+        caller_labels: ['disappointed', 'escalation'],
+        outcome: 'escalated',
+        tool_trace: [{name: 'lookup_record', status: 'success'}],
+      });
+    });
+
+    test('should ingest typed historical replay fixtures', async () => {
+      writeFileSync(
+        join(TEST_DIR, 'typed-replay.test.ts'),
+        `
+        const WEBHOOK_URL = process.env.WEBHOOK_URL ?? "https://example.com/webhook/post-call";
+        type HistoricalCallFixture = {
+          conversation_id: string;
+          transcript: Array<{ role: string; text: string }>;
+        };
+        const HISTORICAL_CALL: HistoricalCallFixture = {
+          conversation_id: 'conv_synth_789',
+          transcript: [
+            { role: 'caller', text: 'I am confused about my appointment.' },
+            { role: 'agent', text: 'I can look that up for you.' },
+          ],
+          recording: { duration_secs: 77, has_audio: true },
+          caller_labels: ['confused', 'appointment'],
+          outcome: 'resolved',
+          tool_trace: [{ name: 'lookup_record', status: 'success' }],
+        };
+
+        describe('Historical Call Replay', () => {
+          it('should replay a typed fixture helper', async () => {
+            const response = await sendWebhook(WEBHOOK_URL, HISTORICAL_CALL);
+            expect(response.status).toBe(200);
+          });
+        });
+        `,
+      );
+
+      const result = await ingestTests({
+        testDir: TEST_DIR,
+        dryRun: false,
+      });
+
+      expect(result.errors).toEqual([]);
+      expect(result.testsCreated).toBe(1);
+
+      const testCases = listTestCasesSync();
+      const input = testCases[0].input as {url: string; method: string; body: Record<string, unknown>};
+
+      expect(input.url).toBe('https://example.com/webhook/post-call');
+      expect(input.method).toBe('POST');
+      expect(input.body).toEqual({
+        conversation_id: 'conv_synth_789',
+        transcript: [
+          {role: 'caller', text: 'I am confused about my appointment.'},
+          {role: 'agent', text: 'I can look that up for you.'},
+        ],
+        recording: {duration_secs: 77, has_audio: true},
+        caller_labels: ['confused', 'appointment'],
+        outcome: 'resolved',
+        tool_trace: [{name: 'lookup_record', status: 'success'}],
+      });
+    });
+
     test('should set expected output from assertions', async () => {
       writeFileSync(
         join(TEST_DIR, 'expected.test.ts'),
@@ -541,6 +763,7 @@ describe('Test Ingestion Engine', () => {
             expect(response.status).toBe(201);
             expect(response.body.success).toBe(true);
             expect(response.body.processed).toBeTruthy();
+            expect(response.body.receipt).toBeDefined();
           });
         });
         `,
@@ -555,7 +778,133 @@ describe('Test Ingestion Engine', () => {
       const expectedOutput = testCases[0].expected_output;
 
       expect(expectedOutput.status).toBe(201);
-      expect((expectedOutput.response_contains as Record<string, unknown>).success).toBe(true);
+      expect((expectedOutput.body_contains as Record<string, unknown>).success).toBe(true);
+      expect(expectedOutput.body_truthy).toEqual(['processed']);
+      expect(expectedOutput.body_defined).toEqual(['receipt']);
+    });
+
+    test('should preserve nested expected output from assertions', async () => {
+      writeFileSync(
+        join(TEST_DIR, 'nested-expected.test.ts'),
+        `
+        const WEBHOOK_URL = "https://example.com/webhook";
+        describe('Nested Expected Output', () => {
+          it('should keep call outcome assertions nested', async () => {
+            const response = await sendWebhook({
+              conversation_id: 'conv_123',
+              recording_url: null,
+            });
+            expect(response.status).toBe(200);
+            expect(response.body.analysis.outcome).toBe('booked');
+            expect(response.body.recording.url).toBe(null);
+            expect(response.body.tool_trace.lookup_record).toBeDefined();
+          });
+        });
+        `,
+      );
+
+      await ingestTests({
+        testDir: TEST_DIR,
+        dryRun: false,
+      });
+
+      const testCases = listTestCasesSync();
+      const input = testCases[0].input as {body: Record<string, unknown>};
+      const expectedOutput = testCases[0].expected_output;
+
+      expect(input.body.recording_url).toBeNull();
+      expect(expectedOutput.body_contains).toEqual({
+        analysis: {outcome: 'booked'},
+        recording: {url: null},
+      });
+      expect(expectedOutput.body_defined).toEqual(['tool_trace.lookup_record']);
+    });
+
+    test('should preserve post-call toMatchObject assertions from historical call tests', async () => {
+      writeFileSync(
+        join(TEST_DIR, 'match-object-expected.test.ts'),
+        `
+        const WEBHOOK_URL = "https://example.com/webhook";
+        const EXPECTED_POST_CALL = {
+          analysis: {
+            outcome: 'escalated',
+            summary: 'Caller was confused about billing.',
+          },
+          recording: { duration_secs: 83, has_audio: true },
+          caller_labels: ['confused', 'billing'],
+          tool_trace: { lookup_record: { status: 'success' } },
+        };
+
+        describe('Historical Call Expected Output', () => {
+          it('should keep post-call replay assertions nested', async () => {
+            const response = await sendWebhook({
+              conversation_id: 'conv_789',
+              webhook_payload: { event: 'post_call' },
+            });
+            expect(response.status).toBe(200);
+            expect(response.body).toMatchObject(EXPECTED_POST_CALL);
+            expect(response.body.analysis.followup_required).toBe(true);
+          });
+        });
+        `,
+      );
+
+      await ingestTests({
+        testDir: TEST_DIR,
+        dryRun: false,
+      });
+
+      const testCases = listTestCasesSync();
+      const expectedOutput = testCases[0].expected_output;
+
+      expect(expectedOutput.body_contains).toEqual({
+        analysis: {
+          outcome: 'escalated',
+          summary: 'Caller was confused about billing.',
+          followup_required: true,
+        },
+        recording: {duration_secs: 83, has_audio: true},
+        caller_labels: ['confused', 'billing'],
+        tool_trace: {lookup_record: {status: 'success'}},
+      });
+    });
+
+    test('should preserve historical caller label and tool trace membership assertions', async () => {
+      writeFileSync(
+        join(TEST_DIR, 'array-membership-expected.test.ts'),
+        `
+        const WEBHOOK_URL = "https://example.com/webhook";
+
+        describe('Historical Call Array Output', () => {
+          it('should keep unordered labels and tool trace checks', async () => {
+            const response = await sendWebhook({
+              conversation_id: 'conv_789',
+              webhook_payload: { event: 'post_call' },
+            });
+            expect(response.status).toBe(200);
+            expect(response.body.caller_labels).toContain('confused');
+            expect(response.body.caller_labels).toContain('billing');
+            expect(response.body.tool_trace).toContainEqual({
+              name: 'lookup_record',
+              status: 'success',
+            });
+          });
+        });
+        `,
+      );
+
+      await ingestTests({
+        testDir: TEST_DIR,
+        dryRun: false,
+      });
+
+      const testCases = listTestCasesSync();
+      const expectedOutput = testCases[0].expected_output;
+
+      expect(expectedOutput.body_array_contains).toEqual({
+        caller_labels: ['confused', 'billing'],
+        tool_trace: [{name: 'lookup_record', status: 'success'}],
+      });
     });
 
     test('should include description with source file info', async () => {

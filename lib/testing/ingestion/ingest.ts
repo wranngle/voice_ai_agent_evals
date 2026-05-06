@@ -48,24 +48,30 @@ export type IngestResult = {
  * Generate a deduplication key for a test
  */
 function getTestKey(webhookUrl: string, payload: Record<string, unknown>): string {
-  // Key based on URL + sorted payload fields
-  const payloadKey = Object.keys(payload)
-    .sort()
-    .map(k => `${k}:${JSON.stringify(payload[k])}`)
-    .join('|');
-  return `${webhookUrl}::${payloadKey}`;
+  return `${webhookUrl}::${stableJson(payload)}`;
 }
 
-/**
- * Check if a test already exists in the framework
- */
-async function isDuplicate(
-  webhookUrl: string,
-  payload: Record<string, unknown>,
-  existingTests: TestCase[],
-): Promise<boolean> {
-  const newKey = getTestKey(webhookUrl, payload);
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map(item => stableJson(item)).join(',')}]`;
+  }
 
+  if (isRecord(value)) {
+    const entries = Object.keys(value)
+      .sort()
+      .map(key => `${JSON.stringify(key)}:${stableJson(value[key])}`);
+    return `{${entries.join(',')}}`;
+  }
+
+  return JSON.stringify(value);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function existingWebhookKeys(existingTests: TestCase[]): Set<string> {
+  const keys = new Set<string>();
   for (const existing of existingTests) {
     if (existing.type !== 'webhook') {
       continue;
@@ -77,12 +83,10 @@ async function isDuplicate(
     }
 
     const existingKey = getTestKey(input.url, input.body);
-    if (existingKey === newKey) {
-      return true;
-    }
+    keys.add(existingKey);
   }
 
-  return false;
+  return keys;
 }
 
 /**
@@ -97,22 +101,23 @@ function convertToTestCase(parsed: ParsedTest, tags: string[]): Parameters<typeo
   }
 
   if (Object.keys(parsed.expectedResponse).length > 0) {
-    expectedOutput.response_contains = parsed.expectedResponse;
+    expectedOutput.body_contains = parsed.expectedResponse;
   }
 
-  // Handle truthy/falsy/defined assertions
-  // These need special handling in the runner, for now add to response_contains
-  for (const field of parsed.truthyFields) {
-    expectedOutput.response_contains ||= {};
-
-    // Truthy means the field should exist and be truthy
-    (expectedOutput.response_contains as Record<string, unknown>)[`${field}__truthy`] = true;
+  if (Object.keys(parsed.arrayContains).length > 0) {
+    expectedOutput.body_array_contains = parsed.arrayContains;
   }
 
-  for (const field of parsed.falsyFields) {
-    expectedOutput.response_contains ||= {};
+  if (parsed.truthyFields.length > 0) {
+    expectedOutput.body_truthy = [...parsed.truthyFields];
+  }
 
-    (expectedOutput.response_contains as Record<string, unknown>)[`${field}__falsy`] = true;
+  if (parsed.falsyFields.length > 0) {
+    expectedOutput.body_falsy = [...parsed.falsyFields];
+  }
+
+  if (parsed.definedFields.length > 0) {
+    expectedOutput.body_defined = [...parsed.definedFields];
   }
 
   // Build description from suite + name
@@ -197,6 +202,7 @@ export async function ingestTests(options: IngestOptions): Promise<IngestResult>
   // Get existing tests for deduplication
   const existingResult = await listTestCases({type: 'webhook'});
   const existingTests = existingResult.data || [];
+  const knownWebhookKeys = existingWebhookKeys(existingTests);
 
   if (options.verbose) {
     console.log(`Existing webhook tests: ${existingTests.length}`);
@@ -237,7 +243,8 @@ export async function ingestTests(options: IngestOptions): Promise<IngestResult>
         }
 
         // Check for duplicates
-        const duplicate = await isDuplicate(parsed.webhookUrl, parsed.payload, existingTests);
+        const testKey = getTestKey(parsed.webhookUrl, parsed.payload);
+        const duplicate = knownWebhookKeys.has(testKey);
         if (duplicate) {
           result.testsSkipped++;
           if (options.verbose) {
@@ -256,13 +263,13 @@ export async function ingestTests(options: IngestOptions): Promise<IngestResult>
           }
 
           result.testsCreated++;
+          knownWebhookKeys.add(testKey);
         } else {
           const createResult = await createTestCase(testCaseInput);
           if (createResult.success && createResult.data) {
             result.createdIds.push(createResult.data.test_id);
             result.testsCreated++;
-            // Add to existing for dedup within same run
-            existingTests.push(createResult.data);
+            knownWebhookKeys.add(testKey);
             if (options.verbose) {
               console.log(`  ✅ Created: ${parsed.name} (${createResult.data.test_id})`);
             }

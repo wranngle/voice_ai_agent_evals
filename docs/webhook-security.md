@@ -44,7 +44,23 @@ function verifyElevenLabsSignature(
 }
 ```
 
-A working implementation lives in [`lib/security/elevenlabs-signature.ts`](../lib/security/elevenlabs-signature.ts) — `verifyElevenLabsSignature(rawBody, headerValue, sharedSecret, options?)` returns `{ok: true}` on success or `{ok: false, reason: 'malformed_header' | 'stale_or_missing_signature' | 'signature_mismatch'}`. Test coverage lives at `tests/integration/elevenlabs-signature.test.ts` (12 cases — header parsing, tolerance window, body-tampering detection, custom-clock injection).
+A working implementation lives in [`lib/security/elevenlabs-signature.ts`](../lib/security/elevenlabs-signature.ts) — `verifyElevenLabsSignature(rawBody, headerValue, sharedSecret, options?)` returns `{ok: true}` on success or `{ok: false, reason: 'malformed_header' | 'stale_or_missing_signature' | 'signature_mismatch'}`. Both verify and sign throw on an empty `sharedSecret` rather than silently HMAC'ing with an empty key. Test coverage lives at `tests/integration/elevenlabs-signature.test.ts` (16 cases — header parsing, tolerance window, body-tampering detection, custom-clock injection, empty-secret guard).
+
+## Signed replay tests
+
+Webhook replay tests can ask the generic webhook runner to sign the exact JSON body it sends:
+
+```ts
+input: {
+  url: 'https://example.com/post-call',
+  method: 'POST',
+  body: {type: 'post_call_transcription', data: {conversation_id: 'conv_replay_001'}},
+  sign_elevenlabs_payload: true,
+  elevenlabs_signature_secret_env: 'ELEVENLABS_POST_CALL_SECRET',
+}
+```
+
+The runner reads the secret from the named environment variable, computes `ElevenLabs-Signature` over the same `JSON.stringify(input.body)` bytes used as the request body, and never stores the secret in the test case. Omit `elevenlabs_signature_secret_env` to use `ELEVENLABS_POST_CALL_SECRET`.
 
 ## Timestamp tolerance (replay defense)
 

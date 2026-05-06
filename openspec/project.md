@@ -15,7 +15,7 @@ Bring your own ElevenLabs agent ID, drop in scenario YAMLs, get pass/fail with a
 
 ## Status
 
-**Implemented**: runners (ElevenLabs, n8n-eval, MCP, webhook, external-command), `gtm_ops` manifest adapter, single-number `latency_ms` capture per test, scenario YAML loading via Vitest, prompt-versioning convention via git tags, offline test suite, 4 specialized live test projects.
+**Implemented**: runners (ElevenLabs, n8n-eval, MCP, webhook, external-command), `gtm_ops` manifest adapter, single-number `latency_ms` capture per test with current-run `avg_latency_ms` / `p95_latency_ms` / `p99_latency_ms` summaries, scenario YAML loading via Vitest, prompt-versioning convention via git tags, offline test suite, 4 specialized live test projects.
 
 **Not yet implemented** (documented intent, no runtime enforcement): per-segment latency split (TTFB / first-audio / total-turn), p95 aggregation across runs, voice-axis scoring (barge-in / prosody / ASR-confidence / timeout), LLM-judge axes for tone/empathy. Scenario YAMLs declare these as conventions; the orchestrator does not yet read them.
 
@@ -37,7 +37,7 @@ Bring your own ElevenLabs agent ID, drop in scenario YAMLs, get pass/fail with a
 
 ### Runtime
 - **Bun** for execution (`bun run`, `bun install`). Tests use Vitest, not `bun test`.
-- **TypeScript 5.9** with strict types
+- **TypeScript 6.0** with strict types
 - **xo** for linting (per the user's global JS/TS regime)
 
 ## Repo layout
