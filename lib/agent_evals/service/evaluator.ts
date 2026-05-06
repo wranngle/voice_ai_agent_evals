@@ -17,13 +17,16 @@ export type Evaluator = {
   evaluateAll(): EvaluationResult[];
 };
 
-export function createEvaluator(
-  repository: ConversationRepository,
-  rules: EvaluationRules,
-  clock: Clock,
-  logger: Logger,
-  metrics: MetricsSink = NoopMetricsSink,
-): Evaluator {
+export type EvaluatorDeps = {
+  repository: ConversationRepository;
+  rules: EvaluationRules;
+  clock: Clock;
+  logger: Logger;
+  metrics?: MetricsSink;
+};
+
+export function createEvaluator(deps: EvaluatorDeps): Evaluator {
+  const {repository, rules, clock, logger, metrics = NoopMetricsSink} = deps;
   return {
     evaluateAll(): EvaluationResult[] {
       const conversations = repository.loadAll();

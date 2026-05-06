@@ -6,16 +6,13 @@
  */
 
 // Test case types supported by the framework
-export type TestType = 'webhook' | 'elevenlabs' | 'n8n-eval' | 'mcp' | 'external-command';
+export type TestType = 'webhook' | 'elevenlabs' | 'n8n-eval' | 'mcp' | 'external-command' | 'scenario';
 
 // Test execution status
 export type TestStatus = 'passed' | 'failed' | 'error' | 'skipped' | 'pending';
 
 // Requirement capture status
 export type RequirementStatus = 'captured' | 'reviewed' | 'implemented' | 'deprecated' | 'validated';
-
-// Follow-up priority levels
-export type Priority = 'low' | 'medium' | 'high' | 'urgent';
 
 /**
  * Captured requirement from user input
@@ -87,6 +84,8 @@ export type TestRun = {
   skipped?: number;
   pass_rate?: number; // Percentage 0-100
   avg_latency_ms?: number;
+  p95_latency_ms?: number;
+  p99_latency_ms?: number;
   test_type_filter?: TestType; // If filtered by type
   tag_filter?: string; // If filtered by tag
   /** Arbitrary filter context recorded at run start (type, tags, ids, etc.) */
@@ -102,54 +101,6 @@ export type WebhookTestInput = {
   headers?: Record<string, string>;
   body?: Record<string, unknown>;
   timeout_ms?: number;
-};
-
-/**
- * ElevenLabs test input format
- */
-export type ElevenLabsTestInput = {
-  agent_id: string;
-  test_criteria: string;
-  success_evaluation: string;
-  sample_audio_url?: string;
-  expected_transcript_keywords?: string[];
-};
-
-/**
- * N8n Eval test input format
- */
-export type N8nEvalTestInput = {
-  workflow_id: string;
-  webhook_path?: string;
-  payload: Record<string, unknown>;
-  eval_metrics: {
-    correctness_weight: number;
-    helpfulness_weight: number;
-    custom_rubric?: string;
-  };
-};
-
-/**
- * MCP workflow test input format
- */
-export type McpTestInput = {
-  workflow_id: string;
-  trigger_type: 'webhook' | 'manual';
-  payload: Record<string, unknown>;
-  expected_execution_time_ms?: number;
-};
-
-/**
- * External command test input format
- */
-export type ExternalCommandTestInput = {
-  command: string;
-  cwd?: string;
-  env?: Record<string, string>;
-  timeout_ms?: number;
-  expected_exit_code?: number;
-  artifacts?: EvaluationArtifact[];
-  dimensions?: EvaluationDimension[];
 };
 
 /**
@@ -175,18 +126,6 @@ export type EvaluationDimension = {
 };
 
 /**
- * Coverage report for requirements
- */
-export type RequirementCoverage = {
-  requirement_id: string;
-  user_intent: string;
-  test_count: number;
-  last_test_status?: TestStatus;
-  last_tested_at?: string;
-  coverage_status: 'covered' | 'partial' | 'uncovered';
-};
-
-/**
  * Test run summary for reporting
  */
 export type TestRunSummary = {
@@ -199,6 +138,8 @@ export type TestRunSummary = {
   skipped: number;
   pass_rate: number;
   avg_latency_ms: number;
+  p95_latency_ms: number;
+  p99_latency_ms: number;
   slowest_test?: {
     test_id: string;
     name: string;

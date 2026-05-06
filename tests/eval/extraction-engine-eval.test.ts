@@ -88,7 +88,12 @@ function mockValidationFailure() {
             data: {
               main: [[{
                 json: {
-                  extraction_id: 'ext_test', timestamp: new Date().toISOString(), model: 'gemini-3-pro', categories_processed: 0, fields: [], errors: [{type: 'validation', message: 'transcript is required'}],
+                  extraction_id: 'ext_test',
+                  timestamp: new Date().toISOString(),
+                  model: 'gemini-3-pro',
+                  categories_processed: 0,
+                  fields: [],
+                  errors: [{type: 'validation', message: 'transcript is required'}],
                 },
               }]],
             },
@@ -128,7 +133,13 @@ describe('LLM Extraction Engine — n8n Eval', () => {
             category: 'sales', field_id: 'budget_mentioned', value: '50-100k annually', rationale: 'Explicitly stated', confidence: 1, strictness_applied: 'medium', validation_passed: true,
           },
           {
-            category: 'sales', field_id: 'decision_authority', value: 'caller', rationale: 'VP of Operations, stated can make decision', confidence: 0.95, strictness_applied: 'medium', validation_passed: true,
+            category: 'sales',
+            field_id: 'decision_authority',
+            value: 'caller',
+            rationale: 'VP of Operations, stated can make decision',
+            confidence: 0.95,
+            strictness_applied: 'medium',
+            validation_passed: true,
           },
           {
             category: 'sales', field_id: 'timeline', value: 'Q2 this year', rationale: 'Explicitly stated', confidence: 1, strictness_applied: 'medium', validation_passed: true,
@@ -313,7 +324,12 @@ describe('LLM Extraction Engine — n8n Eval', () => {
 
   describe('Supersession coverage', () => {
     it('extraction config covers all archived v2 fields', () => {
-      const allFieldIds = new Set(defaultCategories.flatMap(c => c.fields.map(f => f.field_id)));
+      const allFieldIds = new Set<string>();
+      for (const category of defaultCategories) {
+        for (const field of category.fields) {
+          allFieldIds.add(field.field_id);
+        }
+      }
 
       // Archived v2 "requestor" section
       expect(allFieldIds.has('requestor_first_name')).toBe(true);

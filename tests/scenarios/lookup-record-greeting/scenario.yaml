@@ -8,28 +8,29 @@ fixture:
   transcript: transcript.json
 
 axes:
-  - name: barge_in_recovery
   - name: tool_call_schema
   - name: tool_call_routing
+  - name: tool_call_round_trip_ms
   - name: ttfb_p95_ms
   - name: end_to_first_audio_p95_ms
   - name: total_turn_p95_ms
 
 thresholds:
+  tool_call_round_trip_ms: 2000
   ttfb_p95_ms: 800
   end_to_first_audio_p95_ms: 1400
   total_turn_p95_ms: 3000
 
 success_criteria:
-  - axis: barge_in_recovery
-    expected: true
-    weight: 1.0
   - axis: tool_call_schema
-    expected: { name: lookup_record, parameters_pass: true }
+    expected: {name: lookup_record, parameters_pass: true, response_consumed_in_next_turn: true}
     weight: 1.0
   - axis: tool_call_routing
-    expected: tool
+    expected: {route: tool, name: lookup_record}
     weight: 1.0
+  - axis: tool_call_round_trip_ms
+    expected: {name: lookup_record}
+    weight: 0.5
   - axis: ttfb_p95_ms
     expected: pass
     weight: 0.5

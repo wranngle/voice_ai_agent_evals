@@ -192,6 +192,24 @@ export function loadGtmOpsHarnessManifest(projectRoot = defaultProjectRoot()): G
     throw new Error(`Invalid gtm_ops harness manifest: ${file}`);
   }
 
+  // Duplicate `id`s collapse to the same `test_id` (`GTMOPS-${id}`) and
+  // `result_id`, producing ambiguous result records the reports cannot
+  // attribute back to a specific command. Fail loudly at load time.
+  const seenIds = new Set<string>();
+  const duplicates: string[] = [];
+  for (const command of parsed.commands) {
+    if (seenIds.has(command.id)) {
+      duplicates.push(command.id);
+    } else {
+      seenIds.add(command.id);
+    }
+  }
+
+  if (duplicates.length > 0) {
+    const unique = [...new Set(duplicates)].join(', ');
+    throw new Error(`Invalid gtm_ops harness manifest: duplicate command id(s) in ${file}: ${unique}`);
+  }
+
   return parsed;
 }
 
@@ -283,13 +301,20 @@ export async function runGtmOpsAdapter(options: GtmOpsAdapterOptions = {}): Prom
   const errors = results.filter(result => result.status === 'error').length;
   const skipped = results.filter(result => result.status === 'skipped').length;
 
+  // A run with zero matching commands is almost always a typo in --tag /
+  // --root or a misconfigured manifest. Reporting "passed" with zero
+  // coverage hides the gap from any CI gate built on the exit code.
+  const status: TestStatus = results.length === 0
+    ? 'error'
+    : (failed === 0 && errors === 0 ? 'passed' : 'failed');
+
   return {
     project: 'gtm_ops',
     project_root: projectRoot,
     started_at: startedAt,
     completed_at: new Date().toISOString(),
     duration_ms: Math.round(performance.now() - start),
-    status: failed === 0 && errors === 0 ? 'passed' : 'failed',
+    status,
     total: results.length,
     passed,
     failed,

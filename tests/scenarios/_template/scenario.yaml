@@ -1,7 +1,6 @@
 # Scenario template — copy this directory to tests/scenarios/<scenario-id>/
-# and fill in or remove fields. The scoring engine that reads these axes is
-# on the roadmap (see docs/methodology.md "What's not implemented yet"); the
-# YAML below documents the canonical shape and survives the engine landing.
+# and fill in or remove fields. The offline scenario runner reads this YAML
+# subset directly; unsupported axes fail closed instead of silently passing.
 
 # Required. Kebab-case, descriptive. Must match the directory name.
 # Examples: barge-in-mid-question, tool-call-crm-503, low-asr-confidence-zip-code
@@ -10,8 +9,11 @@ id: scenario-id
 # Required. One-line description of what this scenario exercises.
 description: One-line description of what this scenario exercises.
 
-# Required. Agent under test. Must match an id in agent-registry.yaml.
-# Use a placeholder id like agent_xxxx_demo for fixtures committed to the repo.
+# Required. Logical label for the agent under test (e.g. "primary",
+# "after-hours", "tier-2-escalation"). Used as a grouping tag on the test
+# case (`agent:<name>`) — it is NOT validated against agent-registry.yaml
+# and does NOT need to be an ElevenLabs agent_id. The live ElevenLabs
+# agent_id lives in transcript.json's `agent_id` field, not here.
 agent: primary
 
 # Required. Either a transcript (deterministic, recommended) or audio (recorded).
@@ -20,34 +22,58 @@ fixture:
   # OR:
   # audio: audio.wav
 
-# Required. Axes the harness will score. Each name is a convention the
-# scoring engine will dispatch on once landed.
+# Required. Axes the harness will score.
 axes:
-  - name: barge_in_recovery
   - name: tool_call_schema
-  - name: ttfb_p95
+  - name: tool_call_routing
+  - name: tool_call_round_trip_ms
+  - name: ttfb_p95_ms
+  - name: end_to_first_audio_p95_ms
+  - name: total_turn_p95_ms
+  # Add barge_in_recovery only when transcript.json includes a
+  # agent_yielded_at_ms_after_caller_start event.
 
-# Optional. Hard latency thresholds. Override defaults from docs/methodology.md
-# only when the scenario has a stricter or looser SLA than the global default.
+# Required. Include at least one latency threshold so every scenario keeps a
+# voice-response budget attached to the fixture.
 thresholds:
+  tool_call_round_trip_ms: 2000
   ttfb_p95_ms: 800
+  end_to_first_audio_p95_ms: 1400
   total_turn_p95_ms: 3000
 
 # Required. Per-axis pass criteria with weights. Weights are relative — the
 # harness normalizes them before computing the weighted score.
 success_criteria:
-  - axis: barge_in_recovery
-    expected: true
-    weight: 1.0
   - axis: tool_call_schema
-    expected: { name: lookup_record, parameters_pass: true }
+    expected: {name: lookup_record, parameters_pass: true, response_consumed_in_next_turn: true}
     weight: 1.0
+  - axis: tool_call_routing
+    expected: {route: tool, name: lookup_record}
+    weight: 1.0
+  - axis: tool_call_round_trip_ms
+    expected: {name: lookup_record}
+    weight: 0.5
+  - axis: ttfb_p95_ms
+    expected: pass
+    weight: 0.5
+  - axis: end_to_first_audio_p95_ms
+    expected: pass
+    weight: 0.5
+  - axis: total_turn_p95_ms
+    expected: pass
+    weight: 0.5
 
 # Optional. If true, the scenario passes when weighted score >= 0.7. If false
 # (default), every axis must pass. Use partial_credit for noisy/subjective axes.
+# Note: measured latency-budget breaches (ttfb_p95_ms, end_to_first_audio_p95_ms,
+# total_turn_p95_ms, tool_call_round_trip_ms, barge_in_yield_ms), tool-call
+# schema failures, and routing failures hard-fail regardless — partial_credit
+# can soften a subjective axis miss but cannot mask broken tool evidence or a
+# latency budget that was actually exceeded.
 partial_credit: true
 
 # Required when any axis is subjective (tone, empathy, clarity, etc.). The
-# harness rejects scenarios that ask the runner to "feel" something without
-# an explicit judge model declared here.
+# harness flags scenarios that ask the runner to "feel" something without an
+# explicit judge model declared here. Offline CI uses deterministic heuristics;
+# live judge execution is separate.
 judge_llm: claude-haiku-4-5

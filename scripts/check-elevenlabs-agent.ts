@@ -1,21 +1,38 @@
 import https from 'node:https';
 
 const API_KEY = process.env.ELEVENLABS_API_KEY;
+const PLACEHOLDER_AGENT_ID = 'agent_xxxx_demo';
 const AGENT_ID = process.argv.includes('--agent-id')
   ? process.argv[process.argv.indexOf('--agent-id') + 1]
-  : process.env.ELEVENLABS_AGENT_ID ?? 'agent_xxxx_demo';
+  : process.env.ELEVENLABS_AGENT_ID ?? PLACEHOLDER_AGENT_ID;
+
+// `--snapshot` writes the parsed agent JSON to stdout (no human prose, no
+// progress chatter) so docs/handling-model-updates.md can capture a
+// pre-update agent-config snapshot via shell redirection. All status,
+// progress, and credential-fingerprint output goes to stderr in this mode
+// so the redirected stdout stays valid JSON.
+const SNAPSHOT_MODE = process.argv.includes('--snapshot');
+const status = SNAPSHOT_MODE ? console.error : console.log;
 
 if (!API_KEY) {
-  console.log('ERROR: No API key found');
+  status('ERROR: No API key found');
   process.exit(1);
 }
 
-// Don't log any portion of the secret — log a stable last-4 fingerprint that's
-// just enough for "is the env var pointing at the key I think it is?" without
-// leaking enough to identify or correlate the credential elsewhere.
-console.log('API Key: ****' + API_KEY.slice(-4));
-console.log('Agent ID:', AGENT_ID);
-console.log('\nFetching agent from ElevenLabs...\n');
+// Detect the placeholder agent ID before issuing the request. Without this
+// the script aims at `agent_xxxx_demo` and surfaces a generic 404 from
+// ElevenLabs instead of "you forgot to configure ELEVENLABS_AGENT_ID."
+if (AGENT_ID === PLACEHOLDER_AGENT_ID) {
+  status(`ERROR: ELEVENLABS_AGENT_ID not set; refusing to call the live API with placeholder \`${PLACEHOLDER_AGENT_ID}\`.`);
+  status('       Export ELEVENLABS_AGENT_ID=agent_<your sandbox> or pass --agent-id when running the script.');
+  process.exit(1);
+}
+
+// Intentionally do not log any value derived from API_KEY. The early
+// process.exit above covers the "is the env var set" check; any stronger
+// diagnostic (which key is loaded?) belongs out-of-band, not in stdout.
+status('Agent ID: ' + AGENT_ID);
+status('\nFetching agent from ElevenLabs...\n');
 
 type Tool = {
   name?: string;
@@ -62,15 +79,25 @@ const request = https.request(options, res => {
     data += chunk as string;
   });
   res.on('end', () => {
-    console.log('HTTP Status:', res.statusCode);
+    status('HTTP Status: ' + String(res.statusCode));
 
     if (res.statusCode !== 200) {
-      console.log('Error Response:', data);
-      return;
+      status('Error Response: ' + data);
+      // Make the exit code reflect the failure so RUNBOOK callers (and any
+      // CI gate built on top) actually catch auth/lookup failures instead
+      // of silently treating "401 Unauthorized" as a healthy outcome.
+      process.exit(1);
     }
 
     try {
       const agent = JSON.parse(data) as AgentResponse;
+
+      if (SNAPSHOT_MODE) {
+        // The whole parsed agent payload goes to stdout as JSON so a shell
+        // redirect produces a faithful pre-update snapshot for rollback.
+        process.stdout.write(JSON.stringify(agent, null, 2) + '\n');
+        return;
+      }
 
       console.log('\n=== AGENT SUMMARY ===');
       console.log('Name:', agent.name ?? 'NOT SET');
@@ -107,13 +134,15 @@ const request = https.request(options, res => {
       }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
-      console.log('Parse error:', message);
-      console.log('Raw data:', data.slice(0, 500));
+      status('Parse error: ' + message);
+      status('Raw data: ' + data.slice(0, 500));
+      process.exit(1);
     }
   });
 });
 
 request.on('error', (error: Error) => {
-  console.log('Request error:', error.message);
+  status('Request error: ' + error.message);
+  process.exit(1);
 });
 request.end();

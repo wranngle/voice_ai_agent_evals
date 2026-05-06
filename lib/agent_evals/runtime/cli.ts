@@ -25,16 +25,16 @@ async function main(): Promise<void> {
   const metrics = settings.metricsEndpoint
     ? createPrometheusMetricsSink({endpoint: settings.metricsEndpoint})
     : NoopMetricsSink;
-  const evaluator = createEvaluator(
+  const evaluator = createEvaluator({
     repository,
-    {
+    rules: {
       maxTurnDurationMs: settings.maxTurnDurationMs,
       minAgentTurnRatio: settings.minAgentTurnRatio,
     },
-    SystemClock,
+    clock: SystemClock,
     logger,
     metrics,
-  );
+  });
   const results = evaluator.evaluateAll();
   process.stdout.write(renderResultsMarkdown(results));
 

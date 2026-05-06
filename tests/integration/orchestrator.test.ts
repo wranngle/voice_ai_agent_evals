@@ -52,6 +52,7 @@ describe('Test Orchestrator', () => {
       expect(orchestrator.getRunner('n8n-eval')).toBeDefined();
       expect(orchestrator.getRunner('mcp')).toBeDefined();
       expect(orchestrator.getRunner('external-command')).toBeDefined();
+      expect(orchestrator.getRunner('scenario')).toBeDefined();
     });
 
     test('should allow registering custom runners', () => {
@@ -153,6 +154,48 @@ describe('Test Orchestrator', () => {
       expect(runs.length).toBe(1);
       expect(runs[0].triggered_by).toBe('ci');
       expect(runs[0].completed_at).toBeDefined();
+    });
+
+    test('should record richer filter provenance in test_filter when given multi-axis filters', async () => {
+      createTestCaseSync({
+        type: 'webhook',
+        name: 'Filtered case',
+        description: 'fixture for provenance assertion',
+        input: {url: 'https://example.com/webhook', method: 'POST', body: {}},
+        expected_output: {},
+        tags: ['smoke', 'priority-a'],
+        enabled: true,
+      });
+
+      const orchestrator = new TestOrchestrator();
+      orchestrator.registerRunner({
+        type: 'webhook',
+        execute: vi.fn().mockResolvedValue({
+          status: 'passed',
+          actual_output: {},
+          latency_ms: 5,
+          assertions_passed: 1,
+          assertions_failed: 0,
+        }),
+        validate: () => ({valid: true, errors: []}),
+      });
+
+      await orchestrator.run({
+        triggeredBy: 'ci',
+        type: 'webhook',
+        tags: ['smoke', 'priority-a'],
+        requirementId: 'REQ-WEB-001',
+        id: 'TC-NONEXISTENT', // ensures filter is recorded even when no test matches
+      });
+
+      const runs = listTestRunsSync();
+      expect(runs.length).toBe(1);
+      expect(runs[0].test_filter).toEqual({
+        type: 'webhook',
+        tags: ['smoke', 'priority-a'],
+        requirement_id: 'REQ-WEB-001',
+        id: 'TC-NONEXISTENT',
+      });
     });
 
     test('should create test result records', async () => {
@@ -484,6 +527,58 @@ describe('Test Orchestrator', () => {
       expect(summary.failures.length).toBe(1);
       expect(summary.failures[0].error_message).toContain('runner-internal failure');
     });
+
+    test('a thrown error from runner.validate() does not abort the run', async () => {
+      createTestCaseSync({
+        type: 'webhook',
+        name: 'Validation throws',
+        description: 'Runner.validate() throws on this case',
+        input: {url: 'https://example.com/webhook', method: 'POST', body: {}},
+        expected_output: {},
+        tags: ['validate-throw'],
+        enabled: true,
+      });
+
+      createTestCaseSync({
+        type: 'webhook',
+        name: 'Passes after validation throw',
+        description: 'Should still run',
+        input: {url: 'https://example.com/webhook', method: 'POST', body: {}},
+        expected_output: {},
+        tags: ['validate-throw'],
+        enabled: true,
+      });
+
+      const orchestrator = new TestOrchestrator();
+      let validateCalls = 0;
+      orchestrator.registerRunner({
+        type: 'webhook',
+        validate() {
+          validateCalls++;
+          if (validateCalls === 1) {
+            throw new Error('boom from validate');
+          }
+
+          return {valid: true, errors: []};
+        },
+        execute: vi.fn().mockResolvedValue({
+          status: 'passed',
+          actual_output: {},
+          latency_ms: 5,
+          assertions_passed: 1,
+          assertions_failed: 0,
+        }),
+      });
+
+      const summary = await orchestrator.run({tag: 'validate-throw'});
+
+      expect(validateCalls).toBe(2);
+      expect(summary.total_tests).toBe(2);
+      expect(summary.errors).toBe(1);
+      expect(summary.passed).toBe(1);
+      expect(summary.failures[0].error_message).toContain('Runner.validate threw');
+      expect(summary.failures[0].error_message).toContain('boom from validate');
+    });
   });
 
   describe('Statistics', () => {
@@ -571,6 +666,46 @@ describe('Test Orchestrator', () => {
       const summary = await orchestrator.run();
 
       expect(summary.avg_latency_ms).toBe(200);
+    });
+
+    test('should calculate and persist current-run latency percentiles', async () => {
+      for (let i = 0; i < 20; i++) {
+        createTestCaseSync({
+          type: 'webhook',
+          name: `Percentile Test ${i}`,
+          description: 'Test',
+          input: {url: 'https://example.com/webhook', method: 'POST', body: {i}},
+          expected_output: {},
+          tags: [],
+          enabled: true,
+        });
+      }
+
+      const orchestrator = new TestOrchestrator();
+      let callCount = 0;
+      const mockRunner: TestRunner = {
+        type: 'webhook',
+        execute: vi.fn().mockImplementation(() => {
+          callCount++;
+          return {
+            status: 'passed',
+            actual_output: {},
+            latency_ms: callCount * 10,
+            assertions_passed: 1,
+            assertions_failed: 0,
+          };
+        }),
+        validate: () => ({valid: true, errors: []}),
+      };
+      orchestrator.registerRunner(mockRunner);
+
+      const summary = await orchestrator.run();
+      const [run] = listTestRunsSync();
+
+      expect(summary.p95_latency_ms).toBe(190);
+      expect(summary.p99_latency_ms).toBe(200);
+      expect(run.p95_latency_ms).toBe(190);
+      expect(run.p99_latency_ms).toBe(200);
     });
 
     test('should track slowest test', async () => {
@@ -748,6 +883,95 @@ describe('Test Orchestrator', () => {
       expect(summary.total_tests).toBe(5);
       expect(summary.passed).toBe(5);
     });
+
+    test('parallel run with hostile concurrency falls back to default instead of hanging', async () => {
+      // Negative / NaN / fractional concurrency would previously infinite-loop
+      // in chunkArray (its `i += size` never advances when size <= 0). Each of
+      // these inputs must be clamped to a sane positive integer so the run
+      // completes within the per-test timeout instead of hanging forever.
+      for (let i = 0; i < 3; i++) {
+        createTestCaseSync({
+          type: 'webhook',
+          name: `Hostile Concurrency Test ${i}`,
+          description: 'Concurrency clamp regression',
+          input: {url: 'https://example.com/webhook', method: 'POST', body: {i}},
+          expected_output: {},
+          tags: [],
+          enabled: true,
+        });
+      }
+
+      const orchestrator = new TestOrchestrator();
+      orchestrator.registerRunner({
+        type: 'webhook',
+        execute: vi.fn().mockResolvedValue({
+          status: 'passed',
+          actual_output: {},
+          latency_ms: 5,
+          assertions_passed: 1,
+          assertions_failed: 0,
+        }),
+        validate: () => ({valid: true, errors: []}),
+      });
+
+      // Each hostile value must NOT hang. The vitest test timeout (5s default)
+      // is the safety net if the clamp regresses.
+      for (const hostile of [-1, 0.5, Number.NaN]) {
+        const summary = await orchestrator.run({
+          parallel: true,
+          concurrency: hostile,
+        });
+        expect(summary.total_tests).toBe(3);
+        expect(summary.passed).toBe(3);
+      }
+    });
+
+    test('parallel + failFast must not drop already-executed results from a chunk', async () => {
+      // Build 6 cases. With concurrency=3, chunk[0] is cases 0..2.
+      // We'll make case index 1 fail so failFast kicks in after the chunk
+      // completes — but cases 0 and 2 already ran and must be reported.
+      const ids: string[] = [];
+      for (let i = 0; i < 6; i++) {
+        const created = createTestCaseSync({
+          type: 'webhook',
+          name: `Parallel FailFast Test ${i}`,
+          description: 'Verify in-flight results are preserved',
+          input: {url: 'https://example.com/webhook', method: 'POST', body: {i}},
+          expected_output: {},
+          tags: [],
+          enabled: true,
+        });
+        ids.push(created.test_id);
+      }
+
+      const orchestrator = new TestOrchestrator();
+      const failingId = ids[1];
+      orchestrator.registerRunner({
+        type: 'webhook',
+        execute: vi.fn().mockImplementation(async testCase => ({
+          status: testCase.test_id === failingId ? 'failed' : 'passed',
+          actual_output: {},
+          latency_ms: 5,
+          assertions_passed: testCase.test_id === failingId ? 0 : 1,
+          assertions_failed: testCase.test_id === failingId ? 1 : 0,
+          error_message: testCase.test_id === failingId ? 'forced failure' : undefined,
+        })),
+        validate: () => ({valid: true, errors: []}),
+      });
+
+      const summary = await orchestrator.run({
+        parallel: true,
+        concurrency: 3,
+        failFast: true,
+      });
+
+      // The failing chunk had 3 tests; all 3 must be reflected. failFast
+      // should only suppress the SECOND chunk (cases 3..5).
+      expect(summary.total_tests).toBe(3);
+      expect(summary.passed).toBe(2);
+      expect(summary.failed).toBe(1);
+      expect(summary.failures.map(f => f.test_id)).toEqual([failingId]);
+    });
   });
 
   describe('Default Export', () => {
@@ -816,6 +1040,12 @@ describe('Test Orchestrator', () => {
         validate: () => ({valid: true, errors: []}),
       };
       orchestrator.registerRunner(mockRunner);
+
+      let wallClockCalls = 0;
+      vi.spyOn(Date, 'now').mockImplementation(() => {
+        wallClockCalls++;
+        return wallClockCalls === 1 ? 1_000_000 : 500_000;
+      });
 
       const summary = await orchestrator.run();
 

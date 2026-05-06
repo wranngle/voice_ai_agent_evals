@@ -7,13 +7,21 @@
 import {N8nEvalRunner} from '../lib/testing/runners/n8n-eval-runner';
 import type {TestCase} from '../lib/testing/types';
 
-const POST_CALL_WORKFLOW_ID = process.env.N8N_POST_CALL_WORKFLOW_ID ?? 'workflow_xxxx_demo';
+const PLACEHOLDER_WORKFLOW_ID = 'workflow_xxxx_demo';
+const PLACEHOLDER_AGENT_ID = 'agent_xxxx_demo';
+const POST_CALL_WORKFLOW_ID = process.env.N8N_POST_CALL_WORKFLOW_ID ?? PLACEHOLDER_WORKFLOW_ID;
 const POST_CALL_WEBHOOK_PATH = process.env.N8N_POST_CALL_WEBHOOK_PATH ?? 'post-call';
-const AGENT_ID = process.env.ELEVENLABS_AGENT_ID ?? 'agent_xxxx_demo';
+const AGENT_ID = process.env.ELEVENLABS_AGENT_ID ?? PLACEHOLDER_AGENT_ID;
 
 async function main() {
   console.log('🔧 Testing n8n Eval Runner Against Real API\n');
   console.log('═'.repeat(60));
+
+  // Track per-test pass/fail so the process exit code reflects real results.
+  // Without this the script ran 3 live tests and always exited 0, hiding any
+  // regression from CI gates that rely on the exit code (siblings:
+  // test-mcp-runner.ts, test-elevenlabs-runner.ts).
+  let anyFailed = false;
 
   const apiUrl = process.env.N8N_API_URL;
   const apiKey = process.env.N8N_API_KEY;
@@ -23,6 +31,22 @@ async function main() {
     console.log('   To run this test, export the API credentials:');
     console.log('   export N8N_API_URL=https://your-n8n-host.example.com');
     console.log('   export N8N_API_KEY=your_key_here');
+    process.exit(1);
+  }
+
+  // Refuse to call live n8n with placeholder identifiers — a 404 would
+  // otherwise be misread as "the runner is broken" instead of "you forgot
+  // to configure". Same first-contact discipline as the elevenlabs/mcp
+  // sibling scripts.
+  if (POST_CALL_WORKFLOW_ID === PLACEHOLDER_WORKFLOW_ID) {
+    console.log('\n❌ N8N_POST_CALL_WORKFLOW_ID not set; refusing to invoke live n8n with');
+    console.log(`   placeholder \`${PLACEHOLDER_WORKFLOW_ID}\`. Export the real workflow id.`);
+    process.exit(1);
+  }
+
+  if (AGENT_ID === PLACEHOLDER_AGENT_ID) {
+    console.log('\n❌ ELEVENLABS_AGENT_ID not set; refusing to embed placeholder agent_id in');
+    console.log('   the live n8n eval payload. Export ELEVENLABS_AGENT_ID=agent_<your sandbox>.');
     process.exit(1);
   }
 
@@ -89,6 +113,10 @@ async function main() {
   console.log(`Latency: ${result1.latency_ms}ms`);
   console.log(`Assertions: ${result1.assertions_passed} passed, ${result1.assertions_failed} failed`);
 
+  if (result1.status !== 'passed') {
+    anyFailed = true;
+  }
+
   if (result1.error_message) {
     console.log(`\nError: ${result1.error_message}`);
   }
@@ -142,6 +170,10 @@ async function main() {
     console.log(`Latency: ${result2.latency_ms}ms`);
     console.log(`Assertions: ${result2.assertions_passed} passed, ${result2.assertions_failed} failed`);
 
+    if (result2.status !== 'passed') {
+      anyFailed = true;
+    }
+
     if (result2.error_message) {
       console.log(`\nError: ${result2.error_message}`);
     }
@@ -151,6 +183,7 @@ async function main() {
     console.log(JSON.stringify(output2.output, null, 2));
   } else {
     console.log('❌ Validation failed:', validation2.errors);
+    anyFailed = true;
   }
 
   // Test 3: Abandoned call
@@ -199,6 +232,10 @@ async function main() {
     console.log(`Latency: ${result3.latency_ms}ms`);
     console.log(`Assertions: ${result3.assertions_passed} passed, ${result3.assertions_failed} failed`);
 
+    if (result3.status !== 'passed') {
+      anyFailed = true;
+    }
+
     if (result3.error_message) {
       console.log(`\nError: ${result3.error_message}`);
     }
@@ -208,10 +245,13 @@ async function main() {
     console.log(JSON.stringify(output3.output, null, 2));
   } else {
     console.log('❌ Validation failed:', validation3.errors);
+    anyFailed = true;
   }
 
   console.log('\n' + '═'.repeat(60));
   console.log('\n✨ Tests complete!\n');
+
+  process.exit(anyFailed ? 1 : 0);
 }
 
 main().catch((error: unknown) => {

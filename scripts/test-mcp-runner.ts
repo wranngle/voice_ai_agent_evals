@@ -7,8 +7,10 @@
 import {McpRunner} from '../lib/testing/runners/mcp-runner';
 import type {TestCase} from '../lib/testing/types';
 
-const POST_CALL_WORKFLOW_ID = process.env.N8N_POST_CALL_WORKFLOW_ID ?? 'workflow_xxxx_demo';
-const AGENT_ID = process.env.ELEVENLABS_AGENT_ID ?? 'agent_xxxx_demo';
+const PLACEHOLDER_WORKFLOW_ID = 'workflow_xxxx_demo';
+const PLACEHOLDER_AGENT_ID = 'agent_xxxx_demo';
+const POST_CALL_WORKFLOW_ID = process.env.N8N_POST_CALL_WORKFLOW_ID ?? PLACEHOLDER_WORKFLOW_ID;
+const AGENT_ID = process.env.ELEVENLABS_AGENT_ID ?? PLACEHOLDER_AGENT_ID;
 
 async function main() {
   console.log('🔌 Testing MCP Runner Against Real API\n');
@@ -19,6 +21,22 @@ async function main() {
 
   if (!apiUrl || !apiKey) {
     console.log('\n❌ N8N_API_URL or N8N_API_KEY not found in environment');
+    process.exit(1);
+  }
+
+  // Refuse to call live n8n with placeholder identifiers — a 404 from the
+  // server would otherwise be misread as "the runner is broken" instead of
+  // "you forgot to configure". Same first-contact discipline as
+  // scripts/test-elevenlabs-runner.ts.
+  if (POST_CALL_WORKFLOW_ID === PLACEHOLDER_WORKFLOW_ID) {
+    console.log('\n❌ N8N_POST_CALL_WORKFLOW_ID not set; refusing to invoke live n8n with');
+    console.log(`   placeholder \`${PLACEHOLDER_WORKFLOW_ID}\`. Export the real workflow id.`);
+    process.exit(1);
+  }
+
+  if (AGENT_ID === PLACEHOLDER_AGENT_ID) {
+    console.log('\n❌ ELEVENLABS_AGENT_ID not set; refusing to embed placeholder agent_id in');
+    console.log('   the live MCP payload. Export ELEVENLABS_AGENT_ID=agent_<your sandbox>.');
     process.exit(1);
   }
 
@@ -108,8 +126,14 @@ async function main() {
   };
 
   const validation2 = runner.validate(test2);
+  // Test 2's purpose is to prove validate() rejects malformed input. If it
+  // incorrectly accepts, the test FAILED its assertion — surface that via
+  // the exit code, otherwise the script can pass while the validator silently
+  // regressed.
+  let test2Failed = false;
   if (validation2.valid) {
     console.log('❌ Validation should have failed but passed');
+    test2Failed = true;
   } else {
     console.log('✅ Validation correctly rejected invalid test:');
     for (const e of validation2.errors) {
@@ -120,8 +144,7 @@ async function main() {
   console.log('\n' + '═'.repeat(60));
   console.log('\n✨ MCP Runner tests complete!\n');
 
-  // Return success if first test passed
-  process.exit(result1.status === 'passed' ? 0 : 1);
+  process.exit(result1.status === 'passed' && !test2Failed ? 0 : 1);
 }
 
 main().catch((error: unknown) => {

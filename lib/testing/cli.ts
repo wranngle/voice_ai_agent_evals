@@ -16,11 +16,14 @@
 
 import {parseArgs} from 'node:util';
 import {join} from 'node:path';
-import {
-  existsSync, readdirSync, readFileSync, statSync,
-} from 'node:fs';
 import {ingestTests} from './ingestion';
 import type {TestType, TestCase, TestRunSummary} from './types';
+import {
+  discoverScenarioFiles,
+  discoverScenarioTestCases,
+  loadScenarioDefinition,
+  scenarioToTestCase,
+} from './scenarios';
 import {
   orchestrator,
   listTestCases,
@@ -28,54 +31,6 @@ import {
   listTestRuns,
   getResultsByRun,
 } from './index';
-
-/**
- * Discover scenario YAMLs in tests/scenarios/<id>/scenario.yaml.
- * Returns a list of synthetic TestCase-shaped records so they appear in
- * `testing:list` even before they've been ingested into local-storage.
- * The leading "_template" directory is skipped.
- */
-function discoverScenarios(rootDir = process.cwd()): TestCase[] {
-  const scenariosDir = join(rootDir, 'tests', 'scenarios');
-  if (!existsSync(scenariosDir)) {
-    return [];
-  }
-
-  const out: TestCase[] = [];
-  for (const entry of readdirSync(scenariosDir, {withFileTypes: true})) {
-    if (!entry.isDirectory()) {
-      continue;
-    }
-
-    if (entry.name.startsWith('_')) {
-      continue;
-    } // Skip _template
-
-    const scenarioFile = join(scenariosDir, entry.name, 'scenario.yaml');
-    if (!existsSync(scenarioFile)) {
-      continue;
-    }
-
-    const raw = readFileSync(scenarioFile, 'utf-8');
-    // Lightweight YAML parse — extract `description:` line without pulling a yaml dep.
-    const descMatch = /^description:\s*(.+)$/m.exec(raw);
-    const description = descMatch ? descMatch[1].trim() : '';
-    out.push({
-      test_id: `SCEN-${entry.name}`,
-      type: 'elevenlabs',
-      name: entry.name,
-      description,
-      input: {scenarioPath: scenarioFile},
-      expected_output: {},
-      tags: ['scenario'],
-      enabled: true,
-      created_at: new Date(statSync(scenarioFile).mtime).toISOString(),
-      updated_at: new Date(statSync(scenarioFile).mtime).toISOString(),
-    });
-  }
-
-  return out;
-}
 
 // ANSI colors
 const C = {
@@ -96,11 +51,14 @@ type CliOptions = {
   tags: string[];
   id?: string;
   failFast: boolean;
+  parallel: boolean;
+  concurrency?: number;
   timeout?: number;
   json: boolean;
   verbose: boolean;
   help: boolean;
   dir?: string;
+  parseErrors: string[];
 };
 
 function parseCliArgs(): CliOptions {
@@ -111,6 +69,8 @@ function parseCliArgs(): CliOptions {
       tag: {type: 'string', short: 'g', multiple: true},
       id: {type: 'string'},
       'fail-fast': {type: 'boolean', short: 'f'},
+      parallel: {type: 'boolean'},
+      concurrency: {type: 'string'},
       timeout: {type: 'string'},
       json: {type: 'boolean', short: 'j'},
       verbose: {type: 'boolean', short: 'v'},
@@ -119,18 +79,48 @@ function parseCliArgs(): CliOptions {
     },
   });
 
+  const concurrency = parsePositiveIntegerOption(values.concurrency, '--concurrency');
+  const timeout = parsePositiveIntegerOption(values.timeout, '--timeout');
+  const command = positionals[0] || 'run';
   return {
-    command: positionals[0] || 'run',
+    command,
     type: values.type as TestType | undefined,
-    tags: (values.tag!) || [],
-    id: values.id,
+    tags: values.tag ?? [],
+    id: values.id ?? (command === 'run' ? positionals[1] : undefined),
     failFast: values['fail-fast'] || false,
-    timeout: values.timeout ? Number.parseInt(values.timeout, 10) : undefined,
+    parallel: values.parallel || false,
+    concurrency: concurrency.value,
+    timeout: timeout.value,
     json: values.json || false,
     verbose: values.verbose || false,
     help: values.help || false,
     dir: values.dir,
+    parseErrors: [
+      ...concurrency.errors,
+      ...timeout.errors,
+    ],
   };
+}
+
+function parsePositiveIntegerOption(
+  raw: string | undefined,
+  optionName: string,
+): {value?: number; errors: string[]} {
+  if (raw === undefined) {
+    return {errors: []};
+  }
+
+  const value = raw.trim();
+  if (!/^\d+$/.test(value)) {
+    return {errors: [`${optionName} must be a positive integer`]};
+  }
+
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed) || parsed <= 0) {
+    return {errors: [`${optionName} must be a positive integer`]};
+  }
+
+  return {value: parsed, errors: []};
 }
 
 function showHelp(): void {
@@ -149,10 +139,12 @@ ${C.cyan}Commands:${C.reset}
   clear        Clear all test data
 
 ${C.cyan}Options:${C.reset}
-  -t, --type <type>    Filter by test type (webhook, elevenlabs, n8n-eval, mcp, external-command)
+  -t, --type <type>    Filter by test type (webhook, elevenlabs, n8n-eval, mcp, external-command, scenario)
   -g, --tag <tag>      Filter by tag (can be used multiple times)
       --id <id>        Run specific test by ID
   -f, --fail-fast      Stop on first failure
+      --parallel       Run matching tests with bounded concurrency
+      --concurrency <n> Max parallel tests when --parallel is set (default: 5)
       --timeout <ms>   Override default timeout (milliseconds)
   -d, --dir <path>     Directory for ingest command (default: tests/)
   -j, --json           Output results as JSON
@@ -164,6 +156,8 @@ ${C.cyan}Examples:${C.reset}
   bun run testing run -t webhook         # Run webhook tests only
   bun run testing run -g smoke           # Run tests tagged 'smoke'
   bun run testing run --id TC-001        # Run specific test by ID
+  bun run testing run SCEN-my-scenario   # Run specific scenario by ID
+  bun run testing run -t scenario --parallel --concurrency 4
   bun run testing list                   # List all stored tests
   bun run testing list -t elevenlabs     # List ElevenLabs tests
   bun run testing validate               # Validate all test configs
@@ -173,10 +167,151 @@ ${C.cyan}Examples:${C.reset}
 ${C.cyan}Environment Variables:${C.reset}
   ELEVENLABS_API_KEY   ElevenLabs API key (required for elevenlabs runner)
   ELEVENLABS_AGENT_ID  Default agent ID for elevenlabs runner
-  N8N_API_URL          n8n API URL (default: https://your-n8n-host.example.com/api/v1)
+  N8N_API_URL          n8n API URL (required for n8n-eval / mcp runners; e.g. https://n8n.your-host.example/api/v1)
   N8N_API_KEY          n8n API key (required for n8n-eval / mcp runners)
   TEST_STORAGE_DIR     Override .test-data/ location for stored cases & runs
+  TEST_INCLUDE_SCENARIOS=0  Opt out of committed tests/scenarios fixtures
 `);
+}
+
+function shouldIncludeScenarios(): boolean {
+  return process.env.TEST_INCLUDE_SCENARIOS !== '0';
+}
+
+/**
+ * Tag CLI-invoked runs with their actual provenance instead of recording
+ * everything as `manual`. CI workflows set CI=true; without this detection,
+ * a developer's local run and a CI run produce identical run records,
+ * making "what fired this?" queries against history unreliable.
+ */
+function detectCliTriggerContext(): {triggeredBy?: 'manual' | 'ci'; triggerSource?: string} {
+  if (process.env.CI !== 'true' && process.env.CI !== '1') {
+    return {triggeredBy: 'manual'};
+  }
+
+  const source = process.env.GITHUB_WORKFLOW
+    ?? process.env.CI_JOB_NAME
+    ?? process.env.BUILDKITE_PIPELINE_SLUG;
+  return {
+    triggeredBy: 'ci',
+    triggerSource: typeof source === 'string' && source.trim() !== '' ? source : 'ci',
+  };
+}
+
+function hasTargetedFilter(options: CliOptions): boolean {
+  return Boolean(options.id) || Boolean(options.type) || (options.tags?.length ?? 0) > 0;
+}
+
+function describeTargetedFilter(options: CliOptions): string {
+  const parts: string[] = [];
+  if (options.id) {
+    parts.push(`id=${options.id}`);
+  }
+
+  if (options.type) {
+    parts.push(`type=${options.type}`);
+  }
+
+  if (options.tags?.length) {
+    parts.push(`tag(s)=${options.tags.join(',')}`);
+  }
+
+  return parts.length > 0 ? parts.join(', ') : 'the supplied filter';
+}
+
+function scenarioTestCasesForCli(): TestCase[] {
+  return shouldIncludeScenarios() ? discoverScenarioTestCases() : [];
+}
+
+function scenarioTestCasesForValidate(options: CliOptions): TestCase[] {
+  if (!shouldIncludeScenarios()) {
+    return [];
+  }
+
+  if (!options.id) {
+    return discoverScenarioTestCases();
+  }
+
+  const scenarioFile = discoverScenarioFiles()
+    .find(file => `SCEN-${file.id}` === options.id);
+  if (!scenarioFile) {
+    return [];
+  }
+
+  try {
+    return [scenarioToTestCase(loadScenarioDefinition(scenarioFile.path))];
+  } catch {
+    // The validation preflight below reports the parse error in-band.
+    return [];
+  }
+}
+
+function scenarioRunPreflightErrors(options: CliOptions): Array<{test_id: string; path: string; errors: string[]}> {
+  if (!shouldIncludeScenarios() || (options.type && options.type !== 'scenario')) {
+    return [];
+  }
+
+  const errors: Array<{test_id: string; path: string; errors: string[]}> = [];
+  for (const file of discoverScenarioFiles()) {
+    const testId = `SCEN-${file.id}`;
+    if (!shouldPreflightScenarioForRun(options, testId)) {
+      continue;
+    }
+
+    try {
+      loadScenarioDefinition(file.path);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      errors.push({test_id: testId, path: file.path, errors: [message]});
+    }
+  }
+
+  return errors;
+}
+
+function shouldPreflightScenarioForRun(options: CliOptions, testId: string): boolean {
+  if (options.id) {
+    return options.id === testId;
+  }
+
+  if (options.type === 'scenario') {
+    return true;
+  }
+
+  if (!options.type && options.tags.length === 0) {
+    return true;
+  }
+
+  return !options.type && options.tags.includes('scenario');
+}
+
+function shouldPreflightScenarioForValidate(options: CliOptions, testId: string): boolean {
+  if (options.id) {
+    return options.id === testId;
+  }
+
+  if (options.type) {
+    return options.type === 'scenario';
+  }
+
+  if (options.tags.length === 0) {
+    return true;
+  }
+
+  return options.tags.includes('scenario');
+}
+
+function mergeCliTestCases(stored: TestCase[], extras: TestCase[]): TestCase[] {
+  const merged = [...stored];
+  const known = new Set(stored.map(test => test.test_id));
+  for (const extra of extras) {
+    if (!known.has(extra.test_id)) {
+      merged.push(extra);
+      known.add(extra.test_id);
+    }
+  }
+
+  return merged;
 }
 
 async function runTests(options: CliOptions): Promise<number> {
@@ -185,12 +320,51 @@ async function runTests(options: CliOptions): Promise<number> {
   }
 
   try {
+    const scenarioErrors = scenarioRunPreflightErrors(options);
+    if (scenarioErrors.length > 0) {
+      const message = `Malformed scenario fixture${scenarioErrors.length === 1 ? '' : 's'} matched this run`;
+      if (options.json) {
+        console.log(JSON.stringify({error: message, scenarios: scenarioErrors}, null, 2));
+      } else {
+        console.error(`${C.red}Error: ${message}${C.reset}`);
+        for (const scenario of scenarioErrors) {
+          console.error(`  ${scenario.test_id} (${scenario.path})`);
+          for (const error of scenario.errors) {
+            console.error(`    ${error}`);
+          }
+        }
+      }
+
+      return 1;
+    }
+
     const summary = await orchestrator.run({
       type: options.type,
       tags: options.tags.length > 0 ? options.tags : undefined,
+      id: options.id,
       failFast: options.failFast,
+      parallel: options.parallel,
+      concurrency: options.concurrency,
       timeout: options.timeout,
+      extraTestCases: scenarioTestCasesForCli(),
+      ...detectCliTriggerContext(),
     });
+
+    // A targeted filter (--id / --tag / --type) that matches zero tests is
+    // almost always a typo or stale ID — silently exiting 0 turns a missed
+    // run into a false-green CI signal. Surface it explicitly.
+    if (summary.total_tests === 0 && hasTargetedFilter(options)) {
+      const detail = describeTargetedFilter(options);
+      const error = `no tests matched ${detail}`;
+      if (options.json) {
+        console.log(JSON.stringify({error, ...summary}, null, 2));
+      } else {
+        printSummary(summary, options.verbose);
+        console.error(`${C.red}Error: no tests matched ${detail}${C.reset}`);
+      }
+
+      return 1;
+    }
 
     if (options.json) {
       console.log(JSON.stringify(summary, null, 2));
@@ -269,19 +443,20 @@ async function listTests(options: CliOptions): Promise<number> {
     });
     let tests = result.data || [];
 
-    // Augment with scenarios discovered from tests/scenarios/<id>/scenario.yaml
-    // so a fresh checkout shows the canonical scenarios even before they've
-    // been ingested into local-storage. Skipped when tests are using an
-    // isolated storage dir (TEST_STORAGE_DIR) so cli.test.ts fixtures stay
-    // deterministic.
-    if (!process.env.TEST_STORAGE_DIR) {
-      const scenarios = discoverScenarios();
+    // Augment with committed scenarios so a fresh checkout exposes the
+    // canonical eval suite before anything is ingested into local storage.
+    if (shouldIncludeScenarios()) {
+      const scenarios = discoverScenarioTestCases();
       const known = new Set(tests.map(t => t.test_id));
       for (const s of scenarios) {
         if (!known.has(s.test_id)) {
           tests.push(s);
         }
       }
+    }
+
+    if (options.type) {
+      tests = tests.filter(t => t.type === options.type);
     }
 
     // Filter by tags
@@ -345,10 +520,64 @@ async function validateTests(options: CliOptions): Promise<number> {
     const result = await listTestCases({
       type: options.type,
     });
-    const tests = result.data || [];
+    let tests = result.data || [];
+
+    tests = mergeCliTestCases(tests, scenarioTestCasesForValidate(options));
+
+    if (options.type) {
+      tests = tests.filter(t => t.type === options.type);
+    }
+
+    if (options.tags.length > 0) {
+      tests = tests.filter(t =>
+        options.tags.some(tag => t.tags.includes(tag)));
+    }
+
+    if (options.id) {
+      tests = tests.filter(t => t.test_id === options.id);
+    }
 
     const results: Array<{test_id: string; valid: boolean; errors: string[]}> = [];
     let hasErrors = false;
+
+    // Surface scenarios that fail to parse — discoverScenarioTestCases() drops
+    // them silently with a warn, which is right for run/list but wrong for
+    // validate where the user is explicitly asking "what is broken?"
+    if (shouldIncludeScenarios() && (!options.type || options.type === 'scenario')) {
+      const knownIds = new Set(tests.map(test => test.test_id));
+      for (const file of discoverScenarioFiles()) {
+        const probeId = `SCEN-${file.id}`;
+        if (!shouldPreflightScenarioForValidate(options, probeId)) {
+          continue;
+        }
+
+        if (knownIds.has(probeId)) {
+          continue;
+        }
+
+        try {
+          loadScenarioDefinition(file.path);
+          // Successfully parsed but not in `tests` — usually means scenario
+          // discovery is disabled in this storage env; nothing to report.
+        } catch (error: unknown) {
+          const message = error instanceof Error ? error.message : String(error);
+          results.push({test_id: probeId, valid: false, errors: [message]});
+          hasErrors = true;
+        }
+      }
+    }
+
+    if (results.length === 0 && tests.length === 0 && hasTargetedFilter(options)) {
+      const detail = describeTargetedFilter(options);
+      const error = `no tests matched ${detail}`;
+      if (options.json) {
+        console.log(JSON.stringify({error, validations: []}, null, 2));
+      } else {
+        console.error(`${C.red}Error: no tests matched ${detail}${C.reset}`);
+      }
+
+      return 1;
+    }
 
     for (const test of tests) {
       const runner = orchestrator.getRunner(test.type);
@@ -435,7 +664,10 @@ async function showReport(options: CliOptions): Promise<number> {
 
     if (runs.length === 0) {
       if (options.json) {
-        console.log(JSON.stringify({error: 'No test runs found'}));
+        // Empty history is not an error path (exit 0); use `message` so JSON
+        // consumers don't branch on an `error` field that contradicts the
+        // success exit code.
+        console.log(JSON.stringify({message: 'No test runs found'}));
       } else {
         console.log(`${C.yellow}No test runs found${C.reset}`);
       }
@@ -594,6 +826,18 @@ async function main(): Promise<void> {
   if (options.help) {
     showHelp();
     process.exit(0);
+  }
+
+  if (options.parseErrors.length > 0) {
+    if (options.json) {
+      console.log(JSON.stringify({errors: options.parseErrors}, null, 2));
+    } else {
+      for (const error of options.parseErrors) {
+        console.error(`${C.red}Error: ${error}${C.reset}`);
+      }
+    }
+
+    process.exit(1);
   }
 
   let exitCode: number;

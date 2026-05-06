@@ -1,7 +1,14 @@
 # Synthetic scenario — deterministic, no real customer data.
 # Result shape committed at tests/runs/2026-04-fail-barge-in/result.json
+#
+# enabled: false — this fixture is an intentional FAILING demo (the
+# transcript shows a 1820ms barge-in yield against a 400ms budget).
+# Excluded from default discovery so a fresh `bun run testing run -t
+# scenario` is not permanently red. Run it explicitly with `--id
+# SCEN-barge-in-mid-question` to see the failure shape.
 id: barge-in-mid-question
 description: Caller interrupts the agent mid-question; agent must yield within 400ms.
+enabled: false
 agent: primary
 
 fixture:

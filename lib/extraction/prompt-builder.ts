@@ -39,7 +39,14 @@ function buildComponentC(fields: ExtractionField[]): string {
     }
   }
 
-  return `== RESPONSE SCHEMA ==\nReturn a JSON object with exactly these keys:\n${JSON.stringify(schema, null, 2)}\n\nAlso include a "_rationale" object with the same keys, where each value explains your reasoning.\nAlso include a "_confidence" object with the same keys, where each value is a number 0.0–1.0.`;
+  return [
+    '== RESPONSE SCHEMA ==',
+    'Return a JSON object with exactly these keys:',
+    JSON.stringify(schema, null, 2),
+    '',
+    'Also include a "_rationale" object with the same keys, where each value explains your reasoning.',
+    'Also include a "_confidence" object with the same keys, where each value is a number 0.0–1.0.',
+  ].join('\n');
 }
 
 function buildComponentD(fields: ExtractionField[]): string {

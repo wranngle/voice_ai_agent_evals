@@ -2,10 +2,24 @@
   "_comment": "Synthetic transcript fixture; matches the result shape in tests/runs/2026-04-fail-barge-in/result.json",
   "scenario_id": "barge-in-mid-question",
   "agent_id": "agent_xxxx_demo",
+  "prompt_tag": "prompt/primary/v3",
   "turns": [
     { "turn": 1, "role": "agent", "text": "Sure — I can help with that. We have garages in Cheyenne, Laramie, and Casper, and the typical—" },
     { "turn": 2, "role": "caller", "text": "[INTERRUPTS at 8.2s] Wait, just Cheyenne — I'm in Cheyenne." },
     { "turn": "barge_in_event", "agent_yielded_at_ms_after_caller_start": 1820, "expected_max_ms": 400 },
     { "turn": 3, "role": "agent", "text": "Got it, Cheyenne. Let me confirm — what's your address?" }
-  ]
+  ],
+  "metrics": {
+    "ttfb_p95_ms": 698,
+    "end_to_first_audio_p95_ms": 1320,
+    "total_turn_p95_ms": 3450,
+    "barge_in_yield_ms": 1820
+  },
+  "latency_breakdown_ms": {
+    "ttfb": [685, 690, 698, 705, 710],
+    "end_to_first_audio": [1290, 1305, 1320, 1335, 1340],
+    "total_turn": [3380, 3420, 3450, 3470, 3500],
+    "barge_in_yield_latency": [1820]
+  },
+  "tool_calls": []
 }

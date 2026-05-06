@@ -82,12 +82,15 @@ The full live shape is in `templates/sms-booking-tool-template.json`; this secti
 **Lifecycle the harness exercises:**
 
 1. **LLM emits a tool call** — agent decides to send SMS, emits `{ name: "send_sms", parameters: { phone_number: "+1555...", ... } }`.
-2. **Schema validation (harness)** — Zod-typed validation against the `parameters` shape. Fails the scenario if the LLM hallucinates a field or a wrong type.
+2. **Schema validation (fixture verdict)** — committed offline transcripts must include `schema_pass` for `parameters_pass: true`. This prevents the runner from treating arbitrary primitive arguments as proof of schema safety.
 3. **Webhook delivery (n8n)** — POST hits the n8n endpoint with `X-Webhook-Secret` header. n8n verifies, dispatches to Twilio, returns `{ status, message_id, error? }`.
 4. **Response back to LLM** — the result is fed back as a tool message. The agent uses it to confirm with the caller.
 5. **Harness assertions:**
-   - `tool_call_schema`: emitted args matched the JSON Schema.
-   - `tool_call_routing`: send_sms was called (not e.g. send_email).
+   - `tool_call_schema`: emitted args carried an explicit passing schema verdict.
+   - `tool_call_routing`: `expected: { route: tool, name: send_sms }` proves `send_sms` was called (not e.g. `send_email`); `expected: kb` proves no server-side tool was used.
+   - `tool_call_round_trip_ms`: committed fixtures include `round_trip_ms` and stay under the scenario budget.
+   - `expected_tool_calls`: live ElevenLabs simulation responses include parseable `tool_calls[].params_as_json` and a matching `tool_results` entry, proving the call completed rather than only being emitted.
+   - `tool_call_latency_max_ms`: live ElevenLabs simulation responses include `tool_results.tool_latency_secs`, stay under the per-tool budget, and do not report error/blocked execution evidence.
    - `tool_response_handling`: agent acknowledged the SMS confirmation in its next utterance.
    - `tool_error_path`: a separate scenario forces the n8n webhook to return 503 and asserts the agent recovers gracefully ("I had trouble sending that text — could I confirm a different number?").
 

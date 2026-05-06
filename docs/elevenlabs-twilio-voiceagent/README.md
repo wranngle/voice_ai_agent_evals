@@ -91,14 +91,37 @@ elevenlabs-twilio-voiceagent/
 
 ### 1. Configure Credentials
 
-```bash
-# Edit the credential files with your API keys
-# ElevenLabs: Get key from https://elevenlabs.io/app/settings/api-keys
-# Twilio: Get SID/Token from https://console.twilio.com/
+The `env/` directory and credential files are NOT committed (they would
+contain real secrets). Create them yourself before running the tests:
 
+```bash
+mkdir -p env
+
+# ElevenLabs: get key from https://elevenlabs.io/app/settings/api-keys
+cat > env/.env.elevenlabs <<'EOF'
+ELEVENLABS_API_KEY=
+# Optional — defaults shown:
+# ELEVENLABS_BASE_URL=https://api.elevenlabs.io
+# ELEVENLABS_DEFAULT_VOICE_ID=21m00Tcm4TlvDq8ikWAM
+EOF
+
+# Twilio: get SID/token from https://console.twilio.com/
+cat > env/.env.twilio <<'EOF'
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_PHONE_NUMBER=
+# 02-send-sms.sh actually sends an SMS to TEST_PHONE_NUMBER:
+# TEST_PHONE_NUMBER=
+EOF
+
+# Then fill in the values:
 nano env/.env.elevenlabs
 nano env/.env.twilio
 ```
+
+The `env/*.env.*` filenames match what every test script under `tests/`
+sources, so once these files exist with your values the smoke tests run
+without further wiring.
 
 ### 2. Run Integration Tests
 

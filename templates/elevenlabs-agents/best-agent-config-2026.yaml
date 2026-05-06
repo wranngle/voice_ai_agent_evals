@@ -17,7 +17,7 @@ asr:
   # Provider: ElevenLabs' proprietary real-time transcription
   # Options: scribe_realtime, deepgram, azure, google
   provider: "scribe_realtime"
-  
+
   # Audio format for user input
   # Higher sample rates = better quality, more bandwidth
   # Options: pcm_8000, pcm_16000, pcm_22050, pcm_44100, pcm_48000
@@ -31,24 +31,24 @@ tts:
   # Options: eleven_multilingual_v2, eleven_flash_v2, eleven_turbo_v2_5
   # Note: Flash v2 is ~3x faster than multilingual with minimal quality loss
   model_id: "eleven_flash_v2"
-  
+
   # Output audio format
   agent_output_audio_format: "pcm_48000"
-  
+
   # Streaming latency optimization (0-4)
   # 0 = highest quality, 4 = lowest latency
   # 2 is the sweet spot for conversational AI
   optimize_streaming_latency: 2
-  
+
   # Voice stability (0.0 - 1.0)
   # Higher = more consistent, lower = more expressive
   # 0.71 balances warmth with consistency
   stability: 0.71
-  
+
   # Speech speed multiplier (0.5 - 2.0)
   # 1.04 is slightly faster than natural, keeps pace conversational
   speed: 1.04
-  
+
   # Voice similarity boost (0.0 - 1.0)
   # How closely to match the original voice sample
   similarity_boost: 0.8
@@ -61,12 +61,12 @@ llm:
   # Fast, capable, cost-effective for conversational AI
   # Alternatives: gpt-4o-mini, claude-3-5-haiku, gemini-2.0-flash
   model: "gemini-3-flash-preview"
-  
+
   # Temperature: Low for consistent, focused responses
   # Range: 0.0 - 2.0
   # 0.1 = highly deterministic, good for business use cases
   temperature: 0.1
-  
+
   # Max tokens: -1 = unlimited (model decides)
   # Set a limit if you need to control response length
   max_tokens: -1
@@ -79,19 +79,19 @@ turn:
   # "turn" = wait for complete utterance before responding
   # "server_vad" = voice activity detection on server
   mode: "turn"
-  
+
   # Turn eagerness: How quickly to take the conversation turn
   # Options: relaxed, normal, eager
   # "eager" = responds quickly, good for customer service
   turn_eagerness: "eager"
-  
+
   # Turn timeout: Max seconds to wait for user to finish speaking
   turn_timeout: 8
-  
+
   # Silence before ending call (seconds)
   # 45s = gives user time to think without premature hangup
   silence_end_call_timeout: 45
-  
+
   # Soft timeout: Grace period before turn timeout kicks in
   soft_timeout_seconds: 4
 
@@ -102,11 +102,11 @@ session:
   # Max call duration (seconds)
   # 1200 = 20 minutes, suitable for most business calls
   max_duration_seconds: 1200
-  
+
   # Concurrency limit: -1 = unlimited
   # Set a number to limit simultaneous calls
   concurrency_limit: -1
-  
+
   # Daily call limit: 999 = effectively unlimited for dev
   # Set appropriate limits for production
   daily_limit: 999
@@ -123,7 +123,7 @@ recommended_voices:
       - "Customer service"
       - "Appointment scheduling"
       - "Lead qualification"
-  
+
   jessica:
     voice_id: "cgSgspJ2msm6clMCkdW9"  # Jessica
     description: "Friendly, approachable American female"
@@ -131,7 +131,7 @@ recommended_voices:
       - "Sales calls"
       - "Follow-ups"
       - "Surveys"
-  
+
   # Professional male voices
   charlie:
     voice_id: "IKne3meq5aSn9XLyUdCD"  # Charlie
@@ -146,17 +146,17 @@ recommended_voices:
 # =============================================================================
 first_message_templates:
   inbound_general: "Hello! Thanks for calling. How can I help you today?"
-  
+
   outbound_lead: "Hi, this is {agent_name} from {company}. Am I speaking with {contact_name}?"
-  
+
   outbound_followup: "Hi {contact_name}, this is {agent_name} from {company}. I'm following up on our recent conversation. Do you have a moment?"
-  
+
   appointment_reminder: "Hi {contact_name}, this is {agent_name} from {company}. I'm calling to confirm your appointment on {date} at {time}. Can you confirm you'll be there?"
 
 # =============================================================================
 # Usage Notes
 # =============================================================================
-# 
+#
 # 1. VOICE CLONING: For branded experiences, clone the client's preferred voice
 #    using mcp__elevenlabs-mcp__voice_clone with 3+ audio samples
 #

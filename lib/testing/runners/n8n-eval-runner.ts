@@ -11,38 +11,29 @@
  */
 
 import type {TestCase} from '../types';
+import {normalizeN8nApiUrl} from '../../n8n-url';
 import type {
   TestRunner,
   TestExecutionResult,
   RunOptions,
   N8nEvalTestConfig,
+  N8nEvalExpectedOutput,
   AssertionResult,
 } from './types';
 import {missingApiKeyResult} from './missing-config';
 
 const DEFAULT_TIMEOUT = 120_000; // 2 minutes for n8n workflows
 
-/**
- * Expected output configuration for n8n Eval tests
- */
-export type N8nEvalExpectedOutput = {
-  /** Expected status of the workflow execution */
-  execution_status?: 'success' | 'error';
-  /** Minimum overall score (0-100) */
-  min_score?: number;
-  /** Expected keys in the output */
-  output_contains?: Record<string, unknown>;
-  /** Expected nodes to have executed */
-  nodes_executed?: string[];
-  /** Max execution time */
-  max_execution_time_ms?: number;
-  /** Custom assertions to run against output */
-  custom_assertions?: Array<{
-    name: string;
-    path: string; // JSON path to check
-    expected: unknown;
-  }>;
-};
+// Known expected_output keys for fail-closed unknown-key rejection.
+// Mirrors codex's elevenlabs `EXPECTED_OUTPUT_FIELDS` pattern.
+const N8N_EVAL_EXPECTED_OUTPUT_FIELDS = new Set([
+  'execution_status',
+  'min_score',
+  'output_contains',
+  'nodes_executed',
+  'max_execution_time_ms',
+  'custom_assertions',
+]);
 
 /**
  * N8n execution result structure
@@ -76,7 +67,14 @@ export class N8nEvalRunner implements TestRunner {
   private readonly apiKey: string;
 
   constructor(apiUrl?: string, apiKey?: string) {
-    this.apiUrl = apiUrl || process.env.N8N_API_URL || 'https://your-n8n-host.example.com/api/v1';
+    // Drop the historical `'https://your-n8n-host.example.com/api/v1'`
+    // placeholder fallback — without N8N_API_URL set, fetches went to a
+    // host that does not resolve and surfaced as opaque DNS errors. Empty
+    // string flows through to the execute() guard so the missing-config
+    // error matches the apiKey path (sibling: mcp-runner.ts pass 76,
+    // scripts/list-workflows.ts pass 61).
+    const sourceUrl = apiUrl || process.env.N8N_API_URL || '';
+    this.apiUrl = sourceUrl ? normalizeN8nApiUrl(sourceUrl) : '';
     this.apiKey = apiKey || process.env.N8N_API_KEY || '';
   }
 
@@ -87,6 +85,10 @@ export class N8nEvalRunner implements TestRunner {
 
     const startTime = Date.now();
     const assertions: AssertionResult[] = [];
+
+    if (!this.apiUrl) {
+      return missingApiKeyResult('N8N_API_URL', startTime);
+    }
 
     if (!this.apiKey) {
       return missingApiKeyResult('N8N_API_KEY', startTime);
@@ -221,6 +223,34 @@ export class N8nEvalRunner implements TestRunner {
       errors.push('Missing required field: payload');
     }
 
+    // Fail-closed on typo'd expected_output keys. Mirrors codex's elevenlabs
+    // policy and the mcp/webhook implementations from passes 43/44.
+    if (
+      typeof testCase.expected_output === 'object'
+      && testCase.expected_output !== null
+      && !Array.isArray(testCase.expected_output)
+    ) {
+      for (const field of Object.keys(testCase.expected_output)) {
+        if (!N8N_EVAL_EXPECTED_OUTPUT_FIELDS.has(field)) {
+          errors.push(`expected_output.${field} is not recognized by the n8n-eval runner`);
+        }
+      }
+    }
+
+    validateN8nEvalExpectedOutput(testCase.expected_output, errors);
+
+    // A workflow eval with zero assertions silently returns 'passed' regardless
+    // of the run. Reject empty expected_output. Mirrors codex's elevenlabs
+    // policy and passes 51-52.
+    if (
+      typeof testCase.expected_output === 'object'
+      && testCase.expected_output !== null
+      && !Array.isArray(testCase.expected_output)
+      && !hasN8nEvalAssertion(testCase.expected_output)
+    ) {
+      errors.push('expected_output must include at least one assertion for the n8n-eval runner');
+    }
+
     return {valid: errors.length === 0, errors};
   }
 
@@ -258,13 +288,18 @@ export class N8nEvalRunner implements TestRunner {
       signal: AbortSignal.timeout(timeout),
     });
 
-    // For webhooks, non-2xx responses are valid test outcomes, not errors
-    // Parse the response body regardless of status code
+    // For webhooks, non-2xx responses are valid test outcomes, not errors.
+    // Read the body as text ONCE upfront and parse downstream — the previous
+    // `response.json()` + `response.text()`-in-catch chain risked "Body
+    // already consumed" if json() partially read before throwing. Mirrors
+    // codex's webhook-runner fix.
+    const responseText = await response.text();
     let result: Record<string, unknown>;
     try {
-      result = (await response.json()) as Record<string, unknown>;
+      const parsed: unknown = JSON.parse(responseText);
+      result = isRecord(parsed) ? parsed : {_raw_response: responseText};
     } catch {
-      result = {_raw_response: await response.text()};
+      result = {_raw_response: responseText};
     }
 
     // Attach HTTP status to the result for assertion purposes
@@ -345,9 +380,17 @@ export class N8nEvalRunner implements TestRunner {
       });
 
       if (!response.ok) {
-        // Execution might not be ready yet
-        await new Promise(resolve => setTimeout(resolve, pollInterval));
-        continue;
+        // 404 commonly means "n8n hasn't registered the execution yet" — keep
+        // polling. Anything else (401/403 auth, 500 server error) is permanent
+        // for the lifetime of this call; retrying just buries the real cause
+        // under a misleading "did not complete within timeout" message.
+        if (response.status === 404) {
+          await new Promise(resolve => setTimeout(resolve, pollInterval));
+          continue;
+        }
+
+        const body = await response.text().catch(() => '');
+        throw new Error(`n8n execution lookup failed: ${response.status} ${response.statusText}${body ? ` — ${body.slice(0, 200)}` : ''}`);
       }
 
       const execution = (await response.json()) as Record<string, unknown> & N8nExecutionResult;
@@ -583,3 +626,117 @@ export class N8nEvalRunner implements TestRunner {
 }
 
 export const n8nEvalRunner = new N8nEvalRunner();
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function hasNonEmptyArray(value: unknown): boolean {
+  return Array.isArray(value) && value.length > 0;
+}
+
+function hasNonEmptyRecord(value: unknown): boolean {
+  return isRecord(value) && Object.keys(value).length > 0;
+}
+
+/**
+ * An n8n-eval test must declare at least one assertion. Without this guard,
+ * `expected_output: {}` returns `status: 'passed'` regardless of workflow
+ * outcome.
+ */
+function hasN8nEvalAssertion(expected: N8nEvalExpectedOutput): boolean {
+  return typeof expected.execution_status === 'string'
+    || typeof expected.min_score === 'number'
+    || hasNonEmptyRecord(expected.output_contains)
+    || hasNonEmptyArray(expected.nodes_executed)
+    || typeof expected.max_execution_time_ms === 'number'
+    || hasNonEmptyArray(expected.custom_assertions);
+}
+
+function validateStringArray(value: unknown, label: string, errors: string[]): void {
+  if (value === undefined) {
+    return;
+  }
+
+  if (!Array.isArray(value)) {
+    errors.push(`expected_output.${label} must be an array of non-empty strings`);
+    return;
+  }
+
+  for (const [index, item] of value.entries()) {
+    if (typeof item !== 'string' || item.trim() === '') {
+      errors.push(`expected_output.${label}[${index}] must be a non-empty string`);
+    }
+  }
+}
+
+/**
+ * Catch malformed expected_output before execution so a misconfig surfaces
+ * as a validation error instead of a confusing assertion failure. Mirrors
+ * the webhook-runner and mcp-runner patterns.
+ */
+function validateN8nEvalExpectedOutput(expected: unknown, errors: string[]): void {
+  if (expected === undefined) {
+    return;
+  }
+
+  if (!isRecord(expected)) {
+    errors.push('expected_output must be an object');
+    return;
+  }
+
+  if (
+    expected.execution_status !== undefined
+    && expected.execution_status !== 'success'
+    && expected.execution_status !== 'error'
+  ) {
+    errors.push('expected_output.execution_status must be \'success\' or \'error\' when present');
+  }
+
+  if (
+    expected.min_score !== undefined
+    && (typeof expected.min_score !== 'number'
+      || !Number.isFinite(expected.min_score)
+      || expected.min_score < 0
+      || expected.min_score > 100)
+  ) {
+    errors.push('expected_output.min_score must be a finite number between 0 and 100');
+  }
+
+  if (expected.output_contains !== undefined && !isRecord(expected.output_contains)) {
+    errors.push('expected_output.output_contains must be an object when present');
+  }
+
+  validateStringArray(expected.nodes_executed, 'nodes_executed', errors);
+
+  if (
+    expected.max_execution_time_ms !== undefined
+    && (typeof expected.max_execution_time_ms !== 'number'
+      || !Number.isFinite(expected.max_execution_time_ms)
+      || expected.max_execution_time_ms < 0)
+  ) {
+    errors.push('expected_output.max_execution_time_ms must be a non-negative finite number');
+  }
+
+  if (expected.custom_assertions !== undefined) {
+    if (!Array.isArray(expected.custom_assertions)) {
+      errors.push('expected_output.custom_assertions must be an array of {name, path, expected} entries');
+      return;
+    }
+
+    for (const [index, assertion] of expected.custom_assertions.entries()) {
+      if (!isRecord(assertion)) {
+        errors.push(`expected_output.custom_assertions[${index}] must be an object`);
+        continue;
+      }
+
+      if (typeof assertion.name !== 'string' || assertion.name.trim() === '') {
+        errors.push(`expected_output.custom_assertions[${index}].name must be a non-empty string`);
+      }
+
+      if (typeof assertion.path !== 'string' || assertion.path.trim() === '') {
+        errors.push(`expected_output.custom_assertions[${index}].path must be a non-empty string`);
+      }
+    }
+  }
+}

@@ -11,6 +11,7 @@
  */
 
 import {runTests} from '../lib/testing/runners/orchestrator';
+import {discoverScenarioTestCases} from '../lib/testing/scenarios';
 
 type HealthCheckResult = {
   status: 'healthy' | 'degraded' | 'failing';
@@ -22,6 +23,12 @@ type HealthCheckResult = {
     errors: number;
     pass_rate: number;
     duration_ms: number;
+    // Surfaced so n8n consumers can alert on latency regressions, not just
+    // pass/fail. avg/p95/p99 are computed by the orchestrator over actually
+    // executed tests in this run.
+    avg_latency_ms: number;
+    p95_latency_ms?: number;
+    p99_latency_ms?: number;
   };
   failures: Array<{
     test_id: string;
@@ -30,19 +37,38 @@ type HealthCheckResult = {
   }>;
 };
 
+function healthStatusFor(result: {total_tests: number; failed: number; errors: number; pass_rate: number}): HealthCheckResult['status'] {
+  if (result.total_tests === 0) {
+    return 'failing';
+  }
+
+  if (result.failed === 0 && result.errors === 0) {
+    return 'healthy';
+  }
+
+  return result.pass_rate >= 80 ? 'degraded' : 'failing';
+}
+
 async function main() {
   const startTime = Date.now();
 
   try {
     const result = await runTests({
       triggeredBy: 'scheduled',
+      // Tag the run so history queries can distinguish health-check runs
+      // from other scheduled invocations (parallel to scripts/ingest-and-run.ts).
+      triggerSource: 'health-check',
       enabledOnly: true,
+      extraTestCases: process.env.TEST_INCLUDE_SCENARIOS === '1'
+        ? discoverScenarioTestCases()
+        : [],
     });
 
-    const healthStatus: HealthCheckResult['status']
-      = result.failed === 0 && result.errors === 0
-        ? 'healthy'
-        : (result.pass_rate >= 80 ? 'degraded' : 'failing');
+    // A run with zero tests is almost always misconfiguration (wrong CWD,
+    // missing test fixtures, missing TEST_INCLUDE_SCENARIOS, an empty
+    // local-storage dir). Reporting "healthy" with zero coverage masks the
+    // gap; surface it as "failing" so n8n alerts fire.
+    const healthStatus: HealthCheckResult['status'] = healthStatusFor(result);
 
     const output: HealthCheckResult = {
       status: healthStatus,
@@ -54,6 +80,9 @@ async function main() {
         errors: result.errors,
         pass_rate: result.pass_rate,
         duration_ms: result.duration_ms,
+        avg_latency_ms: result.avg_latency_ms,
+        p95_latency_ms: result.p95_latency_ms,
+        p99_latency_ms: result.p99_latency_ms,
       },
       failures: result.failures.map(f => ({
         test_id: f.test_id,
@@ -77,6 +106,7 @@ async function main() {
         errors: 1,
         pass_rate: 0,
         duration_ms: Date.now() - startTime,
+        avg_latency_ms: 0,
       },
       failures: [{
         test_id: 'SYSTEM',

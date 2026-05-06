@@ -50,7 +50,8 @@ describe('MCP Runner', () => {
           trigger_type: 'manual',
           payload: {data: 'test'},
         },
-        expected_output: {},
+        // assertion-empty guard requires at least one expected_output field
+        expected_output: {execution_status: 'success'},
         tags: [],
         enabled: true,
         created_at: new Date().toISOString(),
@@ -150,6 +151,128 @@ describe('MCP Runner', () => {
       expect(validation.valid).toBe(false);
       expect(validation.errors).toContain('Missing required field: payload');
     });
+
+    test('should reject empty expected_output (silent-green guard)', () => {
+      // Without an assertion, the runner reports 'passed' regardless of
+      // workflow result. Mirrors codex's elevenlabs policy and pass-51's
+      // webhook policy.
+      const testCase: TestCase = {
+        test_id: 'TC-MCP-EMPTY',
+        type: 'mcp',
+        name: 'Empty expected_output',
+        description: 'MCP test without assertions should fail validation',
+        input: {
+          workflow_id: 'abc123',
+          trigger_type: 'manual',
+          payload: {test: true},
+        },
+        expected_output: {},
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const validation = runner.validate(testCase);
+      expect(validation.valid).toBe(false);
+      expect(validation.errors).toContain('expected_output must include at least one assertion for the MCP runner');
+    });
+
+    test('should reject malformed expected_output assertions before execution', () => {
+      const testCase: TestCase = {
+        test_id: 'TC-MCP-BAD-EXPECTED',
+        type: 'mcp',
+        name: 'Malformed expected output',
+        description: 'Catch misconfig before it shows up as an assertion failure',
+        input: {
+          workflow_id: 'abc123',
+          trigger_type: 'manual',
+          payload: {},
+        },
+        expected_output: {
+          execution_status: 'oops',
+          mcp_tools_called: ['valid', 42],
+          expected_nodes: 'not-an-array',
+          expected_output: 'should-be-object',
+          max_execution_time_ms: 'soon',
+        },
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const validation = runner.validate(testCase);
+      expect(validation.valid).toBe(false);
+      expect(validation.errors).toContain('expected_output.execution_status must be \'success\' or \'error\' when present');
+      expect(validation.errors).toContain('expected_output.mcp_tools_called[1] must be a non-empty string');
+      expect(validation.errors).toContain('expected_output.expected_nodes must be an array of non-empty strings');
+      expect(validation.errors).toContain('expected_output.expected_output must be an object when present');
+      expect(validation.errors).toContain('expected_output.max_execution_time_ms must be a non-negative finite number');
+    });
+
+    test('should reject typo\'d expected_output keys (fail-closed on unknown fields)', () => {
+      // `expected_node` (singular) is a likely typo of `expected_nodes`. Without
+      // fail-closed validation it'd silently no-op. Mirrors codex's elevenlabs
+      // policy applied to mcp.
+      const testCase: TestCase = {
+        test_id: 'TC-MCP-TYPO',
+        type: 'mcp',
+        name: 'Typo in expected_output',
+        description: 'expected_node is a typo of expected_nodes',
+        input: {
+          workflow_id: 'abc123',
+          trigger_type: 'manual',
+          payload: {test: true},
+        },
+        expected_output: {
+          expected_node: ['x'],
+          maximum_execution_time_ms: 5000,
+        },
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const validation = runner.validate(testCase);
+      expect(validation.valid).toBe(false);
+      expect(validation.errors).toContain('expected_output.expected_node is not recognized by the MCP runner');
+      expect(validation.errors).toContain('expected_output.maximum_execution_time_ms is not recognized by the MCP runner');
+    });
+
+    test('should reject expected_output-only fields placed on input', () => {
+      // Stale test cases (or new ones authored against the pre-pass-29 type)
+      // could put assertion fields like `expected_nodes` on `input`. The
+      // runner reads those from `expected_output`, so leaving them on input
+      // is a silent no-op. validate() must catch each such field and direct
+      // the user to the right home.
+      const testCase: TestCase = {
+        test_id: 'TC-MCP-MISPLACED',
+        type: 'mcp',
+        name: 'Misplaced assertion fields',
+        description: 'expected_nodes / mcp_tools_called / max_execution_time_ms on input',
+        input: {
+          workflow_id: 'abc123',
+          trigger_type: 'manual',
+          payload: {test: true},
+          expected_nodes: ['start', 'end'],
+          mcp_tools_called: ['lookup_record'],
+          max_execution_time_ms: 1000,
+        },
+        expected_output: {},
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const validation = runner.validate(testCase);
+      expect(validation.valid).toBe(false);
+      expect(validation.errors).toContain('input.expected_nodes is ignored by the MCP runner; move it to expected_output.expected_nodes');
+      expect(validation.errors).toContain('input.mcp_tools_called is ignored by the MCP runner; move it to expected_output.mcp_tools_called');
+      expect(validation.errors).toContain('input.max_execution_time_ms is ignored by the MCP runner; move it to expected_output.max_execution_time_ms');
+    });
   });
 
   describe('Execution', () => {
@@ -244,6 +367,37 @@ describe('MCP Runner', () => {
 
       expect(result.status).toBe('error');
       expect(result.error_message).toContain('Network error');
+    });
+
+    test('should fail fast when poll lookup returns 401, not retry until timeout', async () => {
+      // For trigger_type=manual: 1. workflow execute (200 with executionId),
+      // 2. poll for completion (401). The 401 on the poll must surface
+      // immediately rather than burn the polling timeout window.
+      const fetchSpy = vi.spyOn(globalThis, 'fetch')
+        .mockResolvedValueOnce(new Response(JSON.stringify({executionId: 'exec_auth_fail', finished: false}), {status: 200}))
+        .mockResolvedValueOnce(new Response(JSON.stringify({message: 'Unauthorized'}), {status: 401, statusText: 'Unauthorized'}));
+
+      const testCase: TestCase = {
+        test_id: 'TC-MCP-009A',
+        type: 'mcp',
+        name: 'Auth fails mid-poll',
+        description: 'Permanent error on poll must not be silently retried',
+        input: {workflow_id: 'abc123', trigger_type: 'manual', payload: {test: true}},
+        expected_output: {},
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const start = Date.now();
+      const result = await runner.execute(testCase);
+      const elapsed = Date.now() - start;
+
+      expect(result.status).toBe('error');
+      expect(result.error_message).toContain('401');
+      expect(fetchSpy.mock.calls.length).toBe(2);
+      expect(elapsed).toBeLessThan(5000);
     });
 
     test('should execute workflow successfully with mocked API', async () => {
