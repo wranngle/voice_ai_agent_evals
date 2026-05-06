@@ -39,8 +39,6 @@ export type AssertionResult = {
 export type RunOptions = {
   /** Timeout in milliseconds */
   timeout?: number;
-  /** Whether to continue on failure */
-  continueOnFail?: boolean;
   /** Custom headers for HTTP tests */
   headers?: Record<string, string>;
   /** Environment variables */
@@ -70,6 +68,16 @@ export type WebhookTestConfig = {
   headers?: Record<string, string>;
   body?: unknown;
   timeout_ms?: number;
+  /**
+   * Sign the outgoing JSON body with an ElevenLabs-Signature header for
+   * post-call webhook replay tests. Secret is read from
+   * elevenlabs_signature_secret_env or ELEVENLABS_POST_CALL_SECRET.
+   */
+  sign_elevenlabs_payload?: boolean;
+  /** Environment variable name containing the ElevenLabs webhook HMAC secret. */
+  elevenlabs_signature_secret_env?: string;
+  /** Test-only timestamp override for deterministic signature assertions. */
+  elevenlabs_signature_timestamp_secs?: number;
 };
 
 /**
@@ -80,38 +88,74 @@ export type WebhookExpectedOutput = {
   status_range?: {min: number; max: number};
   body?: Record<string, unknown>;
   body_contains?: Record<string, unknown>;
+  /** Expected array members by response body path */
+  body_array_contains?: Record<string, unknown[]>;
+  body_truthy?: string[];
+  body_falsy?: string[];
+  body_defined?: string[];
   headers?: Record<string, string>;
   latency_max_ms?: number;
 };
 
 /**
- * ElevenLabs test input
+ * ElevenLabs test input. Assertion-shaped fields belong on
+ * ElevenLabsExpectedOutput (response_contains, expected_tool_calls, etc.);
+ * putting them on the input is a silent no-op because the runner reads
+ * assertions from `testCase.expected_output`, not from the config.
  */
 export type ElevenLabsTestConfig = {
   agent_id: string;
   test_prompt?: string;
-  test_audio_url?: string;
-  expected_intent?: string;
-  expected_entities?: Record<string, string>;
+  simulated_user_prompt?: string;
+  simulated_user_llm?: string;
+  simulated_user_temperature?: number;
+  disable_first_message_interruptions?: boolean;
+  /** Fallback used when `expected_output.max_turns` is unset. */
   max_turns?: number;
   language?: string;
-  dynamic_variables?: Record<string, string>;
+  dynamic_variables?: Record<string, unknown>;
+  tool_mock_config?: Record<string, unknown>;
+  partial_conversation_history?: Array<Record<string, unknown>>;
+};
+
+/**
+ * ElevenLabs evaluation criterion sent to the simulate-conversation analysis.
+ */
+export type ElevenLabsEvaluationCriterion = {
+  id?: string;
+  name: string;
+  type?: string;
+  conversation_goal_prompt?: string;
+  description?: string;
+  use_knowledge_base?: boolean;
 };
 
 /**
  * ElevenLabs expected output
  */
 export type ElevenLabsExpectedOutput = {
-  /** Expected test result (pass/fail) */
+  /** Expected ElevenLabs analysis result (pass/fail) */
   should_pass?: boolean;
   /** Keywords that should appear in agent response */
   response_contains?: string[];
-  /** Tool calls that should be made */
+  /** Keywords that should not appear in agent response */
+  response_not_contains?: string[];
+  /** Tool calls that should execute and return tool_results evidence */
   expected_tool_calls?: string[];
   /** Tool calls that should NOT be made */
   forbidden_tool_calls?: string[];
-  /** Max latency for first response */
-  first_response_max_ms?: number;
+  /** Per-tool max latency in milliseconds, keyed by tool name */
+  tool_call_latency_max_ms?: Record<string, number>;
+  /** Minimum number of simulated conversation turns */
+  min_turns?: number;
+  /**
+   * Maximum number of simulated conversation turns. Also drives the
+   * simulate-conversation new_turns_limit request control, so it is a guard
+   * but not sufficient eval signal by itself.
+   */
+  max_turns?: number;
+  /** Extra ElevenLabs prompt evaluation criteria for the simulation analysis */
+  evaluation_criteria?: ElevenLabsEvaluationCriterion[];
 };
 
 /**
@@ -151,14 +195,16 @@ export type N8nEvalExpectedOutput = {
 };
 
 /**
- * MCP test input
+ * MCP test input. Assertion fields like `expected_nodes`, `expected_output`,
+ * and `mcp_tools_called` belong in `testCase.expected_output` (typed as
+ * McpExpectedOutput); putting them here is a silent no-op because the runner
+ * reads assertions from `expected_output`, not from `input`.
  */
 export type McpTestConfig = {
   workflow_id: string;
   trigger_type: 'webhook' | 'manual';
   payload: Record<string, unknown>;
-  expected_nodes?: string[];
-  expected_output?: Record<string, unknown>;
+  /** Per-test timeout fallback when no `options.timeout` is supplied. */
   expected_execution_time_ms?: number;
 };
 

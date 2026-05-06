@@ -21,6 +21,20 @@ import type {
 
 const DEFAULT_TIMEOUT_MS = 120_000;
 const OUTPUT_TAIL_CHARS = 12_000;
+// Grace period after SIGTERM before SIGKILL. A child that ignores SIGTERM
+// (or is wedged in a syscall) would otherwise leak as an orphan process
+// after the runner reported a timeout.
+const KILL_GRACE_MS = 5000;
+
+// Known expected_output keys for fail-closed unknown-key rejection. Mirrors
+// codex's elevenlabs `EXPECTED_OUTPUT_FIELDS` pattern (passes 43–46).
+const EXTERNAL_COMMAND_EXPECTED_OUTPUT_FIELDS = new Set([
+  'exit_code',
+  'stdout_contains',
+  'stderr_contains',
+  'stdout_not_contains',
+  'stderr_not_contains',
+]);
 
 function commandEnv(config: ExternalCommandTestConfig, options: RunOptions): NodeJS.ProcessEnv {
   const pathKey = process.platform === 'win32' ? 'Path' : 'PATH';
@@ -78,6 +92,29 @@ export class ExternalCommandRunner implements TestRunner {
       errors.push('timeout_ms must be a positive number');
     }
 
+    if (
+      config.expected_exit_code !== undefined
+      && (!Number.isInteger(config.expected_exit_code) || config.expected_exit_code < 0)
+    ) {
+      errors.push('input.expected_exit_code must be a non-negative integer when present');
+    }
+
+    // Fail-closed on typo'd expected_output keys. Final sibling in the
+    // policy rollout that started with codex's elevenlabs change (11:40).
+    if (
+      typeof testCase.expected_output === 'object'
+      && testCase.expected_output !== null
+      && !Array.isArray(testCase.expected_output)
+    ) {
+      for (const field of Object.keys(testCase.expected_output)) {
+        if (!EXTERNAL_COMMAND_EXPECTED_OUTPUT_FIELDS.has(field)) {
+          errors.push(`expected_output.${field} is not recognized by the external-command runner`);
+        }
+      }
+    }
+
+    validateExternalCommandExpectedOutput(testCase.expected_output, errors);
+
     return {valid: errors.length === 0, errors};
   }
 
@@ -114,8 +151,18 @@ export class ExternalCommandRunner implements TestRunner {
         });
       };
 
+      let killTimer: NodeJS.Timeout | undefined;
       const timeoutId = setTimeout(() => {
         child.kill('SIGTERM');
+        // Escalate to SIGKILL after a grace window so a child that ignores
+        // SIGTERM doesn't leak as an orphan after we've already reported the
+        // timeout to the harness. close handler clears this timer on exit.
+        killTimer = setTimeout(() => {
+          child.kill('SIGKILL');
+        }, KILL_GRACE_MS);
+        // Don't keep the event loop alive just to escalate; the child exit
+        // is what we actually wait for.
+        killTimer.unref?.();
         finish({
           status: 'error',
           actual_output: {
@@ -131,6 +178,14 @@ export class ExternalCommandRunner implements TestRunner {
         });
       }, timeout);
 
+      const clearTimers = () => {
+        clearTimeout(timeoutId);
+        if (killTimer) {
+          clearTimeout(killTimer);
+          killTimer = undefined;
+        }
+      };
+
       child.stdout?.on('data', chunk => {
         stdout += String(chunk);
       });
@@ -140,7 +195,7 @@ export class ExternalCommandRunner implements TestRunner {
       });
 
       child.on('error', error => {
-        clearTimeout(timeoutId);
+        clearTimers();
         finish({
           status: 'error',
           actual_output: {
@@ -156,7 +211,7 @@ export class ExternalCommandRunner implements TestRunner {
       });
 
       child.on('close', code => {
-        clearTimeout(timeoutId);
+        clearTimers();
         const stdoutCheck = containsAll(stdout, expected.stdout_contains);
         const stderrCheck = containsAll(stderr, expected.stderr_contains);
         const stdoutForbiddenCheck = containsNone(stdout, expected.stdout_not_contains);
@@ -201,3 +256,52 @@ export class ExternalCommandRunner implements TestRunner {
 }
 
 export const externalCommandRunner = new ExternalCommandRunner();
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function validateStringArray(value: unknown, label: string, errors: string[]): void {
+  if (value === undefined) {
+    return;
+  }
+
+  if (!Array.isArray(value)) {
+    errors.push(`expected_output.${label} must be an array of non-empty strings`);
+    return;
+  }
+
+  for (const [index, item] of value.entries()) {
+    if (typeof item !== 'string' || item.trim() === '') {
+      errors.push(`expected_output.${label}[${index}] must be a non-empty string`);
+    }
+  }
+}
+
+/**
+ * Catch malformed expected_output before execution so a misconfig surfaces
+ * as a validation error instead of a confusing assertion failure. Mirrors
+ * the webhook-runner / mcp-runner / n8n-eval-runner patterns.
+ */
+function validateExternalCommandExpectedOutput(expected: unknown, errors: string[]): void {
+  if (expected === undefined) {
+    return;
+  }
+
+  if (!isRecord(expected)) {
+    errors.push('expected_output must be an object');
+    return;
+  }
+
+  if (
+    expected.exit_code !== undefined
+    && (!Number.isInteger(expected.exit_code) || (expected.exit_code as number) < 0)
+  ) {
+    errors.push('expected_output.exit_code must be a non-negative integer when present');
+  }
+
+  validateStringArray(expected.stdout_contains, 'stdout_contains', errors);
+  validateStringArray(expected.stderr_contains, 'stderr_contains', errors);
+  validateStringArray(expected.stdout_not_contains, 'stdout_not_contains', errors);
+  validateStringArray(expected.stderr_not_contains, 'stderr_not_contains', errors);
+}

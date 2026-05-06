@@ -49,7 +49,8 @@ describe('n8n Eval Runner', () => {
           webhook_path: 'test-webhook',
           payload: {data: 'test'},
         },
-        expected_output: {},
+        // assertion-empty guard requires at least one expected_output field
+        expected_output: {execution_status: 'success'},
         tags: [],
         enabled: true,
         created_at: new Date().toISOString(),
@@ -101,6 +102,94 @@ describe('n8n Eval Runner', () => {
       const validation = runner.validate(testCase);
       expect(validation.valid).toBe(false);
       expect(validation.errors).toContain('Missing required field: payload');
+    });
+
+    test('should reject empty expected_output (silent-green guard)', () => {
+      // Without an assertion, the runner reports 'passed' regardless of
+      // workflow result. Mirrors codex's elevenlabs policy and passes 51-52.
+      const testCase: TestCase = {
+        test_id: 'TC-N8N-EMPTY',
+        type: 'n8n-eval',
+        name: 'Empty expected_output',
+        description: 'n8n-eval test without assertions should fail validation',
+        input: {
+          workflow_id: 'abc123',
+          payload: {test: true},
+        },
+        expected_output: {},
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const validation = runner.validate(testCase);
+      expect(validation.valid).toBe(false);
+      expect(validation.errors).toContain('expected_output must include at least one assertion for the n8n-eval runner');
+    });
+
+    test('should reject malformed expected_output assertions before execution', () => {
+      const testCase: TestCase = {
+        test_id: 'TC-N8N-BAD-EXPECTED',
+        type: 'n8n-eval',
+        name: 'Malformed expected output',
+        description: 'Catch misconfig before it shows up as an assertion failure',
+        input: {
+          workflow_id: 'abc123',
+          payload: {test: true},
+        },
+        expected_output: {
+          execution_status: 'oops',
+          min_score: 'high',
+          output_contains: 'should-be-object',
+          nodes_executed: ['valid', 42],
+          max_execution_time_ms: -100,
+          custom_assertions: [{name: '', path: 'data.value', expected: true}],
+        },
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const validation = runner.validate(testCase);
+      expect(validation.valid).toBe(false);
+      expect(validation.errors).toContain('expected_output.execution_status must be \'success\' or \'error\' when present');
+      expect(validation.errors).toContain('expected_output.min_score must be a finite number between 0 and 100');
+      expect(validation.errors).toContain('expected_output.output_contains must be an object when present');
+      expect(validation.errors).toContain('expected_output.nodes_executed[1] must be a non-empty string');
+      expect(validation.errors).toContain('expected_output.max_execution_time_ms must be a non-negative finite number');
+      expect(validation.errors).toContain('expected_output.custom_assertions[0].name must be a non-empty string');
+    });
+
+    test('should reject typo\'d expected_output keys (fail-closed on unknown fields)', () => {
+      // `nodes_to_run` is a likely typo of `nodes_executed`; `min_scre` of
+      // `min_score`. Without fail-closed validation both silently no-op.
+      // Mirrors codex's elevenlabs policy applied to n8n-eval.
+      const testCase: TestCase = {
+        test_id: 'TC-N8N-TYPO',
+        type: 'n8n-eval',
+        name: 'Typo in expected_output',
+        description: 'Typo\'d assertion keys should fail validation',
+        input: {
+          workflow_id: 'abc123',
+          payload: {test: true},
+        },
+        expected_output: {
+          execution_status: 'success',
+          nodes_to_run: ['x'],
+          min_scre: 50,
+        },
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const validation = runner.validate(testCase);
+      expect(validation.valid).toBe(false);
+      expect(validation.errors).toContain('expected_output.nodes_to_run is not recognized by the n8n-eval runner');
+      expect(validation.errors).toContain('expected_output.min_scre is not recognized by the n8n-eval runner');
     });
   });
 
@@ -195,6 +284,44 @@ describe('n8n Eval Runner', () => {
       expect(result.error_message).toContain('Network error');
     });
 
+    test('should fail fast when poll lookup returns 401, not retry until timeout', async () => {
+      // First fetch: workflow execute returns success (POST /workflows/.../run).
+      // Second fetch: poll for completion returns 401 — must surface as
+      // an immediate auth error, NOT be retried until the test timeout.
+      const fetchSpy = vi.spyOn(globalThis, 'fetch')
+        .mockResolvedValueOnce(new Response(
+          JSON.stringify({executionId: 'exec_auth_fail', finished: false}),
+          {status: 200},
+        ))
+        .mockResolvedValueOnce(new Response(
+          JSON.stringify({message: 'Unauthorized'}),
+          {status: 401, statusText: 'Unauthorized'},
+        ));
+
+      const testCase: TestCase = {
+        test_id: 'TC-N8N-007A',
+        type: 'n8n-eval',
+        name: 'Auth fails mid-poll',
+        description: 'Permanent error on poll must not be silently retried',
+        input: {workflow_id: 'abc123', payload: {test: true}},
+        expected_output: {},
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const start = Date.now();
+      const result = await runner.execute(testCase);
+      const elapsed = Date.now() - start;
+
+      expect(result.status).toBe('error');
+      expect(result.error_message).toContain('401');
+      // Did NOT retry until timeout. Two fetches: workflow-run + one poll.
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+      expect(elapsed).toBeLessThan(5000);
+    });
+
     test('should execute workflow successfully with mocked API', async () => {
       vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
         JSON.stringify({
@@ -242,6 +369,45 @@ describe('n8n Eval Runner', () => {
       expect(result.status).toBe('passed');
       expect(result.actual_output.execution_id).toBe('exec_123');
       expect(result.actual_output.status).toBe('success');
+    });
+
+    test('should normalize base n8n URLs before calling the execution API', async () => {
+      runner = new N8nEvalRunner('https://n8n.example.com/', 'test-api-key');
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
+        JSON.stringify({
+          id: 'exec_base_url',
+          status: 'success',
+          finished: true,
+          data: {resultData: {runData: {}}},
+        }),
+        {status: 200},
+      ));
+
+      const testCase: TestCase = {
+        test_id: 'TC-N8N-008A',
+        type: 'n8n-eval',
+        name: 'Base URL normalization',
+        description: 'Operators commonly set N8N_API_URL to the host, not /api/v1.',
+        input: {
+          workflow_id: 'abc123',
+          payload: {input: 'test'},
+        },
+        expected_output: {
+          execution_status: 'success',
+        },
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const result = await runner.execute(testCase);
+
+      expect(result.status).toBe('passed');
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'https://n8n.example.com/api/v1/workflows/abc123/execute',
+        expect.objectContaining({method: 'POST'}),
+      );
     });
 
     test('should check output_contains assertion', async () => {
@@ -581,6 +747,40 @@ describe('n8n Eval Runner', () => {
           method: 'POST',
           body: JSON.stringify({input: 'test'}),
         }),
+      );
+    });
+
+    test('should keep webhook execution on the public webhook base when api URL is normalized', async () => {
+      runner = new N8nEvalRunner('https://n8n.example.com/', 'test-api-key');
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(JSON.stringify({success: true}), {
+        status: 200,
+      }));
+
+      const testCase: TestCase = {
+        test_id: 'TC-N8N-015A',
+        type: 'n8n-eval',
+        name: 'Webhook URL normalization',
+        description: 'Base-host N8N_API_URL must not become /api/v1/webhook.',
+        input: {
+          workflow_id: 'abc123',
+          webhook_path: 'test-webhook',
+          payload: {input: 'test'},
+        },
+        expected_output: {
+          execution_status: 'success',
+        },
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const result = await runner.execute(testCase);
+
+      expect(result.status).toBe('passed');
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'https://n8n.example.com/webhook/test-webhook',
+        expect.objectContaining({method: 'POST'}),
       );
     });
   });

@@ -16,27 +16,23 @@ import type {
   TestExecutionResult,
   RunOptions,
   McpTestConfig,
+  McpExpectedOutput,
   AssertionResult,
 } from './types';
 import {missingApiKeyResult} from './missing-config';
 
 const DEFAULT_TIMEOUT = 120_000; // 2 minutes
 
-/**
- * Expected output configuration for MCP tests
- */
-export type McpExpectedOutput = {
-  /** Expected workflow execution status */
-  execution_status?: 'success' | 'error';
-  /** Expected MCP tools to be called */
-  mcp_tools_called?: string[];
-  /** Expected nodes to execute */
-  expected_nodes?: string[];
-  /** Expected output fields */
-  expected_output?: Record<string, unknown>;
-  /** Max execution time */
-  max_execution_time_ms?: number;
-};
+// Fields that ONLY belong on expected_output. If a user puts any of these on
+// `input`, the runner reads them from `expected_output` instead and the
+// assertion silently no-ops. validate() rejects them with a redirect note.
+const MCP_EXPECTED_OUTPUT_ONLY_FIELDS = new Set([
+  'execution_status',
+  'mcp_tools_called',
+  'expected_nodes',
+  'expected_output',
+  'max_execution_time_ms',
+]);
 
 export class McpRunner implements TestRunner {
   readonly type = 'mcp' as const;
@@ -44,9 +40,13 @@ export class McpRunner implements TestRunner {
   private readonly apiKey: string;
 
   constructor(apiUrl?: string, apiKey?: string) {
-    // Ensure API URL includes /api/v1 path
-    let url = apiUrl || process.env.N8N_API_URL || 'https://your-n8n-host.example.com';
-    if (!url.endsWith('/api/v1')) {
+    // Drop the historical `'https://your-n8n-host.example.com'` placeholder
+    // fallback — without N8N_API_URL set, fetches went to a host that does
+    // not resolve and surfaced as opaque DNS errors. Empty string here lets
+    // execute() fail with the same kind of "not configured" guard the apiKey
+    // path already uses (sibling: scripts/list-workflows.ts, monitor-executions.ts).
+    let url = apiUrl || process.env.N8N_API_URL || '';
+    if (url && !url.endsWith('/api/v1')) {
       url = url.replace(/\/$/, '') + '/api/v1';
     }
 
@@ -61,6 +61,10 @@ export class McpRunner implements TestRunner {
 
     const startTime = Date.now();
     const assertions: AssertionResult[] = [];
+
+    if (!this.apiUrl) {
+      return missingApiKeyResult('N8N_API_URL', startTime);
+    }
 
     if (!this.apiKey) {
       return missingApiKeyResult('N8N_API_KEY', startTime);
@@ -159,6 +163,7 @@ export class McpRunner implements TestRunner {
   validate(testCase: TestCase): {valid: boolean; errors: string[]} {
     const errors: string[] = [];
     const config = testCase.input as unknown as McpTestConfig;
+    const configRecord = (testCase.input ?? {});
 
     if (!config.workflow_id) {
       errors.push('Missing required field: workflow_id');
@@ -172,6 +177,35 @@ export class McpRunner implements TestRunner {
 
     if (!config.payload) {
       errors.push('Missing required field: payload');
+    }
+
+    // Catch users putting assertion fields on input (a silent no-op
+    // before pass-29 removed the dead aliases, and still possible for
+    // any pre-existing TestCase records with the old shape).
+    for (const field of MCP_EXPECTED_OUTPUT_ONLY_FIELDS) {
+      if (Object.hasOwn(configRecord, field)) {
+        errors.push(`input.${field} is ignored by the MCP runner; move it to expected_output.${field}`);
+      }
+    }
+
+    // Reject typo'd keys on expected_output. A user writing
+    // `expected_node: ['x']` (typo of `expected_nodes`) gets a silent
+    // no-op assertion otherwise. Mirrors the elevenlabs-runner policy.
+    if (isRecord(testCase.expected_output)) {
+      for (const field of Object.keys(testCase.expected_output)) {
+        if (!MCP_EXPECTED_OUTPUT_ONLY_FIELDS.has(field)) {
+          errors.push(`expected_output.${field} is not recognized by the MCP runner`);
+        }
+      }
+    }
+
+    validateMcpExpectedOutput(testCase.expected_output, errors);
+
+    // A workflow run with zero assertions silently returns 'passed' regardless
+    // of execution status. Reject empty expected_output. Mirrors codex's
+    // elevenlabs policy and pass-51's webhook policy.
+    if (isRecord(testCase.expected_output) && !hasMcpAssertion(testCase.expected_output)) {
+      errors.push('expected_output must include at least one assertion for the MCP runner');
     }
 
     return {valid: errors.length === 0, errors};
@@ -240,12 +274,17 @@ export class McpRunner implements TestRunner {
       signal: AbortSignal.timeout(timeout),
     });
 
-    // Parse response regardless of status code
+    // Parse response regardless of status code. Read body as text once
+    // upfront — the previous `response.json()` + `response.text()`-in-catch
+    // chain risked "Body already consumed" if json() partially read before
+    // throwing. Mirrors codex's webhook-runner fix.
+    const responseText = await response.text();
     let result: Record<string, unknown>;
     try {
-      result = (await response.json()) as Record<string, unknown>;
+      const parsed: unknown = JSON.parse(responseText);
+      result = isRecord(parsed) ? parsed : {_raw_response: responseText};
     } catch {
-      result = {_raw_response: await response.text()};
+      result = {_raw_response: responseText};
     }
 
     result._http_status = response.status;
@@ -323,8 +362,17 @@ export class McpRunner implements TestRunner {
       });
 
       if (!response.ok) {
-        await new Promise(resolve => setTimeout(resolve, pollInterval));
-        continue;
+        // 404 commonly means "n8n hasn't registered the execution yet" — keep
+        // polling. Anything else (401/403 auth, 500 server error) is permanent
+        // for the lifetime of this call; retrying just buries the real cause
+        // under a misleading "did not complete within timeout" message.
+        if (response.status === 404) {
+          await new Promise(resolve => setTimeout(resolve, pollInterval));
+          continue;
+        }
+
+        const body = await response.text().catch(() => '');
+        throw new Error(`n8n execution lookup failed: ${response.status} ${response.statusText}${body ? ` — ${body.slice(0, 200)}` : ''}`);
       }
 
       const execution = (await response.json()) as Record<string, unknown>;
@@ -498,3 +546,85 @@ export class McpRunner implements TestRunner {
 }
 
 export const mcpRunner = new McpRunner();
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function hasNonEmptyArray(value: unknown): boolean {
+  return Array.isArray(value) && value.length > 0;
+}
+
+function hasNonEmptyRecord(value: unknown): boolean {
+  return isRecord(value) && Object.keys(value).length > 0;
+}
+
+/**
+ * An MCP test must declare at least one assertion. Without this guard, a
+ * workflow run with `expected_output: {}` returns `status: 'passed'` no
+ * matter what executed. Mirrors codex's elevenlabs policy.
+ */
+function hasMcpAssertion(expected: McpExpectedOutput): boolean {
+  return typeof expected.execution_status === 'string'
+    || hasNonEmptyArray(expected.mcp_tools_called)
+    || hasNonEmptyArray(expected.expected_nodes)
+    || hasNonEmptyRecord(expected.expected_output)
+    || typeof expected.max_execution_time_ms === 'number';
+}
+
+function validateStringArray(value: unknown, label: string, errors: string[]): void {
+  if (value === undefined) {
+    return;
+  }
+
+  if (!Array.isArray(value)) {
+    errors.push(`expected_output.${label} must be an array of non-empty strings`);
+    return;
+  }
+
+  for (const [index, item] of value.entries()) {
+    if (typeof item !== 'string' || item.trim() === '') {
+      errors.push(`expected_output.${label}[${index}] must be a non-empty string`);
+    }
+  }
+}
+
+/**
+ * Catch malformed expected_output before execution so a misconfig surfaces
+ * as a validation error instead of a confusing assertion failure. Mirrors
+ * the webhook-runner pattern.
+ */
+function validateMcpExpectedOutput(expected: unknown, errors: string[]): void {
+  if (expected === undefined) {
+    return;
+  }
+
+  if (!isRecord(expected)) {
+    errors.push('expected_output must be an object');
+    return;
+  }
+
+  if (
+    expected.execution_status !== undefined
+    && expected.execution_status !== 'success'
+    && expected.execution_status !== 'error'
+  ) {
+    errors.push('expected_output.execution_status must be \'success\' or \'error\' when present');
+  }
+
+  validateStringArray(expected.mcp_tools_called, 'mcp_tools_called', errors);
+  validateStringArray(expected.expected_nodes, 'expected_nodes', errors);
+
+  if (expected.expected_output !== undefined && !isRecord(expected.expected_output)) {
+    errors.push('expected_output.expected_output must be an object when present');
+  }
+
+  if (
+    expected.max_execution_time_ms !== undefined
+    && (typeof expected.max_execution_time_ms !== 'number'
+      || !Number.isFinite(expected.max_execution_time_ms)
+      || expected.max_execution_time_ms < 0)
+  ) {
+    errors.push('expected_output.max_execution_time_ms must be a non-negative finite number');
+  }
+}

@@ -31,22 +31,35 @@ Without this, you can't roll back. With it, rollback is a one-line `git checkout
 In the ElevenLabs dashboard, select the new model on a **non-production agent** (clone your prod agent to a `<name>-staging` agent if you don't have one). Set `ELEVENLABS_AGENT_ID` to the staging agent and re-run. (Update `agent-registry.yaml` in parallel if your deploy tooling reads it; the harness itself only consults the env var.)
 
 ```bash
-bun run testing:live:el                                            # full regression set against new model
-bun run testing:live:el --output-json > tests/runs/<date>-new-model.json
+# Deterministic offline regression set — checked-in scenario fixtures.
+# Exits nonzero on any regression.
+bun run testing run -t scenario
+
+# Live smoke against the staging agent (single hardcoded simulate-conversation
+# request). Use this to confirm the new model actually answers; pair with the
+# offline regression for axis-by-axis verdicts.
+bun run testing:live:el
 ```
 
-Any scenario that was passing against the old model and now fails is **a candidate regression** — but it could also be a real improvement that broke a too-strict assertion. Read the runs folder; don't auto-trust the harness's verdict.
+Any scenario that was passing against the old model and now fails is **a candidate regression** — but it could also be a real improvement that broke a too-strict assertion. Read the failing scenario's `tests/scenarios/<id>/scenario.yaml` and the runner output before deciding; don't auto-trust the harness's verdict.
 
-### 3. Diff the scoring rubric output
+### 3. Diff the scoring output against the pre-update snapshot
+
+The harness does not yet ship a generic per-axis run-diff tool. For now, capture the offline regression's JSON output and compare manually (or with your own script):
 
 ```bash
-node scripts/diff-runs.js \
-  --baseline tests/runs/pre-update-snapshot.json \
-  --new tests/runs/<date>-new-model.json \
-  --by-axis
+bun run testing run -t scenario --json > tests/runs/<date>-new-model.json
+
+# Compare interesting fields against the snapshot from step 1 with jq, diff, or
+# whatever you have on hand. Look for axes that moved across multiple scenarios
+# (e.g. `barge_in_recovery` drops 15% → new TTS model has different pacing) vs
+# one-scenario regressions (e.g. `tool_call_schema` on a single fixture → that
+# scenario's prompt may need a small tweak).
+diff <(jq '.failures' tests/runs/pre-update-snapshot.json) \
+     <(jq '.failures' tests/runs/<date>-new-model.json)
 ```
 
-You're looking for **drift axes** — which scoring axes systematically moved? If `barge_in_recovery` drops 15% across all scenarios, the new TTS model has different pacing. If `tool_call_schema` drops 5% on one scenario, that scenario's prompt may need a small tweak.
+A first-class `scripts/diff-runs.ts` with `--by-axis` aggregation is on the roadmap; until it lands, treat the JSON above as your input and own the comparison.
 
 ### 4. Decide: rollback, re-tune, or accept
 

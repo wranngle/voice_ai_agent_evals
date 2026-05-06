@@ -19,6 +19,7 @@ import {ElevenLabsRunner} from './elevenlabs-runner';
 import {N8nEvalRunner} from './n8n-eval-runner';
 import {McpRunner} from './mcp-runner';
 import {ExternalCommandRunner} from './external-command-runner';
+import {ScenarioRunner} from './scenario-runner';
 
 /**
  * Options for the test orchestrator
@@ -32,6 +33,10 @@ export type OrchestratorOptions = {
   tags?: string[];
   /** Filter tests by requirement ID */
   requirementId?: string;
+  /** Filter tests by exact test ID */
+  id?: string;
+  /** Synthetic or discovered cases that are not stored in local storage */
+  extraTestCases?: TestCase[];
   /** Only run enabled tests (default: true) */
   enabledOnly?: boolean;
   /** Stop on first failure */
@@ -61,6 +66,7 @@ export class TestOrchestrator {
     this.registerRunner(new N8nEvalRunner());
     this.registerRunner(new McpRunner());
     this.registerRunner(new ExternalCommandRunner());
+    this.registerRunner(new ScenarioRunner());
   }
 
   /**
@@ -81,7 +87,7 @@ export class TestOrchestrator {
    * Run all tests matching the given options
    */
   async run(options: OrchestratorOptions = {}): Promise<TestRunSummary> {
-    const startTime = Date.now();
+    const startTime = performance.now();
 
     // Create a test run record
     const runResult = await createTestRun({
@@ -89,6 +95,7 @@ export class TestOrchestrator {
       trigger_source: options.triggerSource,
       test_type_filter: options.type,
       tag_filter: options.tag,
+      test_filter: buildTestFilterContext(options),
       total_tests: 0,
       passed: 0,
       failed: 0,
@@ -96,6 +103,8 @@ export class TestOrchestrator {
       skipped: 0,
       pass_rate: 0,
       avg_latency_ms: 0,
+      p95_latency_ms: 0,
+      p99_latency_ms: 0,
     });
 
     const executionId = runResult.data.execution_id;
@@ -108,7 +117,13 @@ export class TestOrchestrator {
       enabled: options.enabledOnly === false ? undefined : true,
     });
 
-    let testCases = casesResult.data || [];
+    const extraTestCases = options.extraTestCases ?? [];
+    let testCases = mergeTestCases(casesResult.data || [], extraTestCases)
+      .filter(testCase => !options.type || testCase.type === options.type)
+      .filter(testCase => !options.requirementId || testCase.requirement_id === options.requirementId)
+      .filter(testCase => !options.tag || testCase.tags.includes(options.tag))
+      .filter(testCase => options.enabledOnly === false || testCase.enabled)
+      .filter(testCase => !options.id || testCase.test_id === options.id);
 
     // Filter by multiple tags if provided
     if (options.tags && options.tags.length > 0) {
@@ -126,10 +141,18 @@ export class TestOrchestrator {
     let errors = 0;
     let skipped = 0;
     let totalLatency = 0;
+    const latencies: number[] = [];
 
     // Execute tests
     if (options.parallel) {
-      const concurrency = options.concurrency || 5;
+      // `||` would let a hostile caller pass concurrency: -1 / NaN / 0.5
+      // through to chunkArray, where `for (let i = 0; i < array.length;
+      // i += size)` never advances on size <= 0 — that hangs the run.
+      // Floor + clamp: anything not a positive integer falls back to 5.
+      const rawConcurrency = options.concurrency;
+      const concurrency = (typeof rawConcurrency === 'number' && Number.isFinite(rawConcurrency) && rawConcurrency >= 1)
+        ? Math.floor(rawConcurrency)
+        : 5;
       const chunks = this.chunkArray(testCases, concurrency);
 
       // Promise.all preserves order, so chunkResults[i] corresponds to
@@ -139,6 +162,11 @@ export class TestOrchestrator {
       for (const chunk of chunks) {
         const chunkResults = await Promise.all(chunk.map(async tc => this.executeTest(tc, executionId, options)));
 
+        // Process EVERY result in the chunk before honoring failFast.
+        // The whole chunk has already executed (Promise.all awaited it), so
+        // a `break` mid-chunk would silently discard results from tests that
+        // already ran — skewing total_tests, pass_rate, and failure
+        // attribution. failFast only governs whether the NEXT chunk runs.
         for (const [i, result] of chunkResults.entries()) {
           const testCase = chunk[i];
           results.push(result);
@@ -166,6 +194,7 @@ export class TestOrchestrator {
           }
 
           totalLatency += result.latency_ms;
+          latencies.push(result.latency_ms);
 
           if (!slowestTest || result.latency_ms > slowestTest.latency_ms) {
             slowestTest = {
@@ -181,10 +210,6 @@ export class TestOrchestrator {
               name: testCase.name,
               error_message: result.error_message || 'Unknown error',
             });
-
-            if (options.failFast) {
-              break;
-            }
           }
         }
 
@@ -221,6 +246,7 @@ export class TestOrchestrator {
         }
 
         totalLatency += result.latency_ms;
+        latencies.push(result.latency_ms);
 
         if (!slowestTest || result.latency_ms > slowestTest.latency_ms) {
           slowestTest = {
@@ -252,7 +278,9 @@ export class TestOrchestrator {
     // and pass_rate by the unrun denominator.
     const totalTests = results.length;
     const avgLatency = totalTests > 0 ? Math.round(totalLatency / totalTests) : 0;
-    const duration = Date.now() - startTime;
+    const p95Latency = latencyPercentile(latencies, 95);
+    const p99Latency = latencyPercentile(latencies, 99);
+    const duration = Math.round(performance.now() - startTime);
 
     // Complete the test run
     await completeTestRun(executionId, {
@@ -262,6 +290,8 @@ export class TestOrchestrator {
       errors,
       skipped,
       avg_latency_ms: avgLatency,
+      p95_latency_ms: p95Latency,
+      p99_latency_ms: p99Latency,
     });
 
     // Return summary
@@ -275,6 +305,8 @@ export class TestOrchestrator {
       skipped,
       pass_rate: totalTests > 0 ? Math.round((passed / totalTests) * 10_000) / 100 : 0,
       avg_latency_ms: avgLatency,
+      p95_latency_ms: p95Latency,
+      p99_latency_ms: p99Latency,
       slowest_test: slowestTest,
       failures,
     };
@@ -306,8 +338,29 @@ export class TestOrchestrator {
       return result.data;
     }
 
-    // Validate test case
-    const validation = runner.validate(testCase);
+    // Validate test case. Runners SHOULD return {valid: false, errors: [...]}
+    // for any malformed input, but third-party runners registered via
+    // registerRunner() could throw — same blast radius as a thrown execute()
+    // would have without its catch below, so apply the symmetric protection.
+    let validation: {valid: boolean; errors: string[]};
+    try {
+      validation = runner.validate(testCase);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      const errorResult = await createTestResult({
+        test_id: testCase.test_id,
+        execution_id: executionId,
+        requirement_id: testCase.requirement_id,
+        status: 'error',
+        actual_output: {validation_error: message},
+        latency_ms: 0,
+        error_message: `Runner.validate threw: ${message}`,
+        assertions_passed: 0,
+        assertions_failed: 0,
+      });
+      return errorResult.data;
+    }
+
     if (!validation.valid) {
       const result = await createTestResult({
         test_id: testCase.test_id,
@@ -377,4 +430,58 @@ export const orchestrator = new TestOrchestrator();
  */
 export async function runTests(options?: OrchestratorOptions): Promise<TestRunSummary> {
   return orchestrator.run(options);
+}
+
+function mergeTestCases(stored: TestCase[], extra: TestCase[]): TestCase[] {
+  const out = [...stored];
+  const known = new Set(stored.map(testCase => testCase.test_id));
+  for (const testCase of extra) {
+    if (!known.has(testCase.test_id)) {
+      out.push(testCase);
+      known.add(testCase.test_id);
+    }
+  }
+
+  return out;
+}
+
+function latencyPercentile(values: number[], percentile: number): number {
+  const sorted = values
+    .filter(value => Number.isFinite(value))
+    .sort((a, b) => a - b);
+  if (sorted.length === 0) {
+    return 0;
+  }
+
+  const rank = Math.ceil((percentile / 100) * sorted.length) - 1;
+  return sorted[Math.min(Math.max(rank, 0), sorted.length - 1)];
+}
+
+function buildTestFilterContext(options: OrchestratorOptions): Record<string, unknown> | undefined {
+  const filter: Record<string, unknown> = {};
+  if (options.type !== undefined) {
+    filter.type = options.type;
+  }
+
+  if (options.tag !== undefined) {
+    filter.tag = options.tag;
+  }
+
+  if (options.tags && options.tags.length > 0) {
+    filter.tags = [...options.tags];
+  }
+
+  if (options.requirementId !== undefined) {
+    filter.requirement_id = options.requirementId;
+  }
+
+  if (options.id !== undefined) {
+    filter.id = options.id;
+  }
+
+  if (options.enabledOnly === false) {
+    filter.enabled_only = false;
+  }
+
+  return Object.keys(filter).length > 0 ? filter : undefined;
 }

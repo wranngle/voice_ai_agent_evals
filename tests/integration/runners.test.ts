@@ -18,8 +18,11 @@ import {
   getResultsByRun,
   clearAllDataSync, type TestCase,
 } from '../../lib/testing';
+import {verifyElevenLabsSignature} from '../../lib/security/elevenlabs-signature';
 
 const UNIQUE_STORAGE_DIR = join(process.cwd(), '.test-data-runners-' + process.pid);
+const SIGNATURE_SECRET = 'runner-test-elevenlabs-secret';
+const SIGNATURE_TIMESTAMP_SECS = 1_700_000_000;
 
 /**
  * Mock globalThis.fetch with a JSON response. Use `times` for tests that
@@ -126,6 +129,189 @@ describe('Test Runners', () => {
       expect(validation.errors[0]).toMatch(/Invalid URL/);
     });
 
+    test('should reject empty expected_output (silent-green guard)', () => {
+      // Without an assertion, the runner returns 'passed' regardless of what
+      // the server returned. Mirrors codex's elevenlabs policy applied to
+      // webhook to close the same silent-green class.
+      const testCase: TestCase = {
+        test_id: 'TC-TEST-EMPTY',
+        type: 'webhook',
+        name: 'Empty expected_output',
+        description: 'Webhook test without assertions should fail validation',
+        input: {
+          url: 'https://example.com/api',
+          method: 'GET',
+        },
+        expected_output: {},
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const validation = runner.validate(testCase);
+      expect(validation.valid).toBe(false);
+      expect(validation.errors).toContain('expected_output must include at least one assertion for the webhook runner');
+    });
+
+    test('should reject expected_output-only fields placed on input', () => {
+      // Misplaced assertion fields on input would silently no-op — the
+      // runner reads them only from `expected_output`. validate() must
+      // catch each such field with a redirect message.
+      const testCase: TestCase = {
+        test_id: 'TC-TEST-MISPLACED',
+        type: 'webhook',
+        name: 'Misplaced assertion fields',
+        description: 'status / body_contains / latency_max_ms on input',
+        input: {
+          url: 'https://example.com/api',
+          method: 'POST',
+          status: 200,
+          body_contains: {ok: true},
+          latency_max_ms: 500,
+        },
+        expected_output: {},
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const validation = runner.validate(testCase);
+      expect(validation.valid).toBe(false);
+      expect(validation.errors).toContain('input.status is ignored by the webhook runner; move it to expected_output.status');
+      expect(validation.errors).toContain('input.body_contains is ignored by the webhook runner; move it to expected_output.body_contains');
+      expect(validation.errors).toContain('input.latency_max_ms is ignored by the webhook runner; move it to expected_output.latency_max_ms');
+    });
+
+    test('should still accept body and headers on input (dual-keyed)', () => {
+      // `body` and `headers` are deliberately exempt from the rejection
+      // list — input sends them on the request, expected_output asserts
+      // them on the response. Regression guard for that exemption.
+      const testCase: TestCase = {
+        test_id: 'TC-TEST-DUAL',
+        type: 'webhook',
+        name: 'Dual-keyed body and headers',
+        description: 'body and headers may legitimately appear on input',
+        input: {
+          url: 'https://example.com/api',
+          method: 'POST',
+          body: {hello: 'world'},
+          headers: {'X-Custom': 'yes'},
+        },
+        expected_output: {
+          status: 200,
+        },
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const validation = runner.validate(testCase);
+      expect(validation.valid).toBe(true);
+      expect(validation.errors).toHaveLength(0);
+    });
+
+    test('should reject typo\'d expected_output keys (fail-closed on unknown fields)', () => {
+      // `bodies` is a likely typo of `body`; `latency_max` is a typo of
+      // `latency_max_ms`. Without fail-closed validation, both silently no-op.
+      // Mirrors codex's elevenlabs policy applied to webhook.
+      const testCase: TestCase = {
+        test_id: 'TC-TEST-TYPO',
+        type: 'webhook',
+        name: 'Typo in expected_output',
+        description: 'Typo\'d assertion keys should fail validation',
+        input: {
+          url: 'https://example.com/api',
+          method: 'GET',
+        },
+        expected_output: {
+          status: 200,
+          bodies: {ok: true},
+          latency_max: 500,
+        },
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const validation = runner.validate(testCase);
+      expect(validation.valid).toBe(false);
+      expect(validation.errors).toContain('expected_output.bodies is not recognized by the webhook runner');
+      expect(validation.errors).toContain('expected_output.latency_max is not recognized by the webhook runner');
+    });
+
+    test('should reject malformed expected_output assertions before execution', () => {
+      const testCase: TestCase = {
+        test_id: 'TC-TEST-BAD-EXPECTED',
+        type: 'webhook',
+        name: 'Malformed expected output',
+        description: 'Invalid assertion config should fail validate()',
+        input: {
+          url: 'https://example.com/api',
+          method: 'GET',
+        },
+        expected_output: {
+          status: '200',
+          status_range: {min: 500, max: 200},
+          body_contains: 'ok',
+          body_array_contains: {caller_labels: 'confused', tool_trace: []},
+          body_truthy: ['processed', 123],
+          body_falsy: [],
+          headers: {'X-Trace': 42},
+          latency_max_ms: 'fast',
+        },
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const validation = runner.validate(testCase);
+
+      expect(validation.valid).toBe(false);
+      expect(validation.errors).toContain('expected_output.status must be an integer HTTP status code between 100 and 599');
+      expect(validation.errors).toContain('expected_output.status_range.min must be less than or equal to max');
+      expect(validation.errors).toContain('expected_output.body_contains must be an object when present');
+      expect(validation.errors).toContain('expected_output.body_array_contains.caller_labels must be an array');
+      expect(validation.errors).toContain('expected_output.body_array_contains.tool_trace must include at least one expected item');
+      expect(validation.errors).toContain('expected_output.body_truthy[1] must be a non-empty string');
+      expect(validation.errors).toContain('expected_output.body_falsy must include at least one item when present');
+      expect(validation.errors).toContain('expected_output.headers.X-Trace must be a string');
+      expect(validation.errors).toContain('expected_output.latency_max_ms must be a non-negative finite number');
+    });
+
+    test('should reject malformed ElevenLabs signing config before execution', () => {
+      const testCase: TestCase = {
+        test_id: 'TC-TEST-BAD-SIGNING',
+        type: 'webhook',
+        name: 'Malformed ElevenLabs signing config',
+        description: 'Invalid signature replay config should fail validate()',
+        input: {
+          url: 'https://example.com/api',
+          method: 'GET',
+          sign_elevenlabs_payload: true,
+          elevenlabs_signature_secret_env: '',
+          elevenlabs_signature_timestamp_secs: -1,
+        },
+        expected_output: {},
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const validation = runner.validate(testCase);
+
+      expect(validation.valid).toBe(false);
+      expect(validation.errors).toContain('input.elevenlabs_signature_secret_env must be a non-empty string when present');
+      expect(validation.errors).toContain('input.elevenlabs_signature_timestamp_secs must be a non-negative integer when present');
+      expect(validation.errors).toContain('input.sign_elevenlabs_payload requires a non-GET method');
+      expect(validation.errors).toContain('input.sign_elevenlabs_payload requires input.body');
+    });
+
     afterEach(() => {
       vi.restoreAllMocks();
     });
@@ -177,6 +363,99 @@ describe('Test Runners', () => {
 
       expect(result.status).toBe('passed');
       expect(result.actual_output.status).toBe(200);
+    });
+
+    test('should sign ElevenLabs post-call webhook replay bodies', async () => {
+      const response = new Response('{"ok":true}', {
+        status: 200,
+        headers: {'Content-Type': 'application/json'},
+      });
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(response);
+      const testCase: TestCase = {
+        test_id: 'TC-TEST-ELEVENLABS-SIGNED',
+        type: 'webhook',
+        name: 'Signed ElevenLabs post-call replay',
+        description: 'Post-call webhook replay with HMAC header',
+        input: {
+          url: 'https://example.com/post-call',
+          method: 'POST',
+          body: {
+            type: 'post_call_transcription',
+            data: {
+              conversation_id: 'conv_replay_001',
+              has_audio: true,
+              has_user_audio: true,
+              has_response_audio: true,
+            },
+          },
+          sign_elevenlabs_payload: true,
+          elevenlabs_signature_secret_env: 'RUNNER_TEST_ELEVENLABS_SECRET',
+          elevenlabs_signature_timestamp_secs: SIGNATURE_TIMESTAMP_SECS,
+        },
+        expected_output: {status: 200},
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const result = await runner.execute(testCase, {
+        timeout: 10_000,
+        env: {
+          RUNNER_TEST_ELEVENLABS_SECRET: SIGNATURE_SECRET,
+        },
+      });
+
+      expect(result.status).toBe('passed');
+
+      const [, init] = fetchSpy.mock.calls[0];
+      if (typeof init?.body !== 'string') {
+        throw new TypeError('Expected signed webhook replay body to be a string');
+      }
+
+      const sentBody = init.body;
+      const headers = init?.headers as Record<string, string>;
+      expect(sentBody).toBe(JSON.stringify(testCase.input.body));
+      expect(headers['ElevenLabs-Signature'].startsWith('t=1700000000,v0=')).toBe(true);
+      expect(verifyElevenLabsSignature(
+        sentBody,
+        headers['ElevenLabs-Signature'],
+        SIGNATURE_SECRET,
+        {now: () => SIGNATURE_TIMESTAMP_SECS * 1000},
+      )).toEqual({ok: true});
+    });
+
+    test('should fail signed webhook replay when the secret env var is missing', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch');
+      const testCase: TestCase = {
+        test_id: 'TC-TEST-ELEVENLABS-SIGNING-MISSING-SECRET',
+        type: 'webhook',
+        name: 'Missing signing secret',
+        description: 'Signed replay should not send unsigned payloads',
+        input: {
+          url: 'https://example.com/post-call',
+          method: 'POST',
+          body: {type: 'post_call_transcription', data: {conversation_id: 'conv_replay_002'}},
+          sign_elevenlabs_payload: true,
+          elevenlabs_signature_secret_env: 'RUNNER_TEST_MISSING_SECRET',
+        },
+        expected_output: {status: 200},
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      delete process.env.RUNNER_TEST_MISSING_SECRET;
+
+      const result = await runner.execute(testCase, {
+        timeout: 10_000,
+        env: {},
+      });
+
+      expect(result.status).toBe('error');
+      expect(result.error_message).toContain('Missing RUNNER_TEST_MISSING_SECRET for ElevenLabs webhook signing');
+      expect(fetchSpy).not.toHaveBeenCalled();
     });
 
     test('should NOT attach body to implicit GET (regression: method undefined + body present)', async () => {
@@ -249,6 +528,34 @@ describe('Test Runners', () => {
       expect(result.error_message).toBeDefined();
     });
 
+    test('should preserve malformed JSON webhook responses as raw body evidence', async () => {
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response('{"ok":', {
+        status: 200,
+        headers: {'Content-Type': 'application/json'},
+      }));
+      const testCase: TestCase = {
+        test_id: 'TC-TEST-MALFORMED-JSON',
+        type: 'webhook',
+        name: 'Malformed JSON response',
+        description: 'Bad JSON should fail assertions, not crash response parsing',
+        input: {url: 'https://example.com/bad-json', method: 'GET'},
+        expected_output: {
+          status: 200,
+          body_contains: {ok: true},
+        },
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const result = await runner.execute(testCase, {timeout: 10_000});
+
+      expect(result.status).toBe('failed');
+      expect(result.actual_output.body).toEqual({_raw: '{"ok":'});
+      expect(result.error_message).toContain('Response body does not contain expected fields');
+    });
+
     test('should check body contains', async () => {
       mockFetch(200, {slideshow: {title: 'Sample Slide Show', author: 'Yours Truly'}});
       const testCase: TestCase = {
@@ -273,16 +580,169 @@ describe('Test Runners', () => {
       expect(result.assertions_passed).toBeGreaterThan(0);
     });
 
-    // Latency-constraint test stays local-only: mocked fetch returns
-    // sub-millisecond, so a `latency_max_ms: 1` threshold can't be
-    // reliably exceeded. Real-network exercise required.
-    test.skipIf(process.env.CI)('should check latency constraint', async () => {
+    test('should check response body array membership by path', async () => {
+      mockFetch(200, {
+        caller_labels: ['confused', 'billing', 'needs-followup'],
+        tool_trace: [
+          {name: 'lookup_record', status: 'success', latency_ms: 410},
+          {name: 'send_sms', status: 'skipped'},
+        ],
+      });
+      const testCase: TestCase = {
+        test_id: 'TC-TEST-009-ARRAY-CONTAINS',
+        type: 'webhook',
+        name: 'Historical call array membership',
+        description: 'Caller labels and tool traces should be assertable without relying on array order',
+        input: {url: 'https://example.com/json', method: 'GET'},
+        expected_output: {
+          status: 200,
+          body_array_contains: {
+            caller_labels: ['confused', 'needs-followup'],
+            tool_trace: [{name: 'lookup_record', status: 'success'}],
+          },
+        },
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const result = await runner.execute(testCase, {timeout: 10_000});
+
+      expect(result.status).toBe('passed');
+      expect(result.assertions_passed).toBe(3);
+      expect(result.assertions_failed).toBe(0);
+    });
+
+    test('should fail response body array membership when expected items are absent', async () => {
+      mockFetch(200, {
+        caller_labels: ['billing'],
+      });
+      const testCase: TestCase = {
+        test_id: 'TC-TEST-009-ARRAY-CONTAINS-FAIL',
+        type: 'webhook',
+        name: 'Missing historical call label',
+        description: 'Missing caller labels should fail clearly',
+        input: {url: 'https://example.com/json', method: 'GET'},
+        expected_output: {
+          status: 200,
+          body_array_contains: {
+            caller_labels: ['confused'],
+          },
+        },
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const result = await runner.execute(testCase, {timeout: 10_000});
+
+      expect(result.status).toBe('failed');
+      expect(result.assertions_failed).toBe(1);
+      expect(result.error_message).toContain('caller_labels');
+      expect(result.error_message).toContain('confused');
+    });
+
+    test('should check truthy, falsy, and defined response body fields', async () => {
+      mockFetch(200, {
+        processed: 'yes',
+        retryable: false,
+        receipt: null,
+      });
+      const testCase: TestCase = {
+        test_id: 'TC-TEST-009A',
+        type: 'webhook',
+        name: 'Body field assertions',
+        description: 'Test body truthy/falsy/defined checks',
+        input: {url: 'https://example.com/json', method: 'GET'},
+        expected_output: {
+          status: 200,
+          body_truthy: ['processed'],
+          body_falsy: ['retryable'],
+          body_defined: ['receipt'],
+        },
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const result = await runner.execute(testCase, {timeout: 10_000});
+
+      expect(result.status).toBe('passed');
+      expect(result.assertions_passed).toBe(4);
+      expect(result.assertions_failed).toBe(0);
+    });
+
+    test('should fail when a defined response body field is missing', async () => {
+      mockFetch(200, {ok: true});
+      const testCase: TestCase = {
+        test_id: 'TC-TEST-009B',
+        type: 'webhook',
+        name: 'Missing body field assertion',
+        description: 'Test body_defined failures',
+        input: {url: 'https://example.com/json', method: 'GET'},
+        expected_output: {
+          status: 200,
+          body_defined: ['receipt'],
+        },
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const result = await runner.execute(testCase, {timeout: 10_000});
+
+      expect(result.status).toBe('failed');
+      expect(result.assertions_failed).toBe(1);
+      expect(result.error_message).toContain('receipt');
+    });
+
+    test('should fail when a falsy response body field is missing', async () => {
+      mockFetch(200, {ok: true});
+      const testCase: TestCase = {
+        test_id: 'TC-TEST-009C',
+        type: 'webhook',
+        name: 'Missing falsy body field assertion',
+        description: 'body_falsy needs explicit response evidence, not absence',
+        input: {url: 'https://example.com/json', method: 'GET'},
+        expected_output: {
+          status: 200,
+          body_falsy: ['should_callback'],
+        },
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const result = await runner.execute(testCase, {timeout: 10_000});
+
+      expect(result.status).toBe('failed');
+      expect(result.assertions_failed).toBe(1);
+      expect(result.error_message).toContain('should_callback');
+    });
+
+    test('should check latency constraint', async () => {
+      vi.spyOn(globalThis, 'fetch').mockImplementationOnce(async () => {
+        await new Promise(resolve => {
+          setTimeout(resolve, 5);
+        });
+
+        return new Response(JSON.stringify({ok: true}), {
+          status: 200,
+          headers: {'Content-Type': 'application/json'},
+        });
+      });
+
       const testCase: TestCase = {
         test_id: 'TC-TEST-007',
         type: 'webhook',
         name: 'Latency test',
         description: 'Test with unrealistic latency constraint',
-        input: {url: 'https://httpbin.org/get', method: 'GET'},
+        input: {url: 'https://example.com/slow', method: 'GET'},
         expected_output: {status: 200, latency_max_ms: 1},
         tags: [],
         enabled: true,
@@ -294,6 +754,27 @@ describe('Test Runners', () => {
 
       expect(result.status).toBe('failed');
       expect(result.error_message).toMatch(/exceeds max/);
+    });
+
+    test('should not ignore an explicit zero latency budget', async () => {
+      mockFetch(200, {ok: true});
+      const testCase: TestCase = {
+        test_id: 'TC-TEST-007-zero',
+        type: 'webhook',
+        name: 'Zero latency budget',
+        description: 'Regression for truthy latency budget check',
+        input: {url: 'https://example.com/zero', method: 'GET'},
+        expected_output: {status: 200, latency_max_ms: 0},
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const result = await runner.execute(testCase, {timeout: 10_000});
+
+      expect(result.assertions_passed + result.assertions_failed).toBe(2);
+      expect(result.assertions_failed).toBe(result.latency_ms > 0 ? 1 : 0);
     });
   });
 

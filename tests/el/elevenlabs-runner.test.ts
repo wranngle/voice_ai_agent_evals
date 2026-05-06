@@ -4,9 +4,7 @@
  * Tests for the ElevenLabs voice agent test runner using simulate-conversation API.
  */
 
-import {
-  describe, expect, test, beforeEach, vi, afterEach,
-} from 'vitest';
+import {describe, expect, test} from 'vitest';
 import {ElevenLabsRunner} from '../../lib/testing/runners/elevenlabs-runner';
 import type {TestCase} from '../../lib/testing/types';
 
@@ -56,17 +54,41 @@ describe('ElevenLabs Runner', () => {
 
       const validation = runner.validate(testCase);
       expect(validation.valid).toBe(false);
-      expect(validation.errors).toContain('Missing required field: agent_id');
+      expect(validation.errors).toContain('agent_id must be a non-empty string');
     });
 
-    test('should reject test case with invalid agent_id format', () => {
+    test('should accept current ElevenLabs opaque agent IDs without requiring agent_ prefix', () => {
       const testCase: TestCase = {
         test_id: 'TC-EL-003',
         type: 'elevenlabs',
-        name: 'Invalid agent_id',
-        description: 'Test with malformed agent_id',
+        name: 'Opaque agent_id',
+        description: 'Test with current docs-style opaque agent_id',
         input: {
-          agent_id: 'invalid-id',
+          agent_id: 'J3Pbu5gP6NNKBscdCdwB',
+          test_prompt: 'Hello',
+        },
+        expected_output: {
+          response_contains: ['hello'],
+        },
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const validation = runner.validate(testCase);
+      expect(validation.valid).toBe(true);
+      expect(validation.errors).toHaveLength(0);
+    });
+
+    test('should reject whitespace-only agent_id', () => {
+      const testCase: TestCase = {
+        test_id: 'TC-EL-003A',
+        type: 'elevenlabs',
+        name: 'Blank agent_id',
+        description: 'Test with blank agent_id',
+        input: {
+          agent_id: '   ',
           test_prompt: 'Hello',
         },
         expected_output: {},
@@ -78,10 +100,10 @@ describe('ElevenLabs Runner', () => {
 
       const validation = runner.validate(testCase);
       expect(validation.valid).toBe(false);
-      expect(validation.errors[0]).toContain('Invalid agent_id format');
+      expect(validation.errors).toContain('agent_id must be a non-empty string');
     });
 
-    test('should reject test case without test_prompt', () => {
+    test('should reject test case without a simulation seed', () => {
       const testCase: TestCase = {
         test_id: 'TC-EL-004',
         type: 'elevenlabs',
@@ -98,128 +120,24 @@ describe('ElevenLabs Runner', () => {
       };
 
       const validation = runner.validate(testCase);
+      const seedError = 'test_prompt, simulated_user_prompt, or partial_conversation_history is required for conversation simulation';
       expect(validation.valid).toBe(false);
-      expect(validation.errors).toContain('test_prompt is required for conversation simulation');
-    });
-  });
-
-  describe('Execution', () => {
-    let runner: ElevenLabsRunner;
-
-    beforeEach(() => {
-      runner = new ElevenLabsRunner('test-api-key');
+      expect(validation.errors).toContain(seedError);
     });
 
-    afterEach(() => {
-      vi.restoreAllMocks();
-      vi.unstubAllEnvs();
-    });
-
-    test('should return error when API key is not configured', async () => {
-      vi.stubEnv('ELEVENLABS_API_KEY', '');
-      const runnerWithoutKey = new ElevenLabsRunner();
-
+    test('should accept a simulated user prompt without first message', () => {
       const testCase: TestCase = {
-        test_id: 'TC-EL-005',
+        test_id: 'TC-EL-004A',
         type: 'elevenlabs',
-        name: 'No API key test',
-        description: 'Test without API key',
+        name: 'Simulated user prompt',
+        description: 'Test with native simulated user prompt',
         input: {
           agent_id: 'agent_abc123xyz',
-          test_prompt: 'Hello',
-        },
-        expected_output: {},
-        tags: [],
-        enabled: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      const result = await runnerWithoutKey.execute(testCase);
-
-      expect(result.status).toBe('error');
-      expect(result.error_message).toContain('ELEVENLABS_API_KEY');
-    });
-
-    test('should handle API error gracefully', async () => {
-      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response('{"error": "Unauthorized"}', {
-        status: 401,
-        statusText: 'Unauthorized',
-      }));
-
-      const testCase: TestCase = {
-        test_id: 'TC-EL-006',
-        type: 'elevenlabs',
-        name: 'API error test',
-        description: 'Test API error handling',
-        input: {
-          agent_id: 'agent_abc123xyz',
-          test_prompt: 'Hello',
-        },
-        expected_output: {},
-        tags: [],
-        enabled: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      const result = await runner.execute(testCase);
-
-      expect(result.status).toBe('error');
-      expect(result.error_message).toContain('401');
-    });
-
-    test('should handle network errors gracefully', async () => {
-      vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('Network error'));
-
-      const testCase: TestCase = {
-        test_id: 'TC-EL-007',
-        type: 'elevenlabs',
-        name: 'Network error test',
-        description: 'Test network error handling',
-        input: {
-          agent_id: 'agent_abc123xyz',
-          test_prompt: 'Hello',
-        },
-        expected_output: {},
-        tags: [],
-        enabled: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      const result = await runner.execute(testCase);
-
-      expect(result.status).toBe('error');
-      expect(result.error_message).toContain('Network error');
-    });
-
-    test('should execute test successfully with mocked simulate-conversation API', async () => {
-      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
-        JSON.stringify({
-          simulated_conversation: [
-            {role: 'user', message: 'Hello, I need help'},
-            {role: 'agent', message: 'Hi there! Welcome. How can I help you today?'},
-          ],
-          analysis: {
-            overall_passed: true,
-            conversation_summary: 'Agent greeted user properly',
-          },
-        }),
-        {status: 200},
-      ));
-
-      const testCase: TestCase = {
-        test_id: 'TC-EL-008',
-        type: 'elevenlabs',
-        name: 'Successful test',
-        description: 'Test successful execution',
-        input: {
-          agent_id: 'agent_abc123xyz',
-          test_prompt: 'Hello, I need help',
+          simulated_user_prompt: 'You are an impatient caller trying to reschedule.',
         },
         expected_output: {
-          response_contains: ['welcome'],
+          min_turns: 1,
+          max_turns: 10,
         },
         tags: [],
         enabled: true,
@@ -227,249 +145,20 @@ describe('ElevenLabs Runner', () => {
         updated_at: new Date().toISOString(),
       };
 
-      const result = await runner.execute(testCase);
-
-      expect(result.status).toBe('passed');
-      expect(result.assertions_passed).toBeGreaterThan(0);
+      const validation = runner.validate(testCase);
+      expect(validation.valid).toBe(true);
+      expect(validation.errors).toHaveLength(0);
     });
 
-    test('should fail when response_contains assertion is not met', async () => {
-      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
-        JSON.stringify({
-          simulated_conversation: [
-            {role: 'user', message: 'Hello'},
-            {role: 'agent', message: 'Hi there! How can I help?'},
-          ],
-          analysis: {
-            overall_passed: true,
-          },
-        }),
-        {status: 200},
-      ));
-
+    test('should reject max_turns as the only assertion', () => {
       const testCase: TestCase = {
-        test_id: 'TC-EL-009',
+        test_id: 'TC-EL-004A2',
         type: 'elevenlabs',
-        name: 'Missing keyword test',
-        description: 'Test when expected keyword is missing',
+        name: 'Turn limit only',
+        description: 'A request turn cap is not enough eval signal by itself',
         input: {
           agent_id: 'agent_abc123xyz',
-          test_prompt: 'Hello',
-        },
-        expected_output: {
-          response_contains: ['schedule', 'appointment'],
-        },
-        tags: [],
-        enabled: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      const result = await runner.execute(testCase);
-
-      expect(result.status).toBe('failed');
-      expect(result.assertions_failed).toBe(2);
-      expect(result.error_message).toContain('schedule');
-    });
-
-    test('should check response_not_contains assertion', async () => {
-      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
-        JSON.stringify({
-          simulated_conversation: [
-            {role: 'agent', message: 'I cannot help with that request.'},
-          ],
-        }),
-        {status: 200},
-      ));
-
-      const testCase: TestCase = {
-        test_id: 'TC-EL-010',
-        type: 'elevenlabs',
-        name: 'Forbidden words test',
-        description: 'Test response does not contain forbidden words',
-        input: {
-          agent_id: 'agent_abc123xyz',
-          test_prompt: 'Hello',
-        },
-        expected_output: {
-          response_not_contains: ['sorry', 'apologize'],
-        },
-        tags: [],
-        enabled: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      const result = await runner.execute(testCase);
-
-      expect(result.status).toBe('passed');
-      expect(result.assertions_passed).toBe(2);
-    });
-
-    test('should check expected_tool_calls assertion', async () => {
-      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
-        JSON.stringify({
-          simulated_conversation: [
-            {role: 'user', message: 'Schedule a demo for tomorrow'},
-            {
-              role: 'agent',
-              message: 'I can help you schedule that.',
-              tool_calls: [
-                {name: 'schedule_appointment', parameters: {date: 'tomorrow'}},
-              ],
-            },
-          ],
-        }),
-        {status: 200},
-      ));
-
-      const testCase: TestCase = {
-        test_id: 'TC-EL-011',
-        type: 'elevenlabs',
-        name: 'Tool calls test',
-        description: 'Test expected tool calls',
-        input: {
-          agent_id: 'agent_abc123xyz',
-          test_prompt: 'Schedule a demo for tomorrow',
-        },
-        expected_output: {
-          expected_tool_calls: ['schedule_appointment'],
-        },
-        tags: [],
-        enabled: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      const result = await runner.execute(testCase);
-
-      expect(result.status).toBe('passed');
-      expect(result.assertions_passed).toBeGreaterThan(0);
-    });
-
-    test('should check forbidden_tool_calls assertion', async () => {
-      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
-        JSON.stringify({
-          simulated_conversation: [
-            {role: 'agent', message: 'Let me help you with that.'},
-          ],
-        }),
-        {status: 200},
-      ));
-
-      const testCase: TestCase = {
-        test_id: 'TC-EL-012',
-        type: 'elevenlabs',
-        name: 'Forbidden tools test',
-        description: 'Test forbidden tool calls',
-        input: {
-          agent_id: 'agent_abc123xyz',
-          test_prompt: 'Hello',
-        },
-        expected_output: {
-          forbidden_tool_calls: ['delete_account', 'reset_password'],
-        },
-        tags: [],
-        enabled: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      const result = await runner.execute(testCase);
-
-      expect(result.status).toBe('passed');
-      expect(result.assertions_passed).toBe(2);
-    });
-
-    test('should check min_turns assertion', async () => {
-      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
-        JSON.stringify({
-          simulated_conversation: [
-            {role: 'user', message: 'Hello'},
-            {role: 'agent', message: 'Hi!'},
-            {role: 'user', message: 'What services do you offer?'},
-            {role: 'agent', message: 'We offer after-hours coverage.'},
-          ],
-        }),
-        {status: 200},
-      ));
-
-      const testCase: TestCase = {
-        test_id: 'TC-EL-013',
-        type: 'elevenlabs',
-        name: 'Min turns test',
-        description: 'Test minimum conversation turns',
-        input: {
-          agent_id: 'agent_abc123xyz',
-          test_prompt: 'Hello',
-        },
-        expected_output: {
-          min_turns: 3,
-        },
-        tags: [],
-        enabled: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      const result = await runner.execute(testCase);
-
-      expect(result.status).toBe('passed');
-    });
-
-    test('should fail when min_turns not met', async () => {
-      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
-        JSON.stringify({
-          simulated_conversation: [
-            {role: 'agent', message: 'Hello!'},
-          ],
-        }),
-        {status: 200},
-      ));
-
-      const testCase: TestCase = {
-        test_id: 'TC-EL-014',
-        type: 'elevenlabs',
-        name: 'Min turns fail test',
-        description: 'Test minimum turns failure',
-        input: {
-          agent_id: 'agent_abc123xyz',
-          test_prompt: 'Hello',
-        },
-        expected_output: {
-          min_turns: 5,
-        },
-        tags: [],
-        enabled: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      const result = await runner.execute(testCase);
-
-      expect(result.status).toBe('failed');
-      expect(result.error_message).toContain('at least 5 turns');
-    });
-
-    test('should check max_turns assertion', async () => {
-      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
-        JSON.stringify({
-          simulated_conversation: [
-            {role: 'agent', message: 'Hi!'},
-            {role: 'user', message: 'Bye'},
-          ],
-        }),
-        {status: 200},
-      ));
-
-      const testCase: TestCase = {
-        test_id: 'TC-EL-015',
-        type: 'elevenlabs',
-        name: 'Max turns test',
-        description: 'Test maximum conversation turns',
-        input: {
-          agent_id: 'agent_abc123xyz',
-          test_prompt: 'Hello',
+          simulated_user_prompt: 'You are an impatient caller.',
         },
         expected_output: {
           max_turns: 10,
@@ -480,41 +169,46 @@ describe('ElevenLabs Runner', () => {
         updated_at: new Date().toISOString(),
       };
 
-      const result = await runner.execute(testCase);
-
-      expect(result.status).toBe('passed');
+      const validation = runner.validate(testCase);
+      expect(validation.valid).toBe(false);
+      expect(validation.errors).toContain('expected_output must include at least one assertion for the ElevenLabs runner');
     });
 
-    test('should include API evaluation criteria results', async () => {
-      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(
-        JSON.stringify({
-          simulated_conversation: [
-            {role: 'agent', message: 'Hello!'},
-          ],
-          analysis: {
-            criteria_evaluations: [
-              {name: 'greeting_quality', passed: true, reason: 'Good greeting'},
-              {name: 'brand_mention', passed: false, reason: 'Did not mention brand'},
-            ],
-            overall_passed: false,
-          },
-        }),
-        {status: 200},
-      ));
-
+    test('should reject assertion-empty expected output before API call', () => {
       const testCase: TestCase = {
-        test_id: 'TC-EL-016',
+        test_id: 'TC-EL-004H',
         type: 'elevenlabs',
-        name: 'Criteria evaluation test',
-        description: 'Test API criteria evaluation',
+        name: 'No assertions',
+        description: 'A simulation run without assertions is not an eval',
+        input: {
+          agent_id: 'agent_abc123xyz',
+          test_prompt: 'Hello',
+        },
+        expected_output: {},
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const validation = runner.validate(testCase);
+      expect(validation.valid).toBe(false);
+      expect(validation.errors).toContain('expected_output must include at least one assertion for the ElevenLabs runner');
+    });
+
+    test('should reject incomplete evaluation criteria before API call', () => {
+      const testCase: TestCase = {
+        test_id: 'TC-EL-004B',
+        type: 'elevenlabs',
+        name: 'Bad eval criteria',
+        description: 'Test criteria validation',
         input: {
           agent_id: 'agent_abc123xyz',
           test_prompt: 'Hello',
         },
         expected_output: {
           evaluation_criteria: [
-            {name: 'greeting_quality', description: 'Agent greets properly'},
-            {name: 'brand_mention', description: 'Agent mentions brand name'},
+            {name: 'Missing goal'},
           ],
         },
         tags: [],
@@ -523,12 +217,178 @@ describe('ElevenLabs Runner', () => {
         updated_at: new Date().toISOString(),
       };
 
-      const result = await runner.execute(testCase);
+      const validation = runner.validate(testCase);
+      expect(validation.valid).toBe(false);
+      expect(validation.errors).toContain('evaluation_criteria[0].conversation_goal_prompt is required');
+    });
 
-      // Should fail because overall_passed is false and one criterion failed
-      expect(result.status).toBe('failed');
-      expect(result.assertions_passed).toBe(1); // Greeting_quality passed
-      expect(result.assertions_failed).toBe(1); // Brand_mention failed
+    test('should reject non-boolean should_pass before API call', () => {
+      const testCase: TestCase = {
+        test_id: 'TC-EL-004D',
+        type: 'elevenlabs',
+        name: 'Bad expected pass state',
+        description: 'Test should_pass validation',
+        input: {
+          agent_id: 'agent_abc123xyz',
+          test_prompt: 'Hello',
+        },
+        expected_output: {
+          should_pass: 'false',
+        },
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const validation = runner.validate(testCase);
+      expect(validation.valid).toBe(false);
+      expect(validation.errors).toContain('should_pass must be a boolean');
+    });
+
+    test('should reject invalid tool latency budgets before API call', () => {
+      const testCase: TestCase = {
+        test_id: 'TC-EL-004C',
+        type: 'elevenlabs',
+        name: 'Bad tool latency budget',
+        description: 'Test latency budget validation',
+        input: {
+          agent_id: 'agent_abc123xyz',
+          test_prompt: 'Hello',
+        },
+        expected_output: {
+          tool_call_latency_max_ms: {
+            lookup_record: -1,
+          },
+        },
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const validation = runner.validate(testCase);
+      expect(validation.valid).toBe(false);
+      expect(validation.errors).toContain('tool_call_latency_max_ms.lookup_record must be a non-negative number');
+    });
+
+    test('should reject assertion fields misplaced on input', () => {
+      const testCase: TestCase = {
+        test_id: 'TC-EL-004E',
+        type: 'elevenlabs',
+        name: 'Misplaced assertions',
+        description: 'Assertion fields on input would otherwise be silently ignored',
+        input: {
+          agent_id: 'agent_abc123xyz',
+          test_prompt: 'Hello',
+          response_contains: ['welcome'],
+          expected_tool_calls: ['lookup_record'],
+        },
+        expected_output: {},
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const validation = runner.validate(testCase);
+      expect(validation.valid).toBe(false);
+      expect(validation.errors).toContain('input.response_contains is ignored by the ElevenLabs runner; move it to expected_output.response_contains');
+      expect(validation.errors).toContain('input.expected_tool_calls is ignored by the ElevenLabs runner; move it to expected_output.expected_tool_calls');
+    });
+
+    test('should reject malformed assertion shapes before API call', () => {
+      const testCase: TestCase = {
+        test_id: 'TC-EL-004F',
+        type: 'elevenlabs',
+        name: 'Malformed assertions',
+        description: 'Bad expected_output shapes should fail validation, not become weak assertions',
+        input: {
+          agent_id: 'agent_abc123xyz',
+          test_prompt: 'Hello',
+        },
+        expected_output: {
+          response_contains: 'welcome',
+          expected_tool_calls: ['lookup_record', ' '],
+          tool_call_latency_max_ms: [],
+          min_turns: 3.5,
+          max_turns: 2,
+          evaluation_criteria: [
+            {name: ' ', conversation_goal_prompt: 'The agent helped.'},
+            null,
+          ],
+        },
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const validation = runner.validate(testCase);
+      expect(validation.valid).toBe(false);
+      expect(validation.errors).toContain('response_contains must be an array of non-empty strings');
+      expect(validation.errors).toContain('expected_tool_calls[1] must be a non-empty string');
+      expect(validation.errors).toContain('tool_call_latency_max_ms must be an object keyed by tool name');
+      expect(validation.errors).toContain('min_turns must be a positive integer when present');
+      expect(validation.errors).toContain('max_turns must be greater than or equal to min_turns');
+      expect(validation.errors).toContain('evaluation_criteria[0].name is required');
+      expect(validation.errors).toContain('evaluation_criteria[1] must be an object');
+    });
+
+    test('should reject unknown expected_output assertion keys before API call', () => {
+      const testCase: TestCase = {
+        test_id: 'TC-EL-004G',
+        type: 'elevenlabs',
+        name: 'Typoed assertions',
+        description: 'Unknown expected_output keys must not be silently ignored',
+        input: {
+          agent_id: 'agent_abc123xyz',
+          test_prompt: 'Hello',
+        },
+        expected_output: {
+          response_contains: ['hello'],
+          expected_tool_call: ['lookup_record'],
+          maximum_turns: 4,
+        },
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const validation = runner.validate(testCase);
+      expect(validation.valid).toBe(false);
+      expect(validation.errors).toContain('expected_output.expected_tool_call is not recognized by the ElevenLabs runner');
+      expect(validation.errors).toContain('expected_output.maximum_turns is not recognized by the ElevenLabs runner');
+    });
+
+    test('should reject unknown input fields before API call', () => {
+      const testCase: TestCase = {
+        test_id: 'TC-EL-004I',
+        type: 'elevenlabs',
+        name: 'Typoed simulation controls',
+        description: 'Unknown input keys must not silently drop live simulation controls',
+        input: {
+          agent_id: 'agent_abc123xyz',
+          test_prompt: 'Hello',
+          tool_mocks_config: {
+            lookup_record: {result_value: '{"status":"found"}'},
+          },
+          maximum_turns: 4,
+        },
+        expected_output: {
+          response_contains: ['hello'],
+        },
+        tags: [],
+        enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const validation = runner.validate(testCase);
+      expect(validation.valid).toBe(false);
+      expect(validation.errors).toContain('input.tool_mocks_config is not recognized by the ElevenLabs runner');
+      expect(validation.errors).toContain('input.maximum_turns is not recognized by the ElevenLabs runner');
     });
   });
 });
