@@ -94,10 +94,10 @@ Without `PROJECTS_TOKEN` in `~/.agents/.env`, every project-related step gracefu
 
 ## PR linkage enforcement
 
-Workflow `pr-link-check.yml` runs on every PR open / edit / synchronize. It scans the body for `Closes #N` / `Fixes #N` / `Resolves #N` (case-insensitive). If absent:
+Workflow `pr-link-check.yml` runs on PR open / edit. It scans the body for `Closes #N` / `Fixes #N` / `Resolves #N` (case-insensitive). If absent:
 
 - Adds the `pr-needs-issue` label
-- Posts a single comment requesting the link (idempotent; doesn't re-comment on later edits)
+- Does not post routine bot comments
 
 If the linkage is later added, the label is removed automatically. Non-blocking — solo work doesn't get gated, but the audit trail surfaces.
 
@@ -113,6 +113,12 @@ The bootstrap enables repo auto-merge, branch deletion after merge, squash merge
 and default-branch protection with the required checks from
 `.automation/policy.json`. The local autosync loop does not fall back to an
 immediate merge when that policy says `require_green=true`.
+
+## Failure triage
+
+`github-hygiene.sh triage-failures` reads recent failed Actions runs across the selected repos and writes per-repo failure reports under the run report directory.
+
+`github-hygiene.sh repair-failures` adds two universal repair steps: disables known noisy legacy AI review workflows and runs the normal dotfiles security-hygiene rollout in branch mode by default. It records semantic app/test/security failures instead of pretending they can be fixed generically.
 
 ## Why not labels for status/priority/effort?
 
