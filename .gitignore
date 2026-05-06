@@ -326,3 +326,6 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
 # <<< dotfiles-managed gitignore <<<
+openspec/
+.claude/commands/openspec/
+.gemini/commands/openspec/
