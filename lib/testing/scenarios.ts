@@ -36,6 +36,7 @@ export type ScenarioDefinition = {
   thresholds: Record<string, number>;
   success_criteria: ScenarioCriterion[];
   partial_credit: boolean;
+  enabled: boolean;
   judge_llm?: string;
   scenario_path: string;
   directory: string;
@@ -156,6 +157,7 @@ type MutableScenario = {
   thresholds: Record<string, number>;
   success_criteria: Array<Partial<ScenarioCriterion>>;
   partial_credit?: boolean;
+  enabled?: boolean;
   judge_llm?: string;
 };
 
@@ -193,6 +195,12 @@ export function parseScenarioYaml(raw: string, scenarioPath: string): ScenarioDe
 
         case 'partial_credit': {
           scenario.partial_credit = parseStrictBoolean(value, 'partial_credit', scenarioPath, lineNumber);
+          state = 'root';
+          break;
+        }
+
+        case 'enabled': {
+          scenario.enabled = parseStrictBoolean(value, 'enabled', scenarioPath, lineNumber);
           state = 'root';
           break;
         }
@@ -323,7 +331,7 @@ export function scenarioToTestCase(scenario: ScenarioDefinition): TestCase {
       partial_credit: scenario.partial_credit,
     },
     tags: ['scenario', `agent:${scenario.agent}`, ...axisTags],
-    enabled: true,
+    enabled: scenario.enabled,
     created_at: SCENARIO_FIXTURE_TIMESTAMP,
     updated_at: SCENARIO_FIXTURE_TIMESTAMP,
   };
@@ -525,6 +533,7 @@ function finalizeScenario(scenario: MutableScenario, scenarioPath: string): Scen
     thresholds: scenario.thresholds,
     success_criteria: completedCriteria,
     partial_credit: scenario.partial_credit ?? false,
+    enabled: scenario.enabled ?? true,
     scenario_path: resolve(scenarioPath),
     directory,
   };

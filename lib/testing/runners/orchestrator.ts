@@ -122,7 +122,7 @@ export class TestOrchestrator {
       .filter(testCase => !options.type || testCase.type === options.type)
       .filter(testCase => !options.requirementId || testCase.requirement_id === options.requirementId)
       .filter(testCase => !options.tag || testCase.tags.includes(options.tag))
-      .filter(testCase => options.enabledOnly === false || testCase.enabled)
+      .filter(testCase => options.enabledOnly === false || Boolean(options.id) || testCase.enabled)
       .filter(testCase => !options.id || testCase.test_id === options.id);
 
     // Filter by multiple tags if provided
