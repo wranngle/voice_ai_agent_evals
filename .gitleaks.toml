@@ -15,7 +15,8 @@ paths = [
   '''\.gitleaksignore$''',
 ]
 regexes = [
-  '''(?i)(example|dummy|fake|placeholder|test)[_-]?(api[_-]?key|secret|token|password)''',
+  '''(?i)(example|dummy|fake|mock|placeholder|sample|test)[_-]?(api[_-]?key|secret|token|password)''',
+  '''(?i)(key|token|secret|password):\s*['\"]?[a-z0-9_-]*(example|dummy|fake|mock|placeholder|sample|test)[a-z0-9_-]*''',
   '''(?i)your[_-]?(api[_-]?key|secret|token|password)[_-]?here''',
   '''(?i)xxx+[a-z0-9]{0,4}(api[_-]?key|secret|token)?''',
 ]

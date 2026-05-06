@@ -42,7 +42,7 @@ jobs:
       - name: yamllint
         run: |
           pip install --quiet yamllint
-          yamllint -d "{extends: default, rules: {line-length: disable, document-start: disable, truthy: {check-keys: false}}}" .
+          yamllint -c .yamllint.yml .
 
   test:
     runs-on: ubuntu-latest
@@ -50,21 +50,12 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           persist-credentials: false
-      - uses: oven-sh/setup-bun@8f24390df009a496891208e5e36b8a1de1f45135  # v1.2.2
-        if: hashFiles('bun.lock', 'bun.lockb') != ''
-        with:
-          bun-version: '1.1'
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6  # v2
       - name: detect-and-test
         shell: bash
         run: |
           set -euo pipefail
-          if [[ -f bun.lock || -f bun.lockb ]];then
-            echo "::group::bun"
-            bun --version
-            bun install >/dev/null
-            echo "Skipping generic bun test — project-specific test workflow handles vitest"
-            echo "::endgroup::"
-          elif [[ -f package.json ]];then
+          if [[ -f package.json ]];then
             echo "::group::node"
             node --version
             (npm ci || npm install) >/dev/null

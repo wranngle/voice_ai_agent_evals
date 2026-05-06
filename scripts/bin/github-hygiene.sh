@@ -25,6 +25,9 @@ PUSH_MODE=${GITHUB_HYGIENE_PUSH_MODE:-direct}
 APPLY_REMOTE=${GITHUB_HYGIENE_APPLY_REMOTE:-}
 BOOTSTRAP_REPOS=${GITHUB_HYGIENE_BOOTSTRAP_REPOS:-}
 REPO_FILTER=${GITHUB_HYGIENE_REPOS:-}
+TRIAGE_FAILURES=0
+REPAIR_FAILURES=0
+FAILURE_LIMIT=${GITHUB_HYGIENE_FAILURE_LIMIT:-30}
 EVENT_SEQUENCE=0
 
 mkdir -p "$REPORT_DIR" "$WORK_DIR"
@@ -32,7 +35,7 @@ mkdir -p "$REPORT_DIR" "$WORK_DIR"
 
 usage(){
   cat <<'USAGE'
-Usage: github-hygiene.sh [inventory|audit|apply|bootstrap|full]
+Usage: github-hygiene.sh [inventory|audit|apply|bootstrap|full|triage-failures|repair-failures]
 
 Commands:
   inventory   List visible repos into the report directory.
@@ -40,11 +43,16 @@ Commands:
   apply       Audit and apply mechanical GitHub security/settings hardening.
   bootstrap   Clone active owned repos, run dotfiles security-only bootstrap, scan, commit, push.
   full        Apply remote settings and bootstrap active owned repos.
+  triage-failures
+              Read-only report of recent failed GitHub Actions runs by repo.
+  repair-failures
+              Triage failures, disable known noisy legacy review workflows, and open rollout PRs.
 
 Key env:
   GITHUB_HYGIENE_OWNER=wranngle
   GITHUB_HYGIENE_REPORT_DIR=/path/to/report
   GITHUB_HYGIENE_REPOS=owner/repo,repo-name
+  GITHUB_HYGIENE_FAILURE_LIMIT=30
   GITHUB_HYGIENE_PUSH_MODE=direct|branch|none
   GITHUB_HYGIENE_INCLUDE_ARCHIVED=1
   GITHUB_HYGIENE_BOOTSTRAP_FORKS=1
@@ -113,6 +121,14 @@ resolve_modes(){
     apply) APPLY_REMOTE=${APPLY_REMOTE:-1}; BOOTSTRAP_REPOS=${BOOTSTRAP_REPOS:-0};;
     bootstrap) APPLY_REMOTE=${APPLY_REMOTE:-0}; BOOTSTRAP_REPOS=${BOOTSTRAP_REPOS:-1};;
     full) APPLY_REMOTE=${APPLY_REMOTE:-1}; BOOTSTRAP_REPOS=${BOOTSTRAP_REPOS:-1};;
+    triage-failures) APPLY_REMOTE=${APPLY_REMOTE:-0}; BOOTSTRAP_REPOS=${BOOTSTRAP_REPOS:-0}; TRIAGE_FAILURES=1;;
+    repair-failures)
+      APPLY_REMOTE=${APPLY_REMOTE:-1}
+      BOOTSTRAP_REPOS=${BOOTSTRAP_REPOS:-1}
+      TRIAGE_FAILURES=1
+      REPAIR_FAILURES=1
+      if [[ -z ${GITHUB_HYGIENE_PUSH_MODE:-} ]];then PUSH_MODE=branch;fi
+      ;;
     -h|--help|help) usage; exit 0;;
     *) usage >&2; exit 2;;
   esac
@@ -181,13 +197,24 @@ apply_remote_repo(){ local repo_obj=$1 slug archived actions_body workflow_body 
     --squash-merge-commit-message pr-title-description || true
   run_op "$slug" gh.vulnerability-alerts gh api -X PUT "repos/$slug/vulnerability-alerts" -H "Accept: application/vnd.github+json" || true
   run_op "$slug" gh.dependabot-security-updates gh api -X PUT "repos/$slug/automated-security-fixes" -H "Accept: application/vnd.github+json" || true
-  run_op "$slug" gh.private-vulnerability-reporting gh api -X PUT "repos/$slug/private-vulnerability-reporting" -H "Accept: application/vnd.github+json" || true
   workflow_body='{"default_workflow_permissions":"read","can_approve_pull_request_reviews":false}'
   run_api_json "$slug" gh.actions-workflow-permissions PUT "repos/$slug/actions/permissions/workflow" "$workflow_body" || true
   actions_body='{"enabled":true,"allowed_actions":"all","sha_pinning_required":true}'
   run_api_json "$slug" gh.actions-permissions PUT "repos/$slug/actions/permissions" "$actions_body" || true
+
+  if gh api -X GET "repos/$slug/private-vulnerability-reporting" >/dev/null 2>&1; then
+    run_op "$slug" gh.private-vulnerability-reporting gh api -X PUT "repos/$slug/private-vulnerability-reporting" -H "Accept: application/vnd.github+json" || true
+  else
+    record_operation "$slug" gh.private-vulnerability-reporting skipped "private-vulnerability-reporting endpoint unavailable"
+  fi
+
   security_body='{"security_and_analysis":{"secret_scanning":{"status":"enabled"},"secret_scanning_push_protection":{"status":"enabled"},"dependabot_security_updates":{"status":"enabled"}}}'
-  run_api_json "$slug" gh.secret-scanning PATCH "repos/$slug" "$security_body" || true
+  repo_api=$(json_object_or_empty "$(gh api "repos/$slug" 2>/dev/null || true)")
+  if jq -e '(.security_and_analysis|type=="object") and (.security_and_analysis | has("secret_scanning"))' <<<"$repo_api" >/dev/null; then
+    run_api_json "$slug" gh.secret-scanning PATCH "repos/$slug" "$security_body" || true
+  else
+    record_operation "$slug" gh.secret-scanning skipped "security_and_analysis field unavailable"
+  fi
 }
 
 clone_repo(){ local slug=$1 default_branch=$2 target_dir=$3
@@ -326,8 +353,6 @@ bootstrap_local_repo(){ local repo_obj=$1 slug archived fork default_branch repo
   else
     record_operation "$slug" dotfiles.security-only failure "$repo_dir" "bootstrap exited nonzero"
   fi
-  scan_local_repo "$slug" "$repo_dir" "$repo_report" || true
-  commit_and_push_changes "$slug" "$repo_dir" "$default_branch" || true
   if (cd "$repo_dir" && DOTFILES_SECURITY_ONLY=1 DOTFILES_SKIP_LLM=1 DOTFILES_FORCE=1 \
     DOTFILES_LOG_FILE="$repo_report/dotfiles-hydrate.jsonl" REPO_ROOT="$repo_dir" \
     "$DOTFILES_BOOTSTRAP" >/dev/null); then
@@ -335,6 +360,71 @@ bootstrap_local_repo(){ local repo_obj=$1 slug archived fork default_branch repo
   else
     record_operation "$slug" dotfiles.hydrate failure "$repo_dir" "hydrate exited nonzero"
   fi
+  scan_local_repo "$slug" "$repo_dir" "$repo_report" || true
+  commit_and_push_changes "$slug" "$repo_dir" "$default_branch" || true
+}
+
+classify_failed_run(){ local workflowName=$1
+  case "$workflowName" in
+    *Claude*|*Codex*|*AI\ Review*|*ai-review*|*code-review*) printf 'legacy-ai-review\n';;
+    pr-link-check) printf 'policy-labeling\n';;
+    gitleaks) printf 'secret-scan\n';;
+    security) printf 'security-analysis\n';;
+    test|ci|*vitest*|*knowledge-base*|*health*) printf 'semantic-repo-failure\n';;
+    *) printf 'unknown\n';;
+  esac
+}
+
+triage_failed_runs_repo(){ local repo_obj=$1 slug repo_dir runs enriched count
+  slug=$(repo_json_string '.nameWithOwner' "$repo_obj")
+  repo_dir="$REPORT_DIR/repos/$(slug_path "$slug")"
+  mkdir -p "$repo_dir"
+  if ! runs=$(gh run list --repo "$slug" --status failure --limit "$FAILURE_LIMIT" \
+    --json databaseId,name,event,headBranch,displayTitle,updatedAt,conclusion,url 2>/dev/null);then
+    record_operation "$slug" github-failure-triage failure "limit=$FAILURE_LIMIT" "gh run list failed"
+    return 1
+  fi
+  enriched=$(jq -c '
+    map(. + {
+      noiseClass:
+        (if (.name | test("Claude|Codex|AI Review|ai-review|code-review"; "i")) then "legacy-ai-review"
+        elif .name == "pr-link-check" then "policy-labeling"
+        elif .name == "gitleaks" then "secret-scan"
+        elif .name == "security" then "security-analysis"
+        elif (.name | test("^(test|ci)$|vitest|knowledge-base|health"; "i")) then "semantic-repo-failure"
+        else "unknown" end)
+    })' <<<"$runs")
+  printf '%s\n' "$enriched" > "$repo_dir/failure-triage.json"
+  jq -r 'group_by(.noiseClass) | map({class:.[0].noiseClass,count:length})' <<<"$enriched" > "$repo_dir/failure-triage-summary.json"
+  count=$(jq length <<<"$enriched")
+  record_operation "$slug" github-failure-triage success "$repo_dir/failure-triage.json failures=$count"
+}
+
+workflow_is_noisy_legacy(){ local workflowName=$1
+  case "$workflowName" in
+    "Claude Code"|"Claude Code Review"|"AI Reviewer"|"AI Review"|"Codex Review"|"Code Review") return 0;;
+    *Claude*Review*|*Codex*Review*|*AI*Review*) return 0;;
+    *) return 1;;
+  esac
+}
+
+disable_noisy_legacy_workflows_repo(){ local repo_obj=$1 slug name state id disabled=0
+  slug=$(repo_json_string '.nameWithOwner' "$repo_obj")
+  while IFS=$'\t' read -r name state id;do
+    [[ -n $name && -n $id ]]||continue
+    workflow_is_noisy_legacy "$name"||continue
+    if [[ $state == active ]];then
+      if gh workflow disable "$id" --repo "$slug" >/dev/null 2>&1;then
+        disabled=$((disabled+1))
+        record_operation "$slug" gh.workflow-disable success "$name ($id)"
+      else
+        record_operation "$slug" gh.workflow-disable failure "$name ($id)" "disable failed"
+      fi
+    else
+      record_operation "$slug" gh.workflow-disable skipped "$name ($id) state=$state"
+    fi
+  done < <(gh workflow list --repo "$slug" --all 2>/dev/null || true)
+  [[ $disabled -eq 0 ]]&&record_operation "$slug" gh.workflow-disable skipped "no active noisy legacy workflows"
 }
 
 write_summary(){
@@ -376,6 +466,12 @@ main(){
         continue
       fi
       audit_remote_repo "$repo_obj"
+      if [[ $TRIAGE_FAILURES == 1 ]]; then
+        triage_failed_runs_repo "$repo_obj" || true
+      fi
+      if [[ $REPAIR_FAILURES == 1 ]]; then
+        disable_noisy_legacy_workflows_repo "$repo_obj" || true
+      fi
       if [[ $APPLY_REMOTE == 1 ]]; then
         apply_remote_repo "$repo_obj"
       fi

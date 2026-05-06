@@ -1,7 +1,7 @@
 name: pr-link-check
 on:
   pull_request:
-    types: [opened, edited, synchronize]
+    types: [opened, edited]
 permissions:
   contents: read
 jobs:
@@ -35,8 +35,4 @@ jobs:
             exit 0
           fi
           gh pr edit "$PR_NUMBER" --repo "$REPO" --add-label pr-needs-issue 2>/dev/null || true
-          existing=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json comments \
-            --jq '[.comments[] | select(.author.login == "github-actions[bot]" and (.body | test("needs an issue link"))) ] | length' 2>/dev/null || echo 0)
-          if [[ "$existing" -eq 0 ]]; then
-            gh pr comment "$PR_NUMBER" --repo "$REPO" --body $'This PR needs an issue link.\n\nAdd `Closes #N` / `Fixes #N` / `Resolves #N` to the description — or file an issue first via `gh-issue.sh`. Convention: every PR has an audit trail back to a problem statement.'
-          fi
+          echo "PR is missing an issue link; applied pr-needs-issue label"

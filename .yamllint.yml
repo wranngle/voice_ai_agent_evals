@@ -1,0 +1,17 @@
+extends: default
+
+ignore: |
+  .git/**
+  old/**
+  node_modules/**
+  **/node_modules/**
+  vendor/**
+  deps/**
+  .venv/**
+  venv/**
+
+rules:
+  line-length: disable
+  document-start: disable
+  truthy:
+    check-keys: false
