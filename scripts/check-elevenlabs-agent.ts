@@ -28,12 +28,12 @@ if (AGENT_ID === PLACEHOLDER_AGENT_ID) {
   process.exit(1);
 }
 
-// Don't log any portion of the secret — log a stable last-4 fingerprint that's
-// just enough for "is the env var pointing at the key I think it is?" without
-// leaking enough to identify or correlate the credential elsewhere.
-// codeql[js/clear-text-logging] — last-4 only, by design (see comment above)
-const apiKeyFingerprint = API_KEY.length >= 4 ? API_KEY.slice(-4) : '????';
-status(`API Key: ****${apiKeyFingerprint}`);
+// Don't log any portion of the secret — log a SHA-256 fingerprint that's
+// stable enough for "is the env var pointing at the key I think it is?"
+// without leaking any portion of the credential.
+const {createHash} = await import('node:crypto');
+const apiKeyFingerprint = createHash('sha256').update(API_KEY).digest('hex').slice(0, 8);
+status(`API Key fingerprint: ${apiKeyFingerprint}`);
 status('Agent ID: ' + AGENT_ID);
 status('\nFetching agent from ElevenLabs...\n');
 

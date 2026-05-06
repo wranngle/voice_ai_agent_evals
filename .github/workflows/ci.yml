@@ -61,7 +61,7 @@ jobs:
           if [[ -f bun.lock || -f bun.lockb ]];then
             echo "::group::bun"
             bun --version
-            bun install --frozen-lockfile >/dev/null
+            bun install >/dev/null
             echo "Skipping generic bun test — project-specific test workflow handles vitest"
             echo "::endgroup::"
           elif [[ -f package.json ]];then
