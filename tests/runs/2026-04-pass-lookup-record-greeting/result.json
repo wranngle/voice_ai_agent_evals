@@ -10,9 +10,9 @@
   "score": {
     "weighted": 1.0,
     "axes": [
-      { "name": "barge_in_recovery", "pass": true, "weight": 1.0, "detail": "no caller barge-in in this scenario; axis n/a (skipped, not failed)" },
       { "name": "tool_call_schema", "pass": true, "weight": 1.0, "detail": "lookup_record called with valid {id: string} args; response returned to LLM correctly" },
       { "name": "tool_call_routing", "pass": true, "weight": 1.0, "detail": "agent chose tool over KB (correct: caller-specific lookup, not reference content)" },
+      { "name": "tool_call_round_trip_ms", "pass": true, "weight": 0.5, "detail": "lookup_record round trip 410ms (budget ≤ 2000ms)" },
       { "name": "ttfb_p95_ms", "pass": true, "weight": 0.5, "detail": "p95 = 612ms (budget ≤ 800ms)" },
       { "name": "end_to_first_audio_p95_ms", "pass": true, "weight": 0.5, "detail": "p95 = 1180ms (budget ≤ 1400ms)" },
       { "name": "total_turn_p95_ms", "pass": true, "weight": 0.5, "detail": "p95 = 2640ms (budget ≤ 3000ms)" }

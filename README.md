@@ -11,21 +11,21 @@ Test runner and scenario framework for evaluating ElevenLabs Conversational AI v
 
 ### What's implemented today
 
-- **Total-turn latency** captured per test as `latency_ms`; `avg_latency_ms` and slowest-test surfaced in the run summary.
+- **Total-turn latency** captured per test as `latency_ms`; `avg_latency_ms`, current-run `p95_latency_ms` / `p99_latency_ms`, and slowest-test surfaced in the run summary.
 - **Webhook + n8n + ElevenLabs + MCP + external-command runners**, each with its own assertion shape (`response_contains`, `output_contains`, `execution_status`, exit code/output checks, etc.).
 - **`gtm_ops` adapter**: reads `../gtm_ops/eval-harness.manifest.json` and runs the app-owned validation/eval commands without duplicating Playwright or Vitest semantics here.
 - **Vitest project layout** that segregates offline (no secrets) from live (needs API keys) tests.
-- **Scenario YAML discoverability**: `bun run testing list` surfaces every `tests/scenarios/<id>/scenario.yaml` alongside ingested test cases. The CLI extracts the `description:` line; deeper fields aren't parsed yet.
+- **Scenario YAML execution**: `bun run testing list -t scenario` surfaces every `tests/scenarios/<id>/scenario.yaml`, and `bun run testing run --id SCEN-<id>` executes the YAML `axes`, `thresholds`, `success_criteria`, `partial_credit`, transcript fixture, latency fixture metrics, tool-call schema/routing/round-trip assertions, barge-in recovery, and tone heuristic.
 
 ### What's *not* implemented yet (known gaps)
 
-The following are documented intent and YAML conventions, **not yet enforced by the runner**:
-
-- **Scenario YAMLs as runnable test cases.** The YAML schema in `tests/scenarios/_template/scenario.yaml` declares `axes`, `thresholds`, `success_criteria`, `judge_llm` — none of those keys are read by code today. Scenarios show up in `testing list` (description-only); they don't execute.
-- **TTFB / end-to-first-audio split.** The runner measures one round-trip number per test, not separate TTFB / first-audio / total-turn. Per-segment budgets in `tests/scenarios/*/scenario.yaml` are aspirational.
-- **p95 / p99 aggregation across runs.** Per-test latency is captured, but no rolling-window p95 enforcement.
-- **Voice-specific scoring axes** (barge-in recovery, ASR confidence, TTS prosody, timeout handling) — declared in scenario YAMLs, but no scoring engine yet reads them.
-- **LLM-judge axes** (tone, empathy) — same: declared, not wired.
+- **Live TTFB / end-to-first-audio split.** Offline scenario fixtures can assert `ttfb_p95_ms`, `end_to_first_audio_p95_ms`, and `total_turn_p95_ms` when metrics are present in `transcript.json`; the live ElevenLabs runner still records one round-trip number per test rather than splitting the streaming voice path into TTFB / first-audio / total-turn.
+- **p95 / p99 aggregation across runs.** Per-test latency and current-run percentiles are captured, but no rolling-window p95 enforcement.
+- **Tool-call latency aggregation.** Per-call tool latency can be asserted from fixtures and live simulate responses, but there is no rolling p95/p99 view by tool yet.
+- **More voice-specific axes**: barge-in recovery, tool schema/routing, fixture latency budgets, and tone heuristics are wired; ASR confidence, TTS prosody, interruption recovery, timeout handling, caller frustration/capability disappointment, and full audio fixture analysis are still gaps.
+- **Live LLM-judge axes**: subjective axes can declare `judge_llm`, but the offline runner uses deterministic heuristics. It does not call a live judge model in CI.
+- **Bulk live agent creation and factorial iteration**: the harness evaluates existing agents and app-owned adapters; it does not yet create/update ElevenLabs agents in bulk or run matrixed prompt/voice/tool permutations hands-free.
+- **Operational monitoring**: webhook flow checks and n8n/MCP runners exist, but there is no persistent last-success dashboard, agent-change time series, or correlation view across agent updates yet.
 
 These are the next slices of work, not a finished feature.
 
@@ -49,7 +49,10 @@ bun run test:webhook
 
 # CLI (stored test cases & runs under .test-data/)
 bun run testing list
-bun run testing run <test-id>
+bun run testing list -t scenario
+bun run testing run --id SCEN-lookup-record-greeting
+bun run testing run -t scenario   # exits nonzero if a committed scenario is failing
+bun run testing run -t scenario --parallel --concurrency 4   # bounded concurrency for long suites
 
 # App adapter: run gtm_ops through its manifest-owned test surface.
 bun run testing:gtm-ops --root ../gtm_ops
@@ -66,12 +69,12 @@ To wire to your live agent, copy `agent-registry.example.yaml` → `agent-regist
 - **`scripts/`** — runner entry points (`test-elevenlabs-runner`, `test-mcp-runner`, `test-n8n-eval-runner`) and harness utilities (`health-check`, `monitor-executions`, `list-workflows`, `ingest-and-run`)
 - **`templates/`** — reusable agent and tool config templates (`elevenlabs-agents/`, `voice-agents/`, `email/`, `sms-booking-tool-template.json`)
 - **`tests/scenarios/`** — runnable scenario fixtures (transcript + scenario.yaml). `_template/` is the canonical schema; copy and edit.
-- **`tests/runs/`** — hand-authored synthetic result.json + NOTE.md examples that document the intended shape of a passing and failing run. Once the per-axis scoring engine lands (see "known gaps"), real eval-run outputs will be produced into the same shape.
+- **`tests/runs/`** — hand-authored synthetic result.json examples for a passing and a failing run, with a postmortem `NOTE.md` alongside the failing example to document the failure-mode reasoning; live CLI runs persist normalized results under `.test-data/`.
 - **`docs/`** — methodology, tool calling, webhook security, contributor walkthrough, model-update playbook
 
 ## Documentation
 
-- [`docs/methodology.md`](docs/methodology.md) — eval philosophy: determinism, prompt versioning, scoring rubric, voice-specific axes (most are aspirational — see "known gaps" above)
+- [`docs/methodology.md`](docs/methodology.md) — eval philosophy: determinism, prompt versioning, scoring rubric, implemented fixture axes, and remaining live-agent gaps
 - [`docs/tool-calling.md`](docs/tool-calling.md) — server-side vs. client-side tools, `agent.prompt.tools` schema, KB-vs-tool boundary
 - [`docs/webhook-security.md`](docs/webhook-security.md) — `ElevenLabs-Signature` header verification (HMAC-SHA256 over `<timestamp>.<body>`)
 - [`docs/deployment.md`](docs/deployment.md) — operator setup: env vars, prompt-promotion flow, rollback flow

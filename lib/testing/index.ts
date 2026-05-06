@@ -9,19 +9,13 @@ export type {
   TestType,
   TestStatus,
   RequirementStatus,
-  Priority,
   TestRequirement,
   TestCase,
   TestResult,
   TestRun,
   WebhookTestInput,
-  ElevenLabsTestInput,
-  N8nEvalTestInput,
-  McpTestInput,
-  ExternalCommandTestInput,
   EvaluationArtifact,
   EvaluationDimension,
-  RequirementCoverage,
   TestRunSummary,
 } from './types';
 
@@ -86,11 +80,32 @@ export {
   mcpRunner,
   ExternalCommandRunner,
   externalCommandRunner,
+  ScenarioRunner,
+  scenarioRunner,
+  scoreScenario,
   // Orchestrator
   TestOrchestrator,
   orchestrator,
   runTests,
 } from './runners';
+
+export {
+  discoverScenarioFiles,
+  discoverScenarioTestCases,
+  loadScenarioDefinition,
+  loadScenarioTranscript,
+  parseScenarioYaml,
+  scenarioToTestCase,
+  scenarioTranscriptPath,
+  type ScenarioAxis,
+  type ScenarioCriterion,
+  type ScenarioDefinition,
+  type ScenarioNativeToolCall,
+  type ScenarioToolCall,
+  type ScenarioToolResult,
+  type ScenarioTranscript,
+  type ScenarioTurn,
+} from './scenarios';
 
 // App adapters
 export {

@@ -1,10 +1,32 @@
 {
-  "_comment": "Minimal turn-array fixture stub. Replace with deterministic synthetic content. Use synthetic phone numbers (+15550100..+15550199), synthetic agent ids (agent_xxxx_demo), and synthetic names. The harness rejects fixtures matching live agent-registry.yaml ids.",
+  "_comment": "Minimal turn-array fixture stub. Replace with deterministic synthetic content. Use synthetic phone numbers (+15550100..+15550199), synthetic demo agent ids (agent_xxxx_demo), and synthetic names. The harness rejects real-looking E.164 phone numbers and non-demo transcript agent_id values.",
   "scenario_id": "scenario-id",
   "agent_id": "agent_xxxx_demo",
+  "prompt_tag": "prompt/primary/v1",
   "turns": [
     { "turn": 1, "role": "agent", "text": "<opening line>" },
     { "turn": 2, "role": "caller", "text": "<caller utterance>" },
-    { "turn": 3, "role": "agent", "text": "<agent response>" }
+    { "turn": 3, "role": "agent", "tool_call": { "name": "lookup_record", "arguments": { "id": "+15550100" } } },
+    { "turn": 4, "role": "tool_response", "result": { "status": "ok" } },
+    { "turn": 5, "role": "agent", "text": "<agent response consuming the tool result>" }
+  ],
+  "metrics": {
+    "ttfb_p95_ms": 0,
+    "end_to_first_audio_p95_ms": 0,
+    "total_turn_p95_ms": 0
+  },
+  "latency_breakdown_ms": {
+    "ttfb": [0],
+    "end_to_first_audio": [0],
+    "total_turn": [0]
+  },
+  "tool_calls": [
+    {
+      "name": "lookup_record",
+      "arguments": { "id": "+15550100" },
+      "schema_pass": true,
+      "round_trip_ms": 0,
+      "response_consumed_in_next_turn": true
+    }
   ]
 }
