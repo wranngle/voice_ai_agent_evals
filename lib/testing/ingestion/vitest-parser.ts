@@ -845,6 +845,10 @@ function cloneValue(value: unknown): unknown {
   if (isRecord(value)) {
     const out: Record<string, unknown> = {};
     for (const [key, item] of Object.entries(value)) {
+      if (PROTOTYPE_POLLUTING_KEYS.has(key)) {
+        continue;
+      }
+
       out[key] = cloneValue(item);
     }
 
@@ -877,8 +881,14 @@ function setNestedValue(object: Record<string, unknown>, path: string, value: un
   }
 }
 
+const PROTOTYPE_POLLUTING_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
 function mergeRecord(target: Record<string, unknown>, source: Record<string, unknown>): void {
   for (const [key, value] of Object.entries(source)) {
+    if (PROTOTYPE_POLLUTING_KEYS.has(key)) {
+      continue;
+    }
+
     if (isRecord(target[key]) && isRecord(value)) {
       mergeRecord(target[key], value);
       continue;
