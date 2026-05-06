@@ -28,12 +28,9 @@ if (AGENT_ID === PLACEHOLDER_AGENT_ID) {
   process.exit(1);
 }
 
-// Don't log any portion of the secret — log a SHA-256 fingerprint that's
-// stable enough for "is the env var pointing at the key I think it is?"
-// without leaking any portion of the credential.
-const {createHash} = await import('node:crypto');
-const apiKeyFingerprint = createHash('sha256').update(API_KEY).digest('hex').slice(0, 8);
-status(`API Key fingerprint: ${apiKeyFingerprint}`);
+// Intentionally do not log any value derived from API_KEY. The early
+// process.exit above covers the "is the env var set" check; any stronger
+// diagnostic (which key is loaded?) belongs out-of-band, not in stdout.
 status('Agent ID: ' + AGENT_ID);
 status('\nFetching agent from ElevenLabs...\n');
 
