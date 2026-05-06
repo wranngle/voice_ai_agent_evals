@@ -35,12 +35,12 @@ const goodConversation: Conversation = {
 
 describe('evaluator', () => {
   test('passes a balanced, well-ordered conversation', () => {
-    const evaluator = createEvaluator(
-      repo([goodConversation]),
-      {maxTurnDurationMs: 30_000, minAgentTurnRatio: 0.3},
-      createFixedClock('2026-04-30T00:00:00Z'),
-      silentLogger,
-    );
+    const evaluator = createEvaluator({
+      repository: repo([goodConversation]),
+      rules: {maxTurnDurationMs: 30_000, minAgentTurnRatio: 0.3},
+      clock: createFixedClock('2026-04-30T00:00:00Z'),
+      logger: silentLogger,
+    });
     const [result] = evaluator.evaluateAll();
     expect(result?.passed).toBe(true);
     expect(result?.evaluatedAt).toBe('2026-04-30T00:00:00Z');
@@ -59,12 +59,12 @@ describe('evaluator', () => {
         },
       ],
     };
-    const evaluator = createEvaluator(
-      repo([conversation]),
-      {maxTurnDurationMs: 30_000, minAgentTurnRatio: 0.3},
-      createFixedClock('2026-04-30T00:00:00Z'),
-      silentLogger,
-    );
+    const evaluator = createEvaluator({
+      repository: repo([conversation]),
+      rules: {maxTurnDurationMs: 30_000, minAgentTurnRatio: 0.3},
+      clock: createFixedClock('2026-04-30T00:00:00Z'),
+      logger: silentLogger,
+    });
     const [result] = evaluator.evaluateAll();
     expect(result?.passed).toBe(false);
     expect(result?.findings.find(f => f.rule === 'turn-duration-cap')?.passed).toBe(false);
@@ -90,12 +90,12 @@ describe('evaluator', () => {
         },
       ],
     };
-    const evaluator = createEvaluator(
-      repo([conversation]),
-      {maxTurnDurationMs: 30_000, minAgentTurnRatio: 0.3},
-      createFixedClock('2026-04-30T00:00:00Z'),
-      silentLogger,
-    );
+    const evaluator = createEvaluator({
+      repository: repo([conversation]),
+      rules: {maxTurnDurationMs: 30_000, minAgentTurnRatio: 0.3},
+      clock: createFixedClock('2026-04-30T00:00:00Z'),
+      logger: silentLogger,
+    });
     const [result] = evaluator.evaluateAll();
     expect(result?.passed).toBe(false);
     expect(result?.findings.find(f => f.rule === 'agent-turn-ratio')?.passed).toBe(false);
@@ -115,12 +115,12 @@ describe('evaluator', () => {
         },
       ],
     };
-    const evaluator = createEvaluator(
-      repo([conversation]),
-      {maxTurnDurationMs: 30_000, minAgentTurnRatio: 0.3},
-      createFixedClock('2026-04-30T00:00:00Z'),
-      silentLogger,
-    );
+    const evaluator = createEvaluator({
+      repository: repo([conversation]),
+      rules: {maxTurnDurationMs: 30_000, minAgentTurnRatio: 0.3},
+      clock: createFixedClock('2026-04-30T00:00:00Z'),
+      logger: silentLogger,
+    });
     const [result] = evaluator.evaluateAll();
     expect(result?.passed).toBe(false);
     expect(result?.findings.find(f => f.rule === 'monotonic-timestamps')?.passed).toBe(false);
