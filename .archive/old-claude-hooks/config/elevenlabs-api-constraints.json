@@ -1,0 +1,117 @@
+{
+  "$schema": "./schemas/elevenlabs-api-constraints.schema.json",
+  "version": "1.0.0",
+  "description": "ElevenLabs Conversational AI API validation constraints and best practices",
+  "documentation": "https://elevenlabs.io/docs/api-reference/conversational-ai",
+
+  "agent_update_constraints": {
+    "conversation_config": {
+      "description": "Full conversation_config object required for PATCH /v1/convai/agents/{agent_id}",
+      "tool_definition_rules": {
+        "mutually_exclusive_fields": {
+          "description": "Cannot provide both tools array and tool_ids array in agent.prompt",
+          "rule": "Use EITHER tools (full definition) OR tool_ids (reference) - never both",
+          "violation_error": "both_tools_and_tool_ids_provided"
+        },
+        "tool_schema_property_constraints": {
+          "description": "Each property in api_schema.request_body_schema.properties can only have ONE of these fields set",
+          "mutually_exclusive": [
+            "description",
+            "is_system_provided",
+            "dynamic_variable",
+            "constant_value"
+          ],
+          "rule": "Set ONLY description for enriched tool fields - remove all other metadata fields",
+          "violation_error": "value_error: Can only set one of: description, dynamic_variable, is_system_provided, or constant_value",
+          "required_cleanup": [
+            "enum",
+            "is_system_provided",
+            "dynamic_variable",
+            "constant_value"
+          ],
+          "keep_fields": [
+            "type",
+            "description"
+          ]
+        }
+      }
+    }
+  },
+
+  "tool_enrichment_best_practices": {
+    "field_description_format": {
+      "validation_rules": "Format: {type} in {format}. MUST validate: {constraints}. Context: {usage_notes}",
+      "example": "Recipient phone number in E.164 format (+1XXXXXXXXXX for US/Canada). MUST validate: starts with +, 10-15 digits, no spaces/dashes. ALWAYS check {{system__caller_id}} before asking user.",
+      "max_length": 500,
+      "include": [
+        "Data type and format",
+        "Validation requirements (MUST validate)",
+        "Business context and impact",
+        "Edge cases and special handling",
+        "Variable references ({{system__var}})"
+      ]
+    },
+    "enum_guidance": {
+      "description": "List allowed values in description text, not enum field",
+      "example": "Business industry for lead qualification. Values: hvac, plumbing, property_management, legal, veterinary, automotive, construction, retail, healthcare, other. Default 'other'."
+    },
+    "optional_fields": {
+      "description": "Mark optional fields with impact statement",
+      "example": "Company/business name for lead enrichment. Optional but HIGHLY RECOMMENDED (improves lead quality 40%). Max 100 chars."
+    }
+  },
+
+  "mcp_tool_limitations": {
+    "mcp__elevenlabs-mcp__update_agent": {
+      "validation": "Strict - fails fast with 400 errors",
+      "error_visibility": "Poor - nested JSON errors in detail.message",
+      "recommendation": "For complex tool schema updates, use direct HTTPS to api.elevenlabs.io with better error handling",
+      "use_cases": {
+        "mcp_tool_suitable": [
+          "Simple agent configuration updates",
+          "First message changes",
+          "Voice/TTS parameter adjustments",
+          "Temperature/model changes"
+        ],
+        "direct_api_preferred": [
+          "Tool schema enrichments",
+          "Complex nested property updates",
+          "Bulk tool modifications",
+          "Schema validation debugging"
+        ]
+      }
+    }
+  },
+
+  "common_errors": {
+    "both_tools_and_tool_ids_provided": {
+      "cause": "Provided both agent.prompt.tools array AND agent.prompt.tool_ids array",
+      "fix": "Remove agent.prompt.tool_ids field when providing full tools array",
+      "prevention": "delete config.agent.prompt.tool_ids before update"
+    },
+    "property_field_conflict": {
+      "cause": "Schema property has description + is_system_provided/dynamic_variable/constant_value set",
+      "fix": "Keep only type and description fields, remove enum/is_system_provided/dynamic_variable/constant_value",
+      "prevention": "Clean schema properties before update: Object.keys(schema).forEach(key => { delete schema[key].enum; delete schema[key].is_system_provided; delete schema[key].dynamic_variable; delete schema[key].constant_value; })"
+    }
+  },
+
+  "api_workflow": {
+    "tool_enrichment_steps": [
+      "1. GET /v1/convai/agents/{agent_id} to retrieve current config",
+      "2. Extract conversation_config from response",
+      "3. Locate tools in conversation_config.agent.prompt.tools array",
+      "4. Update tool.api_schema.request_body_schema.properties[field].description",
+      "5. Clean properties: remove enum, is_system_provided, dynamic_variable, constant_value",
+      "6. Remove agent.prompt.tool_ids if present (when providing full tools array)",
+      "7. PATCH /v1/convai/agents/{agent_id} with { conversation_config: <modified_config> }",
+      "8. Verify with GET to confirm changes applied"
+    ]
+  },
+
+  "integration_points": {
+    "governance_hook": "hooks/on-tool-invoke/elevenlabs_agent_governance.ts",
+    "validation_script": "utils/elevenlabs_config_validator.ts",
+    "credential_source": "~/.claude/.env (ELEVENLABS_API_KEY)"
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Naming Standards Governance",
+  "description": "Malevolent dictator naming standards - zero tolerance for violations",
+  "version": "1.0.0",
+  "rules": {
+    "n8n": {
+      "workflows": {
+        "case": "Title Case with Phase Prefix",
+        "pattern": "[PHASE] Verb Noun",
+        "phases": ["[DEV]", "[ALPHA]", "[BETA]", "[PROD]", "[ARCHIVED]"],
+        "examples": {
+          "valid": ["[DEV] Send Email", "[PROD] Process Lead"],
+          "invalid": ["[DEV] Sarah Email Tool v1.0", "send-email-v3"]
+        },
+        "forbidden": ["version suffixes (v1, v2, v3)", "hyphenated names", "snake_case"]
+      },
+      "nodes": {
+        "case": "Title Case with Colon Separator",
+        "pattern": "Category: Action Description",
+        "examples": {
+          "valid": ["Auth: Check Origin", "Email: Send Via SMTP", "Extract: Parse Parameters"],
+          "invalid": ["check-auth", "send_email", "ExtractParams"]
+        },
+        "forbidden": ["kebab-case", "snake_case", "camelCase", "version suffixes"]
+      },
+      "webhook_paths": {
+        "case": "kebab-case",
+        "pattern": "entity-verb-noun",
+        "examples": {
+          "valid": ["sarah-send-email", "lead-process-intake"],
+          "invalid": ["sarah-send-sms-v3", "send_email", "sendEmail"]
+        },
+        "forbidden": ["version suffixes", "snake_case", "camelCase", "TitleCase"]
+      },
+      "webhook_ids": {
+        "case": "kebab-case",
+        "pattern": "entity-verb-noun",
+        "examples": {
+          "valid": ["sarah-send-email", "lead-process-intake"],
+          "invalid": ["sarah-email-tool-v1", "send_email_tool"]
+        },
+        "forbidden": ["version suffixes", "snake_case", "tool/workflow/v1 suffixes"]
+      }
+    },
+    "elevenlabs": {
+      "agents": {
+        "case": "Title Case with Phase Prefix",
+        "pattern": "[PHASE] Name - Role Description",
+        "phases": ["[DEV]", "[ALPHA]", "[BETA]", "[PROD]", "[ARCHIVED]"],
+        "examples": {
+          "valid": ["[DEV] Sarah - Wranngle Lead Specialist"],
+          "invalid": ["Sarah v2", "sarah-agent"]
+        },
+        "forbidden": ["version suffixes", "kebab-case", "snake_case"]
+      },
+      "tools": {
+        "case": "snake_case",
+        "pattern": "verb_noun",
+        "examples": {
+          "valid": ["send_email", "send_sms", "process_lead", "extract_data"],
+          "invalid": ["sendEmail", "send-email", "send_email_v2"]
+        },
+        "forbidden": ["camelCase", "kebab-case", "version suffixes", "tool/workflow suffixes"]
+      }
+    },
+    "files": {
+      "case": "kebab-case",
+      "pattern": "entity-purpose",
+      "examples": {
+        "valid": ["sarah-send-email.json", "lead-processor.ts"],
+        "invalid": ["sarah_email_tool_v1.json", "sendEmail.js"]
+      },
+      "forbidden": ["version suffixes in production files", "snake_case", "camelCase"]
+    }
+  },
+  "enforcement": {
+    "level": "BLOCKING",
+    "scope": ["n8n_workflow_create", "n8n_workflow_update", "elevenlabs_tool_create", "elevenlabs_agent_create", "file_write"],
+    "exceptions": {
+      "paths": ["old/", "archive/", "test-data/", "fixtures/"],
+      "prefixes": ["backup_", "export_", "archived_"]
+    }
+  },
+  "violations": {
+    "auto_fix": false,
+    "action": "BLOCK with suggested fix"
+  }
+}
