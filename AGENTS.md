@@ -55,8 +55,6 @@ Concrete pattern:
 - For enum-style fields, **list allowed values in the description, not via the `enum` field** (which the API doesn't accept alongside description). Example: `"Business industry. Values: hvac, plumbing, legal, veterinary, automotive, retail, healthcare, other. Default 'other'."`
 - For optional fields, state the impact: `"Company name for lead enrichment. Optional but HIGHLY RECOMMENDED (improves lead quality 40%). Max 100 chars."`
 
-Reference: `.archive/old-claude-hooks/config/elevenlabs-api-constraints.json`.
-
 ## Naming standards (ElevenLabs)
 
 - **Agents**: `[PHASE] Name - Role Description` in Title Case with phase prefix. ✅ `[DEV] Sarah - Wranngle Lead Specialist`. ❌ `Sarah v2`, `sarah-agent`.
