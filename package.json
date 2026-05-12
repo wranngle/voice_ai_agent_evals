@@ -1,6 +1,6 @@
 {
   "name": "@wranngle/voice-evals",
-  "version": "1.0.0-dev.0",
+  "version": "1.0.0",
   "description": "Audio-native voice AI agent eval, polish, and regression-test factory wrapping ElevenLabs Conversational AI. Closed-loop performance evaluation with GEPA-driven prompt remediation, dynamic test detection from arbitrary conversational data via an LLM data-translation layer, latency-budget-as-code, and a Bun-first TypeScript SDK.",
   "type": "module",
   "license": "MIT",
