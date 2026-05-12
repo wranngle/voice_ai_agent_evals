@@ -43,6 +43,7 @@ jobs:
             --project wrapper \
             --project scoring \
             --project ingestion-llm \
+            --project regression \
             2>&1 | tee /tmp/vitest.log
       - name: Write GITHUB_STEP_SUMMARY
         if: always()

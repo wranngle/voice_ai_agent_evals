@@ -16,6 +16,25 @@ export * from './testing/index';
 export type * from './extraction/types';
 export {verifyElevenLabsSignature} from './security/elevenlabs-signature';
 
+// v1.0 regression surface (Phase 4+). Canonical subpath: `@wranngle/voice-evals/regression`.
+export {
+  baselineExists,
+  captureBaseline,
+  diffAgainstBaseline,
+  loadBaseline,
+  saveBaseline,
+} from './regression';
+export type {
+  BaselineRun,
+  BaselineSnapshot,
+  CaptureBaselineOptions,
+  DiffDirection,
+  DiffOptions,
+  DiffResult,
+  DimensionDiff,
+  TestDiff,
+} from './regression';
+
 // v1.0 ingestion surface (Phase 3+). Canonical subpath: `@wranngle/voice-evals/ingestion`.
 export {
   CANONICAL_PERSONAS,

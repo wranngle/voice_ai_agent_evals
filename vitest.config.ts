@@ -130,6 +130,17 @@ const offlineProjects = [
       testTimeout: 30_000,
     },
   },
+  {
+    // v1.0 regression namespace (versioned baselines, Braintrust-shaped diff).
+    // Tests use mkdtemp/rm for filesystem isolation.
+    test: {
+      name: 'regression',
+      root: '.',
+      include: ['tests/regression/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
 ];
 
 // Mixed-live projects: at least one describe block calls real HTTP behind a
