@@ -152,6 +152,17 @@ const offlineProjects = [
       testTimeout: 30_000,
     },
   },
+  {
+    // v1.0 CLI commands (init, doctor, baseline). Tests use mkdtemp/rm so
+    // they don't write outside the test sandbox.
+    test: {
+      name: 'cli',
+      root: '.',
+      include: ['tests/cli/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
 ];
 
 // Mixed-live projects: at least one describe block calls real HTTP behind a

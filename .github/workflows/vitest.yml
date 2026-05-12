@@ -45,6 +45,7 @@ jobs:
             --project ingestion-llm \
             --project regression \
             --project remediation \
+            --project cli \
             2>&1 | tee /tmp/vitest-bun.log
       - name: Write GITHUB_STEP_SUMMARY
         if: always()
@@ -95,6 +96,7 @@ jobs:
             --project ingestion-llm \
             --project regression \
             --project remediation \
+            --project cli \
             2>&1 | tee /tmp/vitest-node.log
       - name: Write GITHUB_STEP_SUMMARY
         if: always()

@@ -2,41 +2,59 @@
 /**
  * @wranngle/voice-evals CLI entry.
  *
- * Phase 6 layout:
- *   - `voice-evals doctor` — check the Python sidecar (Phase 5.x) status.
- *   - everything else delegates to src/testing/cli.ts (run / list / validate
- *     / report / ingest / clear / scenario flows).
+ * Phase 6.x: dispatch new top-level commands to src/cli/commands/*; fall
+ * back to the legacy testing CLI for everything else (run, list, validate,
+ * report, ingest, clear).
  *
- * Full command split into src/cli/commands/{init, polish, baseline,
- * remediate, ...} lands in Phase 6.x alongside the docs site rewrite.
+ *   voice-evals doctor                  — sidecar status
+ *   voice-evals init                    — scaffold voice-evals.config.ts
+ *   voice-evals baseline capture <name> — snapshot current results as baseline
+ *   voice-evals baseline diff <name>    — diff current vs named baseline
+ *   voice-evals <anything-else>         — delegated to src/testing/cli.ts
  */
 
 // `export {}` makes this a module so top-level await is allowed under tsc.
 export {};
 
 const command = process.argv[2];
+const exitCode = await dispatch();
+if (typeof exitCode === 'number' && exitCode !== 0) {
+  process.exit(exitCode);
+}
 
-// Side-effect import: src/testing/cli.ts calls main() at module load.
-await (command === 'doctor' ? runDoctor() : import('./testing/cli'));
+async function dispatch(): Promise<number | undefined> {
+  switch (command) {
+    case 'doctor': {
+      const {runDoctor} = await import('./cli/commands/doctor');
+      return runDoctor();
+    }
 
-async function runDoctor(): Promise<void> {
-  const {getSidecarPaths, isGepaAvailable} = await import('./remediation');
-  const {bin, script, cache, version} = getSidecarPaths();
-  const available = isGepaAvailable();
+    case 'init': {
+      const {runInit} = await import('./cli/commands/init');
+      const force = process.argv.includes('--force');
+      return runInit({force});
+    }
 
-  console.log(`voice-evals doctor
+    case 'baseline': {
+      const subcommand = process.argv[3];
+      const name = process.argv[4];
+      const {runBaselineCapture, runBaselineDiff} = await import('./cli/commands/baseline');
+      if (subcommand === 'capture') {
+        return runBaselineCapture(name);
+      }
 
-Sidecar version: ${version}
-Sidecar cache:   ${cache}
-Python binary:   ${bin}
-Bridge script:   ${script}
-Status:          ${available ? 'available' : 'unavailable'}
+      if (subcommand === 'diff') {
+        return runBaselineDiff(name);
+      }
 
-GEPA optimizer + PyRIT adversarial campaigns require the Python sidecar.
-Without it, polishLoop falls back to the single-shot LLM proposer (still
-useful, just less sample-efficient).
+      process.stdout.write('usage: voice-evals baseline {capture|diff} <name>\n');
+      return 1;
+    }
 
-The auto-install of the Python venv lands in Phase 5.x — track CHANGELOG.md.
-To opt out of any future install attempt, export VOICE_EVALS_SKIP_PYTHON_INSTALL=1.`);
-  process.exit(0);
+    default: {
+      // Side-effect import: src/testing/cli.ts calls main() at module load.
+      await import('./testing/cli');
+      return undefined;
+    }
+  }
 }
