@@ -15,3 +15,34 @@
 export * from './testing/index';
 export type * from './extraction/types';
 export {verifyElevenLabsSignature} from './security/elevenlabs-signature';
+
+// v1.0 wrapper surface (Phase 1+). Re-exported here for convenience; the
+// canonical subpath is `@wranngle/voice-evals/wrapper`.
+export {
+  createVoiceEvalsClient,
+  GovernanceError,
+  PHASES,
+  assertModelAllowed,
+  cleanProperty,
+  cleanTools,
+  enforceMutation,
+  hasMutualExclusionViolation,
+  isPhase,
+  parseAgentName,
+} from './wrapper';
+export type {
+  AgentSummary,
+  AgentTool,
+  AgentWithConfig,
+  AgentsApi,
+  GovernanceOptions,
+  ModelRankings,
+  ParsedAgentName,
+  Phase,
+  ToolProperty,
+  ToolsApi,
+  VerifyElevenLabsSignature,
+  VoiceEvalsClient,
+  VoiceEvalsClientOptions,
+  WebhooksApi,
+} from './wrapper';

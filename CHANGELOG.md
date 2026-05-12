@@ -11,7 +11,7 @@ Pre-1.0.0. The project is being shaped for v1 — major changes are tracked in g
 Rename to `@wranngle/voice-evals` and rebuild as a published Bun package with audio-native voice-AI evals, closed-loop remediation, and dynamic test detection. Phase tracker:
 
 - **Phase 0 — Package shell** (current). Rename `lib/` → `src/`. Add ESM+CJS dual build via `bun build` + `tsc --emitDeclarationOnly`. Wire `exports`, `bin`, `files`, `engines`, `publishConfig`, `peerDependencies` on `@elevenlabs/elevenlabs-js`. Move `arktype` to runtime `dependencies`. Stub `scripts/postinstall.mjs` for the Phase 5 Python sidecar. README + badges updated.
-- **Phase 1 — ElevenLabs wrapper.** Pending.
+- **Phase 1 — ElevenLabs wrapper.** Lands `src/wrapper/` with: `createVoiceEvalsClient({apiKey | client, modelRankings?})` factory; `agents.list()` / `agents.get(id)` that parse `[PHASE]` prefixes per AGENTS.md; `governance.{parseAgentName, enforceMutation, assertModelAllowed, isPhase, GovernanceError}` pure helpers; `tools.{cleanProperty, cleanTools, hasMutualExclusionViolation}` pure helpers that strip the API's mutually-exclusive fields (`is_system_provided` / `dynamic_variable` / `constant_value` / `enum`) before PATCH and synthesize replacement descriptions; `webhooks.verify` re-export of the HMAC verifier. Subpath export `@wranngle/voice-evals/wrapper`. `config/model-rankings.json` ships with the AGENTS.md banned list (`gpt-4o-mini`, `gpt-5-mini`, `gemini-2.0-flash-001`) and default `gemini-3-flash-preview`. SDK escape hatch via `client.raw`. New vitest `wrapper` project with 46 tests covering all of the above; CI workflow updated.
 - **Phase 2 — Scoring engine.** Pending.
 - **Phase 3 — LLM data layer.** Pending.
 - **Phase 4 — Regression + baseline.** Pending.

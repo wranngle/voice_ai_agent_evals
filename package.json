@@ -43,6 +43,10 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
+    "./wrapper": {
+      "types": "./dist/wrapper/index.d.ts",
+      "import": "./dist/wrapper/index.js"
+    },
     "./package.json": "./package.json"
   },
   "bin": {
@@ -90,7 +94,7 @@
     "doctor": "bun run src/cli.ts doctor",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:offline": "vitest run --project ingestion --project integration --project governance --project agent_evals --project elevenlabs --project n8n-eval --project mcp",
+    "test:offline": "vitest run --project ingestion --project integration --project governance --project agent_evals --project elevenlabs --project n8n-eval --project mcp --project wrapper",
     "test:ui": "vitest --ui",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",

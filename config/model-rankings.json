@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Project-local model-rankings for ElevenLabs agent `llm` selection. The wrapper's governance gate rejects banned IDs at agent-create / agent-update time. Defaults track AGENTS.md (\"ElevenLabs agent LLM models\" section). Keep in sync with ~/.agents/model-rankings.json when bumping.",
+  "default": "gemini-3-flash-preview",
+  "recommended": [
+    "gemini-3-flash-preview",
+    "claude-haiku-4-5",
+    "gpt-5-nano"
+  ],
+  "banned": [
+    "gpt-4o-mini",
+    "gpt-5-mini",
+    "gemini-2.0-flash-001"
+  ]
+}

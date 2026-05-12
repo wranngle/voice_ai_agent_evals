@@ -95,6 +95,17 @@ const offlineProjects = [
       testTimeout: 30_000,
     },
   },
+  {
+    // v1.0 wrapper namespace (governance, tools schema cleaning, client
+    // factory). Pure unit tests with mocked SDK clients; no network.
+    test: {
+      name: 'wrapper',
+      root: '.',
+      include: ['tests/wrapper/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
 ];
 
 // Mixed-live projects: at least one describe block calls real HTTP behind a
