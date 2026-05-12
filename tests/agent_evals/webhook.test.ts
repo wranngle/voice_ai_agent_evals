@@ -8,7 +8,7 @@ import {
   WebhookEventTypeSchema,
   AnalysisDataSchema,
   type WebhookPayload,
-} from '../../lib/agent_evals/types';
+} from '../../src/agent_evals/types';
 
 type SafeParseResult<T> =
   | {success: true; data: T}
@@ -27,7 +27,7 @@ function safeParse<T>(
 }
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const fixturesDir = join(__dirname, '..', '..', 'lib', 'agent_evals', 'fixtures');
+const fixturesDir = join(__dirname, '..', '..', 'src', 'agent_evals', 'fixtures');
 
 describe('webhook contracts', () => {
   test('all webhook event fixtures conform to schema', () => {

@@ -7,7 +7,7 @@
  * Usage: bun scripts/list-workflows.ts
  */
 
-import {normalizeN8nApiUrl} from '../lib/n8n-url';
+import {normalizeN8nApiUrl} from '../src/n8n-url';
 
 // `N8N_API_URL` is documented as required. Falling back to a placeholder
 // host silently aimed past the user's actual n8n; surface the omission with

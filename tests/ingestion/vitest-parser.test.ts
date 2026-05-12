@@ -7,7 +7,7 @@
 import {
   describe, expect, test,
 } from 'vitest';
-import {parseVitestFile} from '../../lib/testing/ingestion/vitest-parser';
+import {parseVitestFile} from '../../src/testing/ingestion/vitest-parser';
 
 describe('Vitest Parser', () => {
   describe('Constants Extraction', () => {

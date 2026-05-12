@@ -4,8 +4,8 @@
  * Run: bun run scripts/test-elevenlabs-runner.ts
  */
 
-import {ElevenLabsRunner} from '../lib/testing/runners/elevenlabs-runner';
-import type {TestCase} from '../lib/testing/types';
+import {ElevenLabsRunner} from '../src/testing/runners/elevenlabs-runner';
+import type {TestCase} from '../src/testing/types';
 
 const PLACEHOLDER_AGENT_ID = 'agent_xxxx_demo';
 const AGENT_ID = cliValue('--agent-id') ?? process.env.ELEVENLABS_AGENT_ID ?? PLACEHOLDER_AGENT_ID;

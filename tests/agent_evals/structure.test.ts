@@ -6,7 +6,7 @@ import {fileURLToPath} from 'node:url';
 import {describe, expect, test} from 'vitest';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const packageRoot = join(__dirname, '..', '..', 'lib', 'agent_evals');
+const packageRoot = join(__dirname, '..', '..', 'src', 'agent_evals');
 const srcRoot = packageRoot;
 
 const expectedLayers = [

@@ -2,7 +2,7 @@ import {mkdtempSync, readFileSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {describe, expect, test} from 'vitest';
-import {createFileSink, createJsonLogger} from '../../lib/agent_evals/providers/logger';
+import {createFileSink, createJsonLogger} from '../../src/agent_evals/providers/logger';
 
 describe('logger', () => {
   test('file sink writes one JSON line per event', () => {

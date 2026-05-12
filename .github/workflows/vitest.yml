@@ -14,8 +14,8 @@ permissions:
   contents: read
 
 jobs:
-  unit-tests:
-    name: Offline (vitest projects)
+  unit-tests-bun:
+    name: Offline (Bun 1.1)
     runs-on: ubuntu-latest
     env:
       CI: 'true'
@@ -29,7 +29,7 @@ jobs:
           bun-version: '1.1'
       - name: Install dependencies
         run: bun install
-      - name: Run vitest offline projects
+      - name: Run vitest offline projects (Bun)
         id: vitest
         run: |
           bun run vitest run \
@@ -40,15 +40,21 @@ jobs:
             --project elevenlabs \
             --project n8n-eval \
             --project mcp \
-            2>&1 | tee /tmp/vitest.log
+            --project wrapper \
+            --project scoring \
+            --project ingestion-llm \
+            --project regression \
+            --project remediation \
+            --project cli \
+            2>&1 | tee /tmp/vitest-bun.log
       - name: Write GITHUB_STEP_SUMMARY
         if: always()
         run: |
           {
-            echo "## Voice AI Eval Harness — vitest summary"
+            echo "## Voice AI Eval Harness — vitest (Bun) summary"
             echo ""
             echo '```'
-            tail -40 /tmp/vitest.log || true
+            tail -40 /tmp/vitest-bun.log || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Gitleaks scan
@@ -56,10 +62,57 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  unit-tests-node:
+    name: Offline (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22']
+    env:
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4.4.0
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install dependencies
+        run: npm install
+      - name: Run vitest offline projects (Node ${{ matrix.node }})
+        run: |
+          npx vitest run \
+            --project ingestion \
+            --project integration \
+            --project governance \
+            --project agent_evals \
+            --project elevenlabs \
+            --project n8n-eval \
+            --project mcp \
+            --project wrapper \
+            --project scoring \
+            --project ingestion-llm \
+            --project regression \
+            --project remediation \
+            --project cli \
+            2>&1 | tee /tmp/vitest-node.log
+      - name: Write GITHUB_STEP_SUMMARY
+        if: always()
+        run: |
+          {
+            echo "## Voice AI Eval Harness — vitest (Node ${{ matrix.node }}) summary"
+            echo ""
+            echo '```'
+            tail -40 /tmp/vitest-node.log || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
   live-tests:
     name: Live (network + secrets)
     runs-on: ubuntu-latest
-    needs: unit-tests
+    needs: [unit-tests-bun, unit-tests-node]
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
     env:
       CI: 'true'

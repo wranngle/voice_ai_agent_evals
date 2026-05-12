@@ -95,6 +95,74 @@ const offlineProjects = [
       testTimeout: 30_000,
     },
   },
+  {
+    // v1.0 wrapper namespace (governance, tools schema cleaning, client
+    // factory). Pure unit tests with mocked SDK clients; no network.
+    test: {
+      name: 'wrapper',
+      root: '.',
+      include: ['tests/wrapper/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
+  {
+    // v1.0 scoring namespace (composer, assertions DSL, audio-native scorers).
+    // Pure unit tests; audio fixtures synthesized in-test so no binary commits.
+    test: {
+      name: 'scoring',
+      root: '.',
+      include: ['tests/scoring/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
+  {
+    // v1.0 LLM data layer / ingestion (post-call importer, TestChain proposer,
+    // persona generator). The 'ingestion' name is taken by the legacy vitest
+    // file parser; we suffix '-llm' to disambiguate. Tests use mock LLM
+    // callbacks — no network.
+    test: {
+      name: 'ingestion-llm',
+      root: '.',
+      include: ['tests/ingestion-llm/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
+  {
+    // v1.0 regression namespace (versioned baselines, Braintrust-shaped diff).
+    // Tests use mkdtemp/rm for filesystem isolation.
+    test: {
+      name: 'regression',
+      root: '.',
+      include: ['tests/regression/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
+  {
+    // v1.0 closed-loop remediation (proposer, apply with governance gate,
+    // polish loop, GEPA bridge contract). LLM + SDK calls mocked; no network.
+    test: {
+      name: 'remediation',
+      root: '.',
+      include: ['tests/remediation/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
+  {
+    // v1.0 CLI commands (init, doctor, baseline). Tests use mkdtemp/rm so
+    // they don't write outside the test sandbox.
+    test: {
+      name: 'cli',
+      root: '.',
+      include: ['tests/cli/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
 ];
 
 // Mixed-live projects: at least one describe block calls real HTTP behind a
@@ -132,7 +200,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'html', 'json-summary'],
       reportsDirectory: './coverage',
-      include: ['lib/**/*.ts', 'scripts/**/*.ts', 'tests/governance/lib/**/*.ts'],
+      include: ['src/**/*.ts', 'scripts/**/*.ts', 'tests/governance/lib/**/*.ts'],
       exclude: ['**/*.test.ts', '**/*.d.ts', 'node_modules/**'],
     },
 

@@ -17,8 +17,8 @@ import {
   listTestRuns,
   getResultsByRun,
   clearAllDataSync, type TestCase,
-} from '../../lib/testing';
-import {verifyElevenLabsSignature} from '../../lib/security/elevenlabs-signature';
+} from '../../src/testing';
+import {verifyElevenLabsSignature} from '../../src/security/elevenlabs-signature';
 
 const UNIQUE_STORAGE_DIR = join(process.cwd(), '.test-data-runners-' + process.pid);
 const SIGNATURE_SECRET = 'runner-test-elevenlabs-secret';

@@ -33,7 +33,7 @@ import {
   linkTestToRequirement,
   getRequirementCoverage,
   clearAllDataSync,
-} from '../../lib/testing';
+} from '../../src/testing';
 
 describe('Local Storage — Async API', () => {
   // Clear all data before running tests

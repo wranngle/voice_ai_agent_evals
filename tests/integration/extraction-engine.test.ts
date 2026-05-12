@@ -1,11 +1,11 @@
 import {describe, it, expect} from 'vitest';
-import {inferStrictness} from '../../lib/extraction/strictness.js';
-import {defaultCategories} from '../../lib/extraction/categories.js';
-import {buildPrompt} from '../../lib/extraction/prompt-builder.js';
-import {repairValue, validateValue} from '../../lib/extraction/validation.js';
+import {inferStrictness} from '../../src/ingestion/extraction/strictness.js';
+import {defaultCategories} from '../../src/ingestion/extraction/categories.js';
+import {buildPrompt} from '../../src/ingestion/extraction/prompt-builder.js';
+import {repairValue, validateValue} from '../../src/ingestion/extraction/validation.js';
 import type {
   ExtractionField, ExtractionCategory, ExtractionOutput, FieldEnvelope,
-} from '../../lib/extraction/types.js';
+} from '../../src/ingestion/extraction/types.js';
 
 // ─── Task 6.3: Strictness inference ───
 

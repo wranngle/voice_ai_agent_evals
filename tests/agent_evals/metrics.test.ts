@@ -4,7 +4,7 @@ import {
 import {
   NoopMetricsSink,
   createPrometheusMetricsSink,
-} from '../../lib/agent_evals/providers/metrics';
+} from '../../src/agent_evals/providers/metrics';
 
 describe('NoopMetricsSink', () => {
   test('incrementCounter and flush are no-ops', async () => {
