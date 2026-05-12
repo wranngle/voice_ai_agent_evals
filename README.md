@@ -156,12 +156,17 @@ Tracked under [`feat/v1.0-bun-package`](https://github.com/wranngle/voice-evals/
 - ✅ **Phase 0** — package shell + build pipeline
 - ✅ **Phase 1** — ElevenLabs wrapper (governance + tool-schema cleaning)
 - ✅ **Phase 2** — scoring engine (composer + assertions DSL + audio-native)
-- ✅ **Phase 3** — LLM data layer (post-call import + TestChain proposer + personas)
+- ✅ **Phase 2.x** — judges (G-Eval, ArenaGEval, Lynx, DAG)
+- ✅ **Phase 3** — LLM data layer (post-call import + TestChain Proposer + personas)
+- ✅ **Phase 3.x** — TestChain Designer (free-form draft assertions → structured specs)
 - ✅ **Phase 4** — regression baselines + Braintrust-shaped diff
 - ✅ **Phase 5** — closed-loop remediation (proposer + apply + polish loop; GEPA bridge contract)
-- ⏳ **Phase 6** — CLI completion, docs site, matrix CI on Bun + Node 20/22, npm publish
-- ⏳ **Phase 5.x** — Python sidecar install (uv + GEPA + PyRIT) + `gepa_run.py` protocol
-- ⏳ **Phase 2.x / 3.x** — judges (ArenaGEval, DAG, Lynx), TestChain Designer, scenario-runner migration onto new scoring primitives
+- ✅ **Phase 5.x** — Python sidecar install via `voice-evals doctor --install` (uv-managed venv + gepa pip + `gepa_run.py` JSON-IO; Python stub, full optimizer wiring in v1.1)
+- ✅ **Phase 6** — CLI doctor + README v1.0 + quickstart example
+- ✅ **Phase 6.x** — matrix CI on Bun 1.1 + Node 20 + Node 22; CLI commands split (`init`, `baseline capture`, `baseline diff`)
+- ⏳ **npm publish** — `bun publish` to `@wranngle/voice-evals@1.0.0` (user-authorized action; not autonomous)
+- ⏳ **GitHub repo rename** — `wranngle/voice_ai_agent_evals` → `wranngle/voice-evals` (user action)
+- ⏳ **v1.1** — scenario-runner migration onto new scoring primitives; full GEPA optimizer wiring; PyRIT adversarial sidecar
 
 ## Documentation
 
