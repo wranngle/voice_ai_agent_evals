@@ -63,12 +63,14 @@ export type {
 export {
   CANONICAL_PERSONAS,
   buildPersonaSystemPrompt,
+  designAssertions,
   getPersona,
   importPostCallWebhook,
   listPersonas,
   proposeTestCases,
 } from './ingestion';
 export type {
+  DesignedAssertion,
   ElevenLabsPostCallPayload,
   ImportedTestCases,
   IngestionOptions,

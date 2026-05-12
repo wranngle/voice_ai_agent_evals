@@ -27,6 +27,8 @@ export type {
 
 export {importPostCallWebhook} from './post-call-import';
 export {proposeTestCases} from './llm-data-layer';
+export {designAssertions} from './designer';
+export type {DesignedAssertion} from './designer';
 export type {Persona, PersonaTraits} from './persona-generator';
 export {
   CANONICAL_PERSONAS,
