@@ -6,11 +6,80 @@
 
 > Audio-native voice AI agent eval, polish, and regression-test factory wrapping ElevenLabs Conversational AI — closed-loop performance evaluation, GEPA-driven prompt remediation, latency-budget-as-code, dynamic test detection from arbitrary conversational data via an LLM data-translation layer, packaged as a Bun-first TypeScript SDK.
 
-## Status — v1.0 in progress
+## Status — v1.0 release candidate
 
-Repo is mid-migration from `voice_ai_agent_evals` (private eval harness) to `@wranngle/voice-evals` (published Bun package). The runtime under `src/` ships the v0.x harness surface today; the v1.0 architecture (ElevenLabs API wrapper, audio-native scoring, LLM test ingestion, baseline/diff regression, closed-loop remediation, polish CLI) is landing in phases on `feat/v1.0-bun-package` and will release as `1.0.0` once all phases are dogfooded.
+Phases 0-5 are merged on `feat/v1.0-bun-package`; Phase 6 (CLI completion + docs site + npm publish) is in progress. The Python sidecar that powers GEPA closed-loop optimization is stubbed as a contract (Phase 5.x install lands shortly); the rest of `polishLoop` works against the single-shot LLM proposer today.
 
-See [`CHANGELOG.md`](CHANGELOG.md) for phase progress.
+See [`CHANGELOG.md`](CHANGELOG.md) for per-phase detail.
+
+## Quickstart
+
+```bash
+npm install @wranngle/voice-evals @elevenlabs/elevenlabs-js  # or bun add
+```
+
+```ts
+import {
+  createVoiceEvalsClient,
+  importPostCallWebhook,
+  scoreBargeIn,
+  parseWav,
+  diffAgainstBaseline,
+  captureBaseline,
+  polishLoop,
+} from '@wranngle/voice-evals';
+
+const client = createVoiceEvalsClient({apiKey: process.env.ELEVENLABS_API_KEY!});
+
+// 1. Audio-native barge-in scoring on a stereo WAV (caller=L, agent=R).
+const wav = parseWav(await Bun.file('post-call.wav').arrayBuffer());
+const dim = scoreBargeIn({
+  callerSamples: wav.channelSamples![0],
+  agentSamples: wav.channelSamples![1],
+  sampleRate: wav.sampleRate,
+  maxOverlapMs: 250,
+});
+
+// 2. Trace-to-test: turn a production webhook payload into TestCase[].
+const {cases} = importPostCallWebhook(postCallWebhookJson);
+
+// 3. Closed-loop polish on a [DEV]-tagged agent (governance-gated).
+await polishLoop({
+  client,
+  agentId: 'agent_xxxx_demo',
+  evaluate: async () => myEvalSuite(),  // returns DimensionScore[]
+  llm: async ({system, user}) => myLlmCallback(system, user),
+  maxIterations: 3,
+  dryRun: true,
+});
+```
+
+## Why this vs. incumbents (May 2026 research)
+
+| Capability | Hamming AI | Coval | Vapi Evals | ElevenLabs sim | **`@wranngle/voice-evals`** |
+|---|---|---|---|---|---|
+| Audio-native (WAV PCM, RMS, barge-in) | ✓ | partial | — | — | **✓** |
+| Latency-budget-as-code (YAML thresholds) | partial | — | — | — | **✓** |
+| Closed-loop remediation (LLM proposer + apply) | — | — | — | — | **✓** |
+| `[PHASE]` governance gate on agent mutation | — | — | — | — | **✓** |
+| Tool-schema mutual-exclusion auto-cleaning | — | — | — | — | **✓** |
+| Bun / TypeScript first-class SDK | — | — | — | — | **✓** |
+| OSS (MIT) | — | — | — | — | **✓** |
+| GEPA reflective prompt optimization | — | — | — | — | **stub (Phase 5.x)** |
+
+Source: research synthesis from agent-eval landscape, LLM eval framework, closed-loop remediation, and Bun packaging surveys — see commit history.
+
+## Public surface (subpath exports)
+
+```ts
+import {...} from '@wranngle/voice-evals/wrapper';      // ElevenLabs API wrapper + governance
+import {...} from '@wranngle/voice-evals/scoring';      // Composer + assertions DSL + audio scorers
+import {...} from '@wranngle/voice-evals/ingestion';    // Post-call import + TestChain proposer + personas
+import {...} from '@wranngle/voice-evals/regression';   // Versioned baselines + Braintrust-shape diff
+import {...} from '@wranngle/voice-evals/remediation';  // proposeFix / applyFix / polishLoop / GEPA bridge
+```
+
+The flat `'@wranngle/voice-evals'` barrel re-exports everything for convenience.
 
 ## What this is
 
@@ -80,17 +149,19 @@ To wire to your live agent, copy `agent-registry.example.yaml` → `agent-regist
 - **`tests/runs/`** — hand-authored synthetic result.json examples for a passing and a failing run, with a postmortem `NOTE.md` alongside the failing example to document the failure-mode reasoning; live CLI runs persist normalized results under `.test-data/`.
 - **`docs/`** — methodology, tool calling, webhook security, contributor walkthrough, model-update playbook
 
-## v1.0 roadmap
+## v1.0 phase tracker
 
-Tracked under [`feat/v1.0-bun-package`](https://github.com/wranngle/voice-evals/tree/feat/v1.0-bun-package). Phases:
+Tracked under [`feat/v1.0-bun-package`](https://github.com/wranngle/voice-evals/tree/feat/v1.0-bun-package). See [`CHANGELOG.md`](CHANGELOG.md) for full per-phase notes.
 
-- **Phase 0** — package shell + build pipeline (`@wranngle/voice-evals`, ESM+CJS dual build, `exports`/`bin`/`files`, `peerDependency` on `@elevenlabs/elevenlabs-js`)
-- **Phase 1** — ElevenLabs API wrapper (`src/wrapper/`) with `[PHASE]` governance + schema-clean PATCH cycle
-- **Phase 2** — Inspect-AI-shaped scoring engine: composable scorers, audio-native (RMS-energy barge-in, basic prosody on WAV PCM 48kHz), `not-*` negation grammar, G-Eval / ArenaGEval / DAG / Lynx judges
-- **Phase 3** — LLM data layer (TestChain Proposer/Designer/Judge) for arbitrary conversational data → structured assertions, persona-driven synthetic users, PyRIT adversarial bridge
-- **Phase 4** — versioned-dataset baselines + Braintrust-shaped diff API + drift gates + trace-to-test
-- **Phase 5** — closed-loop remediation via GEPA optimizer (Python sidecar), `[DEV]`-only governance gate, iterative polish loop
-- **Phase 6** — split CLI, docs site, matrix CI (Bun + Node 20/22), npm release
+- ✅ **Phase 0** — package shell + build pipeline
+- ✅ **Phase 1** — ElevenLabs wrapper (governance + tool-schema cleaning)
+- ✅ **Phase 2** — scoring engine (composer + assertions DSL + audio-native)
+- ✅ **Phase 3** — LLM data layer (post-call import + TestChain proposer + personas)
+- ✅ **Phase 4** — regression baselines + Braintrust-shaped diff
+- ✅ **Phase 5** — closed-loop remediation (proposer + apply + polish loop; GEPA bridge contract)
+- ⏳ **Phase 6** — CLI completion, docs site, matrix CI on Bun + Node 20/22, npm publish
+- ⏳ **Phase 5.x** — Python sidecar install (uv + GEPA + PyRIT) + `gepa_run.py` protocol
+- ⏳ **Phase 2.x / 3.x** — judges (ArenaGEval, DAG, Lynx), TestChain Designer, scenario-runner migration onto new scoring primitives
 
 ## Documentation
 
