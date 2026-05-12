@@ -7,16 +7,32 @@
  */
 
 import {getSidecarPaths, isGepaAvailable} from '../../remediation/gepa-bridge';
+import {installSidecar, type InstallOptions} from '../../remediation/sidecar/install';
 
 export type DoctorOptions = {
   /** Stream output here. Defaults to stdout. */
   out?: (line: string) => void;
+  /** If true, provision the Python sidecar (uv + venv + gepa pip install). */
+  install?: boolean;
+  /** If true, log what would happen during install but make no changes. */
+  dryRun?: boolean;
+  /** Injectable spawn for tests (forwarded to installSidecar). */
+  installOverrides?: Partial<InstallOptions>;
 };
 
-export async function runDoctor(_options: DoctorOptions = {}): Promise<number> {
-  const out = _options.out ?? ((line: string) => {
+export async function runDoctor(options: DoctorOptions = {}): Promise<number> {
+  const out = options.out ?? ((line: string) => {
     process.stdout.write(`${line}\n`);
   });
+
+  if (options.install) {
+    const result = await installSidecar({
+      out,
+      dryRun: options.dryRun,
+      ...options.installOverrides,
+    });
+    return result.ok ? 0 : 1;
+  }
 
   const {bin, script, cache, version} = getSidecarPaths();
   const available = isGepaAvailable();
@@ -33,7 +49,9 @@ export async function runDoctor(_options: DoctorOptions = {}): Promise<number> {
   out('Without it, polishLoop falls back to the single-shot LLM proposer (still');
   out('useful, just less sample-efficient).');
   out('');
-  out('The auto-install of the Python venv lands in Phase 5.x — track CHANGELOG.md.');
-  out('To opt out of any future install attempt, export VOICE_EVALS_SKIP_PYTHON_INSTALL=1.');
+  out('To install the sidecar (uv-managed venv + gepa pip install):');
+  out('  voice-evals doctor --install');
+  out('Add --dry-run to preview without writing.');
+  out('Opt out entirely: export VOICE_EVALS_SKIP_PYTHON_INSTALL=1.');
   return 0;
 }

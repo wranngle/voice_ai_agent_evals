@@ -21,6 +21,7 @@
 import {existsSync} from 'node:fs';
 import {join} from 'node:path';
 import {homedir} from 'node:os';
+import {spawnSync} from 'node:child_process';
 
 const SIDECAR_VERSION = '0.1.0';
 const SIDECAR_CACHE = join(homedir(), '.cache', 'voice-evals', 'python', SIDECAR_VERSION);
@@ -56,27 +57,55 @@ export type GepaOptimizationResult = {
 };
 
 /**
- * Run GEPA against the inputs. Throws `GepaUnavailableError` if the Python
- * sidecar isn't installed — callers should catch and fall back to
- * single-shot proposer (`src/remediation/proposal.ts`).
+ * Run GEPA against the inputs by spawning the Python sidecar with a
+ * JSON-IO protocol (stdin: GepaOptimizationInput; stdout:
+ * GepaOptimizationResult). Throws `GepaUnavailableError` if the sidecar
+ * isn't installed — callers should catch and fall back to the single-shot
+ * proposer (`src/remediation/proposal.ts`).
  *
- * Phase 5 ships the contract; the subprocess invocation lands in Phase 5.x
- * alongside the postinstall venv setup. Today this throws GepaUnavailableError
- * with installation instructions.
+ * Install the sidecar with `voice-evals doctor --install`.
+ *
+ * v1.0 ships a Python stub that echoes prompts back; full GEPA optimization
+ * wiring lands in v1.1 once the metric-callback transport is finalized
+ * (today there is no clean way to drive the GEPA reflection loop's
+ * per-rollout LLM judge from TypeScript without round-tripping per call).
  */
-export async function runGepaOptimization(_input: GepaOptimizationInput): Promise<GepaOptimizationResult> {
+export async function runGepaOptimization(input: GepaOptimizationInput): Promise<GepaOptimizationResult> {
   if (!isGepaAvailable()) {
     throw new GepaUnavailableError(`GEPA Python sidecar not installed at ${SIDECAR_CACHE}. `
-      + 'Run `voice-evals doctor` to install (uv + python>=3.11 + gepa-ai/gepa), '
+      + 'Run `voice-evals doctor --install` (requires Python 3.11+; uv preferred), '
       + 'or fall back to the single-shot proposer in polishLoop. '
-      + 'Sidecar install lands in Phase 5.x; see CHANGELOG.');
+      + 'See CHANGELOG.md for sidecar install + v1.1 plan.');
   }
 
-  // Phase 5.x: spawnSync(SIDECAR_BIN, [SIDECAR_SCRIPT, ...]) with JSON IO.
-  // For now we surface the same error even when the venv exists, since the
-  // gepa_run.py contract isn't finalized yet.
-  throw new GepaUnavailableError('GEPA Python sidecar install detected but the bridge protocol is not finalized in Phase 5; '
-    + 'see Phase 5.x in CHANGELOG.md. polishLoop should continue to use the single-shot proposer.');
+  const start = Date.now();
+  const result = spawnSync(SIDECAR_BIN, [SIDECAR_SCRIPT], {
+    input: JSON.stringify(input),
+    encoding: 'utf8',
+    timeout: 10 * 60 * 1000,
+    maxBuffer: 32 * 1024 * 1024,
+  });
+
+  if (result.status !== 0) {
+    throw new GepaUnavailableError(`GEPA sidecar exited ${result.status ?? 'with no status'}; stderr: ${(result.stderr ?? '').slice(0, 500)}`);
+  }
+
+  let parsed: Partial<GepaOptimizationResult> & {error?: string};
+  try {
+    parsed = JSON.parse(result.stdout ?? '{}') as typeof parsed;
+  } catch {
+    throw new GepaUnavailableError(`GEPA sidecar emitted non-JSON stdout: ${(result.stdout ?? '').slice(0, 200)}`);
+  }
+
+  if (parsed.error) {
+    throw new GepaUnavailableError(`GEPA sidecar error: ${parsed.error}`);
+  }
+
+  return {
+    prompts: parsed.prompts ?? input.prompts,
+    pareto: parsed.pareto,
+    durationMs: parsed.durationMs ?? (Date.now() - start),
+  };
 }
 
 export class GepaUnavailableError extends Error {

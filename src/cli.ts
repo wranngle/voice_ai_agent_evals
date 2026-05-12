@@ -26,7 +26,9 @@ async function dispatch(): Promise<number | undefined> {
   switch (command) {
     case 'doctor': {
       const {runDoctor} = await import('./cli/commands/doctor');
-      return runDoctor();
+      const install = process.argv.includes('--install');
+      const dryRun = process.argv.includes('--dry-run');
+      return runDoctor({install, dryRun});
     }
 
     case 'init': {

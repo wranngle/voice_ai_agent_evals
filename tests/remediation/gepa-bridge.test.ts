@@ -37,7 +37,7 @@ describe('runGepaOptimization', () => {
       expect(error).toBeInstanceOf(GepaUnavailableError);
       const {message} = (error as Error);
       expect(message).toContain('voice-evals doctor');
-      expect(message).toContain('Phase 5.x');
+      expect(message).toMatch(/--install|sidecar/);
     }
   });
 });
