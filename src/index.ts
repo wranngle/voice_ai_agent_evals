@@ -16,6 +16,30 @@ export * from './testing/index';
 export type * from './extraction/types';
 export {verifyElevenLabsSignature} from './security/elevenlabs-signature';
 
+// v1.0 remediation surface (Phase 5+). Canonical subpath: `@wranngle/voice-evals/remediation`.
+export {
+  GepaUnavailableError,
+  applyFix,
+  getSidecarPaths,
+  isGepaAvailable,
+  polishLoop,
+  proposeFix,
+  runGepaOptimization,
+} from './remediation';
+export type {
+  ApplyFixOptions,
+  ApplyFixResult,
+  EvaluateCallback,
+  FixProposal,
+  FixTarget,
+  GepaOptimizationInput,
+  GepaOptimizationResult,
+  PolishLoopOptions,
+  PolishLoopResult,
+  PolishLoopStep,
+  ProposeFixOptions,
+} from './remediation';
+
 // v1.0 regression surface (Phase 4+). Canonical subpath: `@wranngle/voice-evals/regression`.
 export {
   baselineExists,

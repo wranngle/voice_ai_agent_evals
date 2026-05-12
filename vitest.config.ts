@@ -141,6 +141,17 @@ const offlineProjects = [
       testTimeout: 30_000,
     },
   },
+  {
+    // v1.0 closed-loop remediation (proposer, apply with governance gate,
+    // polish loop, GEPA bridge contract). LLM + SDK calls mocked; no network.
+    test: {
+      name: 'remediation',
+      root: '.',
+      include: ['tests/remediation/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
 ];
 
 // Mixed-live projects: at least one describe block calls real HTTP behind a

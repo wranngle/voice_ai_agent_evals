@@ -75,6 +75,6 @@ function baselinePath(name: string, baselineDir: string): string {
   const safe = name
     .replaceAll(/[^\w-]/g, '-')
     .replaceAll(/-+/g, '-')
-    .replace(/^-+|-+$/g, '');
+    .replaceAll(/^-+|-+$/g, '');
   return join(baselineDir, `${safe}.json`);
 }
