@@ -16,6 +16,25 @@ export * from './testing/index';
 export type * from './extraction/types';
 export {verifyElevenLabsSignature} from './security/elevenlabs-signature';
 
+// v1.0 ingestion surface (Phase 3+). Canonical subpath: `@wranngle/voice-evals/ingestion`.
+export {
+  CANONICAL_PERSONAS,
+  buildPersonaSystemPrompt,
+  getPersona,
+  importPostCallWebhook,
+  listPersonas,
+  proposeTestCases,
+} from './ingestion';
+export type {
+  ElevenLabsPostCallPayload,
+  ImportedTestCases,
+  IngestionOptions,
+  LlmCompleteCallback,
+  Persona,
+  PersonaTraits,
+  ProposedTestCase,
+} from './ingestion';
+
 // v1.0 scoring surface (Phase 2+). Canonical subpath: `@wranngle/voice-evals/scoring`.
 export {
   aggregate,

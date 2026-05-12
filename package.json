@@ -51,6 +51,10 @@
       "types": "./dist/scoring/index.d.ts",
       "import": "./dist/scoring/index.js"
     },
+    "./ingestion": {
+      "types": "./dist/ingestion/index.d.ts",
+      "import": "./dist/ingestion/index.js"
+    },
     "./package.json": "./package.json"
   },
   "bin": {
@@ -98,7 +102,7 @@
     "doctor": "bun run src/cli.ts doctor",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:offline": "vitest run --project ingestion --project integration --project governance --project agent_evals --project elevenlabs --project n8n-eval --project mcp --project wrapper --project scoring",
+    "test:offline": "vitest run --project ingestion --project integration --project governance --project agent_evals --project elevenlabs --project n8n-eval --project mcp --project wrapper --project scoring --project ingestion-llm",
     "test:ui": "vitest --ui",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",

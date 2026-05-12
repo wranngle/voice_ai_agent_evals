@@ -117,6 +117,19 @@ const offlineProjects = [
       testTimeout: 30_000,
     },
   },
+  {
+    // v1.0 LLM data layer / ingestion (post-call importer, TestChain proposer,
+    // persona generator). The 'ingestion' name is taken by the legacy vitest
+    // file parser; we suffix '-llm' to disambiguate. Tests use mock LLM
+    // callbacks — no network.
+    test: {
+      name: 'ingestion-llm',
+      root: '.',
+      include: ['tests/ingestion-llm/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
 ];
 
 // Mixed-live projects: at least one describe block calls real HTTP behind a
