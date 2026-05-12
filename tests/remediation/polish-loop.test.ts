@@ -1,4 +1,6 @@
-import {describe, expect, it, vi} from 'vitest';
+import {
+  describe, expect, it, vi,
+} from 'vitest';
 import type {ElevenLabsClient} from '@elevenlabs/elevenlabs-js';
 import {polishLoop} from '../../src/remediation/polish-loop';
 import {createVoiceEvalsClient} from '../../src/wrapper/client';
@@ -45,7 +47,9 @@ describe('polishLoop', () => {
     const {client} = buildMockClient();
     const evaluate = vi.fn().mockResolvedValue([{name: 'voice_activity', status: 'passed'}]);
     const llm = vi.fn();
-    const result = await polishLoop({client, agentId: 'agent_xxxx_demo', evaluate, llm});
+    const result = await polishLoop({
+      client, agentId: 'agent_xxxx_demo', evaluate, llm,
+    });
     expect(result.stopped_because).toBe('all_passing');
     expect(result.iterations).toBe(1);
     expect(result.applied).toHaveLength(0);
@@ -57,7 +61,9 @@ describe('polishLoop', () => {
     const {client} = buildMockClient();
     const evaluate = vi.fn().mockResolvedValue([FAILING]);
     const llm = vi.fn().mockResolvedValue('[]');
-    const result = await polishLoop({client, agentId: 'agent_xxxx_demo', evaluate, llm});
+    const result = await polishLoop({
+      client, agentId: 'agent_xxxx_demo', evaluate, llm,
+    });
     expect(result.stopped_because).toBe('no_proposal');
     expect(result.iterations).toBe(1);
     expect(result.applied).toHaveLength(0);
@@ -70,7 +76,9 @@ describe('polishLoop', () => {
       .mockResolvedValueOnce([FAILING]) // iteration 1 before
       .mockResolvedValueOnce([{name: 'voice_activity', status: 'passed'}]); // iteration 1 after
     const llm = vi.fn().mockResolvedValue(JSON.stringify([VALID_PROPOSAL]));
-    const result = await polishLoop({client, agentId: 'agent_xxxx_demo', evaluate, llm});
+    const result = await polishLoop({
+      client, agentId: 'agent_xxxx_demo', evaluate, llm,
+    });
     expect(result.stopped_because).toBe('all_passing');
     expect(result.applied).toHaveLength(1);
     expect(result.applied[0].target).toBe('voice_speed');
@@ -128,7 +136,9 @@ describe('polishLoop', () => {
     const {client} = buildMockClient({agentName: '[PROD] Sarah'});
     const evaluate = vi.fn().mockResolvedValue([FAILING]);
     const llm = vi.fn().mockResolvedValue(JSON.stringify([VALID_PROPOSAL]));
-    await expect(polishLoop({client, agentId: 'agent_xxxx_demo', evaluate, llm}))
+    await expect(polishLoop({
+      client, agentId: 'agent_xxxx_demo', evaluate, llm,
+    }))
       .rejects.toThrow(/\[PROD]/);
   });
 

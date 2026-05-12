@@ -30,3 +30,18 @@ export {
   detectBargeIn, detectSpeechSegments, parseWav, rmsEnvelope,
   scoreBargeIn, scoreVoiceActivity,
 } from './audio';
+
+export {
+  arenaJudge, evaluateDag, gEvalJudge, leaf, lynxJudge, regexBranch,
+} from './judges';
+export type {
+  ArenaOptions,
+  DagDecisionNode,
+  DagLeafNode,
+  DagNode,
+  DagResult,
+  GEvalOptions,
+  PairwiseJudgeCallback,
+  PairwiseResult,
+  PairwiseVerdict,
+} from './judges';

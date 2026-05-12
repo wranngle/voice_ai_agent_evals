@@ -95,6 +95,13 @@ export {
   scoreBargeIn,
   scoreVoiceActivity,
   weighted,
+  // judges
+  arenaJudge,
+  evaluateDag,
+  gEvalJudge,
+  leaf,
+  lynxJudge,
+  regexBranch,
 } from './scoring';
 export type {
   Assertion,
@@ -111,6 +118,16 @@ export type {
   Status,
   Task,
   WavInfo,
+  // judge types
+  ArenaOptions,
+  DagDecisionNode,
+  DagLeafNode,
+  DagNode,
+  DagResult,
+  GEvalOptions,
+  PairwiseJudgeCallback,
+  PairwiseResult,
+  PairwiseVerdict,
 } from './scoring';
 
 // v1.0 wrapper surface (Phase 1+). Re-exported here for convenience; the
