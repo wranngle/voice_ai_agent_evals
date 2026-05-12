@@ -13,7 +13,7 @@
  */
 
 export * from './testing/index';
-export type * from './extraction/types';
+export type * from './ingestion/extraction/types';
 export {verifyElevenLabsSignature} from './security/elevenlabs-signature';
 
 // v1.0 remediation surface (Phase 5+). Canonical subpath: `@wranngle/voice-evals/remediation`.

@@ -1,5 +1,5 @@
 /**
- * Default extraction categories used by src/extraction.
+ * Default extraction categories used by src/ingestion/extraction.
  *
  * Six categories cover the common surfaces a voice agent's transcript
  * yields: sales (BANT-style qualification), support (issues + requests),

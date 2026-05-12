@@ -2,7 +2,7 @@
  * LLM Extraction Engine — n8n Eval runner unit tests.
  *
  * Exercises the N8nEvalRunner contract for the structured-extraction
- * use case (src/extraction). All HTTP is mocked via vi.spyOn(globalThis,
+ * use case (src/ingestion/extraction). All HTTP is mocked via vi.spyOn(globalThis,
  * 'fetch'); no real n8n instance is contacted.
  *
  * The placeholder workflow ID below is fixture data only — no operator
@@ -14,7 +14,7 @@ import {
 } from 'vitest';
 import {N8nEvalRunner} from '../../src/testing/runners/n8n-eval-runner';
 import type {TestCase} from '../../src/testing/types';
-import {defaultCategories} from '../../src/extraction/categories';
+import {defaultCategories} from '../../src/ingestion/extraction/categories';
 
 const WORKFLOW_ID = 'workflow_xxxx_demo';
 
