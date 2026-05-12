@@ -4,7 +4,7 @@
  */
 
 import {parseArgs} from 'node:util';
-import {runGtmOpsAdapter} from '../lib/testing/adapters/gtm-ops';
+import {runGtmOpsAdapter} from '../src/testing/adapters/gtm-ops';
 
 const {values} = parseArgs({
   options: {

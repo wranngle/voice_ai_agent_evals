@@ -5,7 +5,7 @@ const SettingsSchema = type({
   minAgentTurnRatio: '0 <= number <= 1',
   'logFile?': 'string',
   // Endpoint that accepts Prometheus exposition format (NOT OTLP — see
-  // lib/agent_evals/providers/metrics.ts for the wire-format rationale).
+  // src/agent_evals/providers/metrics.ts for the wire-format rationale).
   'metricsEndpoint?': 'string.url',
 });
 

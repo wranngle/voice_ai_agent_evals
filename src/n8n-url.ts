@@ -1,7 +1,7 @@
 /**
  * Shared n8n URL helpers.
  *
- * Three callers (`lib/testing/runners/n8n-eval-runner.ts`,
+ * Three callers (`src/testing/runners/n8n-eval-runner.ts`,
  * `scripts/monitor-executions.ts`, `scripts/list-workflows.ts`) used to keep
  * identical copies of `normalizeN8nApiUrl`. Centralized here so a future
  * change (path version bumps, alternative bases, etc.) lands in one place.

@@ -9,8 +9,8 @@ import {join} from 'node:path';
 import {
   describe, expect, test, beforeEach, afterEach,
 } from 'vitest';
-import {ingestTests} from '../../lib/testing/ingestion/ingest';
-import {clearAllDataSync, listTestCasesSync} from '../../lib/testing/local-storage';
+import {ingestTests} from '../../src/testing/ingestion/ingest';
+import {clearAllDataSync, listTestCasesSync} from '../../src/testing/local-storage';
 
 const TEST_DIR = join(process.cwd(), '.test-ingestion-temp-' + Date.now());
 const UNIQUE_STORAGE_DIR = join(process.cwd(), '.test-data-ingest-' + Date.now());

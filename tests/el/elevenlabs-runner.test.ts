@@ -5,8 +5,8 @@
  */
 
 import {describe, expect, test} from 'vitest';
-import {ElevenLabsRunner} from '../../lib/testing/runners/elevenlabs-runner';
-import type {TestCase} from '../../lib/testing/types';
+import {ElevenLabsRunner} from '../../src/testing/runners/elevenlabs-runner';
+import type {TestCase} from '../../src/testing/types';
 
 describe('ElevenLabs Runner', () => {
   describe('Validation', () => {

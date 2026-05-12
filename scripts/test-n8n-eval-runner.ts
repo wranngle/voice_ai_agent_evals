@@ -4,8 +4,8 @@
  * Run: bun run scripts/test-n8n-eval-runner.ts
  */
 
-import {N8nEvalRunner} from '../lib/testing/runners/n8n-eval-runner';
-import type {TestCase} from '../lib/testing/types';
+import {N8nEvalRunner} from '../src/testing/runners/n8n-eval-runner';
+import type {TestCase} from '../src/testing/types';
 
 const PLACEHOLDER_WORKFLOW_ID = 'workflow_xxxx_demo';
 const PLACEHOLDER_AGENT_ID = 'agent_xxxx_demo';

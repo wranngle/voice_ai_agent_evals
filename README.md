@@ -1,9 +1,16 @@
-# voice_ai_agent_evals
+# @wranngle/voice-evals
 
-[![CI](https://github.com/wranngle/voice_ai_agent_evals/actions/workflows/vitest.yml/badge.svg)](https://github.com/wranngle/voice_ai_agent_evals/actions/workflows/vitest.yml)
-[![License: MIT](https://img.shields.io/github/license/wranngle/voice_ai_agent_evals?style=flat-square)](LICENSE)
+[![CI](https://github.com/wranngle/voice-evals/actions/workflows/vitest.yml/badge.svg)](https://github.com/wranngle/voice-evals/actions/workflows/vitest.yml)
+[![License: MIT](https://img.shields.io/github/license/wranngle/voice-evals?style=flat-square)](LICENSE)
+[![npm](https://img.shields.io/npm/v/@wranngle/voice-evals?style=flat-square)](https://www.npmjs.com/package/@wranngle/voice-evals)
 
-> Bulk eval harness for ElevenLabs voice agents and app-owned eval suites — deterministic scenarios, total-turn latency capture, prompt versioning via git tags, and external-app adapters.
+> Audio-native voice AI agent eval, polish, and regression-test factory wrapping ElevenLabs Conversational AI — closed-loop performance evaluation, GEPA-driven prompt remediation, latency-budget-as-code, dynamic test detection from arbitrary conversational data via an LLM data-translation layer, packaged as a Bun-first TypeScript SDK.
+
+## Status — v1.0 in progress
+
+Repo is mid-migration from `voice_ai_agent_evals` (private eval harness) to `@wranngle/voice-evals` (published Bun package). The runtime under `src/` ships the v0.x harness surface today; the v1.0 architecture (ElevenLabs API wrapper, audio-native scoring, LLM test ingestion, baseline/diff regression, closed-loop remediation, polish CLI) is landing in phases on `feat/v1.0-bun-package` and will release as `1.0.0` once all phases are dogfooded.
+
+See [`CHANGELOG.md`](CHANGELOG.md) for phase progress.
 
 ## What this is
 
@@ -63,14 +70,27 @@ To wire to your live agent, copy `agent-registry.example.yaml` → `agent-regist
 
 ## What's in here
 
-- **`lib/testing/`** — runner library: `runners/` (elevenlabs, n8n-eval, mcp, webhook, external-command), `adapters/`, `ingestion/`, CLI
-- **`lib/extraction/`** — structured extraction from transcripts and post-call payloads
-- **`lib/agent_evals/`** — agent-eval runtime + fixtures
-- **`scripts/`** — runner entry points (`test-elevenlabs-runner`, `test-mcp-runner`, `test-n8n-eval-runner`) and harness utilities (`health-check`, `monitor-executions`, `list-workflows`, `ingest-and-run`)
+- **`src/testing/`** — runner library: `runners/` (elevenlabs, n8n-eval, mcp, webhook, external-command), `adapters/`, `ingestion/`, CLI
+- **`src/extraction/`** — structured extraction from transcripts and post-call payloads (will be reshaped into `src/ingestion/` in Phase 3)
+- **`src/agent_evals/`** — agent-eval runtime + fixtures
+- **`src/security/`** — ElevenLabs HMAC signature verification
+- **`scripts/`** — build (`build.mjs`), postinstall (`postinstall.mjs`), runner entry points (`test-elevenlabs-runner`, `test-mcp-runner`, `test-n8n-eval-runner`), and harness utilities (`health-check`, `monitor-executions`, `list-workflows`, `ingest-and-run`)
 - **`templates/`** — reusable agent and tool config templates (`elevenlabs-agents/`, `voice-agents/`, `email/`, `sms-booking-tool-template.json`)
 - **`tests/scenarios/`** — runnable scenario fixtures (transcript + scenario.yaml). `_template/` is the canonical schema; copy and edit.
 - **`tests/runs/`** — hand-authored synthetic result.json examples for a passing and a failing run, with a postmortem `NOTE.md` alongside the failing example to document the failure-mode reasoning; live CLI runs persist normalized results under `.test-data/`.
 - **`docs/`** — methodology, tool calling, webhook security, contributor walkthrough, model-update playbook
+
+## v1.0 roadmap
+
+Tracked under [`feat/v1.0-bun-package`](https://github.com/wranngle/voice-evals/tree/feat/v1.0-bun-package). Phases:
+
+- **Phase 0** — package shell + build pipeline (`@wranngle/voice-evals`, ESM+CJS dual build, `exports`/`bin`/`files`, `peerDependency` on `@elevenlabs/elevenlabs-js`)
+- **Phase 1** — ElevenLabs API wrapper (`src/wrapper/`) with `[PHASE]` governance + schema-clean PATCH cycle
+- **Phase 2** — Inspect-AI-shaped scoring engine: composable scorers, audio-native (RMS-energy barge-in, basic prosody on WAV PCM 48kHz), `not-*` negation grammar, G-Eval / ArenaGEval / DAG / Lynx judges
+- **Phase 3** — LLM data layer (TestChain Proposer/Designer/Judge) for arbitrary conversational data → structured assertions, persona-driven synthetic users, PyRIT adversarial bridge
+- **Phase 4** — versioned-dataset baselines + Braintrust-shaped diff API + drift gates + trace-to-test
+- **Phase 5** — closed-loop remediation via GEPA optimizer (Python sidecar), `[DEV]`-only governance gate, iterative polish loop
+- **Phase 6** — split CLI, docs site, matrix CI (Bun + Node 20/22), npm release
 
 ## Documentation
 

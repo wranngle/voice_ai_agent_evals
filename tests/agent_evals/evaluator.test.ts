@@ -1,8 +1,8 @@
 import {describe, expect, test} from 'vitest';
-import {createEvaluator} from '../../lib/agent_evals/service';
-import type {ConversationRepository} from '../../lib/agent_evals/repo';
-import type {Conversation} from '../../lib/agent_evals/types';
-import {createFixedClock} from '../../lib/agent_evals/providers/clock';
+import {createEvaluator} from '../../src/agent_evals/service';
+import type {ConversationRepository} from '../../src/agent_evals/repo';
+import type {Conversation} from '../../src/agent_evals/types';
+import {createFixedClock} from '../../src/agent_evals/providers/clock';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noop = (): void => {};

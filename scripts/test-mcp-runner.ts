@@ -4,8 +4,8 @@
  * Run: bun run scripts/test-mcp-runner.ts
  */
 
-import {McpRunner} from '../lib/testing/runners/mcp-runner';
-import type {TestCase} from '../lib/testing/types';
+import {McpRunner} from '../src/testing/runners/mcp-runner';
+import type {TestCase} from '../src/testing/types';
 
 const PLACEHOLDER_WORKFLOW_ID = 'workflow_xxxx_demo';
 const PLACEHOLDER_AGENT_ID = 'agent_xxxx_demo';

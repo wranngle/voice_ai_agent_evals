@@ -8,8 +8,8 @@
 import {
   describe, expect, test, beforeEach, vi, afterEach,
 } from 'vitest';
-import {ElevenLabsRunner} from '../../lib/testing/runners/elevenlabs-runner';
-import type {TestCase} from '../../lib/testing/types';
+import {ElevenLabsRunner} from '../../src/testing/runners/elevenlabs-runner';
+import type {TestCase} from '../../src/testing/types';
 
 describe('ElevenLabs Runner', () => {
   describe('Execution (tools)', () => {

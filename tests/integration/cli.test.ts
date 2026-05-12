@@ -12,9 +12,9 @@ import {
 import {
   describe, expect, test, beforeEach, afterEach,
 } from 'vitest';
-import {clearAllDataSync, createTestCase} from '../../lib/testing';
+import {clearAllDataSync, createTestCase} from '../../src/testing';
 
-const CLI_PATH = join(process.cwd(), 'lib/testing/cli.ts');
+const CLI_PATH = join(process.cwd(), 'src/testing/cli.ts');
 const UNIQUE_STORAGE_DIR = join(process.cwd(), '.test-data-cli-' + process.pid);
 const LOCAL_BUN = '/home/wranngle/.bun/bin/bun';
 const BUN_BIN = process.env.BUN_BIN ?? (existsSync(LOCAL_BUN) ? LOCAL_BUN : 'bun');

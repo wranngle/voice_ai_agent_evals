@@ -2,7 +2,7 @@ import {describe, expect, test} from 'vitest';
 import {
   verifyElevenLabsSignature,
   signElevenLabsPayload,
-} from '../../lib/security/elevenlabs-signature';
+} from '../../src/security/elevenlabs-signature';
 
 const SECRET = 'test_shared_secret_xxx';
 const BODY = '{"type":"post_call","conversation_id":"conv_123"}';

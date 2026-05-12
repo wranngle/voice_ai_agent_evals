@@ -12,8 +12,8 @@
  */
 
 import {join} from 'node:path';
-import {ingestTests} from '../lib/testing/ingestion';
-import {clearAllDataSync, runTests, listTestCases} from '../lib/testing';
+import {ingestTests} from '../src/testing/ingestion';
+import {clearAllDataSync, runTests, listTestCases} from '../src/testing';
 
 const shouldClear = process.argv.includes('--clear');
 

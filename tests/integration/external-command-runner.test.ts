@@ -2,13 +2,13 @@ import {mkdtempSync, rmSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {describe, expect, test} from 'vitest';
-import {ExternalCommandRunner} from '../../lib/testing/runners/external-command-runner';
+import {ExternalCommandRunner} from '../../src/testing/runners/external-command-runner';
 import {
   createGtmOpsTestCases,
   loadGtmOpsHarnessManifest,
   runGtmOpsAdapter,
-} from '../../lib/testing/adapters/gtm-ops';
-import type {TestCase} from '../../lib/testing/types';
+} from '../../src/testing/adapters/gtm-ops';
+import type {TestCase} from '../../src/testing/types';
 
 function commandCase(input: Record<string, unknown>, expected_output: Record<string, unknown> = {}): TestCase {
   const now = new Date().toISOString();

@@ -10,8 +10,8 @@
  * Output: JSON with test results, suitable for n8n workflow processing
  */
 
-import {runTests} from '../lib/testing/runners/orchestrator';
-import {discoverScenarioTestCases} from '../lib/testing/scenarios';
+import {runTests} from '../src/testing/runners/orchestrator';
+import {discoverScenarioTestCases} from '../src/testing/scenarios';
 
 type HealthCheckResult = {
   status: 'healthy' | 'degraded' | 'failing';

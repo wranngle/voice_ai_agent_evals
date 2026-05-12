@@ -14,7 +14,7 @@ import {renderResultsMarkdown} from '../ui';
 async function main(): Promise<void> {
   const fixturePath = process.argv[2];
   if (!fixturePath) {
-    process.stderr.write('usage: bun run lib/agent_evals/runtime/cli.ts <conversations.json>\n');
+    process.stderr.write('usage: bun run src/agent_evals/runtime/cli.ts <conversations.json>\n');
     process.exit(2);
   }
 

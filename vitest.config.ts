@@ -132,7 +132,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'html', 'json-summary'],
       reportsDirectory: './coverage',
-      include: ['lib/**/*.ts', 'scripts/**/*.ts', 'tests/governance/lib/**/*.ts'],
+      include: ['src/**/*.ts', 'scripts/**/*.ts', 'tests/governance/lib/**/*.ts'],
       exclude: ['**/*.test.ts', '**/*.d.ts', 'node_modules/**'],
     },
 

@@ -11,7 +11,7 @@
  * N8N_POST_CALL_WORKFLOW_ID, or fails with usage.
  */
 
-import {normalizeN8nApiUrl} from '../lib/n8n-url';
+import {normalizeN8nApiUrl} from '../src/n8n-url';
 
 const WORKFLOW_ID = process.argv[2] || process.env.N8N_POST_CALL_WORKFLOW_ID;
 const LIMIT = parseLimit(process.argv[3]);
@@ -238,4 +238,4 @@ if (import.meta.main) {
   void main();
 }
 
-export {normalizeN8nApiUrl} from '../lib/n8n-url';
+export {normalizeN8nApiUrl} from '../src/n8n-url';

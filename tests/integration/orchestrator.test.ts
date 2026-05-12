@@ -9,15 +9,15 @@ import {join} from 'node:path';
 import {
   describe, expect, test, beforeEach, afterEach, vi,
 } from 'vitest';
-import {TestOrchestrator, runTests} from '../../lib/testing/runners/orchestrator';
+import {TestOrchestrator, runTests} from '../../src/testing/runners/orchestrator';
 import {
   clearAllDataSync,
   createTestCaseSync,
   listTestRunsSync,
   listTestResultsSync,
-} from '../../lib/testing/local-storage';
-import type {TestRunner} from '../../lib/testing/runners/types';
-import type {TestType} from '../../lib/testing/types';
+} from '../../src/testing/local-storage';
+import type {TestRunner} from '../../src/testing/runners/types';
+import type {TestType} from '../../src/testing/types';
 
 // Use unique storage directory for this test file
 const UNIQUE_STORAGE_DIR = join(process.cwd(), '.test-data-orchestrator-' + Date.now());

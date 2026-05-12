@@ -375,14 +375,14 @@ describe('Storage Corruption Resilience', () => {
     // throw a descriptive error and let the caller decide what to do.
     writeFileSync(join(CORRUPT_DIR, 'cases.json'), '{{{{not json at all}}}}');
 
-    const {listTestCasesSync} = await import('../../lib/testing/local-storage');
+    const {listTestCasesSync} = await import('../../src/testing/local-storage');
     expect(() => listTestCasesSync()).toThrow(/Failed to parse storage file/);
   });
 
   it('throws on empty file instead of silently returning empty', async () => {
     writeFileSync(join(CORRUPT_DIR, 'cases.json'), '');
 
-    const {listTestCasesSync} = await import('../../lib/testing/local-storage');
+    const {listTestCasesSync} = await import('../../src/testing/local-storage');
     expect(() => listTestCasesSync()).toThrow(/Failed to parse storage file/);
   });
 
@@ -390,7 +390,7 @@ describe('Storage Corruption Resilience', () => {
     // null parses as valid JSON but isn't a StorageData shape.
     writeFileSync(join(CORRUPT_DIR, 'cases.json'), 'null');
 
-    const {listTestCasesSync} = await import('../../lib/testing/local-storage');
+    const {listTestCasesSync} = await import('../../src/testing/local-storage');
     expect(() => listTestCasesSync()).toThrow(/malformed/);
   });
 
@@ -398,7 +398,7 @@ describe('Storage Corruption Resilience', () => {
     // Remove the dir
     rmSync(CORRUPT_DIR, {recursive: true, force: true});
 
-    const {createTestCaseSync} = await import('../../lib/testing/local-storage');
+    const {createTestCaseSync} = await import('../../src/testing/local-storage');
     // Should auto-create and not throw
     const tc = createTestCaseSync({
       type: 'webhook',
@@ -419,7 +419,7 @@ describe('Storage Corruption Resilience', () => {
 
 describe('Export Completeness', () => {
   it('index.ts must export all CRUD operations', async () => {
-    const mod = await import('../../lib/testing');
+    const mod = await import('../../src/testing');
 
     // Storage operations
     const requiredExports = [
@@ -453,7 +453,7 @@ describe('Export Completeness', () => {
   });
 
   it('index.ts must export all runner classes', async () => {
-    const mod = await import('../../lib/testing');
+    const mod = await import('../../src/testing');
 
     const requiredClasses = [
       'WebhookRunner',
@@ -469,7 +469,7 @@ describe('Export Completeness', () => {
   });
 
   it('index.ts must export runner singletons', async () => {
-    const mod = await import('../../lib/testing');
+    const mod = await import('../../src/testing');
 
     const singletons = ['webhookRunner', 'elevenlabsRunner', 'n8nEvalRunner', 'mcpRunner', 'orchestrator', 'runTests'];
     for (const name of singletons) {
@@ -489,7 +489,7 @@ describe('Type Contract Stability', () => {
     mkdirSync(STORAGE_DIR, {recursive: true});
 
     try {
-      const {createTestCaseSync} = await import('../../lib/testing/local-storage');
+      const {createTestCaseSync} = await import('../../src/testing/local-storage');
       const tc = createTestCaseSync({
         type: 'webhook',
         name: 'Type contract test',
@@ -526,7 +526,7 @@ describe('Type Contract Stability', () => {
     mkdirSync(STORAGE_DIR, {recursive: true});
 
     try {
-      const {createTestRunSync, completeTestRunSync} = await import('../../lib/testing/local-storage');
+      const {createTestRunSync, completeTestRunSync} = await import('../../src/testing/local-storage');
 
       const run = createTestRunSync({
         triggered_by: 'manual',
@@ -565,7 +565,7 @@ describe('Type Contract Stability', () => {
   });
 
   it('ID generation must produce unique IDs under rapid creation', async () => {
-    const {generateId} = await import('../../lib/testing/local-storage');
+    const {generateId} = await import('../../src/testing/local-storage');
     const ids = new Set<string>();
     for (let i = 0; i < 500; i++) {
       ids.add(generateId('TC'));
@@ -633,7 +633,7 @@ describe('Vitest Config', () => {
 
 describe('Runner Architecture', () => {
   it('every runner must implement validate() and execute()', async () => {
-    const {WebhookRunner, ElevenLabsRunner, N8nEvalRunner, McpRunner, ExternalCommandRunner} = await import('../../lib/testing');
+    const {WebhookRunner, ElevenLabsRunner, N8nEvalRunner, McpRunner, ExternalCommandRunner} = await import('../../src/testing');
 
     const runners = [
       new WebhookRunner(),
@@ -651,7 +651,7 @@ describe('Runner Architecture', () => {
   });
 
   it('runner types must match TestType enum values', async () => {
-    const {WebhookRunner, ElevenLabsRunner, N8nEvalRunner, McpRunner, ExternalCommandRunner} = await import('../../lib/testing');
+    const {WebhookRunner, ElevenLabsRunner, N8nEvalRunner, McpRunner, ExternalCommandRunner} = await import('../../src/testing');
 
     const validTypes = ['webhook', 'elevenlabs', 'n8n-eval', 'mcp', 'external-command'];
 
@@ -663,7 +663,7 @@ describe('Runner Architecture', () => {
   });
 
   it('orchestrator must support failFast mode', async () => {
-    const {TestOrchestrator} = await import('../../lib/testing');
+    const {TestOrchestrator} = await import('../../src/testing');
     const orch = new TestOrchestrator();
     // FailFast is an option - verify the class accepts it
     expect(typeof orch.run).toBe('function');
@@ -681,7 +681,7 @@ describe('Mutation Detection', () => {
     mkdirSync(STORAGE_DIR, {recursive: true});
 
     try {
-      const {createTestCaseSync, getTestCaseSync} = await import('../../lib/testing/local-storage');
+      const {createTestCaseSync, getTestCaseSync} = await import('../../src/testing/local-storage');
 
       const input = {
         type: 'webhook' as const,
@@ -721,7 +721,7 @@ describe('Mutation Detection', () => {
     mkdirSync(STORAGE_DIR, {recursive: true});
 
     try {
-      const {createTestCaseSync, updateTestCaseSync, getTestCaseSync} = await import('../../lib/testing/local-storage');
+      const {createTestCaseSync, updateTestCaseSync, getTestCaseSync} = await import('../../src/testing/local-storage');
 
       const original = createTestCaseSync({
         type: 'webhook',
@@ -757,7 +757,7 @@ describe('Mutation Detection', () => {
     mkdirSync(STORAGE_DIR, {recursive: true});
 
     try {
-      const {createTestCaseSync, deleteTestCaseSync, listTestCasesSync} = await import('../../lib/testing/local-storage');
+      const {createTestCaseSync, deleteTestCaseSync, listTestCasesSync} = await import('../../src/testing/local-storage');
 
       createTestCaseSync({
         type: 'webhook', name: 'Keep', description: 'd', input: {}, expected_output: {}, tags: [], enabled: true,
@@ -794,7 +794,7 @@ describe('Concurrent Write Safety', () => {
     mkdirSync(STORAGE_DIR, {recursive: true});
 
     try {
-      const {createTestCaseSync, listTestCasesSync, clearAllDataSync} = await import('../../lib/testing/local-storage');
+      const {createTestCaseSync, listTestCasesSync, clearAllDataSync} = await import('../../src/testing/local-storage');
 
       clearAllDataSync();
 

@@ -14,7 +14,7 @@ import {
   ScenarioRunner,
   scoreScenario,
   TestOrchestrator,
-} from '../../lib/testing';
+} from '../../src/testing';
 
 const UNIQUE_STORAGE_DIR = join(process.cwd(), '.test-data-scenario-runner-judges-' + process.pid);
 const LOOKUP_SCENARIO = join(process.cwd(), 'tests/scenarios/lookup-record-greeting/scenario.yaml');

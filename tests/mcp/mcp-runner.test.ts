@@ -7,8 +7,8 @@
 import {
   describe, expect, test, beforeEach, vi, afterEach,
 } from 'vitest';
-import {McpRunner} from '../../lib/testing/runners/mcp-runner';
-import type {TestCase} from '../../lib/testing/types';
+import {McpRunner} from '../../src/testing/runners/mcp-runner';
+import type {TestCase} from '../../src/testing/types';
 
 describe('MCP Runner', () => {
   describe('Validation', () => {

@@ -1,14 +1,93 @@
 {
-  "name": "voice_ai_agent_evals",
-  "version": "1.0.0",
+  "name": "@wranngle/voice-evals",
+  "version": "1.0.0-dev.0",
+  "description": "Audio-native voice AI agent eval, polish, and regression-test factory wrapping ElevenLabs Conversational AI. Closed-loop performance evaluation with GEPA-driven prompt remediation, dynamic test detection from arbitrary conversational data via an LLM data-translation layer, latency-budget-as-code, and a Bun-first TypeScript SDK.",
   "type": "module",
   "license": "MIT",
   "author": "Wranngle Systems LLC",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wranngle/voice_ai_agent_evals.git"
+    "url": "https://github.com/wranngle/voice-evals.git"
+  },
+  "homepage": "https://github.com/wranngle/voice-evals#readme",
+  "bugs": {
+    "url": "https://github.com/wranngle/voice-evals/issues"
+  },
+  "keywords": [
+    "elevenlabs",
+    "voice-ai",
+    "voice-agent",
+    "conversational-ai",
+    "eval",
+    "evaluation",
+    "regression-testing",
+    "llm-as-judge",
+    "g-eval",
+    "gepa",
+    "prompt-optimization",
+    "audio-native",
+    "barge-in",
+    "ttfb",
+    "tts",
+    "asr",
+    "agent-testing",
+    "bun",
+    "typescript"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "voice-evals": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "scripts/postinstall.mjs",
+    "templates",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=20",
+    "bun": ">=1.1"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "dependencies": {
+    "arktype": "2.2.0"
+  },
+  "peerDependencies": {
+    "@elevenlabs/elevenlabs-js": ">=2.40"
+  },
+  "peerDependenciesMeta": {
+    "@elevenlabs/elevenlabs-js": {
+      "optional": false
+    }
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "4.1.5",
+    "@vitest/ui": "4.1.5",
+    "bun-types": "1.3.13",
+    "typescript": "6.0.3",
+    "vitest": "4.1.5",
+    "xo": "1.2.3"
   },
   "scripts": {
+    "build": "node ./scripts/build.mjs",
+    "prepublishOnly": "bun run lint && bun run typecheck && bun run test:offline && bun run build",
+    "postinstall": "node ./scripts/postinstall.mjs",
+    "doctor": "bun run src/cli.ts doctor",
     "test": "vitest",
     "test:run": "vitest run",
     "test:offline": "vitest run --project ingestion --project integration --project governance --project agent_evals --project elevenlabs --project n8n-eval --project mcp",
@@ -19,12 +98,12 @@
     "test:elevenlabs": "vitest --project elevenlabs",
     "test:n8n-eval": "vitest --project n8n-eval",
     "test:mcp": "vitest --project mcp",
-    "testing": "bun run lib/testing/cli.ts",
-    "testing:run": "bun run lib/testing/cli.ts run",
-    "testing:list": "bun run lib/testing/cli.ts list",
-    "testing:validate": "bun run lib/testing/cli.ts validate",
-    "testing:report": "bun run lib/testing/cli.ts report",
-    "testing:ingest": "bun run lib/testing/cli.ts ingest",
+    "testing": "bun run src/cli.ts",
+    "testing:run": "bun run src/cli.ts run",
+    "testing:list": "bun run src/cli.ts list",
+    "testing:validate": "bun run src/cli.ts validate",
+    "testing:report": "bun run src/cli.ts report",
+    "testing:ingest": "bun run src/cli.ts ingest",
     "testing:live": "bun run scripts/test-elevenlabs-runner.ts && bun run scripts/test-n8n-eval-runner.ts && bun run scripts/test-mcp-runner.ts",
     "testing:live:el": "bun run scripts/test-elevenlabs-runner.ts",
     "testing:live:n8n": "bun run scripts/test-n8n-eval-runner.ts",
@@ -33,14 +112,5 @@
     "typecheck": "tsc --noEmit",
     "lint": "xo",
     "lint:fix": "xo --fix"
-  },
-  "devDependencies": {
-    "@vitest/coverage-v8": "4.1.5",
-    "@vitest/ui": "4.1.5",
-    "arktype": "2.2.0",
-    "bun-types": "1.3.13",
-    "typescript": "6.0.3",
-    "vitest": "4.1.5",
-    "xo": "1.2.3"
   }
 }

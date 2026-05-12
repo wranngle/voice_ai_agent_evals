@@ -7,8 +7,8 @@
 import {
   describe, expect, test, beforeEach, vi, afterEach,
 } from 'vitest';
-import {N8nEvalRunner} from '../../lib/testing/runners/n8n-eval-runner';
-import type {TestCase} from '../../lib/testing/types';
+import {N8nEvalRunner} from '../../src/testing/runners/n8n-eval-runner';
+import type {TestCase} from '../../src/testing/types';
 
 describe('n8n Eval Runner', () => {
   describe('Validation', () => {

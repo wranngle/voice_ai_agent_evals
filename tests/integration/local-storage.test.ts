@@ -32,7 +32,7 @@ import {
   getRequirementCoverageSync,
   generateId,
   clearAllDataSync,
-} from '../../lib/testing/local-storage';
+} from '../../src/testing/local-storage';
 
 // Use unique storage directory for this test file
 const UNIQUE_STORAGE_DIR = join(process.cwd(), '.test-data-local-storage-' + Date.now());
