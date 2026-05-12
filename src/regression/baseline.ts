@@ -14,6 +14,7 @@ import {
   readFileSync, writeFileSync, existsSync, mkdirSync,
 } from 'node:fs';
 import {dirname, join} from 'node:path';
+import {slugify} from '../internal/slug';
 import type {BaselineRun, BaselineSnapshot, CaptureBaselineOptions} from './types';
 
 const DEFAULT_BASELINES_DIR = 'baselines';
@@ -70,11 +71,9 @@ export function baselineExists(name: string, baselineDir = DEFAULT_BASELINES_DIR
 }
 
 function baselinePath(name: string, baselineDir: string): string {
-  // Strip dots from the slug to neutralize path-traversal-like names
-  // (`../foo` -> `-foo`). Trailing/leading hyphens get collapsed too.
-  const safe = name
-    .replaceAll(/[^\w-]/g, '-')
-    .replaceAll(/-+/g, '-')
-    .replaceAll(/^-+|-+$/g, '');
+  // Strip dots and non-word chars from the slug to neutralize path-traversal-like
+  // names (`../foo` -> `foo`). Uses src/internal/slug.ts — linear scan, no
+  // ReDoS risk on caller-supplied baseline names.
+  const safe = slugify(name, {maxLength: 96, allowedExtra: '_'});
   return join(baselineDir, `${safe}.json`);
 }

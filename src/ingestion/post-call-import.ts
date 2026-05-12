@@ -12,6 +12,7 @@
  */
 
 import type {TestCase} from '../testing/types';
+import {slugify} from '../internal/slug';
 import type {ElevenLabsPostCallPayload, ImportedTestCases} from './types';
 
 type ImportOptions = {
@@ -96,11 +97,8 @@ export function importPostCallWebhook(
 }
 
 function slug(value: string): string {
-  return value
-    .toLowerCase()
-    .replaceAll(/[^\da-z]+/g, '-')
-    .replaceAll(/^-+|-+$/g, '')
-    .slice(0, 48);
+  // Defer to the linear ReDoS-safe slugify helper.
+  return slugify(value, {maxLength: 48});
 }
 
 function defaultNow(): string {

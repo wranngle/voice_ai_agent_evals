@@ -15,7 +15,7 @@ import {
   type GovernanceOptions, type ModelRankings, type ParsedAgentName, type Phase, PHASES,
 } from './types';
 
-const PHASE_PATTERN = /^\[(DEV|ALPHA|BETA|PROD|ARCHIVED)]\s+(.+)$/;
+const PHASE_SET = new Set<string>(PHASES);
 
 export class GovernanceError extends Error {
   readonly code: 'phase_not_allowed' | 'untagged' | 'banned_model';
@@ -31,18 +31,49 @@ export class GovernanceError extends Error {
  *
  * `[DEV] Sarah - Wranngle Lead Specialist` → { phase: 'DEV', baseName: 'Sarah - Wranngle Lead Specialist', isTagged: true }.
  * `Sarah v2`                                → { phase: undefined, baseName: 'Sarah v2',                    isTagged: false }.
+ *
+ * Implemented as a linear string scan instead of regex — CodeQL flagged
+ * the previous `^\[(DEV|...)\]\s+(.+)$` pattern as polynomial on inputs
+ * like `'[DEV]   ...   '` with many leading spaces. Same semantics, no
+ * backtracking risk.
  */
 export function parseAgentName(raw: string): ParsedAgentName {
-  const match = PHASE_PATTERN.exec(raw);
-  if (!match) {
+  if (raw.length === 0 || !raw.startsWith('[')) {
+    return {
+      phase: undefined, baseName: raw, raw, isTagged: false,
+    };
+  }
+
+  const closeIdx = raw.indexOf(']');
+  if (closeIdx <= 1) {
+    return {
+      phase: undefined, baseName: raw, raw, isTagged: false,
+    };
+  }
+
+  const tag = raw.slice(1, closeIdx);
+  if (!PHASE_SET.has(tag)) {
+    return {
+      phase: undefined, baseName: raw, raw, isTagged: false,
+    };
+  }
+
+  const after = raw.slice(closeIdx + 1);
+  // Require at least one ASCII space/tab between ] and the base name.
+  let cursor = 0;
+  while (cursor < after.length && (after[cursor] === ' ' || after[cursor] === '\t')) {
+    cursor++;
+  }
+
+  if (cursor === 0 || cursor === after.length) {
     return {
       phase: undefined, baseName: raw, raw, isTagged: false,
     };
   }
 
   return {
-    phase: match[1] as Phase,
-    baseName: match[2],
+    phase: tag as Phase,
+    baseName: after.slice(cursor),
     raw,
     isTagged: true,
   };
