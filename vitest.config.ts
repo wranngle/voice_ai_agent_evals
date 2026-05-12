@@ -106,6 +106,17 @@ const offlineProjects = [
       testTimeout: 30_000,
     },
   },
+  {
+    // v1.0 scoring namespace (composer, assertions DSL, audio-native scorers).
+    // Pure unit tests; audio fixtures synthesized in-test so no binary commits.
+    test: {
+      name: 'scoring',
+      root: '.',
+      include: ['tests/scoring/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
 ];
 
 // Mixed-live projects: at least one describe block calls real HTTP behind a

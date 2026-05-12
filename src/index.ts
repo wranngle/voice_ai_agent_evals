@@ -16,6 +16,41 @@ export * from './testing/index';
 export type * from './extraction/types';
 export {verifyElevenLabsSignature} from './security/elevenlabs-signature';
 
+// v1.0 scoring surface (Phase 2+). Canonical subpath: `@wranngle/voice-evals/scoring`.
+export {
+  aggregate,
+  compose,
+  contains,
+  detectBargeIn,
+  detectSpeechSegments,
+  equals,
+  llmRubric,
+  not,
+  notAsync,
+  parseWav,
+  regex,
+  rmsEnvelope,
+  scoreBargeIn,
+  scoreVoiceActivity,
+  weighted,
+} from './scoring';
+export type {
+  Assertion,
+  AsyncAssertion,
+  BargeInOptions,
+  BargeInResult,
+  Caller,
+  DimensionScore,
+  LlmJudgeCallback,
+  RunOutcome,
+  Scorer,
+  SegmentationOptions,
+  SpeechSegment,
+  Status,
+  Task,
+  WavInfo,
+} from './scoring';
+
 // v1.0 wrapper surface (Phase 1+). Re-exported here for convenience; the
 // canonical subpath is `@wranngle/voice-evals/wrapper`.
 export {

@@ -41,6 +41,7 @@ jobs:
             --project n8n-eval \
             --project mcp \
             --project wrapper \
+            --project scoring \
             2>&1 | tee /tmp/vitest.log
       - name: Write GITHUB_STEP_SUMMARY
         if: always()
