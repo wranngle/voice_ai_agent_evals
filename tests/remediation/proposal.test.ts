@@ -87,4 +87,51 @@ describe('proposeFix', () => {
     const result = await proposeFix({llm, agentConfig: {}, failures: FAILURES});
     expect(result).toHaveLength(0);
   });
+
+  it('emits a deterministic proposal for SMS_AFTER_DECLINE without calling the LLM', async () => {
+    const llm = vi.fn();
+    const result = await proposeFix({
+      llm,
+      agentConfig: {agent: {prompt: {prompt: 'You are Sarah, an HVAC specialist.'}}},
+      failures: FAILURES,
+      detectedPatterns: [
+        {pattern: 'SMS_AFTER_DECLINE', description: 'SMS after decline'},
+      ],
+    });
+    expect(llm).not.toHaveBeenCalled();
+    expect(result).toHaveLength(1);
+    expect(result[0].target).toBe('system_prompt');
+    expect(result[0].proposed_value).toContain('SMS CONSENT');
+    expect(result[0].proposed_value).toContain('You are Sarah'); // current prompt preserved
+  });
+
+  it('skips the pattern proposal if the addendum is already in the prompt', async () => {
+    const llm = vi.fn().mockResolvedValue('[]');
+    const result = await proposeFix({
+      llm,
+      agentConfig: {agent: {prompt: {prompt: 'You are Sarah. SMS_AFTER_DECLINE rules already applied.'}}},
+      failures: FAILURES,
+      detectedPatterns: [
+        {pattern: 'SMS_AFTER_DECLINE', description: 'SMS after decline'},
+      ],
+    });
+    expect(llm).toHaveBeenCalled(); // fell through to LLM
+    expect(result).toHaveLength(0); // LLM returned []
+  });
+
+  it('emits a temperature-reduction proposal for INCONSISTENT_BEHAVIOR', async () => {
+    const llm = vi.fn();
+    const result = await proposeFix({
+      llm,
+      agentConfig: {agent: {prompt: {prompt: 'sys', temperature: 0.8}}},
+      failures: FAILURES,
+      detectedPatterns: [
+        {pattern: 'INCONSISTENT_BEHAVIOR', description: 'variance detected'},
+      ],
+    });
+    expect(llm).not.toHaveBeenCalled();
+    expect(result).toHaveLength(1);
+    expect(result[0].target).toBe('temperature');
+    expect(Number.parseFloat(result[0].proposed_value)).toBeCloseTo(0.5, 2);
+  });
 });

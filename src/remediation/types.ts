@@ -17,6 +17,7 @@
 import type {DimensionScore} from '../scoring/types';
 import type {GovernanceOptions, VoiceEvalsClient} from '../wrapper/types';
 import type {LlmCompleteCallback} from '../ingestion/types';
+import type {DetectedPattern, DetectionInput} from './patterns';
 
 export type FixTarget =
   | 'system_prompt'
@@ -56,6 +57,13 @@ export type ProposeFixOptions = {
   failures: readonly DimensionScore[];
   /** Optional extra context — e.g., the failing transcript or diff summary. */
   context?: string;
+  /**
+   * Optional patterns already detected by the ANALYZE phase. When provided
+   * AND the pattern has a non-empty `promptAddition`, the proposer can short-
+   * circuit the LLM call and emit a deterministic FixProposal that appends
+   * the pattern's canonical addendum.
+   */
+  detectedPatterns?: readonly DetectedPattern[];
 };
 
 export type ApplyFixOptions = {
@@ -79,6 +87,10 @@ export type ApplyFixResult = {
 
 export type EvaluateCallback = () => Promise<readonly DimensionScore[]>;
 
+export type AnalyzeCallback = (
+  failures: readonly DimensionScore[],
+) => DetectionInput | Promise<DetectionInput>;
+
 export type PolishLoopOptions = {
   client: VoiceEvalsClient;
   agentId: string;
@@ -94,6 +106,19 @@ export type PolishLoopOptions = {
   dryRun?: boolean;
   /** Pass through to wrapper governance. */
   governance?: GovernanceOptions;
+  /**
+   * Optional ANALYZE callback. Given the failing dimensions, returns the
+   * DetectionInput (transcripts, tool calls, expected tools) used by the
+   * deterministic pattern matcher. When omitted, the loop skips ANALYZE
+   * and feeds the failures straight to the LLM proposer.
+   */
+  analyze?: AnalyzeCallback;
+  /**
+   * Optional path to a JSONL friction log. When set, the loop appends a
+   * PATTERN_DETECTED / REMEDIATION_APPLIED / VERIFICATION_FAILED event for
+   * every iteration step.
+   */
+  frictionLogPath?: string;
 };
 
 export type PolishLoopStep = {
@@ -102,6 +127,8 @@ export type PolishLoopStep = {
   proposal: FixProposal | undefined;
   applied: boolean;
   failingAfter: number;
+  /** Patterns detected in the ANALYZE phase, if `analyze` callback was set. */
+  patternsDetected?: readonly DetectedPattern[];
 };
 
 export type PolishLoopResult = {
@@ -114,4 +141,9 @@ export type PolishLoopResult = {
     | 'patience_exhausted'
     | 'no_proposal';
   finalFailingCount: number;
+  /**
+   * Aggregate count of each detected pattern across all iterations (only
+   * populated when `analyze` was set).
+   */
+  patternsDetected?: Record<string, number>;
 };
