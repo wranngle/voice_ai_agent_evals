@@ -126,6 +126,113 @@ export function pairwise<T>(
 }
 
 /**
+ * Generalized k-way coverage. `pairwise` == `kWise(vars, {k: 2})`. For k=3,
+ * every (key_i=v, key_j=w, key_k=u) triple appears at least once. Cost
+ * grows roughly as `comb(n_keys, k) * prod(value_counts)` for the universe
+ * size; the greedy candidate sampler keeps the *output* size near optimal.
+ *
+ * Higher k = exponentially larger universe + slower convergence. k=3 is
+ * a reasonable upper bound for production use (interaction bugs caught
+ * by 3-way coverage are rare beyond that).
+ */
+export function kWise<T>(
+  variables: Record<string, T[]>,
+  options: {seed?: number; k?: number; candidateAttempts?: number} = {},
+): Array<Record<string, T>> {
+  const k = options.k ?? 2;
+  if (k < 2) {
+    throw new Error(`kWise: k must be >= 2 (got ${k})`);
+  }
+
+  const keys = Object.keys(variables);
+  if (keys.length === 0) {
+    return [];
+  }
+
+  if (keys.length < k) {
+    // Falls back to cartesian since you can't form a k-tuple from < k keys.
+    const arrays = keys.map(key => variables[key]);
+    return cartesian(...arrays).map(values => {
+      const rec: Record<string, T> = {};
+      for (const [idx, key] of keys.entries()) {
+        rec[key] = values[idx];
+      }
+
+      return rec;
+    });
+  }
+
+  if (keys.length === 1) {
+    return variables[keys[0]].map(v => ({[keys[0]]: v}));
+  }
+
+  // Build the universe of k-tuples we must cover. A k-tuple is encoded as
+  //   `key_i=val_a|key_j=val_b|...|key_k=val_z` (sorted by key for stable hashing).
+  const uncovered = new Set<string>();
+  const keyCombos = combinations(keys, k);
+  for (const combo of keyCombos) {
+    const valueArrays = combo.map(key => variables[key]);
+    for (const values of cartesian(...valueArrays)) {
+      uncovered.add(tupleKey(combo, values));
+    }
+  }
+
+  const rng = mulberry32(options.seed ?? 1);
+  const candidateAttempts = options.candidateAttempts ?? 64;
+  const out: Array<Record<string, T>> = [];
+  let safety = 0;
+
+  while (uncovered.size > 0 && safety < 100_000) {
+    let bestCandidate: Record<string, T> | undefined;
+    let bestCoverage = 0;
+
+    for (let attempt = 0; attempt < candidateAttempts; attempt++) {
+      const candidate: Record<string, T> = {};
+      for (const key of keys) {
+        const values = variables[key];
+        candidate[key] = values[Math.floor(rng() * values.length)];
+      }
+
+      const coverage = countTupleCoverage(candidate, keyCombos, uncovered);
+      if (coverage > bestCoverage) {
+        bestCoverage = coverage;
+        bestCandidate = candidate;
+        if (coverage === uncovered.size) {
+          break;
+        }
+      }
+    }
+
+    if (!bestCandidate || bestCoverage === 0) {
+      // Force one uncovered tuple into a defaulted candidate to guarantee
+      // termination. Same trick as `pairwise`.
+      const first = uncovered.values().next().value;
+      if (first === undefined) {
+        break;
+      }
+
+      const forced: Record<string, T> = {};
+      for (const key of keys) {
+        forced[key] = variables[key][0];
+      }
+
+      Object.assign(forced, parseTupleKey<T>(first, variables));
+      bestCandidate = forced;
+    }
+
+    for (const combo of keyCombos) {
+      const values = combo.map(key => bestCandidate[key]);
+      uncovered.delete(tupleKey(combo, values));
+    }
+
+    out.push(bestCandidate);
+    safety++;
+  }
+
+  return out;
+}
+
+/**
  * Seeded random subset of the cartesian product. Same seed -> same output.
  */
 export function sample<T>(
@@ -244,6 +351,75 @@ function countCoverage<T>(
       if (uncovered.has(pairKey(keys[i], candidate[keys[i]], keys[j], candidate[keys[j]]))) {
         count++;
       }
+    }
+  }
+
+  return count;
+}
+
+function combinations<T>(items: T[], k: number): T[][] {
+  if (k === 0) {
+    return [[]];
+  }
+
+  if (k > items.length) {
+    return [];
+  }
+
+  const out: T[][] = [];
+  for (let i = 0; i <= items.length - k; i++) {
+    const head = items[i];
+    for (const tail of combinations(items.slice(i + 1), k - 1)) {
+      out.push([head, ...tail]);
+    }
+  }
+
+  return out;
+}
+
+function tupleKey<T>(keys: string[], values: T[]): string {
+  const parts: string[] = [];
+  for (const [i, key] of keys.entries()) {
+    parts.push(`${key}=${stableStringify(values[i])}`);
+  }
+
+  return parts.join('|');
+}
+
+function parseTupleKey<T>(key: string, variables: Record<string, T[]>): Record<string, T> {
+  const out: Record<string, T> = {};
+  for (const half of key.split('|')) {
+    const eq = half.indexOf('=');
+    if (eq === -1) {
+      continue;
+    }
+
+    const k = half.slice(0, eq);
+    const serialized = half.slice(eq + 1);
+    const candidates = variables[k];
+    if (!candidates) {
+      continue;
+    }
+
+    const match = candidates.find(v => stableStringify(v) === serialized);
+    if (match !== undefined) {
+      out[k] = match;
+    }
+  }
+
+  return out;
+}
+
+function countTupleCoverage<T>(
+  candidate: Record<string, T>,
+  keyCombos: string[][],
+  uncovered: Set<string>,
+): number {
+  let count = 0;
+  for (const combo of keyCombos) {
+    const values = combo.map(key => candidate[key]);
+    if (uncovered.has(tupleKey(combo, values))) {
+      count++;
     }
   }
 

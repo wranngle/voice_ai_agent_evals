@@ -50,5 +50,14 @@ describe('META-AUDIT: CLI help vs dispatcher symmetric difference', () => {
     expect(onlyInDispatcher).toEqual([]);
   });
 
-  it.todo('extracts subcommands from `factory` dispatcher and confirms they appear in `factory --help`');
+  it('factory dispatcher subcommands appear in `factory --help` text', () => {
+    const dispatcherPath = join(process.cwd(), 'src', 'cli', 'commands', 'factory', 'index.ts');
+    const text = readFileSync(dispatcherPath, 'utf8');
+    const cases = [...text.matchAll(/^\s*case\s+'([\w-]+)':/gm)].map(m => m[1]);
+    // The help branch lives at the top of dispatchFactory before the switch.
+    const helpBlock = text.split('switch (subcommand)')[0];
+    for (const sub of cases) {
+      expect(helpBlock, `subcommand "${sub}" missing from factory help text`).toContain(sub);
+    }
+  });
 });

@@ -50,6 +50,7 @@ export {
   expandTemplate,
   generatedTestsToCreatePayloads,
   generatedToCreatePayload,
+  kWise,
   loadIndustries,
   loadTemplates,
   loadVariants,

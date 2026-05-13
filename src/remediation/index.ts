@@ -41,9 +41,16 @@ export type {GepaOptimizationInput, GepaOptimizationResult} from './gepa-bridge'
 
 // Phase D: friction log + cycle stats
 export {
-  getUnresolvedFrictions, logFriction, readFrictionLog, resolveFriction,
+  applyTombstones,
+  getUnresolvedFrictions,
+  logFriction,
+  readFrictionLog,
+  resolveFriction,
+  resolveFrictionAppend,
 } from './friction-log';
-export type {FrictionEvent, FrictionEventType, LogFrictionOptions} from './friction-log';
+export type {
+  FrictionEvent, FrictionEventType, LogFrictionOptions, ResolveMatcher,
+} from './friction-log';
 export {aggregateCycleStats} from './cycle-stats';
 export type {CycleStats} from './cycle-stats';
 

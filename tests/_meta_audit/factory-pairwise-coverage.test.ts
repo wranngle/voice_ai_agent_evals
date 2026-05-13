@@ -14,7 +14,7 @@
  */
 
 import {describe, expect, it} from 'vitest';
-import {pairwise} from '../../src/factory/expand';
+import {kWise, pairwise} from '../../src/factory/expand';
 
 describe('META-AUDIT: pairwise 2-way coverage rate', () => {
   it('covers 100% of pairs on a 4x4x4 input (the optimum)', () => {
@@ -71,5 +71,48 @@ describe('META-AUDIT: pairwise 2-way coverage rate', () => {
     expect(out.length).toBeLessThan(100);
   });
 
-  it.todo('supports 3-way coverage (currently 2-way only) — production users will ask');
+  it('kWise({k: 3}) covers every 3-tuple at least once on a 3x3x3x3 input', () => {
+    const variables = {
+      a: ['a1', 'a2', 'a3'], b: ['b1', 'b2', 'b3'], c: ['c1', 'c2', 'c3'], d: ['d1', 'd2', 'd3'],
+    };
+    const out = kWise(variables, {k: 3, seed: 1});
+    const keys = Object.keys(variables) as Array<keyof typeof variables>;
+
+    // Build the universe of expected (key_i, key_j, key_k) triples.
+    const expected = new Set<string>();
+    for (let i = 0; i < keys.length; i++) {
+      for (let j = i + 1; j < keys.length; j++) {
+        for (let k = j + 1; k < keys.length; k++) {
+          for (const v1 of variables[keys[i]]) {
+            for (const v2 of variables[keys[j]]) {
+              for (const v3 of variables[keys[k]]) {
+                expected.add(`${keys[i]}=${v1}|${keys[j]}=${v2}|${keys[k]}=${v3}`);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Build realized set from output.
+    const realized = new Set<string>();
+    for (const row of out) {
+      for (let i = 0; i < keys.length; i++) {
+        for (let j = i + 1; j < keys.length; j++) {
+          for (let k = j + 1; k < keys.length; k++) {
+            realized.add(`${keys[i]}=${row[keys[i]]}|${keys[j]}=${row[keys[j]]}|${keys[k]}=${row[keys[k]]}`);
+          }
+        }
+      }
+    }
+
+    expect(realized.size).toBe(expected.size); // 100% 3-way coverage
+    // 3x3x3x3 cartesian = 81. IPO 3-way optimum ~27-40. Allow generous slack.
+    expect(out.length).toBeLessThanOrEqual(81);
+    expect(out.length).toBeGreaterThanOrEqual(27);
+  });
+
+  it('kWise rejects k < 2', () => {
+    expect(() => kWise({a: [1]}, {k: 1})).toThrow(/k must be >= 2/);
+  });
 });

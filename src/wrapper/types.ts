@@ -24,6 +24,14 @@ export type ParsedAgentName = {
   baseName: string;
   raw: string;
   isTagged: boolean;
+  /**
+   * Set when the raw name has a `[TAG] …` prefix but TAG is not a known
+   * `Phase`. Examples: `[STAGING]`, `[dev]` (case-sensitive), `[foo]`.
+   * Operators should treat this as a naming-standard violation; the agent
+   * is parsed as untagged so mutation falls through to the untagged-rejection
+   * path of `enforceMutation`.
+   */
+  warning?: string;
 };
 
 /**

@@ -160,12 +160,8 @@ async function collectDims(evaluate: PolishLoopOptions['evaluate']): Promise<{
 
 function rememberDims(state: LoopState, dims: readonly DimensionScore[]): void {
   if (!state.initialFailing) {
-    state.initialFailing = new Set(
-      dims.filter(d => d.status === 'failed' || d.status === 'error').map(d => d.name),
-    );
-    state.initialPassing = new Set(
-      dims.filter(d => d.status === 'passed').map(d => d.name),
-    );
+    state.initialFailing = new Set(dims.filter(d => d.status === 'failed' || d.status === 'error').map(d => d.name));
+    state.initialPassing = new Set(dims.filter(d => d.status === 'passed').map(d => d.name));
     state.initialDims = dims;
   }
 
@@ -252,10 +248,8 @@ function finish(
   }
 
   if (state.initialFailing && state.lastDims) {
-    const finalFailing = new Set(
-      state.lastDims.filter(d => d.status === 'failed' || d.status === 'error').map(d => d.name),
-    );
-    const initialFailing = state.initialFailing;
+    const finalFailing = new Set(state.lastDims.filter(d => d.status === 'failed' || d.status === 'error').map(d => d.name));
+    const {initialFailing} = state;
     const initialPassing = state.initialPassing ?? new Set<string>();
 
     const improved = [...initialFailing].filter(name => !finalFailing.has(name));

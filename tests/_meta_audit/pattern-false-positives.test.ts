@@ -31,7 +31,7 @@ describe('META-AUDIT: SMS_AFTER_DECLINE specificity (post-fix)', () => {
   it('"I can\'t take SMS" is caught (semantic decline)', () => {
     const ids = detectPatterns({
       turns: [
-        {role: 'user', message: "I can't take SMS"},
+        {role: 'user', message: 'I can\'t take SMS'},
         {role: 'agent', message: 'sending.', toolCalls: [{name: 'send_sms'}]},
       ],
     }).map(d => d.pattern);
@@ -51,7 +51,7 @@ describe('META-AUDIT: SMS_AFTER_DECLINE specificity (post-fix)', () => {
   it('genuine decline still fires (regression guard)', () => {
     const ids = detectPatterns({
       turns: [
-        {role: 'user', message: "No, don't text me. I do not want SMS."},
+        {role: 'user', message: 'No, don\'t text me. I do not want SMS.'},
         {role: 'agent', message: 'sending now.', toolCalls: [{name: 'send_sms'}]},
       ],
     }).map(d => d.pattern);
@@ -72,7 +72,7 @@ describe('META-AUDIT: HOSTILE_RESPONSE specificity (post-fix)', () => {
 
   it('genuinely hostile agent still fires (regression guard)', () => {
     const ids = detectPatterns({
-      turns: [{role: 'agent', message: "you're wrong, this is annoying"}],
+      turns: [{role: 'agent', message: 'you\'re wrong, this is annoying'}],
     }).map(d => d.pattern);
     expect(ids).toContain('HOSTILE_RESPONSE');
   });

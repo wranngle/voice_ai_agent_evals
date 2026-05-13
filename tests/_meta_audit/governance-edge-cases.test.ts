@@ -23,12 +23,11 @@ import {describe, expect, it} from 'vitest';
 import {parseAgentName} from '../../src/wrapper/governance';
 
 describe('META-AUDIT: governance edge cases', () => {
-  it('lowercase [dev] is NOT recognized as a phase', () => {
-    // Reasonable behavior given the case-sensitive enum, but operators
-    // who paste from chat with lowercase tags will be surprised.
+  it('lowercase [dev] is NOT recognized as a phase, but now warns', () => {
     const parsed = parseAgentName('[dev] Sarah');
     expect(parsed.phase).toBeUndefined();
     expect(parsed.baseName).toBe('[dev] Sarah'); // whole string treated as name
+    expect(parsed.warning).toContain('non-canonical phase');
   });
 
   it('phase tag without trailing space is NOT recognized', () => {
@@ -65,11 +64,16 @@ describe('META-AUDIT: governance edge cases', () => {
     expect(parsed.phase).toBeUndefined();
   });
 
-  it.fails('NON-canonical phase like [STAGING] should be flagged as a naming violation, not silently passed through', () => {
-    // CURRENT behavior: [STAGING] is treated as part of the name. No flag, no warning.
-    // INTENDED: a phase-shaped prefix that is NOT in the canonical set should at least
-    // surface a warning. The wrapper has no such API today.
+  it('NON-canonical phase like [STAGING] surfaces a warning (post-fix)', () => {
     const parsed = parseAgentName('[STAGING] Sarah');
-    expect((parsed as Record<string, unknown>).warning).toContain('non-canonical phase');
+    expect(parsed.phase).toBeUndefined();
+    expect(parsed.warning).toContain('non-canonical phase');
+    expect(parsed.warning).toContain('STAGING');
+  });
+
+  it('canonical phase has no warning', () => {
+    const parsed = parseAgentName('[DEV] Sarah');
+    expect(parsed.phase).toBe('DEV');
+    expect(parsed.warning).toBeUndefined();
   });
 });

@@ -24,7 +24,7 @@ export type {
 } from './types';
 
 export {
-  cartesian, expand, pairwise, sample,
+  cartesian, expand, kWise, pairwise, sample,
 } from './expand';
 export type {FactoryContext} from './templates';
 export {

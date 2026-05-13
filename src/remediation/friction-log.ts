@@ -21,6 +21,7 @@ export type FrictionEventType =
   | 'AUTO_FIX'
   | 'CYCLE_START'
   | 'CYCLE_END'
+  | 'TOMBSTONE'
   | string;
 
 export type FrictionEvent = {
@@ -82,15 +83,97 @@ export function readFrictionLog(path: string = DEFAULT_PATH): FrictionEvent[] {
 }
 
 export function getUnresolvedFrictions(path: string = DEFAULT_PATH): FrictionEvent[] {
-  return readFrictionLog(path).filter(e => !e.resolved);
+  return applyTombstones(readFrictionLog(path)).filter(e => !e.resolved);
+}
+
+export type ResolveMatcher = {timestamp?: string; pattern?: string; type?: FrictionEventType};
+
+/**
+ * Append-only resolve: write a TOMBSTONE event referencing the original by
+ * timestamp/pattern/type. O(1) IO per call, no rewrite. `readFrictionLog`
+ * still returns the raw stream; use `compactFrictionLog()` or
+ * `getUnresolvedFrictions()` to apply tombstones at read time.
+ *
+ * Preferred over `resolveFriction()` for high-throughput logs (10k+ events).
+ * `resolveFriction()` is kept for backward compatibility — it rewrites the
+ * entire file, which is fine at small scale but O(N) IO at large scale.
+ */
+export function resolveFrictionAppend(
+  matcher: ResolveMatcher,
+  options: LogFrictionOptions = {},
+): FrictionEvent {
+  const path = options.path ?? DEFAULT_PATH;
+  const stamped: FrictionEvent = {
+    timestamp: (options.now ?? defaultNow)(),
+    type: 'TOMBSTONE',
+    pattern: matcher.pattern,
+    success: true,
+    resolved: true,
+    detail: JSON.stringify({matcher}),
+  };
+  appendFileSync(path, `${JSON.stringify(stamped)}\n`, 'utf8');
+  return stamped;
+}
+
+/**
+ * Apply tombstones to a stream of events. Returns the events with `resolved`
+ * flipped to true on any record matched by a TOMBSTONE event. Tombstones
+ * themselves are filtered from the output unless `includeTombstones: true`.
+ */
+export function applyTombstones(
+  events: readonly FrictionEvent[],
+  options: {includeTombstones?: boolean} = {},
+): FrictionEvent[] {
+  const tombstones: ResolveMatcher[] = [];
+  const out: FrictionEvent[] = [];
+  for (const event of events) {
+    if (event.type === 'TOMBSTONE') {
+      try {
+        const parsed = JSON.parse(event.detail ?? '{}') as {matcher?: ResolveMatcher};
+        if (parsed.matcher) {
+          tombstones.push(parsed.matcher);
+        }
+      } catch {
+        // Malformed tombstone — drop.
+      }
+
+      if (options.includeTombstones) {
+        out.push(event);
+      }
+
+      continue;
+    }
+
+    out.push(event);
+  }
+
+  return out.map(event => {
+    if (event.resolved) {
+      return event;
+    }
+
+    const matched = tombstones.some(m => matchesEvent(event, m));
+    return matched ? {...event, resolved: true} : event;
+  });
+}
+
+function matchesEvent(event: FrictionEvent, matcher: ResolveMatcher): boolean {
+  return (
+    (!matcher.timestamp || event.timestamp === matcher.timestamp)
+    && (!matcher.pattern || event.pattern === matcher.pattern)
+    && (!matcher.type || event.type === matcher.type)
+  );
 }
 
 /**
  * Mark a friction event as resolved (by timestamp+type match). Rewrites the
  * file. Returns the count of events updated.
+ *
+ * Use `resolveFrictionAppend()` for large logs — this implementation is
+ * O(N) IO per call.
  */
 export function resolveFriction(
-  matcher: {timestamp?: string; pattern?: string; type?: FrictionEventType},
+  matcher: ResolveMatcher,
   options: LogFrictionOptions = {},
 ): number {
   const path = options.path ?? DEFAULT_PATH;
