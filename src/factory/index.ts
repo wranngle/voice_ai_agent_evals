@@ -28,6 +28,6 @@ export {
 } from './expand';
 export type {FactoryContext} from './templates';
 export {
-  expandAll, expandTemplate, loadIndustries, loadTemplates, loadVariants,
+  expandAll, expandTemplate, loadIndustries, loadTemplates, loadVariants, resolveInheritance,
 } from './templates';
 export {generatedTestsToCreatePayloads, generatedToCreatePayload} from './to-elevenlabs';

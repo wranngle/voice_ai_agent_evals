@@ -69,6 +69,41 @@ export function loadTemplates(path: string): Template[] {
 }
 
 /**
+ * Resolve a template's `inherit:` reference + apply `overrides:`.
+ *
+ * Lookup order: scan the provided template pool by `id`. Inheritance is
+ * one level (no chains) — keep the model simple. If `parent.expand_with`
+ * is present and child overrides it, the child wins; otherwise child
+ * inherits the parent's expansion dimensions.
+ *
+ * Returns a NEW Template object; the input is untouched. Throws when
+ * `inherit:` points to an unknown id (loud failure, not silent no-op).
+ */
+export function resolveInheritance(template: Template, pool: readonly Template[]): Template {
+  if (!template.inherit && !template.overrides) {
+    return template;
+  }
+
+  const merged: Template = {...template};
+  if (template.inherit) {
+    const parent = pool.find(t => t.id === template.inherit);
+    if (!parent) {
+      throw new Error(`resolveInheritance: template "${template.id}" inherits from "${template.inherit}", which is not in the pool`);
+    }
+
+    Object.assign(merged, parent, template);
+  }
+
+  if (template.overrides) {
+    Object.assign(merged, template.overrides);
+  }
+
+  delete merged.inherit;
+  delete merged.overrides;
+  return merged;
+}
+
+/**
  * Expand one template into N concrete GeneratedTests.
  *
  * For each variable in `expand_with`, the corresponding bucket from
@@ -113,7 +148,8 @@ export function expandAll(
   context: FactoryContext,
   options: ExpandOptions,
 ): GeneratedTest[] {
-  return templates.flatMap(template => expandTemplate(template, context, options));
+  return templates.flatMap(template =>
+    expandTemplate(resolveInheritance(template, templates), context, options));
 }
 
 // ---------- internals ----------

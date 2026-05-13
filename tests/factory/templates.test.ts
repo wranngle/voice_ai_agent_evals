@@ -1,7 +1,7 @@
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {
-  expandAll, expandTemplate, loadIndustries, loadTemplates, loadVariants,
+  expandAll, expandTemplate, loadIndustries, loadTemplates, loadVariants, resolveInheritance,
 } from '../../src/factory/templates';
 import type {
   FactoryContext, Industry, Template, Variant,
@@ -164,6 +164,66 @@ describe('expandAll', () => {
     const result = expandAll(templates, context, {strategy: 'cartesian'});
     expect(result).toHaveLength(2);
     expect(result.map(r => r.id)).toEqual(['a-hvac', 'b-hvac']);
+  });
+
+  it('resolveInheritance merges parent fields onto child', () => {
+    const parent: Template = {
+      id: 'base_industry_pitch',
+      name: 'Base pitch',
+      type: 'llm',
+      priority: 'high',
+      chat_history: [{role: 'user', message: 'Hi, calling about {industry_name}'}],
+      success_condition: 'agent acknowledges industry',
+      expand_with: ['industries'],
+    };
+    const child: Template = {
+      id: 'objection_pitch_{industry}',
+      name: 'Objection: {industry_name}',
+      type: 'llm',
+      inherit: 'base_industry_pitch',
+      overrides: {priority: 'critical'},
+    };
+    const merged = resolveInheritance(child, [parent, child]);
+    expect(merged.chat_history?.length).toBe(1); // inherited
+    expect(merged.success_condition).toBe('agent acknowledges industry'); // inherited
+    expect(merged.priority).toBe('critical'); // override wins
+    expect(merged.name).toBe('Objection: {industry_name}'); // child wins
+    expect(merged.expand_with).toEqual(['industries']); // inherited
+    expect(merged.inherit).toBeUndefined();
+    expect(merged.overrides).toBeUndefined();
+  });
+
+  it('resolveInheritance is a no-op when neither inherit nor overrides is set', () => {
+    const template: Template = {id: 'plain', name: 'Plain', type: 'llm'};
+    expect(resolveInheritance(template, [template])).toBe(template);
+  });
+
+  it('resolveInheritance throws on missing parent', () => {
+    const child: Template = {
+      id: 'orphan', name: 'O', type: 'llm', inherit: 'ghost',
+    };
+    expect(() => resolveInheritance(child, [child])).toThrow(/inherit/);
+  });
+
+  it('expandAll runs resolveInheritance for each template', () => {
+    const parent: Template = {
+      id: 'shared_history',
+      name: 'Shared',
+      type: 'llm',
+      chat_history: [{role: 'user', message: 'hello'}],
+      success_condition: 'agent says hi',
+    };
+    const child: Template = {
+      id: 'derived',
+      name: 'Derived',
+      type: 'llm',
+      inherit: 'shared_history',
+      overrides: {success_condition: 'agent responds politely'},
+    };
+    const result = expandAll([parent, child], {}, {strategy: 'cartesian'});
+    const derived = result.find(r => r.id === 'derived');
+    expect(derived?.chat_history?.[0].message).toBe('hello'); // inherited
+    expect(derived?.success_condition).toBe('agent responds politely'); // overridden
   });
 
   it('expands all archive templates against archive context (smoke test)', () => {
