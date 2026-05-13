@@ -17,6 +17,18 @@ export {
 } from './patterns';
 export type {WorkflowFixId} from './patterns';
 export {NODE_LEVEL_PROPS} from './types';
+// Audit 3: Layer 7 black-box workflow eval runner
+export {evaluateAndLogFrictions, evaluateWorkflows} from './workflow-eval';
+export type {
+  WorkflowCheck,
+  WorkflowDefinition,
+  WorkflowEvalConfig,
+  WorkflowEvalResult,
+  WorkflowEvalRunnerOptions,
+  WorkflowEvalSummary,
+  WorkflowTestCase,
+  WorkflowTestResult,
+} from './workflow-eval';
 export type {
   N8nConnectionMap,
   N8nConnectionTarget,

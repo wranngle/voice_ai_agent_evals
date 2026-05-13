@@ -59,3 +59,9 @@ export {detectPatterns, FAILURE_PATTERNS, getPattern} from './patterns';
 export type {
   DetectedPattern, DetectionInput, FailurePattern, FailurePatternId, TranscriptTurn,
 } from './patterns';
+
+// Audit 2: supersystem orchestrator (L1 + L2 + L3)
+export {runSupersystem} from './supersystem';
+export type {
+  N8nCycleResult, RunSupersystemOptions, RunSupersystemResult, SupersystemN8nHooks,
+} from './supersystem';

@@ -87,7 +87,9 @@ export {
   proposeFix,
   readFrictionLog,
   resolveFriction,
+  resolveFrictionAppend,
   runGepaOptimization,
+  runSupersystem,
 } from './remediation';
 export type {
   AnalyzeCallback,
@@ -110,6 +112,9 @@ export type {
   PolishLoopResult,
   PolishLoopStep,
   ProposeFixOptions,
+  RunSupersystemOptions,
+  RunSupersystemResult,
+  SupersystemN8nHooks,
   TranscriptTurn,
 } from './remediation';
 

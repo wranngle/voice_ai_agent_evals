@@ -86,6 +86,26 @@ async function dispatch(): Promise<number | undefined> {
       return dispatchFactory({argv: process.argv.slice(3)});
     }
 
+    case 'agent': {
+      const {dispatchAgent} = await import('./cli/commands/agent');
+      return dispatchAgent({argv: process.argv.slice(3)});
+    }
+
+    case 'friction': {
+      const {dispatchFriction} = await import('./cli/commands/friction');
+      return dispatchFriction({argv: process.argv.slice(3)});
+    }
+
+    case 'n8n': {
+      const {dispatchN8n} = await import('./cli/commands/n8n');
+      return dispatchN8n({argv: process.argv.slice(3)});
+    }
+
+    case 'scenarios': {
+      const {dispatchScenarios} = await import('./cli/commands/scenarios');
+      return dispatchScenarios({argv: process.argv.slice(3)});
+    }
+
     case 'legacy': {
       // Shift argv left so the legacy CLI sees its own subcommand at argv[2].
       process.argv = [process.argv[0], process.argv[1], ...process.argv.slice(3)];

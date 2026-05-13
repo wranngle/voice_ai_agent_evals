@@ -39,6 +39,24 @@ PRIMARY COMMANDS
       bulk tests against an ElevenLabs agent. Subcommands: generate, upload,
       list, cleanup, execute, report, run. See \`voice-evals factory --help\`.
 
+  agent <subcommand>
+      Agent CRUD with [PHASE] governance. Subcommands: list, create, clone,
+      archive, promote. See \`voice-evals agent --help\`.
+
+  friction <subcommand>
+      Friction-log audit ops. Subcommands: tail, list, resolve. The
+      resolve subcommand appends an O(1) TOMBSTONE event rather than
+      rewriting the log. See \`voice-evals friction --help\`.
+
+  n8n <subcommand>
+      n8n workflow corrector + Layer 7 black-box runner. Subcommands:
+      diagnose, fix, eval. See \`voice-evals n8n --help\`. Requires
+      N8N_API_KEY and N8N_BASE_URL env vars.
+
+  scenarios <subcommand>
+      Random simulated-user scenario generator. Subcommand: generate.
+      See \`voice-evals scenarios --help\`.
+
   baseline capture <name>
       Snapshot the latest stored run's results as a baseline JSON under
       baselines/<name>.json.
