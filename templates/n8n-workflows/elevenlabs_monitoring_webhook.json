@@ -5,39 +5,281 @@
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [0, 0],
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "d699f4d0-09e6-4db9-82ba-4d5456cab49a",
       "parameters": {
         "httpMethod": "POST",
         "path": "elevenlabs/monitoring",
         "responseMode": "responseNode",
-        "options": {"rawBody": true}
+        "options": {
+          "rawBody": true
+        }
       }
     },
     {
-      "name": "Verify + Forward to Sink",
+      "name": "Parse Signature",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [400, 0],
+      "position": [
+        220,
+        0
+      ],
       "parameters": {
         "language": "javaScript",
-        "jsCode": "// v1 receiver — accepts all payloads (HMAC deferred, see post-call workflow\n// for the reason; n8n's Code-node vm sandbox does not expose 'crypto').\n// Real-time monitoring is enterprise-only on this workspace tier so this\n// listener is currently never invoked by ElevenLabs. Listener stays online\n// for when the tier upgrades.\nconst item = $input.first();\nconst headers = item.json.headers || {};\nconst sigHeader = headers['elevenlabs-signature'] || headers['ElevenLabs-Signature'] || '';\nconst payload = typeof item.json.body === 'string' ? JSON.parse(item.json.body) : (item.json.body || item.json);\n\nreturn [{json: {\n  verified: null,\n  verification_note: 'HMAC deferred — accepts all',\n  signature_header_present: Boolean(sigHeader),\n  received_at: new Date().toISOString(),\n  payload\n}}];"
+        "jsCode": "// Extract t and v0 from the ElevenLabs-Signature header.\n// Build signing_string = \"${t}.${rawBody}\" — the input the Crypto node hashes.\n// No 'crypto' dependency here; n8n's sandbox blocks it.\nconst item = $input.first();\nconst headers = item.json.headers || {};\nconst sigHeader = headers['elevenlabs-signature'] || headers['ElevenLabs-Signature'] || '';\nconst rawBody = item.json.rawBody || (typeof item.json.body === 'string' ? item.json.body : JSON.stringify(item.json.body || item.json));\nconst parts = sigHeader.split(',').reduce((acc, p) => { const [k, v] = p.split('='); acc[k] = v; return acc; }, {});\nconst t = parts.t || '';\nconst v0 = parts.v0 || '';\nconst ageSeconds = t ? Math.abs(Math.floor(Date.now()/1000) - parseInt(t, 10)) : 999999;\nconst payload = typeof item.json.body === 'string' ? JSON.parse(item.json.body) : (item.json.body || item.json);\nreturn [{json: {\n  signing_string: t + '.' + rawBody,\n  t,\n  v0_received: v0,\n  age_seconds: ageSeconds,\n  signature_present: Boolean(t && v0),\n  payload,\n  event_type: payload.type || 'unknown',\n  received_at: new Date().toISOString()\n}}];"
       }
     },
     {
-      "name": "Respond to Webhook",
+      "name": "HMAC Compute",
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 1,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "action": "hmac",
+        "type": "SHA256",
+        "value": "={{$json.signing_string}}",
+        "secret": "PLACEHOLDER_SECRET_substitute_via_deploy_script",
+        "encoding": "hex",
+        "dataPropertyName": "v0_computed"
+      }
+    },
+    {
+      "name": "Verify Signature",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "sig-eq",
+              "leftValue": "={{$json.v0_computed}}",
+              "rightValue": "={{$json.v0_received}}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "sig-fresh",
+              "leftValue": "={{$json.age_seconds}}",
+              "rightValue": 1800,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "name": "Format Monitoring",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        -80
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Monitoring webhook payloads stream real-time events: user_transcript,\n// agent_response, agent_response_correction. Format for ingest.\nconst item = $input.first().json;\nconst p = item.payload || {};\nreturn [{json: {\n  event: 'monitoring_stream',\n  stream_event_type: p.type || p.event_type,\n  conversation_id: p.conversation_id,\n  agent_id: p.agent_id,\n  text: p.message || p.transcript || p.response,\n  raw: p\n}}];"
+      }
+    },
+    {
+      "name": "Has Ingest URL?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        -80
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true
+          },
+          "conditions": [
+            {
+              "id": "has-ing",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "name": "POST Ingest",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1320,
+        -120
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost/elevenlabs-ingest",
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 3000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Respond 200",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [800, 0],
+      "position": [
+        1540,
+        -80
+      ],
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({status: 'ok'}) }}",
-        "options": {"responseCode": 200}
+        "responseBody": "={{ JSON.stringify({status: 'ok', event: $json.event || $json.event_type || 'unknown', conversation_id: $json.conversation_id}) }}",
+        "options": {
+          "responseCode": 200
+        }
+      }
+    },
+    {
+      "name": "Respond 401",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        880,
+        120
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({status: 'rejected', reason: 'signature_invalid_or_stale'}) }}",
+        "options": {
+          "responseCode": 401
+        }
       }
     }
   ],
   "connections": {
-    "Webhook": {"main": [[{"node": "Verify + Forward to Sink", "type": "main", "index": 0}]]},
-    "Verify + Forward to Sink": {"main": [[{"node": "Respond to Webhook", "type": "main", "index": 0}]]}
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse Signature",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Signature": {
+      "main": [
+        [
+          {
+            "node": "HMAC Compute",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HMAC Compute": {
+      "main": [
+        [
+          {
+            "node": "Verify Signature",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Signature": {
+      "main": [
+        [
+          {
+            "node": "Format Monitoring",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 401",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Monitoring": {
+      "main": [
+        [
+          {
+            "node": "Has Ingest URL?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Ingest URL?": {
+      "main": [
+        [
+          {
+            "node": "POST Ingest",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST Ingest": {
+      "main": [
+        [
+          {
+            "node": "Respond 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": {"executionOrder": "v1"}
+  "settings": {
+    "executionOrder": "v1"
+  }
 }

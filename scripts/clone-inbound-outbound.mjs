@@ -9,8 +9,11 @@
 
 import {writeFileSync, existsSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
+import {createTracer} from './lib/jsonl-trace.mjs';
 
 const ROOT = process.cwd();
+const trace = createTracer('script.clone-inbound-outbound');
+trace.info('start');
 const SOURCE_AGENT_ID = 'agent_8401krfj3xrqek2bfw71fyw2nzq0';
 const REGISTRY_PATH = join(ROOT, 'snapshots', 'inbound-outbound-clones-2026-05-12.json');
 

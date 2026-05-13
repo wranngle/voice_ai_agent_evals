@@ -30,7 +30,6 @@ import {verifyElevenLabsSignature} from '../../src/security/elevenlabs-signature
 
 const ROOT = process.cwd();
 const TESTS_DIR = join(ROOT, 'tests');
-const LOGS_DIR = join(ROOT, 'logs');
 
 function walkFiles(dir: string, predicate: (path: string) => boolean): string[] {
   if (!existsSync(dir)) return [];

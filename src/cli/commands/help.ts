@@ -53,6 +53,12 @@ PRIMARY COMMANDS
       diagnose, fix, eval. See \`voice-evals n8n --help\`. Requires
       N8N_API_KEY and N8N_BASE_URL env vars.
 
+  webhooks <subcommand>
+      Bootstrap and manage the ElevenLabs n8n webhook plumbing
+      (post-call, monitoring, client-initiation). Subcommands: status,
+      provision, rotate. See \`voice-evals webhooks --help\`. Requires
+      ELEVENLABS_API_KEY, N8N_API_URL, N8N_API_KEY env vars.
+
   scenarios <subcommand>
       Random simulated-user scenario generator. Subcommand: generate.
       See \`voice-evals scenarios --help\`.

@@ -101,6 +101,11 @@ async function dispatch(): Promise<number | undefined> {
       return dispatchN8n({argv: process.argv.slice(3)});
     }
 
+    case 'webhooks': {
+      const {dispatchWebhooks} = await import('./cli/commands/webhooks');
+      return dispatchWebhooks({argv: process.argv.slice(3)});
+    }
+
     case 'scenarios': {
       const {dispatchScenarios} = await import('./cli/commands/scenarios');
       return dispatchScenarios({argv: process.argv.slice(3)});

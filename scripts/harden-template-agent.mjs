@@ -9,8 +9,11 @@
 
 import {readFileSync, writeFileSync, existsSync} from 'node:fs';
 import {join} from 'node:path';
+import {createTracer} from './lib/jsonl-trace.mjs';
 
 const ROOT = process.cwd();
+const trace = createTracer('script.harden-template-agent', {key: 'agent_8401krfj3xrqek2bfw71fyw2nzq0'});
+trace.info('start');
 const AGENT_ID = 'agent_8401krfj3xrqek2bfw71fyw2nzq0';
 const SNAPSHOT_PATH = join(ROOT, 'snapshots', 'template-pre-hardening-2026-05-12.json');
 const PROMPT_V1_PATH = join(ROOT, 'templates', 'elevenlabs-agents', 'template-system-prompt-v1.md');
