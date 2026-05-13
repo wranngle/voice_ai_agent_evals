@@ -174,6 +174,16 @@ const offlineProjects = [
       testTimeout: 30_000,
     },
   },
+  {
+    // v1.1 n8n workflow auto-corrector. Mocked fetch; no real n8n needed.
+    test: {
+      name: 'n8n',
+      root: '.',
+      include: ['tests/n8n/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
 ];
 
 // Mixed-live projects: at least one describe block calls real HTTP behind a

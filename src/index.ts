@@ -16,6 +16,32 @@ export * from './testing/index';
 export type * from './ingestion/extraction/types';
 export {verifyElevenLabsSignature} from './security/elevenlabs-signature';
 
+// v1.1 n8n corrector surface (Phase F). Canonical subpath: `@wranngle/voice-evals/n8n`.
+export {
+  WORKFLOW_FIXES,
+  addErrorHandling,
+  addRetryLogic,
+  addTimeout,
+  applyOperation,
+  createN8nCorrector,
+  fixWebhookData,
+  NODE_LEVEL_PROPS,
+} from './n8n';
+export type {
+  N8nConnectionMap,
+  N8nConnectionTarget,
+  N8nCorrectorClient,
+  N8nCorrectorOptions,
+  N8nNode,
+  N8nNodeName,
+  N8nWorkflow,
+  NodeChanges,
+  NodeOperation,
+  WorkflowDiagnosis,
+  WorkflowFailureContext,
+  WorkflowFixId,
+} from './n8n';
+
 // v1.1 factory surface (Phase B+). Canonical subpath: `@wranngle/voice-evals/factory`.
 export {
   cartesian,
@@ -44,26 +70,44 @@ export type {
 
 // v1.0 remediation surface (Phase 5+). Canonical subpath: `@wranngle/voice-evals/remediation`.
 export {
+  FAILURE_PATTERNS,
   GepaUnavailableError,
+  aggregateCycleStats,
   applyFix,
+  detectPatterns,
+  getPattern,
   getSidecarPaths,
+  getUnresolvedFrictions,
   isGepaAvailable,
+  logFriction,
   polishLoop,
   proposeFix,
+  readFrictionLog,
+  resolveFriction,
   runGepaOptimization,
 } from './remediation';
 export type {
+  AnalyzeCallback,
   ApplyFixOptions,
   ApplyFixResult,
+  CycleStats,
+  DetectedPattern,
+  DetectionInput,
   EvaluateCallback,
+  FailurePattern,
+  FailurePatternId,
   FixProposal,
   FixTarget,
+  FrictionEvent,
+  FrictionEventType,
   GepaOptimizationInput,
   GepaOptimizationResult,
+  LogFrictionOptions,
   PolishLoopOptions,
   PolishLoopResult,
   PolishLoopStep,
   ProposeFixOptions,
+  TranscriptTurn,
 } from './remediation';
 
 // v1.0 regression surface (Phase 4+). Canonical subpath: `@wranngle/voice-evals/regression`.

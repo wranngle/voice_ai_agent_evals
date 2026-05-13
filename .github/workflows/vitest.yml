@@ -47,6 +47,7 @@ jobs:
             --project remediation \
             --project cli \
             --project factory \
+            --project n8n \
             2>&1 | tee /tmp/vitest-bun.log
       - name: Write GITHUB_STEP_SUMMARY
         if: always()
@@ -99,6 +100,7 @@ jobs:
             --project remediation \
             --project cli \
             --project factory \
+            --project n8n \
             2>&1 | tee /tmp/vitest-node.log
       - name: Write GITHUB_STEP_SUMMARY
         if: always()
