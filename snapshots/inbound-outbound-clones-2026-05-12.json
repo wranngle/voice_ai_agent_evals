@@ -1,0 +1,21 @@
+{
+  "source": "agent_8401krfj3xrqek2bfw71fyw2nzq0",
+  "source_name": "[TEMPLATE]",
+  "cloned_at": "2026-05-12",
+  "clones": {
+    "inbound": {
+      "agent_id": "agent_7601krfykfpwfjxrjqcshg64pcby",
+      "name": "[DEV] INBOUND TEMPLATE [TEMPLATE]",
+      "initial_wait_time": -1,
+      "trust_context": "low",
+      "purpose": "Inbound calls — agent speaks immediately on pickup (no wait)."
+    },
+    "outbound": {
+      "agent_id": "agent_3701krfykgvvep8r9vwwjk033p5k",
+      "name": "[DEV] OUTBOUND TEMPLATE [TEMPLATE]",
+      "initial_wait_time": 12,
+      "trust_context": "low",
+      "purpose": "Outbound calls — agent waits 12s before speaking (lets callee answer first)."
+    }
+  }
+}
