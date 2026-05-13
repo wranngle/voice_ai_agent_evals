@@ -184,6 +184,20 @@ const offlineProjects = [
       testTimeout: 30_000,
     },
   },
+  {
+    // Meta-audit suite: tests that highlight design + architecture
+    // shortcomings, not feature correctness. See docs/META-AUDIT.md.
+    // Some tests use `it.fails` or `it.todo` to mark known-broken-by-design
+    // contracts. These should be promoted to real tests as the underlying
+    // gaps get fixed.
+    test: {
+      name: '_meta_audit',
+      root: '.',
+      include: ['tests/_meta_audit/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 60_000,
+    },
+  },
 ];
 
 // Mixed-live projects: at least one describe block calls real HTTP behind a
