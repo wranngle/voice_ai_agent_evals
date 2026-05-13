@@ -20,6 +20,21 @@ export {
 } from './tools';
 export {signElevenLabsPayload, verifyElevenLabsSignature} from './webhooks';
 
+export {createTestsApi} from './tests';
+export type {
+  PollInvocationOptions,
+  RunBatchResult,
+  TestCreateInput,
+  TestInvocationResult,
+  TestListOptions,
+  TestRunSummary,
+  TestStatus,
+  TestSummary,
+  TestUpdateInput,
+  TestWithConfig,
+  TestsApi,
+} from './tests';
+
 export type {
   AgentSummary,
   AgentTool,

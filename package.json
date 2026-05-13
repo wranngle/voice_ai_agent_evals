@@ -47,6 +47,10 @@
       "types": "./dist/wrapper/index.d.ts",
       "import": "./dist/wrapper/index.js"
     },
+    "./tests-api": {
+      "types": "./dist/wrapper/tests.d.ts",
+      "import": "./dist/wrapper/tests.js"
+    },
     "./scoring": {
       "types": "./dist/scoring/index.d.ts",
       "import": "./dist/scoring/index.js"

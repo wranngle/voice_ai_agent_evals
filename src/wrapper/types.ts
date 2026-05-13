@@ -9,6 +9,7 @@
 
 import type {ElevenLabsClient} from '@elevenlabs/elevenlabs-js';
 import type {VerifyOptions, VerifyResult} from '../security/elevenlabs-signature';
+import type {TestsApi} from './tests';
 
 export type Phase = 'DEV' | 'ALPHA' | 'BETA' | 'PROD' | 'ARCHIVED';
 
@@ -144,4 +145,8 @@ export type VoiceEvalsClient = {
   agents: AgentsApi;
   tools: ToolsApi;
   webhooks: WebhooksApi;
+  /** ElevenLabs Tests API — bulk test CRUD + invocation polling. */
+  tests: TestsApi;
 };
+
+export type {TestsApi} from './tests';
