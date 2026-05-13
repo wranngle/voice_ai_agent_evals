@@ -74,9 +74,43 @@ export type AgentWithConfig = AgentSummary & {
   config: unknown;
 };
 
+export type AgentCreateInput = {
+  [extra: string]: unknown;
+  name: string;
+  conversationConfig?: unknown;
+};
+
+export type AgentCreateOptions = {
+  /** Permit `name` without a `[PHASE]` prefix. The wrapper auto-prefixes `[DEV]`. Default true. */
+  autoPrefixDev?: boolean;
+};
+
+export type AgentUpdateInput = {
+  [extra: string]: unknown;
+  name?: string;
+  conversationConfig?: unknown;
+};
+
+export type AgentCloneOptions = {
+  /** Prefix for the new agent's base name. Default: `Clone of`. */
+  namePrefix?: string;
+  /** Patch to apply to the cloned agent right after creation. */
+  overrides?: AgentUpdateInput;
+};
+
+export type AgentPromoteOptions = GovernanceOptions & {
+  /** Who approved the promotion (audit trail). */
+  approvedBy?: string;
+};
+
 export type AgentsApi = {
   list: () => Promise<AgentSummary[]>;
   get: (agentId: string) => Promise<AgentWithConfig>;
+  create: (spec: AgentCreateInput, options?: AgentCreateOptions) => Promise<AgentSummary>;
+  update: (agentId: string, patch: AgentUpdateInput, options?: GovernanceOptions) => Promise<AgentWithConfig>;
+  clone: (sourceAgentId: string, options?: AgentCloneOptions) => Promise<AgentSummary>;
+  archive: (agentId: string, options?: GovernanceOptions) => Promise<AgentSummary>;
+  promote: (agentId: string, toPhase: Phase, options: AgentPromoteOptions) => Promise<AgentSummary>;
 };
 
 export type AgentTool = {
