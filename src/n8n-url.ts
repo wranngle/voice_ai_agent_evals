@@ -22,7 +22,7 @@ export function normalizeN8nApiUrl(value: string): string {
  * Imperative linear-time trailing-slash trim. Avoids `/\/+$/` which CodeQL
  * flags as polynomial-regex risk on user-controlled input.
  */
-function trimTrailingSlashes(value: string): string {
+export function trimTrailingSlashes(value: string): string {
   let end = value.length;
   while (end > 0 && value.codePointAt(end - 1) === 47 /* '/' */) {
     end--;

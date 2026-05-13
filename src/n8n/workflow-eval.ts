@@ -13,6 +13,7 @@
  * `evaluateAndLogFrictions()` so the supersystem orchestrator picks them up.
  */
 
+import {trimTrailingSlashes} from '../n8n-url';
 import {logFriction} from '../remediation/friction-log';
 
 export type WorkflowTestCase = {
@@ -154,7 +155,7 @@ async function executeTestCase(
   testCase: WorkflowTestCase,
   fetchImpl: typeof globalThis.fetch,
 ): Promise<WorkflowTestResult> {
-  const url = `${baseUrl.replace(/\/+$/, '')}${workflow.webhook_path}`;
+  const url = `${trimTrailingSlashes(baseUrl)}${workflow.webhook_path}`;
   const timeoutMs = testCase.timeout_ms ?? 30_000;
   const start = Date.now();
   const controller = new AbortController();
