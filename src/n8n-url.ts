@@ -14,6 +14,19 @@
  * empty source URL before calling.
  */
 export function normalizeN8nApiUrl(value: string): string {
-  const trimmed = value.trim().replace(/\/+$/, '');
+  const trimmed = trimTrailingSlashes(value.trim());
   return trimmed.endsWith('/api/v1') ? trimmed : `${trimmed}/api/v1`;
+}
+
+/**
+ * Imperative linear-time trailing-slash trim. Avoids `/\/+$/` which CodeQL
+ * flags as polynomial-regex risk on user-controlled input.
+ */
+function trimTrailingSlashes(value: string): string {
+  let end = value.length;
+  while (end > 0 && value.codePointAt(end - 1) === 47 /* '/' */) {
+    end--;
+  }
+
+  return end === value.length ? value : value.slice(0, end);
 }

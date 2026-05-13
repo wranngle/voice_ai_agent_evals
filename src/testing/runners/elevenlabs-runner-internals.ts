@@ -399,8 +399,26 @@ export function criteriaIdentifierCandidates(value: string): string[] {
 }
 
 export function slugify(value: string): string {
-  const slug = value.toLowerCase().replaceAll(/[^a-z\d]+/g, '_').replaceAll(/^_+|_+$/g, '');
-  return slug || 'criterion';
+  // Imperative linear-time scan — avoids `/[^a-z\d]+/g` + `/^_+|_+$/g`
+  // which CodeQL flags as polynomial-regex risk on user-controlled input.
+  const out: string[] = [];
+  let lastWasUnderscore = false;
+  for (const ch of value.toLowerCase()) {
+    const isAlnum = (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9');
+    if (isAlnum) {
+      out.push(ch);
+      lastWasUnderscore = false;
+    } else if (!lastWasUnderscore && out.length > 0) {
+      out.push('_');
+      lastWasUnderscore = true;
+    }
+  }
+
+  while (out.length > 0 && out.at(-1) === '_') {
+    out.pop();
+  }
+
+  return out.length === 0 ? 'criterion' : out.join('');
 }
 
 export function isSuccessString(value: string): boolean {
