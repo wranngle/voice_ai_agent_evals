@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {
-  detectPatterns, FAILURE_PATTERNS, getPattern,
+  detectPatterns, diagnoseFromFailure, FAILURE_PATTERNS, getPattern,
   type DetectionInput, type TranscriptTurn,
 } from '../../src/remediation/patterns';
 
@@ -192,6 +192,38 @@ describe('INCONSISTENT_BEHAVIOR detection', () => {
     const input: DetectionInput = {iterationHistory: [0, 0, 0]};
     const ids = detectPatterns(input).map(d => d.pattern);
     expect(ids).not.toContain('INCONSISTENT_BEHAVIOR');
+  });
+});
+
+describe('diagnoseFromFailure (companion API for aggregated input)', () => {
+  it('fires TOOL_NOT_CALLED when missingTools is non-empty', () => {
+    const out = diagnoseFromFailure({missingTools: ['send_sms', 'process_lead']});
+    expect(out.map(d => d.pattern)).toContain('TOOL_NOT_CALLED');
+    expect(out[0].evidence).toContain('send_sms');
+  });
+
+  it('fires CONTEXT_LOST when analysis mentions repeat/context', () => {
+    const out = diagnoseFromFailure({analysis: 'Agent had to repeat the question about caller name.'});
+    expect(out.map(d => d.pattern)).toContain('CONTEXT_LOST');
+  });
+
+  it('fires HOSTILE_RESPONSE when analysis mentions rude/frustrated', () => {
+    const out = diagnoseFromFailure({analysis: 'Agent was rude and dismissive.'});
+    expect(out.map(d => d.pattern)).toContain('HOSTILE_RESPONSE');
+  });
+
+  it('fires INCONSISTENT_BEHAVIOR when turnCount > 20', () => {
+    const out = diagnoseFromFailure({turnCount: 25});
+    expect(out.map(d => d.pattern)).toContain('INCONSISTENT_BEHAVIOR');
+  });
+
+  it('returns [] on empty input', () => {
+    expect(diagnoseFromFailure({})).toEqual([]);
+  });
+
+  it('does NOT infer SMS_AFTER_DECLINE without transcripts', () => {
+    const out = diagnoseFromFailure({analysis: 'caller said no but agent texted'});
+    expect(out.map(d => d.pattern)).not.toContain('SMS_AFTER_DECLINE');
   });
 });
 

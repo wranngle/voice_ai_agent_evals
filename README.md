@@ -88,25 +88,37 @@ The flat `'@wranngle/voice-evals'` barrel re-exports everything for convenience.
 
 Test runner and scenario framework for evaluating ElevenLabs Conversational AI voice agents in bulk. Deterministic via seeded synthetic transcripts; total-turn latency captured per test (`latency_ms` per result, `avg_latency_ms` and slowest-test in the run summary); prompt versioning via git tags. Bring-your-own agent — point the harness at any agent ID, drop in a scenario YAML, get pass/fail with assertion-level detail.
 
-### What's implemented today
+### What's implemented today (v1.1)
 
-- **Total-turn latency** captured per test as `latency_ms`; `avg_latency_ms`, current-run `p95_latency_ms` / `p99_latency_ms`, and slowest-test surfaced in the run summary.
-- **Webhook + n8n + ElevenLabs + MCP + external-command runners**, each with its own assertion shape (`response_contains`, `output_contains`, `execution_status`, exit code/output checks, etc.).
-- **`gtm_ops` adapter**: reads `../gtm_ops/eval-harness.manifest.json` and runs the app-owned validation/eval commands without duplicating Playwright or Vitest semantics here.
-- **Vitest project layout** that segregates offline (no secrets) from live (needs API keys) tests.
-- **Scenario YAML execution**: `bun run testing list -t scenario` surfaces every `tests/scenarios/<id>/scenario.yaml`, and `bun run testing run --id SCEN-<id>` executes the YAML `axes`, `thresholds`, `success_criteria`, `partial_credit`, transcript fixture, latency fixture metrics, tool-call schema/routing/round-trip assertions, barge-in recovery, and tone heuristic.
+**Wrapper** — `createVoiceEvalsClient` with full agent CRUD (`list`, `get`, `create`, `update`, `clone`, `archive`, `promote`) under `[PHASE]` governance, tool-schema sanitization (`cleanTools`), webhook signature verifier, model-rankings ban list, native Tests API (`tests.{create, list, runBatch, pollInvocation, …}`).
 
-### What's *not* implemented yet (known gaps)
+**Scoring** — Composable `Task = (dataset, caller, scorer)` model; `compose`, `weighted`, `aggregate`; assertions DSL (`contains`, `regex`, `equals`, `not`, `llmRubric`); audio-native scorers (`parseWav`, RMS envelope, VAD, two-stream barge-in); judges (`g-eval`, `arena`, `dag`, `lynx`).
 
-- **Live TTFB / end-to-first-audio split.** Offline scenario fixtures can assert `ttfb_p95_ms`, `end_to_first_audio_p95_ms`, and `total_turn_p95_ms` when metrics are present in `transcript.json`; the live ElevenLabs runner still records one round-trip number per test rather than splitting the streaming voice path into TTFB / first-audio / total-turn.
-- **p95 / p99 aggregation across runs.** Per-test latency and current-run percentiles are captured, but no rolling-window p95 enforcement.
-- **Tool-call latency aggregation.** Per-call tool latency can be asserted from fixtures and live simulate responses, but there is no rolling p95/p99 view by tool yet.
-- **More voice-specific axes**: barge-in recovery, tool schema/routing, fixture latency budgets, and tone heuristics are wired; ASR confidence, TTS prosody, interruption recovery, timeout handling, caller frustration/capability disappointment, and full audio fixture analysis are still gaps.
-- **Live LLM-judge axes**: subjective axes can declare `judge_llm`, but the offline runner uses deterministic heuristics. It does not call a live judge model in CI.
-- **Bulk live agent creation and factorial iteration**: the harness evaluates existing agents and app-owned adapters; it does not yet create/update ElevenLabs agents in bulk or run matrixed prompt/voice/tool permutations hands-free.
-- **Operational monitoring**: webhook flow checks and n8n/MCP runners exist, but there is no persistent last-success dashboard, agent-change time series, or correlation view across agent updates yet.
+**Test factory** — Combinatorial expansion (`cartesian`, `pairwise`, `kWise` with k≥3 support, `sample` with seeded Fisher-Yates), YAML template loader with `{placeholder}` interpolation + `inherit:`/`overrides:` overlay merging; 14 industries × 5+5+4+3 variants × 17 base scenarios shipped under `templates/factory/`.
 
-These are the next slices of work, not a finished feature.
+**Closed-loop remediation** — `polishLoop` (6-phase: EVALUATE → ANALYZE → PROPOSE → APPLY → VERIFY → LOG) returns dimension-level deltas (`initialFailingDimensions`, `improvedDimensions`, `regressedDimensions`, `netImprovement`, `regressed`); 5 canonical `FAILURE_PATTERNS` (`SMS_AFTER_DECLINE`, `TOOL_NOT_CALLED`, `CONTEXT_LOST`, `HOSTILE_RESPONSE`, `INCONSISTENT_BEHAVIOR`) with context-aware regex (negation lookahead, agent-quoting suppression); append-only friction log with O(1) tombstone resolve; cycle-stats aggregation.
+
+**Supersystem** — `runSupersystem` orchestrates L1 agent fixes (polishLoop) + L2 n8n workflow fixes + L3 friction log + L7 black-box workflow eval in a single autonomous driver. Stops on `agent_regressed` (operator gate), `all_passing`, or `max_cycles`.
+
+**n8n auto-corrector** — `createN8nCorrector` with `applyPartialUpdate`, `diagnoseWorkflowFailure`, 4 `WORKFLOW_FIXES` (retry, error-handling, timeout, webhook data); node-level vs parameters-level key separation enforced via `NODE_LEVEL_PROPS`. `evaluateWorkflows` (Layer 7) feeds black-box failures back into the friction log.
+
+**Ingestion** — Post-call webhook importer, TestChain proposer/designer (LLM-driven), 5 canonical personas with audio traits, deterministic random scenario generator (14 industries × 24 names × 5 call volumes × 4 interest levels).
+
+**Regression** — Versioned baselines + Braintrust-shape diff; CI-gateable on `result.regressions.length`.
+
+**CLI** — `voice-evals {init, score, ingest, polish, baseline, doctor, factory, agent, friction, n8n, scenarios}`. Each verb has a `--help` listing its subcommands; the dispatcher → help alignment is regression-tested under `tests/_meta_audit/cli-help-alignment.test.ts`.
+
+### What's *not* implemented yet (known gaps, post-v1.1 audit)
+
+- **Live ElevenLabs SDK contract tests.** All wrapper / Tests-API / corrector tests use mocked clients. Production drift (SDK shape changes, response envelopes) goes uncaught until a real call fails.
+- **GEPA Python sidecar protocol.** The bridge stubs out with `GepaUnavailableError`. 24 tests cover the *absence* of the sidecar; zero cover the JSON-IO protocol because the sidecar isn't shipped yet.
+- **Audio formats beyond WAV PCM.** No G.711 / μ-law / a-law parser. Mono call recordings (common in production) fall back to single-channel VAD with no barge-in.
+- **Live LLM judges in CI.** `g-eval`, `arena`, `dag` accept `judge_llm` callbacks but CI runs deterministic heuristics only.
+- **A/B framework for polish-loop outcomes.** `regressed` flag tells you when a fix made things worse on the dimensions you tested, but there's no built-in suite-comparison across agent revisions.
+- **Optimistic concurrency on n8n PUTs.** Two parallel `applyPartialUpdate` calls on the same workflow last-write-win silently. No `If-Match` / ETag.
+- **Append-only friction log compaction.** `resolveFrictionAppend` writes a tombstone in O(1), but the log grows monotonically. No rotation or compaction utility yet.
+
+See `docs/META-AUDIT.md` for the full feature × test-reality matrix and the impatient-CEO roast that motivated the post-v1.1 hardening.
 
 ## Run it
 

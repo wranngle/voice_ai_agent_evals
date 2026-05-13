@@ -209,6 +209,66 @@ export function getPattern(id: FailurePatternId): FailurePattern | undefined {
 }
 
 /**
+ * Companion to `detectPatterns` for callers that only have *aggregated*
+ * failure metadata — not full transcripts. Ports the archive's
+ * `layer1.diagnoseFailure({missingTools, turnCount, category, analysis})`
+ * signature.
+ *
+ * Maps:
+ *   missingTools.length > 0          -> TOOL_NOT_CALLED
+ *   /context|repeat|remember/.test()  -> CONTEXT_LOST
+ *   /rude|hostile|frustrated/.test()  -> HOSTILE_RESPONSE
+ *   turnCount > 20                    -> INCONSISTENT_BEHAVIOR (heuristic
+ *                                       proxy for non-converging runs)
+ *
+ * SMS_AFTER_DECLINE requires transcript context — not derivable from this
+ * aggregated input alone, so it never fires here. Use `detectPatterns`
+ * with `turns` for that case.
+ */
+export function diagnoseFromFailure(input: {
+  missingTools?: readonly string[];
+  turnCount?: number;
+  category?: string;
+  analysis?: string;
+}): DetectedPattern[] {
+  const out: DetectedPattern[] = [];
+  if (input.missingTools && input.missingTools.length > 0) {
+    out.push({
+      pattern: 'TOOL_NOT_CALLED',
+      description: 'Expected tool absent from tool_calls[].',
+      evidence: `missing: ${input.missingTools.join(', ')}`,
+    });
+  }
+
+  const analysis = input.analysis ?? '';
+  if (/context|repeat|remember|re-?ask/i.test(analysis)) {
+    out.push({
+      pattern: 'CONTEXT_LOST',
+      description: 'Agent re-asked for information already provided.',
+      evidence: `analysis: ${analysis.slice(0, 120)}`,
+    });
+  }
+
+  if (/rude|hostile|frustrat|condescend/i.test(analysis)) {
+    out.push({
+      pattern: 'HOSTILE_RESPONSE',
+      description: 'Agent showed hostile or condescending tone.',
+      evidence: `analysis: ${analysis.slice(0, 120)}`,
+    });
+  }
+
+  if (typeof input.turnCount === 'number' && input.turnCount > 20) {
+    out.push({
+      pattern: 'INCONSISTENT_BEHAVIOR',
+      description: 'Conversation length suggests non-converging agent behavior.',
+      evidence: `turnCount=${input.turnCount}`,
+    });
+  }
+
+  return out;
+}
+
+/**
  * Distinguish a true SMS decline from a polite negation that follows with
  * positive intent. Split the text into utterances at sentence boundaries;
  * a real decline is one utterance that:

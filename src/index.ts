@@ -78,6 +78,7 @@ export {
   aggregateCycleStats,
   applyFix,
   detectPatterns,
+  diagnoseFromFailure,
   getPattern,
   getSidecarPaths,
   getUnresolvedFrictions,

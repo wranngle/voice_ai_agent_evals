@@ -55,7 +55,9 @@ export {aggregateCycleStats} from './cycle-stats';
 export type {CycleStats} from './cycle-stats';
 
 // Phase E: failure-pattern detection (ANALYZE phase)
-export {detectPatterns, FAILURE_PATTERNS, getPattern} from './patterns';
+export {
+  detectPatterns, diagnoseFromFailure, FAILURE_PATTERNS, getPattern,
+} from './patterns';
 export type {
   DetectedPattern, DetectionInput, FailurePattern, FailurePatternId, TranscriptTurn,
 } from './patterns';
