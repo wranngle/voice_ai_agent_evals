@@ -2,15 +2,15 @@
 /**
  * @wranngle/voice-evals CLI entry.
  *
- * Phase 6.x: dispatch new top-level commands to src/cli/commands/*; fall
- * back to the legacy testing CLI for everything else (run, list, validate,
- * report, ingest, clear).
- *
- *   voice-evals doctor                  — sidecar status
- *   voice-evals init                    — scaffold voice-evals.config.ts
- *   voice-evals baseline capture <name> — snapshot current results as baseline
- *   voice-evals baseline diff <name>    — diff current vs named baseline
- *   voice-evals <anything-else>         — delegated to src/testing/cli.ts
+ * v1.0 top-level surface:
+ *   init             scaffold voice-evals.config.{ts,mjs}
+ *   score <wav>      audio-native scoring (voice-activity + barge-in)
+ *   ingest <txt>     transcript → ProposedTestCase[] via LLM data layer
+ *   polish <agent>   closed-loop remediation (proposer + apply + iterate)
+ *   baseline ...     versioned regression baselines + diff
+ *   doctor           Python sidecar status / install
+ *   legacy <cmd>     legacy harness (v0.x scenario YAML / .test-data flow)
+ *   --help, -h       this help
  */
 
 // `export {}` makes this a module so top-level await is allowed under tsc.
@@ -23,6 +23,11 @@ if (typeof exitCode === 'number' && exitCode !== 0) {
 }
 
 async function dispatch(): Promise<number | undefined> {
+  if (!command || command === '--help' || command === '-h' || command === 'help') {
+    const {runHelp} = await import('./cli/commands/help');
+    return runHelp();
+  }
+
   switch (command) {
     case 'doctor': {
       const {runDoctor} = await import('./cli/commands/doctor');
@@ -35,6 +40,29 @@ async function dispatch(): Promise<number | undefined> {
       const {runInit} = await import('./cli/commands/init');
       const force = process.argv.includes('--force');
       return runInit({force});
+    }
+
+    case 'score': {
+      const {runScore} = await import('./cli/commands/score');
+      const path = process.argv[3];
+      return runScore({path});
+    }
+
+    case 'ingest': {
+      const {runIngest} = await import('./cli/commands/ingest');
+      const path = process.argv[3];
+      return runIngest({path});
+    }
+
+    case 'polish': {
+      const {runPolish} = await import('./cli/commands/polish');
+      const agentId = process.argv[3];
+      const dryRun = process.argv.includes('--dry-run');
+      const maxIterations = readNumberFlag('--max-iterations');
+      const patience = readNumberFlag('--patience');
+      return runPolish({
+        agentId, dryRun, maxIterations, patience,
+      });
     }
 
     case 'baseline': {
@@ -53,10 +81,27 @@ async function dispatch(): Promise<number | undefined> {
       return 1;
     }
 
-    default: {
-      // Side-effect import: src/testing/cli.ts calls main() at module load.
+    case 'legacy': {
+      // Shift argv left so the legacy CLI sees its own subcommand at argv[2].
+      process.argv = [process.argv[0], process.argv[1], ...process.argv.slice(3)];
       await import('./testing/cli');
       return undefined;
     }
+
+    default: {
+      process.stdout.write(`unknown command: ${command}\n`);
+      process.stdout.write('Run `voice-evals --help` for the full surface.\n');
+      return 1;
+    }
   }
+}
+
+function readNumberFlag(flag: string): number | undefined {
+  const idx = process.argv.indexOf(flag);
+  if (idx === -1 || idx + 1 >= process.argv.length) {
+    return undefined;
+  }
+
+  const value = Number.parseInt(process.argv[idx + 1], 10);
+  return Number.isFinite(value) ? value : undefined;
 }
