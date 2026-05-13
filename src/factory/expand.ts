@@ -150,16 +150,18 @@ export function sample<T>(
     return rec;
   });
 
-  if (n >= asRecords.length) {
-    return asRecords;
-  }
-
-  // Fisher-Yates with seeded RNG, then take first n.
+  // Always shuffle (Fisher-Yates with seeded RNG), then slice. Previously
+  // n >= length skipped the shuffle, which silently broke the "deterministic
+  // by seed" claim at that boundary.
   const rng = mulberry32(seed);
   const shuffled = [...asRecords];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  if (n >= shuffled.length) {
+    return shuffled;
   }
 
   return shuffled.slice(0, n);

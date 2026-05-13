@@ -146,4 +146,35 @@ export type PolishLoopResult = {
    * populated when `analyze` was set).
    */
   patternsDetected?: Record<string, number>;
+  /**
+   * Dimension names that were failing at iter 1 (`failingBefore[0]`).
+   * Pure-by-snapshot — captured before any fix is applied.
+   */
+  initialFailingDimensions?: string[];
+  /**
+   * Dimension names still failing at the last iteration's `failingAfter`.
+   */
+  finalFailingDimensions?: string[];
+  /**
+   * Dimensions that were failing at start and are no longer failing at end.
+   * `initialFailingDimensions \ finalFailingDimensions`.
+   */
+  improvedDimensions?: string[];
+  /**
+   * Dimensions that were passing at start and are now failing — regressions
+   * introduced by the loop's own fixes. Empty is the only acceptable value
+   * in production runs; a non-empty `regressedDimensions` should fail CI.
+   */
+  regressedDimensions?: string[];
+  /**
+   * Net dimensional change: `improvedDimensions.length - regressedDimensions.length`.
+   * Positive => loop made progress. Zero => no change. Negative => the agent
+   * is WORSE for having been polished — operator should roll back.
+   */
+  netImprovement?: number;
+  /**
+   * True when the loop terminated with a regression (finalFailingCount >
+   * initialFailingCount OR regressedDimensions.length > 0). Operator gate.
+   */
+  regressed?: boolean;
 };

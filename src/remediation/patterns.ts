@@ -73,10 +73,21 @@ export type DetectedPattern = {
   evidence?: string;
 };
 
-const DECLINE_RE = /\b(no|don't|stop|never mind|cancel|do not)\b/i;
+// Match standalone refusal words. Negations of intent like "no problem" /
+// "no thanks but yes" are common false positives — `isGenuineDecline` filters
+// them with a per-utterance lookahead against an allow-list of friendly
+// follow-ons.
+const DECLINE_RE = /\b(no|don't|do not|stop|never mind|cancel|i can't|i cannot)\b/i;
+const FRIENDLY_FOLLOWUP_RE = /\b(no problem|no worries|no rush|no big deal)\b/i;
+const POSITIVE_FOLLOWUP_RE = /\b(but|however|though|yet)\s+(?:please|yes|sure|go ahead|send|do|text|sms|that's? fine|fine|ok|okay)/i;
 const REASK_RE = /(what(?:'s| is) your name again|who are you with|what company|can you remind me|sorry,? what was your|tell me your name again)/i;
+// Agent-hostile vocabulary. Be careful: many of these are also valid when the
+// agent is QUOTING the caller back ("I hear you say it feels stupid"). The
+// `isAgentHostile` helper filters quoting patterns out.
 const HOSTILE_RE = /\b(annoying|ridiculous|frustrating|rude|stupid|useless|terrible|wasting my time)\b/i;
 const AGENT_DEFENSIVE_RE = /\b(calm down|relax|i told you|like i said|as i mentioned)\b/i;
+// Heuristic: agent quoting the caller via reported speech.
+const AGENT_QUOTING_RE = /\b(you (?:said|mentioned|noted|told me)|i hear you|i understand you (?:said|feel))\b/i;
 
 export const FAILURE_PATTERNS: readonly FailurePattern[] = [
   {
@@ -89,8 +100,7 @@ export const FAILURE_PATTERNS: readonly FailurePattern[] = [
         return false;
       }
 
-      const userText = collectUserText(input);
-      return DECLINE_RE.test(userText);
+      return isGenuineDecline(collectUserText(input));
     },
     promptAddition: `
 
@@ -139,12 +149,7 @@ export const FAILURE_PATTERNS: readonly FailurePattern[] = [
     description: 'Agent responded with hostile, defensive, or condescending tone.',
     fixTarget: 'system_prompt',
     detect(input) {
-      const agentText = collectAgentText(input);
-      if (HOSTILE_RE.test(agentText)) {
-        return true;
-      }
-
-      return AGENT_DEFENSIVE_RE.test(agentText);
+      return isAgentHostile(collectAgentText(input));
     },
     promptAddition: `
 
@@ -201,6 +206,67 @@ export function detectPatterns(input: DetectionInput): DetectedPattern[] {
 /** Look up a pattern by id. Returns undefined if unknown. */
 export function getPattern(id: FailurePatternId): FailurePattern | undefined {
   return FAILURE_PATTERNS.find(p => p.id === id);
+}
+
+/**
+ * Distinguish a true SMS decline from a polite negation that follows with
+ * positive intent. Split the text into utterances at sentence boundaries;
+ * a real decline is one utterance that:
+ *   - matches DECLINE_RE,
+ *   - is NOT a friendly idiom ("no problem", "no worries"),
+ *   - is NOT immediately followed by a positive follow-on ("no, but please").
+ */
+function isGenuineDecline(text: string): boolean {
+  if (text === '') {
+    return false;
+  }
+
+  const utterances = text.split(/[.!?\n]+/).map(u => u.trim()).filter(u => u !== '');
+  for (const utterance of utterances) {
+    if (!DECLINE_RE.test(utterance)) {
+      continue;
+    }
+
+    if (FRIENDLY_FOLLOWUP_RE.test(utterance)) {
+      continue;
+    }
+
+    if (POSITIVE_FOLLOWUP_RE.test(utterance)) {
+      continue;
+    }
+
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Distinguish a hostile agent from one quoting the caller back. If the agent's
+ * hostile vocabulary appears within a "you said X" reporting clause, treat it
+ * as empathic paraphrase, not hostility.
+ */
+function isAgentHostile(text: string): boolean {
+  if (text === '') {
+    return false;
+  }
+
+  const utterances = text.split(/[.!?\n]+/).map(u => u.trim()).filter(u => u !== '');
+  for (const utterance of utterances) {
+    const hostile = HOSTILE_RE.test(utterance);
+    const defensive = AGENT_DEFENSIVE_RE.test(utterance);
+    if (!hostile && !defensive) {
+      continue;
+    }
+
+    if (AGENT_QUOTING_RE.test(utterance)) {
+      continue;
+    }
+
+    return true;
+  }
+
+  return false;
 }
 
 function collectToolNames(input: DetectionInput): string[] {

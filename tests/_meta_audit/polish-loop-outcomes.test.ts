@@ -85,13 +85,11 @@ describe('META-AUDIT: polishLoop reports success on a regressing fix', () => {
       client, agentId: 'agent_demo', evaluate, llm, maxIterations: 5, patience: 2,
     });
 
-    // The CONTRACT shortcoming: result.stopped_because is 'patience_exhausted', which
-    // sounds neutral. Operator has to manually compare initialFailing vs finalFailingCount
-    // to discover the agent got WORSE. Nothing in PolishLoopResult surfaces "regressed".
+    // POST-FIX: result.regressed === true surfaces the regression to the operator.
     expect(result.stopped_because).toBe('patience_exhausted');
     expect(result.finalFailingCount).toBeGreaterThan(result.history[0].failingBefore);
-    // The shape lacks a `regressed: true` flag. We assert its absence to prove the gap.
-    expect((result as Record<string, unknown>).regressed).toBeUndefined();
+    expect(result.regressed).toBe(true);
+    expect(result.netImprovement).toBeLessThanOrEqual(0);
   });
 });
 
@@ -124,19 +122,58 @@ describe('META-AUDIT: polishLoop "succeeds" on a lucky flap', () => {
   });
 });
 
-describe('META-AUDIT: PolishLoopResult lacks a before/after delta', () => {
-  it('no field on the result tells you net dimensional change', async () => {
+describe('META-AUDIT: PolishLoopResult exposes a before/after delta (post-fix)', () => {
+  it('all_passing on first eval still reports initial=[], net=0, regressed=false', async () => {
     const client = makeClient();
     const evaluate = vi.fn().mockResolvedValue([pass('a')]);
     const llm = vi.fn();
     const result = await polishLoop({
       client, agentId: 'agent_demo', evaluate, llm,
     });
-    // A useful result shape would include: { dimensionsBefore, dimensionsAfter,
-    // improvedDimensions[], regressedDimensions[], netImprovement }.
-    // Today: only counts. Net behavior change is invisible.
-    expect((result as Record<string, unknown>).dimensionsBefore).toBeUndefined();
-    expect((result as Record<string, unknown>).improvedDimensions).toBeUndefined();
-    expect((result as Record<string, unknown>).netImprovement).toBeUndefined();
+    expect(result.initialFailingDimensions).toEqual([]);
+    expect(result.finalFailingDimensions).toEqual([]);
+    expect(result.improvedDimensions).toEqual([]);
+    expect(result.regressedDimensions).toEqual([]);
+    expect(result.netImprovement).toBe(0);
+    expect(result.regressed).toBe(false);
+  });
+
+  it('improving fix surfaces improvedDimensions + positive netImprovement', async () => {
+    const client = makeClient();
+    // Iter 1: [fail(a), fail(b)] -> [pass(a), pass(b)]
+    const evaluate = vi.fn()
+      .mockResolvedValueOnce([fail('a'), fail('b')])
+      .mockResolvedValueOnce([pass('a'), pass('b')]);
+    const llm = vi.fn().mockResolvedValue(JSON.stringify([PROPOSAL]));
+    const result = await polishLoop({
+      client, agentId: 'agent_demo', evaluate, llm,
+    });
+    expect(result.improvedDimensions).toEqual(['a', 'b']);
+    expect(result.netImprovement).toBe(2);
+    expect(result.regressed).toBe(false);
+    expect(result.stopped_because).toBe('all_passing');
+  });
+
+  it('regressing fix flags regressed=true and lists regressedDimensions', async () => {
+    const client = makeClient();
+    // Iter 1: [fail(a), pass(b)] -> [fail(a), fail(b)]  (b regressed)
+    // Iter 2: same, patience exhausts after 2 no-improvement iterations.
+    const sequence: DimensionScore[][] = [
+      [fail('a'), pass('b')],
+      [fail('a'), fail('b')],
+      [fail('a'), fail('b')],
+      [fail('a'), fail('b')],
+      [fail('a'), fail('b')],
+      [fail('a'), fail('b')],
+    ];
+    let i = 0;
+    const evaluate = vi.fn(async () => sequence[Math.min(i++, sequence.length - 1)]);
+    const llm = vi.fn().mockResolvedValue(JSON.stringify([PROPOSAL]));
+    const result = await polishLoop({
+      client, agentId: 'agent_demo', evaluate, llm, maxIterations: 5, patience: 2,
+    });
+    expect(result.regressedDimensions).toEqual(['b']);
+    expect(result.regressed).toBe(true);
+    expect(result.netImprovement).toBeLessThanOrEqual(0);
   });
 });

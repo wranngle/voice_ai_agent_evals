@@ -17,6 +17,11 @@
  *
  * Apply is governance-gated: by default only [DEV]-tagged agents are
  * touched; pass `governance: { allowedPhases: ['ALPHA'] }` to ramp.
+ *
+ * Outcome reporting: the result carries `initialFailingDimensions`,
+ * `finalFailingDimensions`, `improvedDimensions`, `regressedDimensions`,
+ * `netImprovement`, and `regressed`. Operators check `regressed` and
+ * roll back the agent when true.
  */
 
 import type {DimensionScore} from '../scoring/types';
@@ -28,6 +33,13 @@ import type {
   FixProposal, PolishLoopOptions, PolishLoopResult, PolishLoopStep,
 } from './types';
 
+type LoopState = {
+  initialFailing?: Set<string>;
+  initialPassing?: Set<string>;
+  initialDims?: readonly DimensionScore[];
+  lastDims?: readonly DimensionScore[];
+};
+
 export async function polishLoop(options: PolishLoopOptions): Promise<PolishLoopResult> {
   const maxIterations = options.maxIterations ?? 3;
   const patience = options.patience ?? 2;
@@ -37,17 +49,19 @@ export async function polishLoop(options: PolishLoopOptions): Promise<PolishLoop
   const history: PolishLoopStep[] = [];
   const patternTally: Record<string, number> = {};
   const failingHistory: number[] = [];
+  const state: LoopState = {};
   let prevFailing = Number.POSITIVE_INFINITY;
   let consecutiveNoImprovement = 0;
 
   for (let i = 1; i <= maxIterations; i++) {
-    const failingBefore = await collectFailures(options.evaluate);
+    const {failures: failingBefore, all: dimsBefore} = await collectDims(options.evaluate);
+    rememberDims(state, dimsBefore);
 
     if (failingBefore.length === 0) {
       history.push({
         iteration: i, failingBefore: 0, proposal: undefined, applied: false, failingAfter: 0,
       });
-      return finish(history, applied, 'all_passing', 0, patternTally);
+      return finish(history, applied, 'all_passing', 0, patternTally, state);
     }
 
     const detected = await runAnalyze(options, failingBefore, failingHistory);
@@ -72,7 +86,7 @@ export async function polishLoop(options: PolishLoopOptions): Promise<PolishLoop
         failingAfter: failingBefore.length,
         patternsDetected: detected,
       });
-      return finish(history, applied, 'no_proposal', failingBefore.length, patternTally);
+      return finish(history, applied, 'no_proposal', failingBefore.length, patternTally, state);
     }
 
     const applyResult = await applyFix({
@@ -83,9 +97,18 @@ export async function polishLoop(options: PolishLoopOptions): Promise<PolishLoop
       dryRun,
     });
 
-    const afterFailures = dryRun
-      ? failingBefore
-      : await collectFailures(options.evaluate);
+    let afterFailures: DimensionScore[];
+    let afterAll: readonly DimensionScore[];
+    if (dryRun) {
+      afterFailures = [...failingBefore];
+      afterAll = dimsBefore;
+    } else {
+      const out = await collectDims(options.evaluate);
+      afterFailures = out.failures;
+      afterAll = out.all;
+    }
+
+    rememberDims(state, afterAll); // overwrite lastDims each iteration
     const failingAfter = afterFailures.length;
 
     history.push({
@@ -105,7 +128,7 @@ export async function polishLoop(options: PolishLoopOptions): Promise<PolishLoop
     }
 
     if (failingAfter === 0) {
-      return finish(history, applied, 'all_passing', 0, patternTally);
+      return finish(history, applied, 'all_passing', 0, patternTally, state);
     }
 
     if (failingAfter >= prevFailing) {
@@ -117,16 +140,36 @@ export async function polishLoop(options: PolishLoopOptions): Promise<PolishLoop
     prevFailing = failingAfter;
 
     if (consecutiveNoImprovement >= patience) {
-      return finish(history, applied, 'patience_exhausted', failingAfter, patternTally);
+      return finish(history, applied, 'patience_exhausted', failingAfter, patternTally, state);
     }
   }
 
-  return finish(history, applied, 'max_iterations', prevFailing, patternTally);
+  return finish(history, applied, 'max_iterations', prevFailing, patternTally, state);
 }
 
-async function collectFailures(evaluate: PolishLoopOptions['evaluate']): Promise<DimensionScore[]> {
+async function collectDims(evaluate: PolishLoopOptions['evaluate']): Promise<{
+  failures: DimensionScore[];
+  all: readonly DimensionScore[];
+}> {
   const dims = await evaluate();
-  return dims.filter(d => d.status === 'failed' || d.status === 'error');
+  return {
+    failures: dims.filter(d => d.status === 'failed' || d.status === 'error'),
+    all: dims,
+  };
+}
+
+function rememberDims(state: LoopState, dims: readonly DimensionScore[]): void {
+  if (!state.initialFailing) {
+    state.initialFailing = new Set(
+      dims.filter(d => d.status === 'failed' || d.status === 'error').map(d => d.name),
+    );
+    state.initialPassing = new Set(
+      dims.filter(d => d.status === 'passed').map(d => d.name),
+    );
+    state.initialDims = dims;
+  }
+
+  state.lastDims = dims;
 }
 
 async function runAnalyze(
@@ -194,6 +237,7 @@ function finish(
   reason: PolishLoopResult['stopped_because'],
   finalFailingCount: number,
   patternsDetected: Record<string, number>,
+  state: LoopState,
 ): PolishLoopResult {
   const out: PolishLoopResult = {
     iterations: history.length,
@@ -202,8 +246,27 @@ function finish(
     stopped_because: reason,
     finalFailingCount,
   };
+
   if (Object.keys(patternsDetected).length > 0) {
     out.patternsDetected = patternsDetected;
+  }
+
+  if (state.initialFailing && state.lastDims) {
+    const finalFailing = new Set(
+      state.lastDims.filter(d => d.status === 'failed' || d.status === 'error').map(d => d.name),
+    );
+    const initialFailing = state.initialFailing;
+    const initialPassing = state.initialPassing ?? new Set<string>();
+
+    const improved = [...initialFailing].filter(name => !finalFailing.has(name));
+    const regressed = [...finalFailing].filter(name => initialPassing.has(name));
+
+    out.initialFailingDimensions = [...initialFailing].sort();
+    out.finalFailingDimensions = [...finalFailing].sort();
+    out.improvedDimensions = improved.sort();
+    out.regressedDimensions = regressed.sort();
+    out.netImprovement = improved.length - regressed.length;
+    out.regressed = regressed.length > 0 || finalFailingCount > initialFailing.size;
   }
 
   return out;
