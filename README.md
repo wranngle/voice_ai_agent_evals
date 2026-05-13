@@ -72,11 +72,14 @@ Source: research synthesis from agent-eval landscape, LLM eval framework, closed
 ## Public surface (subpath exports)
 
 ```ts
-import {...} from '@wranngle/voice-evals/wrapper';      // ElevenLabs API wrapper + governance
+import {...} from '@wranngle/voice-evals/wrapper';      // ElevenLabs API wrapper + governance (CRUD + tools + webhooks)
+import {...} from '@wranngle/voice-evals/tests-api';    // Native Tests API: create/list/runBatch/pollInvocation (v1.1)
 import {...} from '@wranngle/voice-evals/scoring';      // Composer + assertions DSL + audio scorers
-import {...} from '@wranngle/voice-evals/ingestion';    // Post-call import + TestChain proposer + personas
+import {...} from '@wranngle/voice-evals/ingestion';    // Post-call import + TestChain proposer + personas + random scenarios
 import {...} from '@wranngle/voice-evals/regression';   // Versioned baselines + Braintrust-shape diff
-import {...} from '@wranngle/voice-evals/remediation';  // proposeFix / applyFix / polishLoop / GEPA bridge
+import {...} from '@wranngle/voice-evals/remediation';  // proposeFix / applyFix / polishLoop + autorefinement patterns (v1.1)
+import {...} from '@wranngle/voice-evals/factory';      // Combinatorial test factory: cartesian/pairwise/sample + YAML templates (v1.1)
+import {...} from '@wranngle/voice-evals/n8n';          // n8n workflow auto-corrector + WORKFLOW_FIXES (v1.1)
 ```
 
 The flat `'@wranngle/voice-evals'` barrel re-exports everything for convenience.
