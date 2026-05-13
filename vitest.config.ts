@@ -163,6 +163,17 @@ const offlineProjects = [
       testTimeout: 30_000,
     },
   },
+  {
+    // v1.1 combinatorial test factory (cartesian, pairwise IPO, sample
+    // strategies + YAML template loader/expander). Pure unit tests.
+    test: {
+      name: 'factory',
+      root: '.',
+      include: ['tests/factory/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
 ];
 
 // Mixed-live projects: at least one describe block calls real HTTP behind a

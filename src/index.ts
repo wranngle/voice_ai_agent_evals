@@ -16,6 +16,32 @@ export * from './testing/index';
 export type * from './ingestion/extraction/types';
 export {verifyElevenLabsSignature} from './security/elevenlabs-signature';
 
+// v1.1 factory surface (Phase B+). Canonical subpath: `@wranngle/voice-evals/factory`.
+export {
+  cartesian,
+  expand,
+  expandAll,
+  expandTemplate,
+  loadIndustries,
+  loadTemplates,
+  loadVariants,
+  pairwise,
+  sample,
+} from './factory';
+export type {
+  ChatHistoryTurn,
+  ExpandOptions,
+  ExpansionContext,
+  ExpansionStrategy,
+  FactoryContext,
+  GeneratedTest,
+  Industry,
+  Template,
+  TestExample,
+  Variant,
+  VariantBucket,
+} from './factory';
+
 // v1.0 remediation surface (Phase 5+). Canonical subpath: `@wranngle/voice-evals/remediation`.
 export {
   GepaUnavailableError,

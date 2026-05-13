@@ -1,0 +1,157 @@
+# Industry Variable Definitions
+# Used for combinatorial test expansion across different verticals
+#
+# Each industry has:
+# - id: Unique identifier for test naming
+# - name: Human-readable name
+# - greeting: How a prospect from this industry introduces themselves
+# - pain_point: Industry-specific pain statement
+# - emergency_example: What constitutes an emergency in this industry
+# - routine_example: What's a routine call that can wait
+
+version: "1.0"
+
+industries:
+  - id: hvac
+    name: HVAC
+    greeting: "I run an HVAC company"
+    pain_point: "AC goes out in July and my tech's getting woken up at 3 AM"
+    emergency_example: "no heat in winter or no AC in summer"
+    routine_example: "wanting to schedule a tune-up"
+    keywords:
+      - heating
+      - cooling
+      - air conditioning
+      - furnace
+
+  - id: plumbing
+    name: Plumbing
+    greeting: "I'm a plumber with my own company"
+    pain_point: "burst pipes at 2 AM flooding someone's house"
+    emergency_example: "water flooding the basement"
+    routine_example: "asking about a new faucet quote"
+    keywords:
+      - pipes
+      - leaks
+      - water heater
+      - drain
+
+  - id: electrical
+    name: Electrical
+    greeting: "I run an electrical contracting business"
+    pain_point: "power outage calls that turn out to be tripped breakers"
+    emergency_example: "sparking outlet or burning smell"
+    routine_example: "wanting to add an outlet"
+    keywords:
+      - wiring
+      - outlets
+      - breakers
+      - electrical panel
+
+  - id: property_management
+    name: Property Management
+    greeting: "I manage about 40 rental properties"
+    pain_point: "tenant lockouts at midnight when I'm trying to sleep"
+    emergency_example: "water leak damaging multiple units"
+    routine_example: "asking when the landscaper is coming"
+    keywords:
+      - tenants
+      - units
+      - maintenance
+      - rental
+
+  - id: roofing
+    name: Roofing
+    greeting: "I own a roofing company"
+    pain_point: "storm damage calls at all hours during hurricane season"
+    emergency_example: "tree through the roof during a storm"
+    routine_example: "asking for a free estimate"
+    keywords:
+      - roof
+      - shingles
+      - leak
+      - storm damage
+
+  - id: pest_control
+    name: Pest Control
+    greeting: "I run a pest control business"
+    pain_point: "panic calls about bugs that aren't even emergencies"
+    emergency_example: "wasp nest blocking the entrance"
+    routine_example: "scheduling routine quarterly service"
+    keywords:
+      - bugs
+      - pests
+      - rodents
+      - termites
+
+  - id: landscaping
+    name: Landscaping
+    greeting: "I have a landscaping company"
+    pain_point: "irrigation emergencies flooding yards at night"
+    emergency_example: "sprinkler line burst flooding the property"
+    routine_example: "asking when we're coming to mow"
+    keywords:
+      - lawn
+      - irrigation
+      - trees
+      - yard
+
+  - id: garage_door
+    name: Garage Door
+    greeting: "I own a garage door repair company"
+    pain_point: "people stuck outside their garage at night"
+    emergency_example: "garage door won't close and car is inside"
+    routine_example: "wanting a quote on a new opener"
+    keywords:
+      - garage
+      - opener
+      - spring
+      - track
+
+  - id: locksmith
+    name: Locksmith
+    greeting: "I run a locksmith business"
+    pain_point: "lockout calls at 2 AM when I'm with my family"
+    emergency_example: "locked out of car with baby inside"
+    routine_example: "wanting a key copy made"
+    keywords:
+      - locks
+      - keys
+      - lockout
+      - safe
+
+  - id: pool_service
+    name: Pool Service
+    greeting: "I have a pool service company"
+    pain_point: "pump failures right before big pool parties"
+    emergency_example: "pool pump completely died"
+    routine_example: "asking about weekly cleaning schedule"
+    keywords:
+      - pool
+      - pump
+      - filter
+      - chemicals
+
+  - id: appliance_repair
+    name: Appliance Repair
+    greeting: "I do appliance repair"
+    pain_point: "refrigerator died and all their food is spoiling"
+    emergency_example: "fridge stopped working with a week's groceries"
+    routine_example: "dishwasher making a noise"
+    keywords:
+      - refrigerator
+      - washer
+      - dryer
+      - dishwasher
+
+  - id: general_contractor
+    name: General Contractor
+    greeting: "I'm a general contractor"
+    pain_point: "subcontractor no-shows right before deadlines"
+    emergency_example: "pipe burst on a job site"
+    routine_example: "wanting a quote on a kitchen remodel"
+    keywords:
+      - construction
+      - remodel
+      - renovation
+      - build

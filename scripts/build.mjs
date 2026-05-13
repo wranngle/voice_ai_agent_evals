@@ -18,7 +18,7 @@ import {
 import {spawnSync} from 'node:child_process';
 import {existsSync} from 'node:fs';
 
-const EXTERNAL = ['@elevenlabs/elevenlabs-js', 'arktype'];
+const EXTERNAL = ['@elevenlabs/elevenlabs-js', 'arktype', 'yaml'];
 
 function run(cmd, args, label) {
   process.stdout.write(`  → ${label}\n`);
