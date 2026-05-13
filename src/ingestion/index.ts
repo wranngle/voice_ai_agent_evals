@@ -36,3 +36,9 @@ export {
   getPersona,
   listPersonas,
 } from './persona-generator';
+
+// Phase D: random scenario generator
+export {generateRandomScenarios} from './random-scenarios';
+export type {
+  GenerateRandomScenariosOptions, RandomScenario,
+} from './random-scenarios';
