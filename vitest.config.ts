@@ -190,6 +190,10 @@ const offlineProjects = [
     // Some tests use `it.fails` or `it.todo` to mark known-broken-by-design
     // contracts. These should be promoted to real tests as the underlying
     // gaps get fixed.
+    //
+    // Also the home for unified [TEMPLATE]-hardening tests: shipping-check
+    // suite (passing) + aspirational contracts (`it.fails`) live side-by-side
+    // here. The README in tests/_meta_audit/ explains the dual purpose.
     test: {
       name: '_meta_audit',
       root: '.',
