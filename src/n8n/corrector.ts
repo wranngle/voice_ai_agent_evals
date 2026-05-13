@@ -130,7 +130,6 @@ export function createN8nCorrector(options: N8nCorrectorOptions): N8nCorrectorCl
     const results: Array<{success: boolean; batch: NodeOperation[]; error?: string}> = [];
     for (const batch of batches) {
       try {
-        // eslint-disable-next-line no-await-in-loop -- batches must serialize on the same workflow
         await applyPartialUpdate(workflowId, batch);
         results.push({success: true, batch});
       } catch (error: unknown) {

@@ -34,6 +34,11 @@ PRIMARY COMMANDS
       \`client\`, \`llm\`, and \`evaluate\` from voice-evals.config. Mutation
       is gated to [DEV]-phase agents by default (see AGENTS.md).
 
+  factory <subcommand>
+      Combinatorial test factory: generate, upload, execute, and report on
+      bulk tests against an ElevenLabs agent. Subcommands: generate, upload,
+      list, cleanup, execute, report, run. See \`voice-evals factory --help\`.
+
   baseline capture <name>
       Snapshot the latest stored run's results as a baseline JSON under
       baselines/<name>.json.

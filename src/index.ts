@@ -48,6 +48,8 @@ export {
   expand,
   expandAll,
   expandTemplate,
+  generatedTestsToCreatePayloads,
+  generatedToCreatePayload,
   loadIndustries,
   loadTemplates,
   loadVariants,

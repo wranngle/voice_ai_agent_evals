@@ -81,6 +81,11 @@ async function dispatch(): Promise<number | undefined> {
       return 1;
     }
 
+    case 'factory': {
+      const {dispatchFactory} = await import('./cli/commands/factory');
+      return dispatchFactory({argv: process.argv.slice(3)});
+    }
+
     case 'legacy': {
       // Shift argv left so the legacy CLI sees its own subcommand at argv[2].
       process.argv = [process.argv[0], process.argv[1], ...process.argv.slice(3)];

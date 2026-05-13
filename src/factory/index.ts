@@ -30,3 +30,4 @@ export type {FactoryContext} from './templates';
 export {
   expandAll, expandTemplate, loadIndustries, loadTemplates, loadVariants,
 } from './templates';
+export {generatedTestsToCreatePayloads, generatedToCreatePayload} from './to-elevenlabs';
