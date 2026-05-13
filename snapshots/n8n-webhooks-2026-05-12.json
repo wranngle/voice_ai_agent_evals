@@ -1,0 +1,35 @@
+{
+  "deployed_at": "2026-05-13T06:00:17.751Z",
+  "workflows": {
+    "elevenlabs_client_initiation_data_webhook": {
+      "id": "HW81jnwEzjOAxjE9",
+      "active": true,
+      "webhook_url": "https://n8n.wranngle.com/webhook/elevenlabs/initiation",
+      "smoke_test": {"elapsed_ms": 190, "status": 200, "response_shape_valid": true},
+      "wired_to_agents": [
+        "agent_8401krfj3xrqek2bfw71fyw2nzq0",
+        "agent_7601krfykfpwfjxrjqcshg64pcby",
+        "agent_3701krfykgvvep8r9vwwjk033p5k"
+      ]
+    },
+    "elevenlabs_post_call_webhook": {
+      "id": "BozTmxhIv5lepNyK",
+      "active": true,
+      "webhook_url": "https://n8n.wranngle.com/webhook/elevenlabs/post-call",
+      "elevenlabs_workspace_webhook_id": "1b5046d9afd746108620ec6482115428",
+      "elevenlabs_workspace_webhook_secret_env": "ELEVENLABS_POST_CALL_WEBHOOK_SECRET — saved separately in ~/.agents/.env, not in repo",
+      "wired_to_agents": [
+        "agent_8401krfj3xrqek2bfw71fyw2nzq0",
+        "agent_7601krfykfpwfjxrjqcshg64pcby",
+        "agent_3701krfykgvvep8r9vwwjk033p5k"
+      ],
+      "manual_followup": "Add ELEVENLABS_WEBHOOK_SECRET=wsec_4018cf97... to n8n's runtime env so the workflow's HMAC verify code node can resolve it. Until then, verify will fail-closed and post-call payloads will be dropped."
+    },
+    "elevenlabs_monitoring_webhook": {
+      "id": "bcaHY5IzdMuOVvrt",
+      "active": true,
+      "webhook_url": "https://n8n.wranngle.com/webhook/elevenlabs/monitoring",
+      "note": "Workflow live but cannot be wired to agents: conversation.monitoring_enabled is ENTERPRISE-ONLY on this workspace. Listener stays online for when the tier upgrades."
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "name": "elevenlabs_monitoring_webhook",
+  "nodes": [
+    {
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "elevenlabs/monitoring",
+        "responseMode": "responseNode",
+        "options": {"rawBody": true}
+      }
+    },
+    {
+      "name": "Verify + Forward to Sink",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 0],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const crypto = require('crypto');\nconst fs = require('fs');\nconst path = require('path');\n\nconst SECRET = $env.N8N_WEBHOOK_SECRET || $env.ELEVENLABS_WEBHOOK_SECRET || '';\nconst TOLERANCE_SEC = 30 * 60;\n\nconst item = $input.first();\nconst headers = item.json.headers || {};\nconst sigHeader = headers['elevenlabs-signature'] || headers['ElevenLabs-Signature'] || '';\nconst rawBody = item.json.rawBody || JSON.stringify(item.json.body || item.json);\n\nlet verified = true;\nif (SECRET) {\n  const parts = sigHeader.split(',').reduce((acc, p) => { const [k, v] = p.split('='); acc[k] = v; return acc; }, {});\n  const t = parts.t ? parseInt(parts.t, 10) : NaN;\n  const v0 = parts.v0 || '';\n  const now = Math.floor(Date.now() / 1000);\n  if (!t || !v0 || Math.abs(now - t) > TOLERANCE_SEC) verified = false;\n  else {\n    const expected = crypto.createHmac('sha256', SECRET).update(`${t}.${rawBody}`).digest('hex');\n    if (expected.length !== v0.length || !crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(v0))) verified = false;\n  }\n}\n\nconst payload = typeof item.json.body === 'string' ? JSON.parse(item.json.body) : (item.json.body || item.json);\nconst today = new Date().toISOString().slice(0, 10);\nconst dir = path.join(process.cwd(), 'logs', 'elevenlabs', 'monitoring');\nfs.mkdirSync(dir, {recursive: true});\nconst file = path.join(dir, `monitoring-${today}.ndjson`);\nfs.appendFileSync(file, JSON.stringify({verified, received_at: new Date().toISOString(), payload}) + '\\n');\n\nreturn [{json: {ok: true, verified, sink: file}}];"
+      }
+    },
+    {
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [800, 0],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({status: 'ok'}) }}",
+        "options": {"responseCode": 200}
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {"main": [[{"node": "Verify + Forward to Sink", "type": "main", "index": 0}]]},
+    "Verify + Forward to Sink": {"main": [[{"node": "Respond to Webhook", "type": "main", "index": 0}]]}
+  },
+  "settings": {"executionOrder": "v1"}
+}

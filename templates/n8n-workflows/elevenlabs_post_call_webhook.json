@@ -1,0 +1,43 @@
+{
+  "name": "elevenlabs_post_call_webhook",
+  "nodes": [
+    {
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "elevenlabs/post-call",
+        "responseMode": "responseNode",
+        "options": {"rawBody": true}
+      }
+    },
+    {
+      "name": "Verify HMAC + Persist NDJSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 0],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// HMAC-SHA256 verify the ElevenLabs-Signature header, then append to NDJSON sink.\n// Mirrors src/security/elevenlabs-signature.ts in the repo.\nconst crypto = require('crypto');\nconst fs = require('fs');\nconst path = require('path');\n\nconst SECRET = $env.N8N_WEBHOOK_SECRET || $env.ELEVENLABS_WEBHOOK_SECRET || '';\nconst TOLERANCE_SEC = 30 * 60;\n\nconst item = $input.first();\nconst headers = item.json.headers || {};\nconst sigHeader = headers['elevenlabs-signature'] || headers['ElevenLabs-Signature'] || '';\nconst rawBody = item.json.rawBody || JSON.stringify(item.json.body || item.json);\n\nconst parseSig = (h) => {\n  const parts = h.split(',').reduce((acc, p) => { const [k, v] = p.split('='); acc[k] = v; return acc; }, {});\n  return {t: parts.t ? parseInt(parts.t, 10) : NaN, v0: parts.v0 || ''};\n};\nconst {t, v0} = parseSig(sigHeader);\nif (!t || !v0) return [{json: {ok: false, reason: 'malformed_header'}}];\nconst now = Math.floor(Date.now() / 1000);\nif (Math.abs(now - t) > TOLERANCE_SEC) return [{json: {ok: false, reason: 'stale'}}];\nconst expected = crypto.createHmac('sha256', SECRET).update(`${t}.${rawBody}`).digest('hex');\nif (expected.length !== v0.length || !crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(v0))) {\n  return [{json: {ok: false, reason: 'signature_mismatch'}}];\n}\n\nconst payload = typeof item.json.body === 'string' ? JSON.parse(item.json.body) : (item.json.body || item.json);\nconst type = payload.type || 'unknown';\n\n// Append to NDJSON sink (one file per type per day)\nconst today = new Date().toISOString().slice(0, 10);\nconst dir = path.join(process.cwd(), 'logs', 'elevenlabs', 'post-call');\nfs.mkdirSync(dir, {recursive: true});\nconst file = path.join(dir, `${type}-${today}.ndjson`);\nfs.appendFileSync(file, JSON.stringify(payload) + '\\n');\n\nreturn [{json: {ok: true, type, conversation_id: payload.data?.conversation_id, sink: file}}];"
+      }
+    },
+    {
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [800, 0],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({status: 'ok'}) }}",
+        "options": {"responseCode": 200}
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {"main": [[{"node": "Verify HMAC + Persist NDJSON", "type": "main", "index": 0}]]},
+    "Verify HMAC + Persist NDJSON": {"main": [[{"node": "Respond to Webhook", "type": "main", "index": 0}]]}
+  },
+  "settings": {"executionOrder": "v1"}
+}

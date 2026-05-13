@@ -1,0 +1,55 @@
+{
+  "name": "elevenlabs_client_initiation_data_webhook",
+  "nodes": [
+    {
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "elevenlabs/initiation",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "name": "Build Fast-Fail Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 0],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Fast-fail valid-object responder for ElevenLabs conversation_initiation_client_data.\n// Hard floor: returns a valid object with every defined dynamic variable, even when every upstream is dead.\n// Mirrors src/webhook/client-initiation.ts in the repo.\nconst body = $input.first().json.body || $input.first().json;\nconst callerId = body.caller_id || '';\nconst agentId = body.agent_id || '';\n\n// Default specs — keep in sync with templates/elevenlabs-agents/template-system-prompt-v1.md\nconst specs = [\n  {identifier: 'system_prompt_context', type: 'string', default: 'none'},\n  {identifier: 'agent_name', type: 'string', default: 'the assistant'},\n  {identifier: 'company_name', type: 'string', default: 'this business'},\n  {identifier: 'primary_language', type: 'string', default: 'English'},\n  {identifier: 'transfer_enabled', type: 'boolean', default: false},\n  {identifier: 'agent_voice_marker', type: 'string', default: ''}\n];\n\nconst dynamic_variables = {};\nfor (const spec of specs) {\n  dynamic_variables[spec.identifier] = spec.default;\n}\n\n// TODO: enrich with CRM lookup of callerId here, racing against a 2s timeout.\n// On any failure leave the defaults intact.\n\nreturn [{json: {\n  type: 'conversation_initiation_client_data',\n  dynamic_variables\n}}];"
+      }
+    },
+    {
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [800, 0],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [{"node": "Build Fast-Fail Response", "type": "main", "index": 0}]
+      ]
+    },
+    "Build Fast-Fail Response": {
+      "main": [
+        [{"node": "Respond to Webhook", "type": "main", "index": 0}]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
