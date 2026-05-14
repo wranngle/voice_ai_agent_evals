@@ -27,6 +27,11 @@ PRIMARY COMMANDS
   init [--force]
       Scaffold voice-evals.config.{ts,mjs} in the current directory.
 
+  demo
+      Run a 60-second end-to-end demo against a synthesized fixture: prints
+      dimension scores, writes an HTML report, exits 0. No env vars required —
+      ideal first-touch surface (\`npx @wranngle/voice-evals demo\`).
+
   score <wav-file>
       Score a recorded conversation. Audio-native: voice-activity per channel
       and (for stereo: caller=L, agent=R) barge-in detection. Prints

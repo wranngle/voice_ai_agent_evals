@@ -4,6 +4,7 @@
  *
  * v1.0 top-level surface:
  *   init             scaffold voice-evals.config.{ts,mjs}
+ *   demo             60-second end-to-end demo on a synthesized fixture
  *   score <wav>      audio-native scoring (voice-activity + barge-in)
  *   ingest <txt>     transcript → ProposedTestCase[] via LLM data layer
  *   polish <agent>   closed-loop remediation (proposer + apply + iterate)
@@ -48,6 +49,11 @@ async function dispatch(): Promise<number | undefined> {
       const htmlOut = readStringFlag('--html-out');
       const runId = readStringFlag('--run-id');
       return runScore({path, htmlOut, runId});
+    }
+
+    case 'demo': {
+      const {runDemo} = await import('./cli/commands/demo');
+      return runDemo();
     }
 
     case 'ingest': {
