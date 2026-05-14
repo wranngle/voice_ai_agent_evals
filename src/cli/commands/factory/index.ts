@@ -36,9 +36,9 @@ export async function dispatchFactory(options: FactoryDispatchOptions): Promise<
     out('');
     out('  generate [--strategy cartesian|pairwise|sample] [--count N] [--seed N]');
     out('           [--templates <dir>] [--output <file>]');
-    out('  upload   --input <file> [--agent-id <id>] [--clean-first] [--manifest <file>]');
+    out('  upload   --input <file> [--agent-id <id>] [--clean-first --clean-manifest <file>] [--manifest <file>]');
     out('  list     [--agent-id <id>]');
-    out('  cleanup  --agent-id <id>');
+    out('  cleanup  (--manifest <file> | --all --yes) [--agent-id <id>]');
     out('  execute  --agent-id <id> (--tests <id…> | --manifest <file>) [--async]');
     out('  report   --invocation-id <id>');
     out('  run      --agent-id <id> [--count N] [--strategy …] [--keep-artifacts]');
@@ -65,6 +65,7 @@ export async function dispatchFactory(options: FactoryDispatchOptions): Promise<
         input: input ?? '',
         agentId: readStringFlag(options.argv, '--agent-id'),
         cleanFirst: options.argv.includes('--clean-first'),
+        cleanManifest: readStringFlag(options.argv, '--clean-manifest'),
         manifestPath: readStringFlag(options.argv, '--manifest'),
         out,
       });
@@ -81,7 +82,10 @@ export async function dispatchFactory(options: FactoryDispatchOptions): Promise<
     case 'cleanup': {
       const {runFactoryCleanup} = await import('./cleanup');
       return runFactoryCleanup({
-        agentId: readStringFlag(options.argv, '--agent-id') ?? '',
+        agentId: readStringFlag(options.argv, '--agent-id'),
+        manifest: readStringFlag(options.argv, '--manifest'),
+        all: options.argv.includes('--all'),
+        yes: options.argv.includes('--yes'),
         out,
       });
     }

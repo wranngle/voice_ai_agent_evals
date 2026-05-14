@@ -74,7 +74,14 @@ function proposalsFromPatterns(options: ProposeFixOptions): FixProposal[] {
     }
 
     if (def.fixTarget === 'system_prompt' && def.promptAddition !== '') {
-      if (currentPrompt.includes(detected.pattern)) {
+      // Dedup against the literal addition (the rule headline is unique
+      // per pattern: "[AUTOREFINEMENT] CRITICAL SMS CONSENT RULE:" etc.).
+      // The old check tested for the pattern id (e.g. SMS_AFTER_DECLINE),
+      // but the canonical addition does not include that id — so the
+      // same block was re-appended every polish iteration, ballooning
+      // the system prompt indefinitely.
+      const headline = firstNonEmptyLine(def.promptAddition);
+      if (headline && currentPrompt.includes(headline)) {
         continue;
       }
 
@@ -103,6 +110,17 @@ function proposalsFromPatterns(options: ProposeFixOptions): FixProposal[] {
   }
 
   return out;
+}
+
+function firstNonEmptyLine(text: string): string | undefined {
+  for (const line of text.split('\n')) {
+    const trimmed = line.trim();
+    if (trimmed !== '') {
+      return trimmed;
+    }
+  }
+
+  return undefined;
 }
 
 function extractSystemPrompt(config: Record<string, unknown>): string {

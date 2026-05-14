@@ -1,8 +1,10 @@
 /**
- * `voice-evals factory list [--agent-id ID]` — list portal-visible tests.
+ * `voice-evals factory list` — list every test visible to the API key.
  *
- * If --agent-id is provided, list tests scoped to that agent. Otherwise
- * list all tests visible to the API key.
+ * The ElevenLabs Tests API does NOT scope tests by agent (a Test is an
+ * independent entity that can be run against any agent), so list cannot
+ * filter server-side. `--agent-id` is accepted only as an audit label
+ * surfaced in the header line and has no effect on the returned set.
  */
 
 import type {VoiceEvalsClient} from '../../../wrapper/types';
@@ -33,11 +35,11 @@ export async function runFactoryList(options: FactoryListOptions): Promise<numbe
     return 1;
   }
 
-  const tests = await client.tests.list({
-    ...(options.agentId ? {agentId: options.agentId} : {}),
-  } as Parameters<typeof client.tests.list>[0]);
-
-  out(`Found ${tests.length} test(s)${options.agentId ? ` for agent ${options.agentId}` : ''}.`);
+  const tests = await client.tests.list();
+  const scopeNote = options.agentId
+    ? ` (Tests API does not scope by agent; --agent-id ${options.agentId} is informational only)`
+    : '';
+  out(`Found ${tests.length} test(s)${scopeNote}.`);
   for (const t of tests) {
     out(`  ${t.id}\t${t.type ?? '-'}\t${t.name ?? '(unnamed)'}`);
   }

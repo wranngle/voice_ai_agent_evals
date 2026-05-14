@@ -172,12 +172,34 @@ function renderTest(
     success_condition: template.success_condition
       ? interpolate(template.success_condition, interpolationContext)
       : undefined,
-    success_examples: template.success_examples,
-    failure_examples: template.failure_examples,
-    dynamic_variables: template.dynamic_variables,
+    success_examples: template.success_examples?.map(example => ({
+      ...example,
+      response: interpolate(example.response, interpolationContext),
+    })),
+    failure_examples: template.failure_examples?.map(example => ({
+      ...example,
+      response: interpolate(example.response, interpolationContext),
+    })),
+    dynamic_variables: interpolateDynamicVariables(template.dynamic_variables, interpolationContext),
     expanded_with: template.expand_with,
     variable_assignment: assignment,
   };
+}
+
+function interpolateDynamicVariables(
+  vars: Record<string, unknown> | undefined,
+  context: Record<string, string>,
+): Record<string, unknown> | undefined {
+  if (!vars) {
+    return undefined;
+  }
+
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(vars)) {
+    out[key] = typeof value === 'string' ? interpolate(value, context) : value;
+  }
+
+  return out;
 }
 
 /**
@@ -193,14 +215,36 @@ function buildInterpolationContext(assignment: Record<string, unknown>): Record<
   const ctx: Record<string, string> = {};
   for (const [bucket, value] of Object.entries(assignment)) {
     const singular = toSingular(bucket);
+    // Generic alias: `demo_close_variants` and `objection_variants` both
+    // also expose `{variant}`, `{variant_name}`, … so a template can use
+    // the generic placeholders documented in templates/factory/*.yaml
+    // without binding to a specific bucket name. Only set the alias if
+    // it isn't already taken by an earlier bucket; first-wins.
+    const aliases = [singular];
+    if (singular.endsWith('_variant')) {
+      aliases.push('variant');
+    }
+
     if (value && typeof value === 'object') {
       const obj = value as Record<string, unknown>;
-      ctx[singular] = stringifyField(obj.id);
-      for (const [field, fieldValue] of Object.entries(obj)) {
-        ctx[`${singular}_${field}`] = stringifyField(fieldValue);
+      for (const alias of aliases) {
+        if (!(alias in ctx)) {
+          ctx[alias] = stringifyField(obj.id);
+        }
+
+        for (const [field, fieldValue] of Object.entries(obj)) {
+          const key = `${alias}_${field}`;
+          if (!(key in ctx)) {
+            ctx[key] = stringifyField(fieldValue);
+          }
+        }
       }
     } else {
-      ctx[singular] = stringifyField(value);
+      for (const alias of aliases) {
+        if (!(alias in ctx)) {
+          ctx[alias] = stringifyField(value);
+        }
+      }
     }
   }
 

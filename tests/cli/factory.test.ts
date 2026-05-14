@@ -126,7 +126,7 @@ describe('runFactoryUpload', () => {
     expect(out.mock.calls[0][0]).toContain('not found');
   });
 
-  it('errors when --clean-first is set without --agent-id', async () => {
+  it('errors when --clean-first is set without --clean-manifest', async () => {
     const dir = makeTempDir();
     const input = join(dir, 'tests.json');
     writeFileSync(input, '[]');
@@ -136,7 +136,31 @@ describe('runFactoryUpload', () => {
         input, cleanFirst: true, client: makeClient(), out,
       });
       expect(code).toBe(1);
-      expect(out.mock.calls.map(c => c[0]).join('\n')).toContain('--clean-first requires --agent-id');
+      expect(out.mock.calls.map(c => c[0]).join('\n')).toContain('--clean-manifest');
+    } finally {
+      rmSync(dir, {recursive: true, force: true});
+    }
+  });
+
+  it('--clean-first deletes IDs listed in --clean-manifest', async () => {
+    const dir = makeTempDir();
+    const input = join(dir, 'tests.json');
+    const cleanManifest = join(dir, 'prior.json');
+    writeFileSync(input, '[]');
+    writeFileSync(cleanManifest, JSON.stringify([
+      {generatedId: 'g1', remoteId: 'remote_old_1', name: 'old1'},
+      {generatedId: 'g2', remoteId: 'remote_old_2', name: 'old2'},
+    ]));
+    const del = vi.fn().mockResolvedValue(undefined);
+    const client = makeClient({delete: del});
+    const out = vi.fn();
+    try {
+      const code = await runFactoryUpload({
+        input, cleanFirst: true, cleanManifest, client, out,
+      });
+      expect(code).toBe(0);
+      expect(del).toHaveBeenCalledTimes(2);
+      expect(del.mock.calls.map(c => c[0])).toEqual(['remote_old_1', 'remote_old_2']);
     } finally {
       rmSync(dir, {recursive: true, force: true});
     }
@@ -212,14 +236,42 @@ describe('runFactoryList + runFactoryCleanup', () => {
     expect(lines.join('\n')).toContain('remote_2');
   });
 
-  it('cleanup errors without --agent-id', async () => {
+  it('cleanup errors without --manifest or --all', async () => {
     const out = vi.fn();
-    const code = await runFactoryCleanup({agentId: '', client: makeClient(), out});
+    const code = await runFactoryCleanup({client: makeClient(), out});
     expect(code).toBe(1);
-    expect(out.mock.calls[0][0]).toContain('--agent-id');
+    expect(out.mock.calls.map(c => c[0]).join('\n')).toContain('--manifest');
   });
 
-  it('cleanup deletes each test in the agent scope', async () => {
+  it('cleanup --all requires --yes confirmation', async () => {
+    const out = vi.fn();
+    const code = await runFactoryCleanup({all: true, client: makeClient(), out});
+    expect(code).toBe(1);
+    expect(out.mock.calls.map(c => c[0]).join('\n')).toContain('--yes');
+  });
+
+  it('cleanup --manifest deletes IDs from the manifest only', async () => {
+    const dir = makeTempDir();
+    const manifest = join(dir, 'manifest.json');
+    writeFileSync(manifest, JSON.stringify([
+      {generatedId: 'g1', remoteId: 'remote_1', name: 't1'},
+      {generatedId: 'g2', remoteId: 'remote_2', name: 't2'},
+    ]));
+    const del = vi.fn().mockResolvedValue(undefined);
+    const client = makeClient({delete: del});
+    const out = vi.fn();
+    try {
+      const code = await runFactoryCleanup({manifest, client, out});
+      expect(code).toBe(0);
+      expect(del).toHaveBeenCalledTimes(2);
+      expect(del.mock.calls.map(c => c[0])).toEqual(['remote_1', 'remote_2']);
+      expect(out.mock.calls.map(c => c[0]).join('\n')).toContain('Deleted 2/2');
+    } finally {
+      rmSync(dir, {recursive: true, force: true});
+    }
+  });
+
+  it('cleanup --all --yes wipes every test visible to the API key', async () => {
     const list = vi.fn().mockResolvedValue([
       {id: 'remote_1', raw: {}},
       {id: 'remote_2', raw: {}},
@@ -227,7 +279,7 @@ describe('runFactoryList + runFactoryCleanup', () => {
     const del = vi.fn().mockResolvedValue(undefined);
     const client = makeClient({list, delete: del});
     const out = vi.fn();
-    const code = await runFactoryCleanup({agentId: 'agent_x', client, out});
+    const code = await runFactoryCleanup({all: true, yes: true, client, out});
     expect(code).toBe(0);
     expect(del).toHaveBeenCalledTimes(2);
     expect(out.mock.calls.map(c => c[0]).join('\n')).toContain('Deleted 2/2');

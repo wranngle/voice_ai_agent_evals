@@ -36,7 +36,7 @@ export async function dispatchAgent(options: AgentDispatchOptions): Promise<numb
     out('  list');
     out('  create <name>');
     out('  clone <source-agent-id> <new-name>');
-    out('  archive <agent-id>');
+    out('  archive <agent-id> [--allowed-phases DEV,PROD,...] [--allow-untagged] [--reason <text>]');
     out('  promote <agent-id> <DEV|ALPHA|BETA|PROD> [--approved-by <name>] [--reason <text>]');
     return 0;
   }
@@ -92,7 +92,14 @@ export async function dispatchAgent(options: AgentDispatchOptions): Promise<numb
         return 1;
       }
 
-      await client.agents.archive(id);
+      const allowedPhases = readPhaseListFlag(options.argv, '--allowed-phases');
+      const allowUntagged = options.argv.includes('--allow-untagged');
+      const reason = readStringFlag(options.argv, '--reason');
+      await client.agents.archive(id, {
+        ...(allowedPhases ? {allowedPhases} : {}),
+        ...(allowUntagged ? {allowUntagged: true} : {}),
+        ...(reason ? {reason} : {}),
+      });
       out(`Archived: ${id}`);
       return 0;
     }
@@ -132,4 +139,18 @@ function readStringFlag(argv: readonly string[], flag: string): string | undefin
   }
 
   return argv[idx + 1];
+}
+
+const PHASE_VALUES = new Set(['DEV', 'ALPHA', 'BETA', 'PROD', 'ARCHIVED']);
+
+function readPhaseListFlag(argv: readonly string[], flag: string)
+  : Array<'DEV' | 'ALPHA' | 'BETA' | 'PROD' | 'ARCHIVED'> | undefined {
+  const raw = readStringFlag(argv, flag);
+  if (raw === undefined) {
+    return undefined;
+  }
+
+  const tokens = raw.split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
+  const valid = tokens.filter(t => PHASE_VALUES.has(t)) as Array<'DEV' | 'ALPHA' | 'BETA' | 'PROD' | 'ARCHIVED'>;
+  return valid.length > 0 ? valid : undefined;
 }

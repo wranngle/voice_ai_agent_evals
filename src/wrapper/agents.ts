@@ -5,17 +5,21 @@
  * `update`, `clone`, `archive`, `promote` with `[PHASE]` enforcement per
  * AGENTS.md:
  *
- *   - `create` auto-prefixes `[DEV]` on the agent name when the caller's
- *     name doesn't already start with a `[PHASE]` prefix. Mirrors the
- *     archive's policy that all new agents start in `[DEV]`.
+ *   - `create` forces a `[DEV]` prefix on the agent name. Pre-prefixed
+ *     non-DEV names (`[PROD] …`, `[BETA] …`) are rejected — promotion is
+ *     the only path out of DEV, by design. The requested `llm` (if set)
+ *     is validated against the project's banned-model list.
  *   - `update` runs `enforceMutation` against the current agent's name;
- *     by default only `[DEV]` agents are mutable.
+ *     by default only `[DEV]` agents are mutable. Phase-changing renames
+ *     are rejected — use `promote()` instead.
  *   - `clone` duplicates the source agent via the SDK's `.duplicate()`
  *     then renames the new agent with the caller's namePrefix; the
- *     resulting agent is `[DEV]`-tagged regardless of source phase.
- *   - `archive` renames the agent with `[ARCHIVED]` prefix (the SDK
- *     does have a `delete` method but per AGENTS.md policy we never call
- *     it — archival is the official retirement path).
+ *     resulting agent is `[DEV]`-tagged regardless of source phase, and
+ *     `overrides.name` cannot override that.
+ *   - `archive` renames the agent with `[ARCHIVED]` prefix. Default
+ *     policy: only `[DEV]` agents archive without ceremony; archiving a
+ *     non-DEV agent requires explicit `allowedPhases` (typically with
+ *     `approvedBy` + `reason` for audit), same shape as `update`.
  *   - `promote` swaps the `[PHASE]` prefix to a new phase; requires the
  *     caller to include the target phase in `allowedPhases` explicitly
  *     (typically combined with `{approvedBy, reason}` for audit).
@@ -32,17 +36,19 @@ import type {
   AgentWithConfig,
   AgentsApi,
   GovernanceOptions,
+  ModelRankings,
   Phase,
 } from './types';
-import {enforceMutation, parseAgentName} from './governance';
+import {GovernanceError, assertModelAllowed, enforceMutation, parseAgentName} from './governance';
 
 type AgentsApiDeps = {
   raw: ElevenLabsClient;
+  modelRankings: ModelRankings;
 };
 
 const PHASE_PATTERN = /^\[(DEV|ALPHA|BETA|PROD|ARCHIVED)]\s+/;
 
-export function createAgentsApi({raw}: AgentsApiDeps): AgentsApi {
+export function createAgentsApi({raw, modelRankings}: AgentsApiDeps): AgentsApi {
   return {
     async list() {
       const response = await raw.conversationalAi.agents.list();
@@ -57,9 +63,28 @@ export function createAgentsApi({raw}: AgentsApiDeps): AgentsApi {
 
     async create(spec: AgentCreateInput, options: AgentCreateOptions = {}) {
       const autoPrefix = options.autoPrefixDev ?? true;
-      const name = autoPrefix && !PHASE_PATTERN.test(spec.name)
+      const existingPrefix = PHASE_PATTERN.exec(spec.name);
+      // Reject pre-prefixed non-DEV names: promotion is the only path out
+      // of [DEV]. AGENTS.md: "New agents you create are auto-assigned
+      // [DEV]; promotions to any other phase need the user to explicitly
+      // say 'yes, promote to BETA'."
+      if (autoPrefix && existingPrefix && existingPrefix[1] !== 'DEV') {
+        throw new GovernanceError(
+          'phase_not_allowed',
+          `agents.create: name "${spec.name}" is pre-prefixed with [${existingPrefix[1]}]. `
+          + 'New agents must start in [DEV]; use agents.promote() to move phases. '
+          + 'Pass { autoPrefixDev: false } if you intentionally want to bypass (caller-owned audit).',
+        );
+      }
+
+      const name = autoPrefix && !existingPrefix
         ? `[DEV] ${spec.name}`
         : spec.name;
+
+      const requestedModel = extractLlm(spec.conversationConfig);
+      if (requestedModel) {
+        assertModelAllowed(requestedModel, modelRankings);
+      }
 
       const response = await raw.conversationalAi.agents.create({
         ...(spec as Record<string, unknown>),
@@ -83,6 +108,27 @@ export function createAgentsApi({raw}: AgentsApiDeps): AgentsApi {
       const currentName = pickString((current as unknown as Record<string, unknown>)?.name) ?? '';
       enforceMutation(currentName, {reason: 'agents.update', ...options});
 
+      // Reject phase-changing renames: AGENTS.md encodes phase ONLY in the
+      // name prefix, so a name-only patch from [DEV] → [PROD] would be a
+      // silent promotion. Force callers through agents.promote() so the
+      // approval metadata + allowedPhases gate apply.
+      if (typeof patch.name === 'string') {
+        const currentPhase = parseAgentName(currentName).phase;
+        const patchPhase = parseAgentName(patch.name).phase;
+        if (patchPhase && patchPhase !== currentPhase) {
+          throw new GovernanceError(
+            'phase_not_allowed',
+            `agents.update: patch.name changes phase [${currentPhase ?? 'untagged'}] → [${patchPhase}]. `
+            + 'Use agents.promote(agentId, toPhase, { allowedPhases, approvedBy, reason }) instead.',
+          );
+        }
+      }
+
+      const requestedModel = extractLlm(patch.conversationConfig);
+      if (requestedModel) {
+        assertModelAllowed(requestedModel, modelRankings);
+      }
+
       await raw.conversationalAi.agents.update(
         agentId,
         patch as unknown as Parameters<typeof raw.conversationalAi.agents.update>[1],
@@ -104,10 +150,18 @@ export function createAgentsApi({raw}: AgentsApiDeps): AgentsApi {
         ?? pickString((dup as unknown as Record<string, unknown>)?.id)
         ?? '';
 
+      // Spread overrides FIRST then pin name=newName — clones are [DEV]
+      // by contract; overrides.name (eg "[PROD] X") must not slip past.
       const renamePatch: AgentUpdateInput = {
-        name: newName,
         ...options.overrides,
+        name: newName,
       };
+
+      const requestedModel = extractLlm(renamePatch.conversationConfig);
+      if (requestedModel) {
+        assertModelAllowed(requestedModel, modelRankings);
+      }
+
       await raw.conversationalAi.agents.update(
         newId,
         renamePatch as unknown as Parameters<typeof raw.conversationalAi.agents.update>[1],
@@ -124,15 +178,12 @@ export function createAgentsApi({raw}: AgentsApiDeps): AgentsApi {
     async archive(agentId, options: GovernanceOptions = {}) {
       const current = await raw.conversationalAi.agents.get(agentId);
       const currentName = pickString((current as unknown as Record<string, unknown>)?.name) ?? '';
-      // Archive can be invoked on ANY phase (including [PROD]) — that IS
-      // its purpose. We just require some prefix awareness, so we pass
-      // allowUntagged + allowedPhases = all phases.
-      enforceMutation(currentName, {
-        allowedPhases: ['DEV', 'ALPHA', 'BETA', 'PROD', 'ARCHIVED'],
-        allowUntagged: true,
-        reason: 'agents.archive',
-        ...options,
-      });
+      // Archive is a mutation against the source phase. The default gate
+      // is [DEV]-only, same as update; archiving a non-DEV agent requires
+      // explicit allowedPhases (typically `{ allowedPhases: ['PROD'],
+      // approvedBy, reason }`). AGENTS.md: only [DEV] may be modified
+      // autonomously; everything else requires explicit user approval.
+      enforceMutation(currentName, {reason: 'agents.archive', ...options});
 
       const baseName = currentName.replace(PHASE_PATTERN, '');
       const newName = `[ARCHIVED] ${baseName}`.trim();
@@ -230,6 +281,24 @@ function toAgentSummary(raw: unknown): AgentSummary {
 
 function pickString(value: unknown): string | undefined {
   return typeof value === 'string' ? value : undefined;
+}
+
+/**
+ * Walk `conversationConfig.agent.prompt.llm` defensively. The SDK accepts
+ * both `agent.prompt.llm` and a top-level `prompt.llm` shape on some
+ * endpoints; the wrapper checks both so the banned-model gate fires
+ * regardless of which envelope the caller used.
+ */
+function extractLlm(config: unknown): string | undefined {
+  if (!config || typeof config !== 'object') {
+    return undefined;
+  }
+
+  const top = config as Record<string, unknown>;
+  const agent = top.agent as Record<string, unknown> | undefined;
+  const agentPrompt = agent?.prompt as Record<string, unknown> | undefined;
+  const direct = top.prompt as Record<string, unknown> | undefined;
+  return pickString(agentPrompt?.llm) ?? pickString(direct?.llm);
 }
 
 function toAgentWithConfig(raw: unknown): AgentWithConfig {

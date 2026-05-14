@@ -4,8 +4,11 @@
  * to TestsCreateRequestBody, calls `client.tests.create()` once per test
  * (serial, to respect rate limits).
  *
- * --clean-first first lists+deletes all tests for the agent so the upload
- * starts from a known state. Use carefully on shared agents.
+ * --clean-first scopes deletion through a prior upload manifest passed via
+ * --clean-manifest <path> — the Tests API does NOT scope by agent, so
+ * `tests.list({agentId})` was silently ignored before and would wipe every
+ * test the key could see. If --clean-manifest is omitted, --clean-first
+ * is rejected. Use `factory cleanup --all` for explicit unscoped wipes.
  */
 
 import {existsSync, readFileSync, writeFileSync} from 'node:fs';
@@ -24,6 +27,8 @@ export type FactoryUploadOptions = {
   input: string;
   agentId?: string;
   cleanFirst?: boolean;
+  /** Manifest from a prior upload (factory upload --manifest-path) used to scope --clean-first. */
+  cleanManifest?: string;
   manifestPath?: string;
   client?: VoiceEvalsClient;
   out?: (line: string) => void;
@@ -72,15 +77,35 @@ export async function runFactoryUpload(options: FactoryUploadOptions): Promise<n
   }
 
   if (options.cleanFirst) {
-    if (!options.agentId) {
-      out('error: --clean-first requires --agent-id (refusing to bulk-delete unscoped tests)');
+    if (!options.cleanManifest) {
+      out('error: --clean-first requires --clean-manifest <path> (Tests API does not scope by agent;');
+      out('       use `voice-evals factory cleanup --all --yes` if you really want an unscoped wipe)');
       return 1;
     }
 
-    const existing = await client.tests.list({agentId: options.agentId} as Parameters<typeof client.tests.list>[0]);
-    out(`Deleting ${existing.length} existing test(s) for ${options.agentId}…`);
-    for (const t of existing) {
-      await client.tests.delete(t.id);
+    if (!existsSync(options.cleanManifest)) {
+      out(`error: --clean-manifest not found: ${options.cleanManifest}`);
+      return 1;
+    }
+
+    let toDelete: string[];
+    try {
+      const parsed = JSON.parse(readFileSync(options.cleanManifest, 'utf8')) as UploadManifestEntry[];
+      if (!Array.isArray(parsed)) {
+        throw new TypeError('manifest must be a JSON array of {remoteId} entries');
+      }
+
+      toDelete = parsed
+        .map(entry => entry.remoteId)
+        .filter((id): id is string => typeof id === 'string' && id.length > 0);
+    } catch (error: unknown) {
+      out(`error: failed to read --clean-manifest: ${(error as Error).message}`);
+      return 1;
+    }
+
+    out(`Deleting ${toDelete.length} prior test(s) listed in ${options.cleanManifest}…`);
+    for (const id of toDelete) {
+      await client.tests.delete(id);
     }
   }
 

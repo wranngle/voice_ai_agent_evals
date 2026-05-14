@@ -30,7 +30,7 @@ const FALLBACK_RANKINGS: ModelRankings = {
 export function createVoiceEvalsClient(options: VoiceEvalsClientOptions): VoiceEvalsClient {
   const raw = resolveSdkClient(options);
   const modelRankings = resolveModelRankings(options);
-  const agents = createAgentsApi({raw});
+  const agents = createAgentsApi({raw, modelRankings});
   const tests = createTestsApi({raw});
   const tools: ToolsApi = {cleanProperty, cleanTools};
   const webhooks: WebhooksApi = {verify: verifyElevenLabsSignature};

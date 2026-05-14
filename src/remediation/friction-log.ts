@@ -11,8 +11,9 @@
  */
 
 import {
-  appendFileSync, existsSync, readFileSync, writeFileSync,
+  appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync,
 } from 'node:fs';
+import {dirname} from 'node:path';
 
 export type FrictionEventType =
   | 'REMEDIATION_APPLIED'
@@ -55,6 +56,16 @@ export function logFriction(
     timestamp: event.timestamp ?? (options.now ?? defaultNow)(),
     resolved: event.resolved ?? false,
   };
+  // Ensure the parent directory exists. Documented default path is
+  // `data/friction-log.jsonl`, but a fresh install has no `data/`
+  // directory — appendFileSync would throw ENOENT instead of creating
+  // the audit log. mkdir -p is a one-time, idempotent no-op once the
+  // dir exists.
+  const dir = dirname(path);
+  if (dir && dir !== '.' && !existsSync(dir)) {
+    mkdirSync(dir, {recursive: true});
+  }
+
   appendFileSync(path, `${JSON.stringify(stamped)}\n`, 'utf8');
   return stamped;
 }
