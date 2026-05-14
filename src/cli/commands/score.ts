@@ -12,10 +12,12 @@
  */
 
 import {existsSync, readFileSync} from 'node:fs';
+import {resolve} from 'node:path';
 import {
   detectBargeIn, parseWav, scoreVoiceActivity, type WavInfo,
 } from '../../scoring/audio';
 import type {DimensionScore} from '../../scoring/types';
+import {renderHtml} from '../../report/html';
 import {createTracer} from '../../internal/jsonl-trace';
 
 const trace = createTracer('cli.score');
@@ -34,6 +36,10 @@ export type ScoreOptions = {
   out?: (line: string) => void;
   /** Inject WAV bytes directly (skip the filesystem read) — for tests. */
   bytes?: Uint8Array;
+  /** If set, emit a self-contained HTML scorecard at `<htmlOut>/index.html`. */
+  htmlOut?: string;
+  /** Optional stable run id surfaced in the report header. */
+  runId?: string;
 };
 
 export async function runScore(options: ScoreOptions): Promise<number> {
@@ -85,6 +91,21 @@ export async function runScore(options: ScoreOptions): Promise<number> {
     if (d.status !== 'passed' && d.status !== 'skipped') {
       anyFailed = true;
     }
+  }
+
+  if (options.htmlOut) {
+    const audioSummary = `${wav.channels === 1 ? 'mono' : 'stereo'}, ${wav.sampleRate} Hz, ${wav.bitsPerSample}-bit, ${Math.round(wav.durationMs)}ms`;
+    const rendered = renderHtml(
+      {
+        runId: options.runId,
+        audioPath: options.path ? resolve(options.path) : '',
+        audioSummary,
+        dimensions,
+      },
+      options.htmlOut,
+    );
+    out('');
+    out(`HTML scorecard: ${rendered.htmlPath}`);
   }
 
   return anyFailed ? 1 : 0;

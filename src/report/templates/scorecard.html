@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>voice-evals scorecard — {{RUN_ID}}</title>
+<style>
+  :root { color-scheme: light dark; --pass:#1f9d55; --fail:#c0392b; --skip:#888; --bg:#0f1115; --fg:#e8e8e8; --panel:#171a21; --rule:#2a2f3a; }
+  * { box-sizing: border-box; }
+  body { font:14px/1.5 system-ui,-apple-system,Segoe UI,Helvetica,Arial,sans-serif; margin:0; padding:24px; background:var(--bg); color:var(--fg); }
+  h1 { font-size:18px; margin:0 0 4px; font-weight:600; }
+  .sub { color:#999; margin-bottom:16px; }
+  .panel { background:var(--panel); border:1px solid var(--rule); border-radius:8px; padding:16px; margin-bottom:16px; }
+  .overall { display:flex; align-items:baseline; gap:12px; }
+  .overall .num { font-size:40px; font-weight:700; }
+  .overall .pct { font-size:14px; color:#999; }
+  .status-passed { color:var(--pass); }
+  .status-failed { color:var(--fail); }
+  .status-error  { color:var(--fail); }
+  .status-skipped{ color:var(--skip); }
+  table { width:100%; border-collapse:collapse; }
+  th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--rule); vertical-align:top; }
+  th { font-weight:600; color:#bbb; font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+  .flag { width:1.5em; }
+  .score-cell { font-variant-numeric:tabular-nums; width:5em; }
+  .name { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  .detail { color:#bbb; }
+  audio { width:100%; }
+  .meta { color:#888; font-size:12px; }
+  code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; background:#222831; padding:1px 5px; border-radius:3px; }
+</style>
+</head>
+<body>
+<h1>voice-evals scorecard</h1>
+<div class="sub">run <code>{{RUN_ID}}</code> · generated <code>{{GENERATED_AT}}</code></div>
+
+<div class="panel">
+  <div class="overall">
+    <span class="num status-{{OVERALL_STATUS}}" data-testid="overall-score">{{OVERALL_SCORE}}</span>
+    <span class="pct">/ 1.00 · <span class="status-{{OVERALL_STATUS}}">{{OVERALL_STATUS}}</span></span>
+  </div>
+  <div class="meta">{{AUDIO_SUMMARY}}</div>
+</div>
+
+<div class="panel">
+  <h2 style="font-size:13px;margin:0 0 8px;color:#bbb;text-transform:uppercase;letter-spacing:.04em;">Dimensions</h2>
+  <table>
+    <thead><tr><th class="flag"></th><th>Dimension</th><th>Score</th><th>Detail</th></tr></thead>
+    <tbody>
+      {{DIMENSION_ROWS}}
+    </tbody>
+  </table>
+</div>
+
+<div class="panel">
+  <h2 style="font-size:13px;margin:0 0 8px;color:#bbb;text-transform:uppercase;letter-spacing:.04em;">Source audio</h2>
+  <audio controls preload="metadata" data-testid="transcript-audio" src="{{AUDIO_HREF}}"></audio>
+  <div class="meta" style="margin-top:6px;">{{AUDIO_PATH}}</div>
+</div>
+
+</body>
+</html>
