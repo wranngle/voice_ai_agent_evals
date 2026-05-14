@@ -11,8 +11,12 @@
  *   - transcript-audio   (<audio> pointing at the source WAV)
  */
 
-import {mkdirSync, writeFileSync, copyFileSync, readFileSync, existsSync} from 'node:fs';
-import {basename, join, resolve, relative, dirname, isAbsolute} from 'node:path';
+import {
+  mkdirSync, writeFileSync, copyFileSync, readFileSync, existsSync,
+} from 'node:fs';
+import {
+  basename, join, resolve, relative, dirname, isAbsolute,
+} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import type {DimensionScore} from '../scoring/types';
 
@@ -47,7 +51,7 @@ export function renderHtmlString(input: ScorecardInput, audioHref?: string): str
   const template = readFileSync(TEMPLATE_PATH, 'utf8');
   const generatedAt = (input.generatedAt ?? new Date()).toISOString();
   const overall = aggregate(input.dimensions);
-  const rows = input.dimensions.map(renderDimensionRow).join('\n');
+  const rows = input.dimensions.map(d => renderDimensionRow(d)).join('\n');
   const href = audioHref ?? input.audioPath;
   return template
     .replaceAll('{{RUN_ID}}', escapeHtml(input.runId ?? defaultRunId(input.audioPath)))
@@ -61,7 +65,7 @@ export function renderHtmlString(input: ScorecardInput, audioHref?: string): str
 }
 
 function renderDimensionRow(d: DimensionScore): string {
-  const flag = d.status === 'passed' ? '✓' : d.status === 'skipped' ? '·' : '✗';
+  const flag = d.status === 'passed' ? '✓' : (d.status === 'skipped' ? '·' : '✗');
   const score = d.score === undefined ? '' : d.score.toFixed(2);
   return [
     `      <tr data-testid="dimension-row" data-dimension="${escapeAttr(d.name)}" data-status="${d.status}">`,
@@ -74,7 +78,10 @@ function renderDimensionRow(d: DimensionScore): string {
 }
 
 function aggregate(dims: DimensionScore[]): {score: number; status: DimensionScore['status']} {
-  if (dims.length === 0) return {score: 0, status: 'skipped'};
+  if (dims.length === 0) {
+    return {score: 0, status: 'skipped'};
+  }
+
   let weightSum = 0;
   let scoreSum = 0;
   let anyFailed = false;
@@ -86,19 +93,30 @@ function aggregate(dims: DimensionScore[]): {score: number; status: DimensionSco
       weightSum += weight;
       scoreSum += weight * score;
     }
-    if (d.status === 'failed') anyFailed = true;
-    if (d.status === 'error') anyError = true;
+
+    if (d.status === 'failed') {
+      anyFailed = true;
+    }
+
+    if (d.status === 'error') {
+      anyError = true;
+    }
   }
+
   const score = weightSum === 0 ? 0 : scoreSum / weightSum;
-  const status: DimensionScore['status'] = anyError ? 'error' : anyFailed ? 'failed' : 'passed';
+  const status: DimensionScore['status'] = anyError ? 'error' : (anyFailed ? 'failed' : 'passed');
   return {score, status};
 }
 
 function embedAudio(audioPath: string, outDir: string): string {
-  if (!audioPath) return '';
+  if (!audioPath) {
+    return '';
+  }
+
   if (!isAbsolute(audioPath) || !existsSync(audioPath)) {
     return audioPath;
   }
+
   const dest = join(outDir, basename(audioPath));
   try {
     copyFileSync(audioPath, dest);
@@ -119,7 +137,7 @@ function escapeHtml(s: string): string {
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
+    .replaceAll('\'', '&#39;');
 }
 
 function escapeAttr(s: string): string {

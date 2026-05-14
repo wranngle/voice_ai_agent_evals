@@ -22,7 +22,7 @@ import {createTracer} from '../../internal/jsonl-trace';
 
 const trace = createTracer('cli.score');
 // JSONL tracing — emit start/end events from dispatch entry points.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 void trace;
 
 export type ScoreOptions = {

@@ -1,13 +1,21 @@
-import {existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
+import {
+  existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync,
+} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {basename, join} from 'node:path';
-import {afterEach, beforeEach, describe, expect, it} from 'vitest';
+import {
+  afterEach, beforeEach, describe, expect, it,
+} from 'vitest';
 import {renderHtml, renderHtmlString} from '../../src/report/html';
 import type {DimensionScore} from '../../src/scoring/types';
 
 const sampleDimensions: DimensionScore[] = [
-  {name: 'voice_activity', status: 'passed', score: 1, detail: 'caller spoke 820ms ≥ 500ms threshold'},
-  {name: 'barge_in_recovery', status: 'failed', score: 0.4, detail: 'overlap 360ms > 250ms budget'},
+  {
+    name: 'voice_activity', status: 'passed', score: 1, detail: 'caller spoke 820ms ≥ 500ms threshold',
+  },
+  {
+    name: 'barge_in_recovery', status: 'failed', score: 0.4, detail: 'overlap 360ms > 250ms budget',
+  },
   {name: 'transcript_fidelity', status: 'skipped', detail: 'no reference transcript supplied'},
 ];
 
@@ -45,8 +53,12 @@ describe('renderHtmlString', () => {
 
   it('marks the overall status from worst dimension and escapes hostile detail', () => {
     const dims: DimensionScore[] = [
-      {name: 'voice_activity', status: 'passed', score: 1, detail: 'ok'},
-      {name: 'judge_safety', status: 'failed', score: 0, detail: '<script>alert(1)</script>'},
+      {
+        name: 'voice_activity', status: 'passed', score: 1, detail: 'ok',
+      },
+      {
+        name: 'judge_safety', status: 'failed', score: 0, detail: '<script>alert(1)</script>',
+      },
     ];
     const html = renderHtmlString({
       runId: 'r',
@@ -68,13 +80,17 @@ describe('renderHtmlString', () => {
       audioPath: '/tmp/x.wav',
       audioSummary: '',
       dimensions: [
-        {name: 'a', status: 'passed', score: 1, weight: 1},
-        {name: 'b', status: 'failed', score: 0.4, weight: 1},
+        {
+          name: 'a', status: 'passed', score: 1, weight: 1,
+        },
+        {
+          name: 'b', status: 'failed', score: 0.4, weight: 1,
+        },
       ],
       generatedAt: new Date('2026-05-14T00:00:00Z'),
     });
 
-    const overall = html.match(/data-testid="overall-score">([^<]+)</);
+    const overall = /data-testid="overall-score">([^<]+)</.exec(html);
     expect(overall?.[1]).toBe('0.70');
   });
 });
