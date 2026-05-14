@@ -152,6 +152,20 @@ bun run testing:gtm-ops --root ../gtm_ops --tag ui
 
 To wire to your live agent, copy `agent-registry.example.yaml` → `agent-registry.yaml` (gitignored) and fill in real IDs, or set `ELEVENLABS_AGENT_ID` directly.
 
+## Gate merges on voice-evals score
+
+Drop the gating workflow into a consumer repo to block PR merges whose voice-eval success rate falls below the threshold. Four-line install:
+
+```bash
+mkdir -p .github/workflows
+curl -fsSL https://raw.githubusercontent.com/wranngle/voice-evals/v1/.github/workflows/voice-evals-gate.yml.template \
+  -o .github/workflows/voice-evals-gate.yml
+gh secret set ELEVENLABS_API_KEY VOICE_EVALS_AGENT_ID
+git add .github/workflows/voice-evals-gate.yml && git commit -m "ci: gate PRs on voice-evals"
+```
+
+The template pins `@wranngle/voice-evals@v1` (major-tag pinned), runs on every PR to `main`, uploads the JSON summary as an artifact, and posts a PR comment when the gate fails. See [`.github/workflows/voice-evals-gate.yml.template`](.github/workflows/voice-evals-gate.yml.template).
+
 ## What's in here
 
 - **`src/testing/`** — runner library: `runners/` (elevenlabs, n8n-eval, mcp, webhook, external-command), `adapters/`, `ingestion/`, CLI
