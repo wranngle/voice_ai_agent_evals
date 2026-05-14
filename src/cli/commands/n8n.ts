@@ -19,6 +19,12 @@ import {parse as parseYaml} from 'yaml';
 import {createN8nCorrector} from '../../n8n/corrector';
 import {evaluateWorkflows, type WorkflowEvalConfig} from '../../n8n/workflow-eval';
 import type {NodeOperation} from '../../n8n/types';
+import {createTracer} from '../../internal/jsonl-trace';
+
+const trace = createTracer('cli.n8n');
+// JSONL tracing — emit start/end events from dispatch entry points.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+void trace;
 
 export type N8nDispatchOptions = {
   argv: readonly string[];

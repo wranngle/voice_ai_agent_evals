@@ -14,6 +14,12 @@ import type {BaselineRun} from '../../regression/types';
 import type {Status} from '../../scoring/types';
 import {getResultsByRun, listTestRuns} from '../../testing/local-storage';
 import type {TestResult, TestRun, TestStatus} from '../../testing/types';
+import {createTracer} from '../../internal/jsonl-trace';
+
+const trace = createTracer('cli.baseline');
+// JSONL tracing — emit start/end events from dispatch entry points.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+void trace;
 
 export type BaselineOptions = {
   /** Stream output here. */

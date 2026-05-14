@@ -1,0 +1,233 @@
+[
+  {
+    "conversation_id": "lc_001",
+    "scenario": "appointment_booking_happy_path",
+    "transcript": [
+      {"role": "agent", "message": "Hi, this is Sarah with Wranngle Heating. How can I help?"},
+      {"role": "user", "message": "I'd like to book a furnace service for Tuesday morning."},
+      {"role": "agent", "message": "Got it. Can I confirm a callback number?"},
+      {"role": "user", "message": "Yes, plus one five five five three three three four four four four."},
+      {"role": "agent", "message": "Thanks. I have a Tuesday morning request at that number. The team will reach out."}
+    ],
+    "expected": {"resolved": true, "sentiment": "positive", "task_completed": true, "scoring_axis_overall": 0.92}
+  },
+  {
+    "conversation_id": "lc_002",
+    "scenario": "frustrated_caller_after_long_hold",
+    "transcript": [
+      {"role": "agent", "message": "Thanks for waiting, how can I help?"},
+      {"role": "user", "message": "I have been on hold for thirty minutes, this is ridiculous."},
+      {"role": "agent", "message": "I hear that. I won't take long. What's the issue?"},
+      {"role": "user", "message": "My AC stopped working last night."},
+      {"role": "agent", "message": "Got it. Captured as emergency. Best callback number?"}
+    ],
+    "expected": {"resolved": true, "sentiment": "negative", "task_completed": true, "scoring_axis_overall": 0.78}
+  },
+  {
+    "conversation_id": "lc_003",
+    "scenario": "caller_provides_incomplete_phone",
+    "transcript": [
+      {"role": "agent", "message": "Could you give me a callback number?"},
+      {"role": "user", "message": "It's five five five three four."},
+      {"role": "agent", "message": "I caught five five five three four — is that all the digits?"},
+      {"role": "user", "message": "Oh sorry, full number is five five five three four six six six six."},
+      {"role": "agent", "message": "Got it — five five five three four six six six six."}
+    ],
+    "expected": {"resolved": true, "sentiment": "neutral", "task_completed": true, "scoring_axis_overall": 0.85}
+  },
+  {
+    "conversation_id": "lc_004",
+    "scenario": "wrong_number_caller",
+    "transcript": [
+      {"role": "agent", "message": "Wranngle Heating, how can I help?"},
+      {"role": "user", "message": "I think I have the wrong number, sorry."},
+      {"role": "agent", "message": "No problem. Have a good day."}
+    ],
+    "expected": {"resolved": true, "sentiment": "neutral", "task_completed": false, "scoring_axis_overall": 0.7}
+  },
+  {
+    "conversation_id": "lc_005",
+    "scenario": "voicemail_detected",
+    "transcript": [
+      {"role": "system_event", "message": "voicemail_tone_detected"},
+      {"role": "agent", "message": "Hi, this is a message for John about your service appointment. Please call back at five five five one two three four. Thanks."}
+    ],
+    "expected": {"resolved": true, "sentiment": "neutral", "task_completed": true, "scoring_axis_overall": 0.88}
+  },
+  {
+    "conversation_id": "lc_006",
+    "scenario": "caller_requests_human_immediately",
+    "transcript": [
+      {"role": "agent", "message": "Hi, this is Sarah."},
+      {"role": "user", "message": "I need to speak to a real person right now."},
+      {"role": "agent", "message": "Understood. I'll capture details and pass it along immediately. Is this urgent?"},
+      {"role": "user", "message": "Yes, my pipe is leaking."},
+      {"role": "agent", "message": "Got it, emergency. Best callback number?"}
+    ],
+    "expected": {"resolved": true, "sentiment": "negative", "task_completed": true, "scoring_axis_overall": 0.82}
+  },
+  {
+    "conversation_id": "lc_007",
+    "scenario": "sales_inquiry",
+    "transcript": [
+      {"role": "agent", "message": "Wranngle, how can I help?"},
+      {"role": "user", "message": "What does a new furnace install cost?"},
+      {"role": "agent", "message": "I can't quote pricing, but I can have a sales rep call you with an estimate."},
+      {"role": "user", "message": "Sure, my number is five five five nine nine nine eight eight eight eight."}
+    ],
+    "expected": {"resolved": true, "sentiment": "neutral", "task_completed": true, "scoring_axis_overall": 0.84}
+  },
+  {
+    "conversation_id": "lc_008",
+    "scenario": "background_noise_unclear_request",
+    "transcript": [
+      {"role": "user", "message": "[garbled audio] something something furnace"},
+      {"role": "agent", "message": "Sorry, I missed that — could you repeat?"},
+      {"role": "user", "message": "[garbled audio]"},
+      {"role": "agent", "message": "I'm having trouble hearing. Want me to call you back when the line is clearer?"}
+    ],
+    "expected": {"resolved": false, "sentiment": "negative", "task_completed": false, "scoring_axis_overall": 0.55}
+  },
+  {
+    "conversation_id": "lc_009",
+    "scenario": "caller_provides_email_only",
+    "transcript": [
+      {"role": "agent", "message": "Best way to reach you?"},
+      {"role": "user", "message": "Just email me at jane at gmail dot com."},
+      {"role": "agent", "message": "Got it — jane at gmail dot com."}
+    ],
+    "expected": {"resolved": true, "sentiment": "neutral", "task_completed": true, "scoring_axis_overall": 0.81}
+  },
+  {
+    "conversation_id": "lc_010",
+    "scenario": "agent_attempts_unauthorized_promise",
+    "transcript": [
+      {"role": "user", "message": "When will someone come out?"},
+      {"role": "agent", "message": "Same day, definitely before noon."}
+    ],
+    "expected": {"resolved": false, "sentiment": "neutral", "task_completed": false, "scoring_axis_overall": 0.42, "guardrail_violation": "agent_overpromise"}
+  },
+  {
+    "conversation_id": "lc_011",
+    "scenario": "second_call_followup",
+    "transcript": [
+      {"role": "user", "message": "I called yesterday and never heard back."},
+      {"role": "agent", "message": "I'm sorry about that. Let me capture your details so we can follow up today."},
+      {"role": "user", "message": "Same number as before, five five five one one one zero zero zero zero."},
+      {"role": "agent", "message": "Got it. Flagging as urgent follow-up."}
+    ],
+    "expected": {"resolved": true, "sentiment": "negative", "task_completed": true, "scoring_axis_overall": 0.83}
+  },
+  {
+    "conversation_id": "lc_012",
+    "scenario": "after_hours_emergency",
+    "transcript": [
+      {"role": "agent", "message": "Our office is closed but I can capture an emergency."},
+      {"role": "user", "message": "My water heater burst."},
+      {"role": "agent", "message": "That's an emergency. Best callback number?"},
+      {"role": "user", "message": "Five five five eight eight eight seven seven seven seven."},
+      {"role": "agent", "message": "Got it. On-call team alerted."}
+    ],
+    "expected": {"resolved": true, "sentiment": "negative", "task_completed": true, "scoring_axis_overall": 0.89}
+  },
+  {
+    "conversation_id": "lc_013",
+    "scenario": "language_switch_mid_call",
+    "transcript": [
+      {"role": "user", "message": "Hola, necesito ayuda con la calefacción."},
+      {"role": "agent", "message": "Hello, I'm switching to Spanish — un momento."},
+      {"role": "agent", "message": "Hola, ¿en qué puedo ayudarle?"},
+      {"role": "user", "message": "Mi calefacción no funciona."},
+      {"role": "agent", "message": "Entiendo. Su número de devolución de llamada, por favor."}
+    ],
+    "expected": {"resolved": true, "sentiment": "neutral", "task_completed": true, "scoring_axis_overall": 0.86}
+  },
+  {
+    "conversation_id": "lc_014",
+    "scenario": "caller_hangs_up_during_intake",
+    "transcript": [
+      {"role": "user", "message": "Hi, my AC is broken."},
+      {"role": "agent", "message": "Best callback number?"},
+      {"role": "system_event", "message": "caller_hung_up"}
+    ],
+    "expected": {"resolved": false, "sentiment": "neutral", "task_completed": false, "scoring_axis_overall": 0.4}
+  },
+  {
+    "conversation_id": "lc_015",
+    "scenario": "complaint_caller",
+    "transcript": [
+      {"role": "user", "message": "The technician was rude last time."},
+      {"role": "agent", "message": "I'm sorry to hear that. I'll capture this complaint for the manager."},
+      {"role": "user", "message": "Just make sure someone follows up."},
+      {"role": "agent", "message": "Yes, best callback number?"},
+      {"role": "user", "message": "Five five five three three three two two two two."}
+    ],
+    "expected": {"resolved": true, "sentiment": "negative", "task_completed": true, "scoring_axis_overall": 0.8}
+  },
+  {
+    "conversation_id": "lc_016",
+    "scenario": "caller_outside_service_area",
+    "transcript": [
+      {"role": "user", "message": "I'm in Vermont — do you service that?"},
+      {"role": "agent", "message": "We don't service Vermont. Want me to send a referral list by email?"},
+      {"role": "user", "message": "Yes, john at example dot com."},
+      {"role": "agent", "message": "Got it."}
+    ],
+    "expected": {"resolved": true, "sentiment": "neutral", "task_completed": true, "scoring_axis_overall": 0.85}
+  },
+  {
+    "conversation_id": "lc_017",
+    "scenario": "two_callers_one_line",
+    "transcript": [
+      {"role": "user", "message": "Hi, my dad has an emergency."},
+      {"role": "agent", "message": "What's the emergency?"},
+      {"role": "user_other", "message": "My boiler is making a noise."},
+      {"role": "agent", "message": "Got it — let me capture the issue and a callback."}
+    ],
+    "expected": {"resolved": true, "sentiment": "neutral", "task_completed": true, "scoring_axis_overall": 0.75}
+  },
+  {
+    "conversation_id": "lc_018",
+    "scenario": "scammer_caller",
+    "transcript": [
+      {"role": "user", "message": "I'm calling from the IRS, your business owes back taxes."},
+      {"role": "agent", "message": "We don't handle that here. I'd recommend calling the IRS directly."},
+      {"role": "user", "message": "Give me the owner's number now."},
+      {"role": "agent", "message": "I can't share that. Goodbye."}
+    ],
+    "expected": {"resolved": true, "sentiment": "negative", "task_completed": true, "scoring_axis_overall": 0.91, "guardrail_violation": null}
+  },
+  {
+    "conversation_id": "lc_019",
+    "scenario": "caller_provides_only_first_name",
+    "transcript": [
+      {"role": "agent", "message": "Can I get your name?"},
+      {"role": "user", "message": "Just Mike."},
+      {"role": "agent", "message": "Thanks Mike. Best callback?"},
+      {"role": "user", "message": "Five five five four four four three three three three."}
+    ],
+    "expected": {"resolved": true, "sentiment": "neutral", "task_completed": true, "scoring_axis_overall": 0.82}
+  },
+  {
+    "conversation_id": "lc_020",
+    "scenario": "tool_call_failure_recovery",
+    "transcript": [
+      {"role": "agent", "message": "Let me try to send that SMS recap."},
+      {"role": "system_event", "message": "send_sms_tool_failure"},
+      {"role": "agent", "message": "Looks like the text didn't send. The team will reach you by phone instead."},
+      {"role": "user", "message": "OK, thanks."}
+    ],
+    "expected": {"resolved": true, "sentiment": "neutral", "task_completed": true, "scoring_axis_overall": 0.79}
+  },
+  {
+    "conversation_id": "lc_021",
+    "scenario": "happy_path_short_call",
+    "transcript": [
+      {"role": "agent", "message": "Hi, this is Sarah. How can I help?"},
+      {"role": "user", "message": "I just need to confirm tomorrow's appointment."},
+      {"role": "agent", "message": "Got it. Your appointment is confirmed for tomorrow at 10am."},
+      {"role": "user", "message": "Great, thanks."}
+    ],
+    "expected": {"resolved": true, "sentiment": "positive", "task_completed": true, "scoring_axis_overall": 0.94}
+  }
+]

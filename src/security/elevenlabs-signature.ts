@@ -19,14 +19,60 @@ const DEFAULT_TOLERANCE_SECONDS = 30 * 60;
 
 export type VerifyResult =
   | {ok: true}
-  | {ok: false; reason: 'malformed_header' | 'stale_or_missing_signature' | 'signature_mismatch'};
+  | {ok: false; reason: 'malformed_header' | 'stale_or_missing_signature' | 'signature_mismatch' | 'signature_replayed'};
+
+export type ReplayCache = {
+  has: (key: string) => boolean;
+  add: (key: string) => void;
+};
 
 export type VerifyOptions = {
   /** Reject signatures whose `t=` is more than this many seconds away from now. Default 1800 (30 min). */
   toleranceSeconds?: number;
   /** Inject a clock for tests. Defaults to `Date.now`. */
   now?: () => number;
+  /**
+   * Replay cache: rejects a digest seen twice inside the tolerance window.
+   * Defaults to a module-level in-memory cache shared across calls.
+   * Provide your own (Redis-backed, etc.) for multi-process deployments.
+   */
+  replayCache?: ReplayCache;
 };
+
+/**
+ * In-memory replay cache. Keys are `${t}:${v0}` (timestamp + digest).
+ * Periodically evicts entries older than the max tolerance window so memory
+ * stays bounded under steady load. Exported so callers (and tests) can
+ * instantiate their own — production multi-process deployments should
+ * provide a Redis-backed implementation matching the `ReplayCache` shape.
+ */
+export function createReplayCache(): ReplayCache {
+  const seen = new Map<string, number>();
+  const MAX_AGE_MS = 35 * 60 * 1000; // a touch above DEFAULT_TOLERANCE_SECONDS
+  let lastSweep = Date.now();
+
+  function maybeSweep(): void {
+    const now = Date.now();
+    if (now - lastSweep < 60_000) return; // sweep at most once per minute
+    lastSweep = now;
+    const cutoff = now - MAX_AGE_MS;
+    for (const [key, addedAt] of seen) {
+      if (addedAt < cutoff) seen.delete(key);
+    }
+  }
+
+  return {
+    has: (key: string) => {
+      maybeSweep();
+      return seen.has(key);
+    },
+    add: (key: string) => {
+      seen.set(key, Date.now());
+    },
+  };
+}
+
+const DEFAULT_REPLAY_CACHE = createReplayCache();
 
 type ParsedHeader = {t: number; v0: string};
 
@@ -116,6 +162,13 @@ export function verifyElevenLabsSignature(
     return {ok: false, reason: 'signature_mismatch'};
   }
 
+  const replayCache = options.replayCache ?? DEFAULT_REPLAY_CACHE;
+  const replayKey = `${parsed.t}:${parsed.v0}`;
+  if (replayCache.has(replayKey)) {
+    return {ok: false, reason: 'signature_replayed'};
+  }
+
+  replayCache.add(replayKey);
   return {ok: true};
 }
 

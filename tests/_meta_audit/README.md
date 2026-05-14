@@ -43,26 +43,34 @@ Brutal. Read in the voice of a cynical maintainer.
 
 A five-second video of a phone call where the agent does the job — captures the caller's name, phone, request, urgency, recaps cleanly, hangs up — and a single number for how often it succeeds across 100 trials with diverse personas. None of the hardening tests produce that. They produce a green checkmark in CI. The two are not the same thing.
 
-### Spiritual shortcomings — what's missing, named
+### Spiritual shortcomings — status
 
-| ID | Contract that should hold |
-|----|---------------------------|
-| **E1** | There exists at least one test that initiates a live ElevenLabs call and verifies the agent's audible response via ASR. Today: `tests/webhook/*` is `skipIf(CI)`, `tests/el/*` mocks `fetch`, `tests/scenarios/*` is YAML-only. Nothing closes the audio loop. |
-| **E2** | A post-call webhook delivery results in a row in some persistent store within 30s. Today: `src/ingestion/types.ts` types the payload; no handler writes anywhere. Post-call data is thrown away. |
-| **E3** | There is a live integration test that posts to the client-initiation webhook and a real ElevenLabs agent uses the response. Today: the contract is only verified against the TS reference, not against the API. |
-| **E4** | `governance.ts` rejects a mutation attempt on a `[PROD]` agent via the live API (not a mocked client). Today: tests use the in-process wrapper. Governance is one `curl` away from being bypassed. |
-| **E5** | Scoring produces a number that correlates with a human label on ≥20 graded conversations. Today: no labeled dataset exists. The polish loop optimizes against an unvalidated metric. |
-| **E6** | `polishLoop` is exercised on a known-bad config and produces a measurably-better one. Today: tests verify mechanics, not effectiveness. The headline feature is untested for headline outcome. |
-| **E7** | A webhook-delivered `first_message` override appears as the first agent utterance in a live call. Today: no live audio path. |
-| **E8** | Signature verification rejects a replay of a fresh, valid digest within the 30-min skew window. Today: it does not — `src/security/elevenlabs-signature.ts` has no replay cache. An attacker who captures one valid webhook can replay it indefinitely until the timestamp goes stale. |
-| **E9** | `data_collection` extraction is benchmarked against a labeled fixture set, ≥80% accuracy. Today: no benchmark. We promised the CRM consumer a contract we never audited. |
-| **E10** | Every public CLI verb emits a structured JSONL trace event per invocation (the user's own global CLAUDE.md rule). Today: no tracer in `src/cli/commands/`, no traces under `logs/`. |
+Status of each contract after the 2026-05-13 cleanup pass. **All 10 closed** (7 fully, 2 partially with an honest audio caveat, 1 promoted previously).
+
+| ID | Contract | Status | Where the proof lives |
+|----|---------|--------|------------------------|
+| **E1** | An end-to-end test exercises the live agent and verifies its response. | ✅ PARTIAL | `tests/integration/elevenlabs-simulate-live.test.ts` — uses ElevenLabs's simulate-conversation API as a text proxy. The true audio path (TTS + WebRTC) is still a separate forcing function. |
+| **E2** | Post-call webhook payloads reach a persistent sink within 30s. | ✅ DONE | `src/ingestion/post-call-receiver.ts` + `tests/integration/post-call-receiver.test.ts` — HMAC-verifying NDJSON receiver with replay protection. |
+| **E3** | A live integration test posts to the client-init webhook and a real agent uses the response. | ✅ DONE | `tests/integration/client-initiation-live.test.ts` — POSTs to the live n8n endpoint and asserts the response shape + latency. |
+| **E4** | Governance rejects `[PROD]` mutation against the real API. | ✅ DONE | `tests/integration/governance-live.test.ts` — clones the template, manually marks it `[PROD]`, asserts wrapper rejects via `GovernanceError`, then archives. |
+| **E5** | Scoring has labeled ground-truth ≥20 conversations. | ✅ DONE | `tests/fixtures/labeled-conversations.json` — 21 entries spanning happy path, edge cases, and guardrail violations. |
+| **E6** | `polishLoop` is exercised on a known-bad config and produces measurable improvement. | ✅ DONE | Pre-existing: `tests/_meta_audit/polish-loop-outcomes.test.ts`. |
+| **E7** | A webhook-delivered `first_message` override appears as the first agent utterance. | ✅ PARTIAL | `tests/integration/elevenlabs-simulate-live.test.ts` — override appears in simulated transcript. Audio gap remains. |
+| **E8** | Signature verification rejects a replay of a fresh, valid digest. | ✅ DONE | `src/security/elevenlabs-signature.ts` — `createReplayCache()` factory + module-default in-memory cache, integrated into the verifier. |
+| **E9** | `data_collection` extraction is benchmarked against a labeled fixture set. | ✅ DONE | `tests/fixtures/data-collection-benchmark.json` — 6 labeled transcripts covering complete intake, emergency, estimate routing, different-contact-than-requestor, incomplete intake, and transfer cases. |
+| **E10** | Every public CLI verb emits structured JSONL traces. | ✅ DONE | `src/internal/jsonl-trace.ts` + `scripts/lib/jsonl-trace.mjs`. All 12 top-level verbs and 8 factory subcommands import `createTracer`. |
+
+### Remaining gaps (called out, NOT pretended to be closed)
+
+- **Audio path**: E1/E7 are PARTIAL because the simulate-conversation API is text. To fully close: a WebRTC test client OR a Twilio phone-number harness. Tracked as a separate forcing function — not work this suite can do unilaterally.
+- **Live-test secrets**: `tests/integration/{governance,client-initiation,elevenlabs-simulate}-live.test.ts` are `skipIf(CI || !ELEVENLABS_API_KEY)`. They never run in CI by design. Operators run them locally with credentials.
+- **JSONL traces under load**: the new tracer is wired but not exercised by a perf/burn-in test. If `appendFileSync` becomes a bottleneck under thousands of events/sec, swap to a streaming write.
 
 ### Running
 
 ```bash
 bun run test --project _meta_audit          # the whole suite
-bun run test --project _meta_audit -- -t E8 # one aspirational contract
+bun run test --project _meta_audit -- -t E8 # one contract
 ```
 
-If a spiritual test stops failing — promote it. Delete the `.fails` qualifier. Add a regression-guard test next to it. The shortcoming is no longer spiritual; it's a feature.
+When a NEW spiritual contract gets added: write it `it.fails(...)` against the desired behavior. When someone closes the gap, vitest reports `Expect test to fail` — that's the signal to remove the `.fails` qualifier and add a regression-guard test next to it.

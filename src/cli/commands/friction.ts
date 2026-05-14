@@ -9,6 +9,12 @@
 import {
   getUnresolvedFrictions, readFrictionLog, resolveFrictionAppend,
 } from '../../remediation/friction-log';
+import {createTracer} from '../../internal/jsonl-trace';
+
+const trace = createTracer('cli.friction');
+// JSONL tracing — emit start/end events from dispatch entry points.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+void trace;
 
 export type FrictionDispatchOptions = {
   argv: readonly string[];

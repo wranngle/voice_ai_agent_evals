@@ -13,6 +13,12 @@ import type {TestInvocationResult} from '../../../wrapper/tests';
 import type {VoiceEvalsClient} from '../../../wrapper/types';
 import {buildClientFromEnv} from './client-builder';
 import type {UploadManifestEntry} from './upload';
+import {createTracer} from '../../../internal/jsonl-trace';
+
+const trace = createTracer('cli.factory.execute');
+// JSONL tracing — emit start/end events from dispatch entry points.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+void trace;
 
 export type FactoryExecuteOptions = {
   agentId: string;

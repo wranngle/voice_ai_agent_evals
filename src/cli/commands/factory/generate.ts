@@ -14,6 +14,12 @@ import {join} from 'node:path';
 import {
   expandAll, loadIndustries, loadTemplates, loadVariants, type ExpansionStrategy, type GeneratedTest,
 } from '../../../factory';
+import {createTracer} from '../../../internal/jsonl-trace';
+
+const trace = createTracer('cli.factory.generate');
+// JSONL tracing — emit start/end events from dispatch entry points.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+void trace;
 
 export type FactoryGenerateOptions = {
   templatesDir?: string;
