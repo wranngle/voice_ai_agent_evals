@@ -4,6 +4,34 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-05-13
+
+Ports the supersystem from `wranngle/voice_ai_agents` (archived 2026-05-06) into `voice-evals` on top of the v1.0 wrapper / scoring / ingestion / regression / remediation core. Excluded by request: Gemini brain (L4), Claude Code auto-commit (L5), Deep Research engine (L6).
+
+### Added
+
+- **Phase A — Native ElevenLabs Tests API wrap** (`src/wrapper/tests.ts`). `client.tests.{create, get, list, update, delete, runBatch, pollInvocation, resubmitFailed}` mirroring the SDK 1:1 with auto-pagination, invocation polling, and normalized pending/passed/failed status. Subpath `@wranngle/voice-evals/tests-api`.
+- **Phase B — Combinatorial factory** (`src/factory/`). `cartesian`, `pairwise` (greedy IPO), `sample` (Fisher-Yates with mulberry32 seed). YAML template loader with `{placeholder}` interpolation, `inherit` + `expand_with` overlay merging. 14 industries × 5+5+4+3 variants × 17 base scenarios ported verbatim under `templates/factory/`. Subpath `@wranngle/voice-evals/factory`.
+- **Phase C — Factory CLI** (`src/cli/commands/factory/`). `voice-evals factory {generate, upload, list, cleanup, execute, report, run}`. End-to-end pipeline: YAML → JSON → portal-create → batch-run → poll → pass/fail report.
+- **Phase D — Friction log + cycle stats + random scenarios** (`src/remediation/{friction-log,cycle-stats}.ts`, `src/ingestion/random-scenarios.ts`). Append-only JSONL audit log; per-cycle aggregation (improvements, regressions, patterns); deterministic random simulated-user generator (14 industries × 24 names × 5 volumes × 4 interest levels, 70/30 industry/objection split).
+- **Phase E — Autorefinement engine** (`src/remediation/patterns.ts` + extended `polish-loop.ts`). 5 canonical FAILURE_PATTERNS (SMS_AFTER_DECLINE, TOOL_NOT_CALLED, CONTEXT_LOST, HOSTILE_RESPONSE, INCONSISTENT_BEHAVIOR) drive deterministic ANALYZE → PROPOSE shortcuts; LLM fallback for unmatched failures. Loop gains `analyze` callback, `frictionLogPath`, aggregate `patternsDetected`.
+- **Phase F — n8n workflow corrector** (`src/n8n/`). `createN8nCorrector` with `applyPartialUpdate`, `diagnoseWorkflowFailure`, `applyWorkflowFixes` (batched in 5s). 4 fix patterns (ADD_RETRY_LOGIC, ADD_ERROR_HANDLING, FIX_WEBHOOK_DATA, ADD_TIMEOUT). Enforces node-level vs parameters-level key separation via `NODE_LEVEL_PROPS`. Subpath `@wranngle/voice-evals/n8n`.
+- **Phase G — Agent CRUD extensions** (`src/wrapper/agents.ts`). `agents.{create, update, clone, archive, promote}` with [PHASE] governance: `[DEV]` auto-prefix on create, `enforceMutation` gate on update, `[ARCHIVED]` rename (no delete API per AGENTS.md policy), explicit `allowedPhases` for promote.
+- New docs: `docs/factory.md`, `docs/autorefinement.md`, `docs/n8n-correction.md`, `docs/personas.md`.
+
+### Changed
+
+- `voice-evals --help` documents the `factory` subcommand surface.
+- vitest project list grows two namespaces: `factory`, `n8n`. CI matrix runs them on Bun 1.1 + Node 20 + Node 22.
+- `polishLoop` no longer requires an LLM call when a known pattern fires — deterministic short-circuit saves both latency and cost.
+
+### Dependencies
+
+- Added: `yaml@2.8.4` (runtime, for factory templates).
+- Deliberately **not** added: `@n8n/rest-api-client` (heavy transitive tree + opaque license — direct fetch is leaner).
+
+## [Unreleased] — superseded by 1.1.0 above
+
 Pre-1.0.0. The project is being shaped for v1 — major changes are tracked in git history (`git log --oneline`) until a public release tag lands. The changelog will populate on the first tagged release.
 
 ### 1.0.0-dev (in progress on `feat/v1.0-bun-package`)

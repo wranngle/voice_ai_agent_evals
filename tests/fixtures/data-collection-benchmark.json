@@ -1,0 +1,108 @@
+[
+  {
+    "conversation_id": "dc_001",
+    "scenario": "complete_intake",
+    "transcript": [
+      {"role": "agent", "message": "Hi, this is Sarah with Wranngle. How can I help?"},
+      {"role": "user", "message": "Hi, this is Mike Johnson from Acme Corp. My printer is broken."},
+      {"role": "agent", "message": "Got it. Best callback number?"},
+      {"role": "user", "message": "Five five five one two three four five six seven."},
+      {"role": "agent", "message": "And the address for service?"},
+      {"role": "user", "message": "123 Main Street, Springfield."},
+      {"role": "agent", "message": "Got it. Thanks Mike. We'll be in touch."}
+    ],
+    "expected_data_collection": {
+      "requestor_first_name": "Mike",
+      "requestor_last_name": "Johnson",
+      "requestor_company_name": "Acme Corp",
+      "contact_phone_number": "+15551234567",
+      "requested_service_address": "123 Main Street, Springfield",
+      "request_description": "Printer is broken",
+      "routing_urgency": "routine"
+    }
+  },
+  {
+    "conversation_id": "dc_002",
+    "scenario": "emergency_no_address_needed",
+    "transcript": [
+      {"role": "user", "message": "Hi, this is Lisa, my pipe burst!"},
+      {"role": "agent", "message": "That's an emergency. Callback number?"},
+      {"role": "user", "message": "Five five five nine nine nine zero zero zero zero."},
+      {"role": "agent", "message": "Got it Lisa. On-call team alerted."}
+    ],
+    "expected_data_collection": {
+      "requestor_first_name": "Lisa",
+      "contact_phone_number": "+15559990000",
+      "request_description": "Pipe burst",
+      "routing_urgency": "emergency",
+      "requested_service_address": null
+    }
+  },
+  {
+    "conversation_id": "dc_003",
+    "scenario": "estimate_request",
+    "transcript": [
+      {"role": "user", "message": "How much for a new water heater?"},
+      {"role": "agent", "message": "Sales rep would call with an estimate. Your name and number?"},
+      {"role": "user", "message": "Tom Wong, five five five eight eight eight seven seven seven seven."}
+    ],
+    "expected_data_collection": {
+      "requestor_first_name": "Tom",
+      "requestor_last_name": "Wong",
+      "contact_phone_number": "+15558887777",
+      "request_description": "New water heater estimate",
+      "routing_urgency": "estimate",
+      "routing_department": "Sales"
+    }
+  },
+  {
+    "conversation_id": "dc_004",
+    "scenario": "different_contact_than_requestor",
+    "transcript": [
+      {"role": "user", "message": "Hi, this is Jane calling for my mother's house. Her name is Mary."},
+      {"role": "agent", "message": "Got it. Best callback for Mary?"},
+      {"role": "user", "message": "Mary's number is five five five four four four three three three three."},
+      {"role": "agent", "message": "And what's the issue?"},
+      {"role": "user", "message": "Her heater isn't working."}
+    ],
+    "expected_data_collection": {
+      "requestor_first_name": "Jane",
+      "contact_first_name": "Mary",
+      "contact_phone_number": "+15554443333",
+      "requestor_is_contact": false,
+      "request_description": "Heater not working",
+      "routing_urgency": "routine"
+    }
+  },
+  {
+    "conversation_id": "dc_005",
+    "scenario": "incomplete_intake_phone_invalid",
+    "transcript": [
+      {"role": "user", "message": "Hi, my AC is broken."},
+      {"role": "agent", "message": "Can I get a callback number?"},
+      {"role": "user", "message": "It's five five five three four."},
+      {"role": "agent", "message": "That's only five digits — can you repeat?"},
+      {"role": "system_event", "message": "caller_hung_up"}
+    ],
+    "expected_data_collection": {
+      "contact_phone_number": null,
+      "request_description": "AC is broken",
+      "routing_urgency": "routine"
+    }
+  },
+  {
+    "conversation_id": "dc_006",
+    "scenario": "transfer_to_billing",
+    "transcript": [
+      {"role": "user", "message": "I have a question about my bill."},
+      {"role": "agent", "message": "Let me transfer you to billing. Hold one moment."},
+      {"role": "system_event", "message": "transfer_to_number_executed", "destination": "billing"}
+    ],
+    "expected_data_collection": {
+      "conversation_transferred": true,
+      "conversation_transfer_destination": "billing",
+      "conversation_transfer_reason": "Caller asked about bill",
+      "routing_department": "Billing"
+    }
+  }
+]

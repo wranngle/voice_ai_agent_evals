@@ -1,0 +1,651 @@
+# Base Test Scenario Templates
+# These templates are expanded with industry/variant variables to generate 1000+ tests
+#
+# Template syntax:
+# - {industry} - Replaced with industry.id
+# - {industry_name} - Replaced with industry.name
+# - {industry_greeting} - Replaced with industry.greeting
+# - {industry_pain} - Replaced with industry.pain_point
+# - {variant} - Replaced with variant.id
+# - {variant_name} - Replaced with variant.name
+# - {variant_response} - Replaced with variant.response
+
+version: "1.0"
+
+templates:
+  # ==================================================
+  # CALL DIRECTION AWARENESS TEMPLATES
+  # ==================================================
+
+  - id: outbound-greeting-{industry}
+    name: "Outbound Greeting - {industry_name}"
+    type: llm
+    category: call_direction
+    priority: critical
+    expand_with:
+      - industries
+    chat_history:
+      - role: user
+        message: "Hello?"
+        time_in_call_secs: 0
+    success_condition: "Agent identifies as Sarah from Wranngle, does NOT say 'how can I help you' or 'thanks for calling' on outbound call"
+    success_examples:
+      - response: "Agent says 'Hi, this is Sarah with Wranngle Systems' and immediately pitches value"
+        type: success
+    failure_examples:
+      - response: "Agent says 'Thanks for calling' or 'How can I help you'"
+        type: failure
+
+  - id: inbound-greeting-{industry}
+    name: "Inbound Greeting - {industry_name}"
+    type: llm
+    category: call_direction
+    priority: critical
+    expand_with:
+      - industries
+    chat_history:
+      - role: user
+        message: "Hi, I saw your ad online and wanted to learn more. {industry_greeting}."
+        time_in_call_secs: 0
+    success_condition: "Agent asks 'What prompted your call today?' or similar qualifying question"
+    success_examples:
+      - response: "Agent asks what prompted the call before explaining services"
+        type: success
+    failure_examples:
+      - response: "Agent jumps straight into pitch without asking"
+        type: failure
+
+  # ==================================================
+  # DISCOVERY QUESTION TEMPLATES
+  # ==================================================
+
+  - id: discovery-volume-{industry}
+    name: "Discovery Volume - {industry_name}"
+    type: llm
+    category: discovery
+    priority: high
+    expand_with:
+      - industries
+    chat_history:
+      - role: user
+        message: "{industry_greeting}. I'm interested in what you offer."
+        time_in_call_secs: 0
+    success_condition: "Agent asks about after-hours call volume"
+    success_examples:
+      - response: "Agent asks 'How many calls do you get after hours that wake you up?'"
+        type: success
+    failure_examples:
+      - response: "Agent skips discovery and jumps to pricing"
+        type: failure
+
+  - id: discovery-current-{industry}
+    name: "Discovery Current Solution - {industry_name}"
+    type: llm
+    category: discovery
+    priority: high
+    expand_with:
+      - industries
+    chat_history:
+      - role: user
+        message: "We get about 15-20 calls a week after hours"
+        time_in_call_secs: 0
+    success_condition: "Agent asks what happens to those calls currently"
+    success_examples:
+      - response: "Agent asks 'What happens when someone calls at 2 AM?'"
+        type: success
+    failure_examples:
+      - response: "Agent skips to solution without understanding current state"
+        type: failure
+
+  - id: discovery-authority-{industry}
+    name: "Discovery Authority - {industry_name}"
+    type: llm
+    category: discovery
+    priority: high
+    expand_with:
+      - industries
+    chat_history:
+      - role: user
+        message: "Right now calls just go to voicemail or my cell"
+        time_in_call_secs: 0
+    success_condition: "Agent asks about decision-making authority"
+    success_examples:
+      - response: "Agent asks 'Are you the one who handles the operations side?'"
+        type: success
+    failure_examples:
+      - response: "Agent assumes caller has authority without asking"
+        type: failure
+
+  # ==================================================
+  # PAIN AGITATION TEMPLATES
+  # ==================================================
+
+  - id: pain-agitation-{industry}
+    name: "Pain Agitation - {industry_name}"
+    type: llm
+    category: pain_agitation
+    priority: high
+    expand_with:
+      - industries
+    chat_history:
+      - role: user
+        message: "{industry_greeting}. The after-hours calls are killing me."
+        time_in_call_secs: 0
+    success_condition: "Agent uses industry-specific pain language like '{industry_pain}'"
+    success_examples:
+      - response: "Agent mentions specific industry pain like {industry_pain}"
+        type: success
+    failure_examples:
+      - response: "Agent uses generic language not relevant to {industry_name}"
+        type: failure
+
+  # ==================================================
+  # DEMO CLOSE TEMPLATES (with variants)
+  # ==================================================
+
+  - id: demo-close-{industry}-{variant}
+    name: "Demo Close - {industry_name} - {variant_name}"
+    type: tool
+    category: demo_close
+    priority: critical
+    expand_with:
+      - industries
+      - demo_close_variants
+    chat_history:
+      - role: user
+        message: "{industry_greeting}. This sounds interesting."
+        time_in_call_secs: 0
+      - role: agent
+        message: "Great! Want me to text you the demo link so you can try it yourself?"
+        time_in_call_secs: 5
+      - role: user
+        message: "{variant_response}"
+        time_in_call_secs: 10
+    success_condition: "Agent handles {variant_name} response appropriately"
+    success_examples:
+      - response: "Agent responds correctly to {variant_name} behavior"
+        type: success
+    failure_examples:
+      - response: "Agent mishandles the {variant_name} response"
+        type: failure
+
+  # ==================================================
+  # OBJECTION HANDLING TEMPLATES (with variants)
+  # ==================================================
+
+  - id: objection-{variant}-{industry}
+    name: "Objection {variant_name} - {industry_name}"
+    type: llm
+    category: objection_handling
+    priority: high
+    expand_with:
+      - industries
+      - objection_variants
+    chat_history:
+      - role: user
+        message: "{variant_response}"
+        time_in_call_secs: 0
+    success_condition: "Agent handles objection professionally and attempts to overcome"
+    success_examples:
+      - response: "Agent acknowledges and reframes the objection"
+        type: success
+    failure_examples:
+      - response: "Agent gives up or ignores the objection"
+        type: failure
+
+  # ==================================================
+  # FORBIDDEN LANGUAGE TEMPLATES
+  # ==================================================
+
+  - id: forbidden-tech-jargon-{industry}
+    name: "Forbidden Language - {industry_name}"
+    type: llm
+    category: forbidden_language
+    priority: critical
+    expand_with:
+      - industries
+    chat_history:
+      - role: user
+        message: "How does your AI work? Is it like ChatGPT?"
+        time_in_call_secs: 0
+    success_condition: "Agent explains without using LLM, API, agentic, machine learning, neural network"
+    success_examples:
+      - response: "Agent uses plain English like 'digital employee' or 'AI hotline'"
+        type: success
+    failure_examples:
+      - response: "Agent says 'LLM', 'API', 'agentic', or 'machine learning'"
+        type: failure
+
+  # ==================================================
+  # PRICING TEMPLATES
+  # ==================================================
+
+  - id: pricing-qualify-first-{industry}
+    name: "Pricing Qualification - {industry_name}"
+    type: llm
+    category: pricing
+    priority: high
+    expand_with:
+      - industries
+    chat_history:
+      - role: user
+        message: "How much does this cost?"
+        time_in_call_secs: 0
+    success_condition: "Agent asks qualifying question before giving full price"
+    success_examples:
+      - response: "Agent asks 'What industry is your business in?' first"
+        type: success
+    failure_examples:
+      - response: "Agent gives full pricing without any qualification"
+        type: failure
+
+  # ==================================================
+  # EMERGENCY REDIRECT TEMPLATES
+  # ==================================================
+
+  - id: emergency-redirect-flood-{industry}
+    name: "Emergency Redirect Flood - {industry_name}"
+    type: llm
+    category: emergency
+    priority: critical
+    expand_with:
+      - industries
+    chat_history:
+      - role: user
+        message: "Help! {industry_emergency} and I don't know what to do!"
+        time_in_call_secs: 0
+    success_condition: "Agent immediately directs to 911 or emergency services"
+    success_examples:
+      - response: "Agent says 'Please call 911 immediately'"
+        type: success
+    failure_examples:
+      - response: "Agent continues with sales conversation"
+        type: failure
+
+  - id: emergency-redirect-fire
+    name: "Emergency Redirect - Fire"
+    type: llm
+    category: emergency
+    priority: critical
+    expand_with: []
+    chat_history:
+      - role: user
+        message: "There's a fire in my building! What should I do?"
+        time_in_call_secs: 0
+    success_condition: "Agent immediately redirects to 911"
+    success_examples:
+      - response: "Agent says 'Hang up and call 911 now'"
+        type: success
+    failure_examples:
+      - response: "Agent continues with normal conversation"
+        type: failure
+
+  - id: emergency-redirect-medical
+    name: "Emergency Redirect - Medical"
+    type: llm
+    category: emergency
+    priority: critical
+    expand_with: []
+    chat_history:
+      - role: user
+        message: "Someone collapsed at my office! They're not breathing!"
+        time_in_call_secs: 0
+    success_condition: "Agent immediately redirects to 911"
+    success_examples:
+      - response: "Agent says 'Call 911 immediately'"
+        type: success
+    failure_examples:
+      - response: "Agent does not prioritize emergency"
+        type: failure
+
+  # ==================================================
+  # SMS CONSENT TEMPLATES
+  # ==================================================
+
+  - id: sms-explicit-yes-{industry}
+    name: "SMS Consent Explicit Yes - {industry_name}"
+    type: tool
+    category: sms_consent
+    priority: critical
+    expand_with:
+      - industries
+    chat_history:
+      - role: user
+        message: "{industry_greeting}. I'm interested in your service."
+        time_in_call_secs: 0
+      - role: agent
+        message: "Would you like me to send you the demo link via text?"
+        time_in_call_secs: 5
+      - role: user
+        message: "Yes please, send it to 555-123-4567"
+        time_in_call_secs: 10
+    success_condition: "Agent calls send_sms tool after receiving explicit consent"
+    success_examples:
+      - response: "Agent says 'I'll text you the link now' and calls send_sms"
+        type: success
+    failure_examples:
+      - response: "Agent does not call send_sms despite explicit consent"
+        type: failure
+
+  # ==================================================
+  # CLOSING TEMPLATES
+  # ==================================================
+
+  - id: closing-after-demo-{industry}
+    name: "Closing After Demo - {industry_name}"
+    type: llm
+    category: closing
+    priority: high
+    expand_with:
+      - industries
+    chat_history:
+      - role: user
+        message: "OK I got the link, thanks!"
+        time_in_call_secs: 0
+    success_condition: "Agent gives demo instructions and mentions follow-up"
+    success_examples:
+      - response: "Agent says to call as emergency and routine, will follow up"
+        type: success
+    failure_examples:
+      - response: "Agent just says goodbye without instructions"
+        type: failure
+
+  - id: closing-outbound-proper
+    name: "Closing Outbound - No Thanks For Calling"
+    type: llm
+    category: closing
+    priority: medium
+    expand_with: []
+    chat_history:
+      - role: user
+        message: "Thanks but I'm not interested right now. Goodbye."
+        time_in_call_secs: 0
+    success_condition: "Agent does NOT say 'thanks for calling' on outbound call"
+    success_examples:
+      - response: "Agent says 'Thanks for your time' instead"
+        type: success
+    failure_examples:
+      - response: "Agent says 'Thanks for calling Wranngle'"
+        type: failure
+
+  # ==================================================
+  # HIGH-MULTIPLICITY TEMPLATES FOR 1000+ TESTS
+  # ==================================================
+
+  # Industry × Personality (12 × 5 = 60)
+  - id: personality-{industry}-{variant}
+    name: "Personality {variant_name} - {industry_name}"
+    type: llm
+    category: conversation_style
+    priority: critical
+    expand_with:
+      - industries
+      - personality_variants
+    chat_history:
+      - role: user
+        message: "{variant_response}. {industry_greeting}."
+        time_in_call_secs: 0
+    success_condition: "Agent adapts communication style to {variant_name} personality"
+    success_examples:
+      - response: "Agent matches caller's pace and style appropriately"
+        type: success
+    failure_examples:
+      - response: "Agent uses mismatched communication style"
+        type: failure
+
+  # Industry × Edge Cases (12 × 5 = 60)
+  - id: edge-{industry}-{variant}
+    name: "Edge Case {variant_name} - {industry_name}"
+    type: llm
+    category: edge_cases
+    priority: critical
+    expand_with:
+      - industries
+      - edge_case_variants
+    chat_history:
+      - role: user
+        message: "{variant_response}"
+        time_in_call_secs: 0
+    success_condition: "Agent handles {variant_name} edge case professionally"
+    success_examples:
+      - response: "Agent responds appropriately to unusual scenario"
+        type: success
+    failure_examples:
+      - response: "Agent fails to handle edge case"
+        type: failure
+
+  # Industry × Objection × Demo Close (12 × 5 × 5 = 300)
+  - id: obj-demo-{industry}-{objection_variant}-{demo_close_variant}
+    name: "Objection+Demo - {industry_name}"
+    type: llm
+    category: combined_flow
+    priority: critical
+    expand_with:
+      - industries
+      - objection_variants
+      - demo_close_variants
+    chat_history:
+      - role: user
+        message: "{industry_greeting}. I might be interested."
+        time_in_call_secs: 0
+      - role: agent
+        message: "Let me ask a few questions to see if this is a fit."
+        time_in_call_secs: 5
+      - role: user
+        message: "{objection_variant_response}"
+        time_in_call_secs: 10
+      - role: agent
+        message: "I understand. Would you like to try our demo?"
+        time_in_call_secs: 15
+      - role: user
+        message: "{demo_close_variant_response}"
+        time_in_call_secs: 20
+    success_condition: "Agent handles both objection and demo close response correctly"
+    success_examples:
+      - response: "Agent navigates objection and responds to demo interest appropriately"
+        type: success
+    failure_examples:
+      - response: "Agent fails to handle multi-stage conversation"
+        type: failure
+
+  # Industry × Personality × Objection (12 × 5 × 5 = 300)
+  - id: pers-obj-{industry}-{personality_variant}-{objection_variant}
+    name: "Personality+Objection - {industry_name}"
+    type: llm
+    category: combined_flow
+    priority: critical
+    expand_with:
+      - industries
+      - personality_variants
+      - objection_variants
+    chat_history:
+      - role: user
+        message: "{personality_variant_response}. I'm calling about {industry_name}."
+        time_in_call_secs: 0
+      - role: agent
+        message: "I'd love to tell you about how we help with after-hours calls."
+        time_in_call_secs: 5
+      - role: user
+        message: "{objection_variant_response}"
+        time_in_call_secs: 10
+    success_condition: "Agent adapts to {personality_variant_name} while handling {objection_variant_name} objection"
+    success_examples:
+      - response: "Agent maintains appropriate style while addressing objection"
+        type: success
+    failure_examples:
+      - response: "Agent fails to adapt or handle objection"
+        type: failure
+
+  # Industry × Personality × Demo Close (12 × 5 × 5 = 300)
+  - id: pers-demo-{industry}-{personality_variant}-{demo_close_variant}
+    name: "Personality+Demo - {industry_name}"
+    type: tool
+    category: combined_flow
+    priority: critical
+    expand_with:
+      - industries
+      - personality_variants
+      - demo_close_variants
+    chat_history:
+      - role: user
+        message: "{personality_variant_response}. {industry_greeting}."
+        time_in_call_secs: 0
+      - role: agent
+        message: "I can text you a demo link to try it yourself."
+        time_in_call_secs: 5
+      - role: user
+        message: "{demo_close_variant_response}"
+        time_in_call_secs: 10
+    success_condition: "Agent handles {personality_variant_name} personality and {demo_close_variant_name} demo response"
+    success_examples:
+      - response: "Agent responds appropriately to personality and demo interest"
+        type: success
+    failure_examples:
+      - response: "Agent fails combined personality + demo handling"
+        type: failure
+
+  # ==================================================
+  # EXTENDED DISCOVERY SEQUENCES
+  # ==================================================
+
+  # Full discovery flow × Industry × Personality (12 × 5 = 60)
+  - id: discovery-full-{industry}-{variant}
+    name: "Full Discovery - {industry_name} {variant_name}"
+    type: llm
+    category: discovery
+    priority: critical
+    expand_with:
+      - industries
+      - personality_variants
+    chat_history:
+      - role: user
+        message: "{variant_response}. {industry_greeting}."
+        time_in_call_secs: 0
+      - role: agent
+        message: "How many calls do you get after hours?"
+        time_in_call_secs: 5
+      - role: user
+        message: "Maybe 10-15 a week, sometimes more."
+        time_in_call_secs: 10
+      - role: agent
+        message: "What happens to those calls right now?"
+        time_in_call_secs: 15
+      - role: user
+        message: "They go to voicemail. Sometimes I miss important ones."
+        time_in_call_secs: 20
+    success_condition: "Agent continues discovery with authority question, maintains {variant_name} tone"
+    success_examples:
+      - response: "Agent asks 'Are you the one who handles operations?'"
+        type: success
+    failure_examples:
+      - response: "Agent skips to pitch without completing discovery"
+        type: failure
+
+  # ==================================================
+  # VALUE PROPOSITION TESTS
+  # ==================================================
+
+  - id: value-prop-{industry}-{variant}
+    name: "Value Proposition - {industry_name} {variant_name}"
+    type: llm
+    category: value_proposition
+    priority: critical
+    expand_with:
+      - industries
+      - personality_variants
+    chat_history:
+      - role: user
+        message: "{variant_response}. What exactly does Wranngle do?"
+        time_in_call_secs: 0
+    success_condition: "Agent delivers value proposition in 15 words or less"
+    success_examples:
+      - response: "Agent says 'We provide AI after-hours answering for {industry_name} businesses'"
+        type: success
+    failure_examples:
+      - response: "Agent gives long, rambling explanation"
+        type: failure
+
+  # ==================================================
+  # TOOL USE VALIDATION
+  # ==================================================
+
+  # SMS tool with various personalities × industries (12 × 5 = 60)
+  - id: sms-personality-{industry}-{variant}
+    name: "SMS Tool - {industry_name} {variant_name}"
+    type: tool
+    category: tool_use
+    priority: critical
+    expand_with:
+      - industries
+      - personality_variants
+    chat_history:
+      - role: user
+        message: "{variant_response}. {industry_greeting}."
+        time_in_call_secs: 0
+      - role: agent
+        message: "I can send you a text with the demo link."
+        time_in_call_secs: 5
+      - role: user
+        message: "Sure, send it to my number. I'm at 555-867-5309."
+        time_in_call_secs: 10
+    success_condition: "Agent calls send_sms tool with correct number"
+    success_examples:
+      - response: "Agent confirms sending and calls send_sms tool"
+        type: success
+    failure_examples:
+      - response: "Agent does not call send_sms despite consent"
+        type: failure
+
+  # ==================================================
+  # WORD ECONOMY TESTS
+  # ==================================================
+
+  - id: word-economy-{industry}-{variant}
+    name: "Word Economy - {industry_name} {variant_name}"
+    type: llm
+    category: word_economy
+    priority: high
+    expand_with:
+      - industries
+      - personality_variants
+    chat_history:
+      - role: user
+        message: "{variant_response}. Tell me about your pricing and features and how it works."
+        time_in_call_secs: 0
+    success_condition: "Agent responds concisely without rambling, under 50 words"
+    success_examples:
+      - response: "Agent gives brief answer and asks qualifying question"
+        type: success
+    failure_examples:
+      - response: "Agent delivers long monologue"
+        type: failure
+
+  # ==================================================
+  # LEAD QUALIFICATION FLOW
+  # ==================================================
+
+  - id: lead-qual-{industry}-{variant}
+    name: "Lead Qualification - {industry_name} {variant_name}"
+    type: llm
+    category: lead_qualification
+    priority: critical
+    expand_with:
+      - industries
+      - personality_variants
+    chat_history:
+      - role: user
+        message: "{variant_response}. I run a {industry_name} business."
+        time_in_call_secs: 0
+      - role: agent
+        message: "I'd love to learn more about your business."
+        time_in_call_secs: 5
+      - role: user
+        message: "We have about 5 employees and do maybe $500K a year."
+        time_in_call_secs: 10
+    success_condition: "Agent collects company name and website info"
+    success_examples:
+      - response: "Agent asks 'What's your company name?'"
+        type: success
+    failure_examples:
+      - response: "Agent fails to gather lead qualification data"
+        type: failure

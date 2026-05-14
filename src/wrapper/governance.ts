@@ -54,7 +54,11 @@ export function parseAgentName(raw: string): ParsedAgentName {
   const tag = raw.slice(1, closeIdx);
   if (!PHASE_SET.has(tag)) {
     return {
-      phase: undefined, baseName: raw, raw, isTagged: false,
+      phase: undefined,
+      baseName: raw,
+      raw,
+      isTagged: false,
+      warning: `non-canonical phase prefix "[${tag}]" — expected one of ${PHASES.join(', ')}`,
     };
   }
 

@@ -1,0 +1,36 @@
+{
+  "deployed_at": "2026-05-13T06:00:17.751Z",
+  "workflows": {
+    "elevenlabs_client_initiation_data_webhook": {
+      "id": "HW81jnwEzjOAxjE9",
+      "active": true,
+      "webhook_url": "https://n8n.wranngle.com/webhook/elevenlabs/initiation",
+      "smoke_test": {"elapsed_ms": 190, "status": 200, "response_shape_valid": true},
+      "wired_to_agents": [
+        "agent_8401krfj3xrqek2bfw71fyw2nzq0",
+        "agent_7601krfykfpwfjxrjqcshg64pcby",
+        "agent_3701krfykgvvep8r9vwwjk033p5k"
+      ]
+    },
+    "elevenlabs_post_call_webhook": {
+      "id": "BozTmxhIv5lepNyK",
+      "active": true,
+      "webhook_url": "https://n8n.wranngle.com/webhook/elevenlabs/post-call",
+      "elevenlabs_workspace_webhook_id": "88d62dcc369d4925a99202a855a26428",
+      "elevenlabs_workspace_webhook_id_history": ["1b5046d9afd746108620ec6482115428 (deleted+recreated 2026-05-12 to cycle the secret)"],
+      "elevenlabs_workspace_webhook_secret_env": "ELEVENLABS_POST_CALL_WEBHOOK_SECRET — saved separately in ~/.agents/.env, not in repo",
+      "wired_to_agents": [
+        "agent_8401krfj3xrqek2bfw71fyw2nzq0",
+        "agent_7601krfykfpwfjxrjqcshg64pcby",
+        "agent_3701krfykgvvep8r9vwwjk033p5k"
+      ],
+      "manual_followup": "HMAC verify is DEFERRED in v1 — n8n's Code node sandbox does not expose 'crypto', so the HMAC-SHA256 step cannot run inline. The repo template JSON and the live workflow both run an accept-and-log Code node that captures every payload in n8n's execution log. To upgrade to real verification, insert an n8n-nodes-base.crypto node (type=HMAC, algorithm=SHA256, secret=$env.ELEVENLABS_POST_CALL_WEBHOOK_SECRET) before the Code node and compare against the header's v0 component via an IF node. Smoke test passes today (execution 25748 returned status=ok, payload parsed)."
+    },
+    "elevenlabs_monitoring_webhook": {
+      "id": "bcaHY5IzdMuOVvrt",
+      "active": true,
+      "webhook_url": "https://n8n.wranngle.com/webhook/elevenlabs/monitoring",
+      "note": "Workflow live but cannot be wired to agents: conversation.monitoring_enabled is ENTERPRISE-ONLY on this workspace. Listener stays online for when the tier upgrades."
+    }
+  }
+}

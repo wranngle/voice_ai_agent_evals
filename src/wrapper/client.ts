@@ -17,6 +17,7 @@ import type {
 import {cleanProperty, cleanTools} from './tools';
 import {verifyElevenLabsSignature} from './webhooks';
 import {createAgentsApi} from './agents';
+import {createTestsApi} from './tests';
 
 const DEFAULT_RANKINGS_PATH = 'config/model-rankings.json';
 
@@ -29,7 +30,8 @@ const FALLBACK_RANKINGS: ModelRankings = {
 export function createVoiceEvalsClient(options: VoiceEvalsClientOptions): VoiceEvalsClient {
   const raw = resolveSdkClient(options);
   const modelRankings = resolveModelRankings(options);
-  const agents = createAgentsApi({raw});
+  const agents = createAgentsApi({raw, modelRankings});
+  const tests = createTestsApi({raw});
   const tools: ToolsApi = {cleanProperty, cleanTools};
   const webhooks: WebhooksApi = {verify: verifyElevenLabsSignature};
 
@@ -37,6 +39,7 @@ export function createVoiceEvalsClient(options: VoiceEvalsClientOptions): VoiceE
     raw,
     modelRankings,
     agents,
+    tests,
     tools,
     webhooks,
   };

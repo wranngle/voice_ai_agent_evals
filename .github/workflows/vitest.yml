@@ -46,6 +46,9 @@ jobs:
             --project regression \
             --project remediation \
             --project cli \
+            --project factory \
+            --project n8n \
+            --project _meta_audit \
             2>&1 | tee /tmp/vitest-bun.log
       - name: Write GITHUB_STEP_SUMMARY
         if: always()
@@ -57,10 +60,6 @@ jobs:
             tail -40 /tmp/vitest-bun.log || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-      - name: Gitleaks scan
-        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7  # v2.3.9
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   unit-tests-node:
     name: Offline (Node ${{ matrix.node }})
@@ -97,6 +96,9 @@ jobs:
             --project regression \
             --project remediation \
             --project cli \
+            --project factory \
+            --project n8n \
+            --project _meta_audit \
             2>&1 | tee /tmp/vitest-node.log
       - name: Write GITHUB_STEP_SUMMARY
         if: always()

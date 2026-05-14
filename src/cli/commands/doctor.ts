@@ -8,6 +8,12 @@
 
 import {getSidecarPaths, isGepaAvailable} from '../../remediation/gepa-bridge';
 import {installSidecar, type InstallOptions} from '../../remediation/sidecar/install';
+import {createTracer} from '../../internal/jsonl-trace';
+
+const trace = createTracer('cli.doctor');
+// JSONL tracing — emit start/end events from dispatch entry points.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+void trace;
 
 export type DoctorOptions = {
   /** Stream output here. Defaults to stdout. */

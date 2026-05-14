@@ -163,6 +163,45 @@ const offlineProjects = [
       testTimeout: 30_000,
     },
   },
+  {
+    // v1.1 combinatorial test factory (cartesian, pairwise IPO, sample
+    // strategies + YAML template loader/expander). Pure unit tests.
+    test: {
+      name: 'factory',
+      root: '.',
+      include: ['tests/factory/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
+  {
+    // v1.1 n8n workflow auto-corrector. Mocked fetch; no real n8n needed.
+    test: {
+      name: 'n8n',
+      root: '.',
+      include: ['tests/n8n/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
+  {
+    // Meta-audit suite: tests that highlight design + architecture
+    // shortcomings, not feature correctness. See docs/META-AUDIT.md.
+    // Some tests use `it.fails` or `it.todo` to mark known-broken-by-design
+    // contracts. These should be promoted to real tests as the underlying
+    // gaps get fixed.
+    //
+    // Also the home for unified [TEMPLATE]-hardening tests: shipping-check
+    // suite (passing) + aspirational contracts (`it.fails`) live side-by-side
+    // here. The README in tests/_meta_audit/ explains the dual purpose.
+    test: {
+      name: '_meta_audit',
+      root: '.',
+      include: ['tests/_meta_audit/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 60_000,
+    },
+  },
 ];
 
 // Mixed-live projects: at least one describe block calls real HTTP behind a

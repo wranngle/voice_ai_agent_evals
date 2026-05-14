@@ -16,6 +16,7 @@
  */
 
 export type {
+  AnalyzeCallback,
   ApplyFixOptions,
   ApplyFixResult,
   EvaluateCallback,
@@ -37,3 +38,32 @@ export {
   runGepaOptimization,
 } from './gepa-bridge';
 export type {GepaOptimizationInput, GepaOptimizationResult} from './gepa-bridge';
+
+// Phase D: friction log + cycle stats
+export {
+  applyTombstones,
+  getUnresolvedFrictions,
+  logFriction,
+  readFrictionLog,
+  resolveFriction,
+  resolveFrictionAppend,
+} from './friction-log';
+export type {
+  FrictionEvent, FrictionEventType, LogFrictionOptions, ResolveMatcher,
+} from './friction-log';
+export {aggregateCycleStats} from './cycle-stats';
+export type {CycleStats} from './cycle-stats';
+
+// Phase E: failure-pattern detection (ANALYZE phase)
+export {
+  detectPatterns, diagnoseFromFailure, FAILURE_PATTERNS, getPattern,
+} from './patterns';
+export type {
+  DetectedPattern, DetectionInput, FailurePattern, FailurePatternId, TranscriptTurn,
+} from './patterns';
+
+// Audit 2: supersystem orchestrator (L1 + L2 + L3)
+export {runSupersystem} from './supersystem';
+export type {
+  N8nCycleResult, RunSupersystemOptions, RunSupersystemResult, SupersystemN8nHooks,
+} from './supersystem';

@@ -1,6 +1,6 @@
 {
   "name": "@wranngle/voice-evals",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Audio-native voice AI agent eval, polish, and regression-test factory wrapping ElevenLabs Conversational AI. Closed-loop performance evaluation with GEPA-driven prompt remediation, dynamic test detection from arbitrary conversational data via an LLM data-translation layer, latency-budget-as-code, and a Bun-first TypeScript SDK.",
   "type": "module",
   "license": "MIT",
@@ -47,6 +47,10 @@
       "types": "./dist/wrapper/index.d.ts",
       "import": "./dist/wrapper/index.js"
     },
+    "./tests-api": {
+      "types": "./dist/wrapper/tests.d.ts",
+      "import": "./dist/wrapper/tests.js"
+    },
     "./scoring": {
       "types": "./dist/scoring/index.d.ts",
       "import": "./dist/scoring/index.js"
@@ -62,6 +66,14 @@
     "./remediation": {
       "types": "./dist/remediation/index.d.ts",
       "import": "./dist/remediation/index.js"
+    },
+    "./factory": {
+      "types": "./dist/factory/index.d.ts",
+      "import": "./dist/factory/index.js"
+    },
+    "./n8n": {
+      "types": "./dist/n8n/index.d.ts",
+      "import": "./dist/n8n/index.js"
     },
     "./package.json": "./package.json"
   },
@@ -85,7 +97,8 @@
     "registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "arktype": "2.2.0"
+    "arktype": "2.2.0",
+    "yaml": "2.8.4"
   },
   "peerDependencies": {
     "@elevenlabs/elevenlabs-js": ">=2.40"
@@ -110,7 +123,7 @@
     "doctor": "bun run src/cli.ts doctor",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:offline": "vitest run --project ingestion --project integration --project governance --project agent_evals --project elevenlabs --project n8n-eval --project mcp --project wrapper --project scoring --project ingestion-llm --project regression --project remediation --project cli",
+    "test:offline": "vitest run --project ingestion --project integration --project governance --project agent_evals --project elevenlabs --project n8n-eval --project mcp --project wrapper --project scoring --project ingestion-llm --project regression --project remediation --project cli --project factory --project n8n --project _meta_audit",
     "test:ui": "vitest --ui",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",

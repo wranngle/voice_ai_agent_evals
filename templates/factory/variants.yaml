@@ -1,0 +1,144 @@
+# Response Variant Definitions
+# Used for combinatorial test expansion across different user behaviors
+#
+# Each variant represents a different prospect personality/response style
+
+version: "1.0"
+
+# Demo close response variants
+demo_close_variants:
+  - id: eager
+    name: Eager Yes
+    response: "Yes! Send it right now!"
+    expected_behavior: "Agent should immediately call send_sms tool"
+    test_type: tool
+
+  - id: hesitant
+    name: Hesitant Maybe
+    response: "Hmm, I'm not sure... maybe later"
+    expected_behavior: "Agent should soft-push with 'no pressure' framing"
+    test_type: llm
+
+  - id: skeptical
+    name: Skeptical
+    response: "Why do you need my phone number?"
+    expected_behavior: "Agent should explain it's just for the demo link"
+    test_type: llm
+
+  - id: busy
+    name: Too Busy
+    response: "I don't have time for this right now"
+    expected_behavior: "Agent should offer to call back or send link for later"
+    test_type: llm
+
+  - id: declined
+    name: Hard No
+    response: "No thanks, I'm not interested in a text"
+    expected_behavior: "Agent should offer verbal URL alternative"
+    test_type: llm
+
+# Objection response variants
+objection_variants:
+  - id: answering_service
+    name: Already Have Answering Service
+    response: "We already use an answering service"
+    expected_behavior: "Agent should ask about cost and differentiate on triage"
+    test_type: llm
+
+  - id: too_expensive
+    name: Too Expensive
+    response: "That's too expensive for us"
+    expected_behavior: "Agent should reframe against alternatives and ROI"
+    test_type: llm
+
+  - id: too_small
+    name: Business Too Small
+    response: "We're too small for this, only get a few calls"
+    expected_behavior: "Agent should acknowledge but mention it still saves sleep"
+    test_type: llm
+
+  - id: tech_skeptic
+    name: AI Skeptic
+    response: "I don't trust AI to talk to my customers"
+    expected_behavior: "Agent should offer demo to prove quality"
+    test_type: llm
+
+  - id: competitor
+    name: Looking at Competitors
+    response: "I'm also talking to other companies"
+    expected_behavior: "Agent should differentiate and encourage comparison"
+    test_type: llm
+
+# Personality variants (how they communicate)
+personality_variants:
+  - id: brief
+    name: Brief Responder
+    response: "Yep"
+    response_style: "Very short answers, one word when possible"
+    example_responses:
+      - "Yep"
+      - "Nope"
+      - "Maybe"
+      - "How much?"
+
+  - id: talkative
+    name: Talkative
+    response: "Well let me tell you, we've been in business for 25 years and I remember when we first started getting calls after hours, it was a nightmare..."
+    response_style: "Long-winded, shares lots of details unprompted"
+    example_responses:
+      - "Well let me tell you, we've been in business for 25 years and I remember when..."
+
+  - id: technical
+    name: Technical
+    response: "What API does this use? Is it like an LLM chatbot?"
+    response_style: "Asks technical questions about how it works"
+    example_responses:
+      - "What API does this use?"
+      - "Is this like an LLM chatbot?"
+
+  - id: rushed
+    name: Rushed
+    response: "Just tell me the price. I only have 30 seconds."
+    response_style: "Impatient, wants to get to the point"
+    example_responses:
+      - "Just tell me the price"
+      - "I only have 30 seconds"
+
+  - id: friendly
+    name: Friendly
+    response: "That's great! I'd love to hear more about that. How did you get started with this?"
+    response_style: "Warm, conversational, builds rapport"
+    example_responses:
+      - "That's great! Tell me more about that"
+
+# Edge case variants
+edge_case_variants:
+  - id: wrong_number
+    name: Wrong Number
+    response: "I think you have the wrong number. I don't own a business."
+    expected_behavior: "Agent should apologize and end gracefully"
+    test_type: llm
+
+  - id: competitor_employee
+    name: Competitor Employee
+    response: "I actually work for Ruby Receptionists, are you trying to sell against us?"
+    expected_behavior: "Agent should handle professionally"
+    test_type: llm
+
+  - id: prank_call
+    name: Prank Call
+    response: "Is your refrigerator running? Better go catch it!"
+    expected_behavior: "Agent should remain professional"
+    test_type: llm
+
+  - id: non_english
+    name: Non-English Speaker
+    response: "Lo siento, no hablo ingles muy bien"
+    expected_behavior: "Agent should try to communicate simply or offer callback"
+    test_type: llm
+
+  - id: angry
+    name: Angry Caller
+    response: "I've told you people to stop calling me!"
+    expected_behavior: "Agent should apologize and offer to remove from list"
+    test_type: llm

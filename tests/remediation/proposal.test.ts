@@ -87,4 +87,74 @@ describe('proposeFix', () => {
     const result = await proposeFix({llm, agentConfig: {}, failures: FAILURES});
     expect(result).toHaveLength(0);
   });
+
+  it('emits a deterministic proposal for SMS_AFTER_DECLINE without calling the LLM', async () => {
+    const llm = vi.fn();
+    const result = await proposeFix({
+      llm,
+      agentConfig: {agent: {prompt: {prompt: 'You are Sarah, an HVAC specialist.'}}},
+      failures: FAILURES,
+      detectedPatterns: [
+        {pattern: 'SMS_AFTER_DECLINE', description: 'SMS after decline'},
+      ],
+    });
+    expect(llm).not.toHaveBeenCalled();
+    expect(result).toHaveLength(1);
+    expect(result[0].target).toBe('system_prompt');
+    expect(result[0].proposed_value).toContain('SMS CONSENT');
+    expect(result[0].proposed_value).toContain('You are Sarah'); // current prompt preserved
+  });
+
+  it('skips the pattern proposal if the addendum headline is already in the prompt', async () => {
+    const llm = vi.fn().mockResolvedValue('[]');
+    // The dedup check looks for the actual addition's first non-empty
+    // line (the headline), NOT the pattern id. Earlier code matched the
+    // pattern id, which never appeared in the addition itself — so the
+    // same block was re-appended every polish-loop iteration.
+    const existingPrompt = 'You are Sarah. [AUTOREFINEMENT] CRITICAL SMS CONSENT RULE: prior block here.';
+    const result = await proposeFix({
+      llm,
+      agentConfig: {agent: {prompt: {prompt: existingPrompt}}},
+      failures: FAILURES,
+      detectedPatterns: [
+        {pattern: 'SMS_AFTER_DECLINE', description: 'SMS after decline'},
+      ],
+    });
+    expect(llm).toHaveBeenCalled(); // dedup → fell through to LLM
+    expect(result).toHaveLength(0); // LLM returned []
+  });
+
+  it('does NOT dedup when only the pattern id (not the addendum) appears in the prompt', async () => {
+    // Regression for the bug Codex flagged: the prior dedup matched the
+    // pattern id literal in the prompt, but the canonical addition never
+    // contains that id, so the same block would be re-appended forever.
+    const llm = vi.fn();
+    const result = await proposeFix({
+      llm,
+      agentConfig: {agent: {prompt: {prompt: 'You are Sarah. SMS_AFTER_DECLINE rules already applied.'}}},
+      failures: FAILURES,
+      detectedPatterns: [
+        {pattern: 'SMS_AFTER_DECLINE', description: 'SMS after decline'},
+      ],
+    });
+    expect(llm).not.toHaveBeenCalled(); // pattern proposal emits without LLM
+    expect(result).toHaveLength(1);
+    expect(result[0].target).toBe('system_prompt');
+  });
+
+  it('emits a temperature-reduction proposal for INCONSISTENT_BEHAVIOR', async () => {
+    const llm = vi.fn();
+    const result = await proposeFix({
+      llm,
+      agentConfig: {agent: {prompt: {prompt: 'sys', temperature: 0.8}}},
+      failures: FAILURES,
+      detectedPatterns: [
+        {pattern: 'INCONSISTENT_BEHAVIOR', description: 'variance detected'},
+      ],
+    });
+    expect(llm).not.toHaveBeenCalled();
+    expect(result).toHaveLength(1);
+    expect(result[0].target).toBe('temperature');
+    expect(Number.parseFloat(result[0].proposed_value)).toBeCloseTo(0.5, 2);
+  });
 });

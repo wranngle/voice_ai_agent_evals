@@ -9,6 +9,7 @@
  * proposer.
  */
 
+import {getPattern} from './patterns';
 import type {FixProposal, ProposeFixOptions} from './types';
 
 const SYSTEM_PROMPT = `You are a voice AI agent debugging expert. Given an agent's current configuration and a list of failing eval dimensions, propose targeted edits that would address the failures without regressing what already passes.
@@ -35,12 +36,105 @@ export async function proposeFix(options: ProposeFixOptions): Promise<FixProposa
     return [];
   }
 
+  const deterministic = proposalsFromPatterns(options);
+  if (deterministic.length > 0) {
+    return deterministic;
+  }
+
   const user = buildUserPrompt(options);
   const raw = await options.llm({system: SYSTEM_PROMPT, user, responseFormat: 'json'});
   const parsed = parseProposerResponse(raw);
   return parsed
     .filter(item => isValidFixProposal(item))
     .map(item => sanitizeFixProposal(item));
+}
+
+/**
+ * Build FixProposals directly from detected patterns, bypassing the LLM.
+ * Returns an empty list if no patterns matched or if all matching patterns
+ * have empty `promptAddition` (in which case the LLM path runs normally).
+ *
+ * For `system_prompt` targets we *append* the canonical addendum to the
+ * current system prompt so the diff is minimal and reversible.
+ * For `temperature`, we suggest a 0.3-step reduction (clipped at 0.1).
+ */
+function proposalsFromPatterns(options: ProposeFixOptions): FixProposal[] {
+  const patterns = options.detectedPatterns ?? [];
+  if (patterns.length === 0) {
+    return [];
+  }
+
+  const out: FixProposal[] = [];
+  const currentPrompt = extractSystemPrompt(options.agentConfig);
+
+  for (const detected of patterns) {
+    const def = getPattern(detected.pattern);
+    if (!def) {
+      continue;
+    }
+
+    if (def.fixTarget === 'system_prompt' && def.promptAddition !== '') {
+      // Dedup against the literal addition (the rule headline is unique
+      // per pattern: "[AUTOREFINEMENT] CRITICAL SMS CONSENT RULE:" etc.).
+      // The old check tested for the pattern id (e.g. SMS_AFTER_DECLINE),
+      // but the canonical addition does not include that id — so the
+      // same block was re-appended every polish iteration, ballooning
+      // the system prompt indefinitely.
+      const headline = firstNonEmptyLine(def.promptAddition);
+      if (headline && currentPrompt.includes(headline)) {
+        continue;
+      }
+
+      out.push({
+        target: 'system_prompt',
+        locator: '',
+        proposed_value: currentPrompt + def.promptAddition,
+        rationale: `Pattern ${detected.pattern} fired: ${detected.description}${detected.evidence ? ` — evidence: ${detected.evidence}` : ''}.`,
+        addresses: options.failures.map(f => f.name),
+        confidence: 0.8,
+      });
+    } else if (def.fixTarget === 'temperature') {
+      const current = extractTemperature(options.agentConfig);
+      const next = Math.max(0.1, current - 0.3);
+      if (next < current) {
+        out.push({
+          target: 'temperature',
+          locator: '',
+          proposed_value: next.toFixed(2),
+          rationale: `Pattern ${detected.pattern}: variance across iterations suggests non-determinism; reducing temperature ${current.toFixed(2)} -> ${next.toFixed(2)}.`,
+          addresses: options.failures.map(f => f.name),
+          confidence: 0.7,
+        });
+      }
+    }
+  }
+
+  return out;
+}
+
+function firstNonEmptyLine(text: string): string | undefined {
+  for (const line of text.split('\n')) {
+    const trimmed = line.trim();
+    if (trimmed !== '') {
+      return trimmed;
+    }
+  }
+
+  return undefined;
+}
+
+function extractSystemPrompt(config: Record<string, unknown>): string {
+  const agent = (config.agent ?? {}) as Record<string, unknown>;
+  const prompt = (agent.prompt ?? {}) as Record<string, unknown>;
+  const raw = prompt.prompt;
+  return typeof raw === 'string' ? raw : '';
+}
+
+function extractTemperature(config: Record<string, unknown>): number {
+  const agent = (config.agent ?? {}) as Record<string, unknown>;
+  const prompt = (agent.prompt ?? {}) as Record<string, unknown>;
+  const t = prompt.temperature;
+  return typeof t === 'number' ? t : 0.7;
 }
 
 function buildUserPrompt(options: ProposeFixOptions): string {

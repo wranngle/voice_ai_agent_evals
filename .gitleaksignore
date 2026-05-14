@@ -6,3 +6,10 @@
 docs/elevenlabs-twilio-voiceagent/docs/twilio/api-reference.md:curl-auth-user:13
 docs/elevenlabs-twilio-voiceagent/docs/twilio/api-reference.md:curl-auth-user:43
 docs/elevenlabs-twilio-voiceagent/docs/twilio/api-reference.md:curl-auth-user:84
+
+# n8n-webhooks snapshot — historical commit included a truncated webhook-secret
+# placeholder ("wsec_4018cf97...", literal trailing ellipsis). The secret was
+# rotated in commit 4bd1c5d and the current snapshot (ac09261+) no longer
+# contains the literal. Allowlisted by commit:file:rule:line fingerprint so
+# CI doesn't replay the historical scan as a current finding.
+862c07c9f1c6708bad2d7939742d4391f08ab165:snapshots/n8n-webhooks-2026-05-12.json:generic-api-key:26

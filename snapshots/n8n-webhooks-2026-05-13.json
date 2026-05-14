@@ -1,0 +1,26 @@
+{
+  "deployed_at": "2026-05-13T11:56:33.464Z",
+  "n8n_base": "https://n8n.wranngle.com",
+  "workflows": {
+    "elevenlabs_post_call_webhook": {
+      "id": "BozTmxhIv5lepNyK",
+      "name": "elevenlabs_post_call_webhook",
+      "webhook_url": "https://n8n.wranngle.com/webhook/elevenlabs/post-call"
+    },
+    "elevenlabs_monitoring_webhook": {
+      "id": "bcaHY5IzdMuOVvrt",
+      "name": "elevenlabs_monitoring_webhook",
+      "webhook_url": "https://n8n.wranngle.com/webhook/elevenlabs/monitoring"
+    },
+    "elevenlabs_client_initiation_data_webhook": {
+      "id": "HW81jnwEzjOAxjE9",
+      "name": "elevenlabs_client_initiation_data_webhook",
+      "webhook_url": "https://n8n.wranngle.com/webhook/elevenlabs/initiation"
+    }
+  },
+  "downstream_env": {
+    "EVALS_INGEST_URL": "(unset — post_call_transcription terminates at execution log)",
+    "AUDIO_SINK_URL": "(unset — post_call_audio terminates at execution log)",
+    "ALERT_WEBHOOK_URL": "(unset — call_initiation_failure terminates at execution log)"
+  }
+}

@@ -3,10 +3,16 @@
  * @wranngle/voice-evals build orchestrator.
  *
  * Emits to dist/:
- *   index.js  — ESM bundle (the public library)
- *   index.cjs — CJS bundle (for legacy Node consumers)
- *   cli.js    — ESM bundle with #!/usr/bin/env node shebang + chmod +x
- *   *.d.ts    — declarations from tsc --emitDeclarationOnly
+ *   index.js               — ESM bundle (the public library)
+ *   index.cjs              — CJS bundle (for legacy Node consumers)
+ *   cli.js                 — ESM bundle with #!/usr/bin/env node shebang + chmod +x
+ *   <subpath>/index.js     — ESM bundle for each `exports[./<subpath>]` entry
+ *   wrapper/tests.js       — ESM bundle for `exports[./tests-api]`
+ *   *.d.ts                 — declarations from tsc --emitDeclarationOnly
+ *
+ * Each subpath listed in package.json `exports` (other than `.`) must have a
+ * runtime file emitted here, otherwise consumers calling
+ * `import … from '@wranngle/voice-evals/factory'` get ERR_MODULE_NOT_FOUND.
  *
  * @elevenlabs/elevenlabs-js is marked external (peerDependency); consumers
  * bring their own copy so we don't double-bundle the SDK.
@@ -18,7 +24,18 @@ import {
 import {spawnSync} from 'node:child_process';
 import {existsSync} from 'node:fs';
 
-const EXTERNAL = ['@elevenlabs/elevenlabs-js', 'arktype'];
+const EXTERNAL = ['@elevenlabs/elevenlabs-js', 'arktype', 'yaml'];
+
+const SUBPATH_ENTRIES = [
+  {name: 'wrapper',    entry: 'src/wrapper/index.ts',    outdir: 'dist/wrapper'},
+  {name: 'tests-api',  entry: 'src/wrapper/tests.ts',    outdir: 'dist/wrapper'},
+  {name: 'scoring',    entry: 'src/scoring/index.ts',    outdir: 'dist/scoring'},
+  {name: 'ingestion',  entry: 'src/ingestion/index.ts',  outdir: 'dist/ingestion'},
+  {name: 'regression', entry: 'src/regression/index.ts', outdir: 'dist/regression'},
+  {name: 'remediation', entry: 'src/remediation/index.ts', outdir: 'dist/remediation'},
+  {name: 'factory',    entry: 'src/factory/index.ts',    outdir: 'dist/factory'},
+  {name: 'n8n',        entry: 'src/n8n/index.ts',        outdir: 'dist/n8n'},
+];
 
 function run(cmd, args, label) {
   process.stdout.write(`  → ${label}\n`);
@@ -79,7 +96,33 @@ async function main() {
   await writeFile(cliPath, `#!/usr/bin/env node\n${stripped}`);
   await chmod(cliPath, 0o755);
 
+  for (const sub of SUBPATH_ENTRIES) {
+    run('bun', [
+      'build',
+      sub.entry,
+      '--target=node',
+      `--outdir=${sub.outdir}`,
+      '--format=esm',
+      ...externalFlags,
+    ], `subpath: ${sub.name} (${sub.entry} -> ${sub.outdir})`);
+  }
+
   run('./node_modules/.bin/tsc', ['-p', 'tsconfig.build.json'], 'declarations');
+
+  // Verify each declared export resolves to an emitted file.
+  const pkg = JSON.parse(await readFile('package.json', 'utf8'));
+  const missing = [];
+  for (const [key, target] of Object.entries(pkg.exports ?? {})) {
+    if (key === './package.json' || typeof target !== 'object') continue;
+    const importPath = target.import ?? target.default;
+    if (importPath && !existsSync(importPath.replace(/^\.\//, ''))) {
+      missing.push(`${key} -> ${importPath}`);
+    }
+  }
+  if (missing.length > 0) {
+    process.stderr.write(`✗ exports without runtime files:\n  ${missing.join('\n  ')}\n`);
+    process.exit(1);
+  }
 
   process.stdout.write('✓ dist/ built\n');
 }

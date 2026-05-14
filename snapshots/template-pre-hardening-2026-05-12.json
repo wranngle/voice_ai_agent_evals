@@ -1,0 +1,1146 @@
+{
+  "agent_id": "agent_8401krfj3xrqek2bfw71fyw2nzq0",
+  "name": "[TEMPLATE]",
+  "conversation_config": {
+    "asr": {
+      "quality": "high",
+      "provider": "scribe_realtime",
+      "user_input_audio_format": "pcm_48000",
+      "keywords": []
+    },
+    "turn": {
+      "turn_timeout": 9.0,
+      "initial_wait_time": null,
+      "silence_end_call_timeout": 180.0,
+      "mode": "turn",
+      "turn_eagerness": "normal",
+      "spelling_patience": "auto",
+      "speculative_turn": true,
+      "retranscribe_on_turn_timeout": true,
+      "turn_model": "turn_v2",
+      "interruption_ignore_terms": [],
+      "soft_timeout_config": {
+        "timeout_seconds": 6.0,
+        "message": "Okay...",
+        "use_llm_generated_message": true
+      }
+    },
+    "tts": {
+      "model_id": "eleven_v3_conversational",
+      "voice_id": "6fZce9LFNG3iEITDfqZZ",
+      "supported_voices": [],
+      "expressive_mode": true,
+      "suggested_audio_tags": [],
+      "agent_output_audio_format": "pcm_48000",
+      "optimize_streaming_latency": 1,
+      "stability": 0.5,
+      "speed": 1.0,
+      "similarity_boost": 0.8,
+      "text_normalisation_type": "elevenlabs",
+      "pronunciation_dictionary_locators": []
+    },
+    "conversation": {
+      "text_only": false,
+      "max_duration_seconds": 999,
+      "client_events": [
+        "audio",
+        "interruption",
+        "user_transcript",
+        "agent_response",
+        "agent_response_correction",
+        "agent_tool_request",
+        "agent_tool_response",
+        "agent_response_metadata",
+        "agent_chat_response_part",
+        "agent_tool_response_full_payload",
+        "agent_response_complete",
+        "vad_score",
+        "guardrail_triggered"
+      ],
+      "file_input": {
+        "enabled": true,
+        "max_files_per_conversation": 10
+      },
+      "monitoring_enabled": false,
+      "monitoring_events": [
+        "user_transcript",
+        "agent_response",
+        "agent_response_correction"
+      ],
+      "dtmf_input_settings": null,
+      "background_music": {
+        "source_type": null,
+        "source_id": null,
+        "volume": 0.6,
+        "crossfade_loop": false
+      },
+      "source_attribution": true
+    },
+    "language_presets": {
+      "de": {
+        "overrides": {
+          "turn": {
+            "soft_timeout_config": {
+              "message": "Hhmmmm...ja."
+            }
+          },
+          "tts": null,
+          "conversation": null,
+          "agent": {
+            "first_message": "[kindred] Hallo! Wie kann ich Ihnen heute helfen?",
+            "language": null,
+            "max_conversation_duration_message": null,
+            "prompt": null
+          }
+        },
+        "first_message_translation": {
+          "source_hash": "{\"firstMessage\":\"[kindred] Hello! How can I help you today?\",\"language\":\"en\"}",
+          "text": "[kindred] Hallo! Wie kann ich Ihnen heute helfen?"
+        },
+        "soft_timeout_translation": {
+          "source_hash": "{\"softTimeoutMessage\":\"Hhmmmm...yeah.\",\"language\":\"en\"}",
+          "text": "Hhmmmm...ja."
+        }
+      },
+      "es": {
+        "overrides": {
+          "turn": {
+            "soft_timeout_config": {
+              "message": "Hhmmmm...sí."
+            }
+          },
+          "tts": null,
+          "conversation": null,
+          "agent": {
+            "first_message": "[kindred] ¡Hola! ¿Cómo puedo ayudarte hoy?",
+            "language": null,
+            "max_conversation_duration_message": null,
+            "prompt": null
+          }
+        },
+        "first_message_translation": {
+          "source_hash": "{\"firstMessage\":\"[kindred] Hello! How can I help you today?\",\"language\":\"en\"}",
+          "text": "[kindred] ¡Hola! ¿Cómo puedo ayudarte hoy?"
+        },
+        "soft_timeout_translation": {
+          "source_hash": "{\"softTimeoutMessage\":\"Hhmmmm...yeah.\",\"language\":\"en\"}",
+          "text": "Hhmmmm...sí."
+        }
+      },
+      "fr": {
+        "overrides": {
+          "turn": {
+            "soft_timeout_config": {
+              "message": "Hhmmmm...ouais."
+            }
+          },
+          "tts": null,
+          "conversation": null,
+          "agent": {
+            "first_message": "[kindred] Bonjour ! Comment puis-je vous aider aujourd'hui ?",
+            "language": null,
+            "max_conversation_duration_message": null,
+            "prompt": null
+          }
+        },
+        "first_message_translation": {
+          "source_hash": "{\"firstMessage\":\"[kindred] Hello! How can I help you today?\",\"language\":\"en\"}",
+          "text": "[kindred] Bonjour ! Comment puis-je vous aider aujourd'hui ?"
+        },
+        "soft_timeout_translation": {
+          "source_hash": "{\"softTimeoutMessage\":\"Hhmmmm...yeah.\",\"language\":\"en\"}",
+          "text": "Hhmmmm...ouais."
+        }
+      },
+      "ga": {
+        "overrides": {
+          "turn": {
+            "soft_timeout_config": {
+              "message": "Hhmmmm...sea."
+            }
+          },
+          "tts": null,
+          "conversation": null,
+          "agent": {
+            "first_message": "[kindred] Dia dhuit! Conas is féidir liom cabhrú leat inniu?",
+            "language": null,
+            "max_conversation_duration_message": null,
+            "prompt": null
+          }
+        },
+        "first_message_translation": {
+          "source_hash": "{\"firstMessage\":\"[kindred] Hello! How can I help you today?\",\"language\":\"en\"}",
+          "text": "[kindred] Dia dhuit! Conas is féidir liom cabhrú leat inniu?"
+        },
+        "soft_timeout_translation": {
+          "source_hash": "{\"softTimeoutMessage\":\"Hhmmmm...yeah.\",\"language\":\"en\"}",
+          "text": "Hhmmmm...sea."
+        }
+      },
+      "hi": {
+        "overrides": {
+          "turn": {
+            "soft_timeout_config": {
+              "message": "ह्ह्म्म्म...हाँ।"
+            }
+          },
+          "tts": null,
+          "conversation": null,
+          "agent": {
+            "first_message": "[kindred] नमस्ते! मैं आज आपकी कैसे मदद कर सकता हूँ?",
+            "language": null,
+            "max_conversation_duration_message": null,
+            "prompt": null
+          }
+        },
+        "first_message_translation": {
+          "source_hash": "{\"firstMessage\":\"[kindred] Hello! How can I help you today?\",\"language\":\"en\"}",
+          "text": "[kindred] नमस्ते! मैं आज आपकी कैसे मदद कर सकता हूँ?"
+        },
+        "soft_timeout_translation": {
+          "source_hash": "{\"softTimeoutMessage\":\"Hhmmmm...yeah.\",\"language\":\"en\"}",
+          "text": "ह्ह्म्म्म...हाँ।"
+        }
+      },
+      "ja": {
+        "overrides": {
+          "turn": {
+            "soft_timeout_config": {
+              "message": "うーん…そうだね。"
+            }
+          },
+          "tts": null,
+          "conversation": null,
+          "agent": {
+            "first_message": "[kindred] こんにちは！今日はどのようにお手伝いできますか？",
+            "language": null,
+            "max_conversation_duration_message": null,
+            "prompt": null
+          }
+        },
+        "first_message_translation": {
+          "source_hash": "{\"firstMessage\":\"[kindred] Hello! How can I help you today?\",\"language\":\"en\"}",
+          "text": "[kindred] こんにちは！今日はどのようにお手伝いできますか？"
+        },
+        "soft_timeout_translation": {
+          "source_hash": "{\"softTimeoutMessage\":\"Hhmmmm...yeah.\",\"language\":\"en\"}",
+          "text": "うーん…そうだね。"
+        }
+      },
+      "kn": {
+        "overrides": {
+          "turn": {
+            "soft_timeout_config": {
+              "message": "ಹ್ಹ್ಮ್ಮ್ಮ್...ಹೌದು."
+            }
+          },
+          "tts": null,
+          "conversation": null,
+          "agent": {
+            "first_message": "[kindred] ಹಲೋ! ನಾನು ಇಂದು ನಿಮಗೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡಬಹುದು?",
+            "language": null,
+            "max_conversation_duration_message": null,
+            "prompt": null
+          }
+        },
+        "first_message_translation": {
+          "source_hash": "{\"firstMessage\":\"[kindred] Hello! How can I help you today?\",\"language\":\"en\"}",
+          "text": "[kindred] ಹಲೋ! ನಾನು ಇಂದು ನಿಮಗೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡಬಹುದು?"
+        },
+        "soft_timeout_translation": {
+          "source_hash": "{\"softTimeoutMessage\":\"Hhmmmm...yeah.\",\"language\":\"en\"}",
+          "text": "ಹ್ಹ್ಮ್ಮ್ಮ್...ಹೌದು."
+        }
+      },
+      "ko": {
+        "overrides": {
+          "turn": {
+            "soft_timeout_config": {
+              "message": "흠... 그래."
+            }
+          },
+          "tts": null,
+          "conversation": null,
+          "agent": {
+            "first_message": "[kindred] 안녕하세요! 오늘 어떻게 도와드릴까요?",
+            "language": null,
+            "max_conversation_duration_message": null,
+            "prompt": null
+          }
+        },
+        "first_message_translation": {
+          "source_hash": "{\"firstMessage\":\"[kindred] Hello! How can I help you today?\",\"language\":\"en\"}",
+          "text": "[kindred] 안녕하세요! 오늘 어떻게 도와드릴까요?"
+        },
+        "soft_timeout_translation": {
+          "source_hash": "{\"softTimeoutMessage\":\"Hhmmmm...yeah.\",\"language\":\"en\"}",
+          "text": "흠... 그래."
+        }
+      },
+      "ms": {
+        "overrides": {
+          "turn": {
+            "soft_timeout_config": {
+              "message": "Hhmmmm...ya."
+            }
+          },
+          "tts": null,
+          "conversation": null,
+          "agent": {
+            "first_message": "[kindred] Helo! Bagaimana saya boleh membantu anda hari ini?",
+            "language": null,
+            "max_conversation_duration_message": null,
+            "prompt": null
+          }
+        },
+        "first_message_translation": {
+          "source_hash": "{\"firstMessage\":\"[kindred] Hello! How can I help you today?\",\"language\":\"en\"}",
+          "text": "[kindred] Helo! Bagaimana saya boleh membantu anda hari ini?"
+        },
+        "soft_timeout_translation": {
+          "source_hash": "{\"softTimeoutMessage\":\"Hhmmmm...yeah.\",\"language\":\"en\"}",
+          "text": "Hhmmmm...ya."
+        }
+      },
+      "pl": {
+        "overrides": {
+          "turn": {
+            "soft_timeout_config": {
+              "message": "Hhmmmm...tak."
+            }
+          },
+          "tts": null,
+          "conversation": null,
+          "agent": {
+            "first_message": "[kindred] Cześć! Jak mogę Ci dzisiaj pomóc?",
+            "language": null,
+            "max_conversation_duration_message": null,
+            "prompt": null
+          }
+        },
+        "first_message_translation": {
+          "source_hash": "{\"firstMessage\":\"[kindred] Hello! How can I help you today?\",\"language\":\"en\"}",
+          "text": "[kindred] Cześć! Jak mogę Ci dzisiaj pomóc?"
+        },
+        "soft_timeout_translation": {
+          "source_hash": "{\"softTimeoutMessage\":\"Hhmmmm...yeah.\",\"language\":\"en\"}",
+          "text": "Hhmmmm...tak."
+        }
+      },
+      "pt": {
+        "overrides": {
+          "turn": {
+            "soft_timeout_config": {
+              "message": "Hhmmmm...sim."
+            }
+          },
+          "tts": null,
+          "conversation": null,
+          "agent": {
+            "first_message": "[kindred] Olá! Como posso ajudá-lo hoje?",
+            "language": null,
+            "max_conversation_duration_message": null,
+            "prompt": null
+          }
+        },
+        "first_message_translation": {
+          "source_hash": "{\"firstMessage\":\"[kindred] Hello! How can I help you today?\",\"language\":\"en\"}",
+          "text": "[kindred] Olá! Como posso ajudá-lo hoje?"
+        },
+        "soft_timeout_translation": {
+          "source_hash": "{\"softTimeoutMessage\":\"Hhmmmm...yeah.\",\"language\":\"en\"}",
+          "text": "Hhmmmm...sim."
+        }
+      },
+      "pt-br": {
+        "overrides": {
+          "turn": {
+            "soft_timeout_config": {
+              "message": "Hhmmmm...sim."
+            }
+          },
+          "tts": null,
+          "conversation": null,
+          "agent": {
+            "first_message": "[kindred] Olá! Como posso ajudá-lo hoje?",
+            "language": null,
+            "max_conversation_duration_message": null,
+            "prompt": null
+          }
+        },
+        "first_message_translation": {
+          "source_hash": "{\"firstMessage\":\"[kindred] Hello! How can I help you today?\",\"language\":\"en\"}",
+          "text": "[kindred] Olá! Como posso ajudá-lo hoje?"
+        },
+        "soft_timeout_translation": {
+          "source_hash": "{\"softTimeoutMessage\":\"Hhmmmm...yeah.\",\"language\":\"en\"}",
+          "text": "Hhmmmm...sim."
+        }
+      },
+      "ta": {
+        "overrides": {
+          "turn": {
+            "soft_timeout_config": {
+              "message": "ஹ்ம்...ஆம்."
+            }
+          },
+          "tts": null,
+          "conversation": null,
+          "agent": {
+            "first_message": "[kindred] வணக்கம்! இன்று உங்களுக்கு எப்படி உதவலாம்?",
+            "language": null,
+            "max_conversation_duration_message": null,
+            "prompt": null
+          }
+        },
+        "first_message_translation": {
+          "source_hash": "{\"firstMessage\":\"[kindred] Hello! How can I help you today?\",\"language\":\"en\"}",
+          "text": "[kindred] வணக்கம்! இன்று உங்களுக்கு எப்படி உதவலாம்?"
+        },
+        "soft_timeout_translation": {
+          "source_hash": "{\"softTimeoutMessage\":\"Hhmmmm...yeah.\",\"language\":\"en\"}",
+          "text": "ஹ்ம்...ஆம்."
+        }
+      },
+      "te": {
+        "overrides": {
+          "turn": {
+            "soft_timeout_config": {
+              "message": "హ్మ్మ్మ్...అవును."
+            }
+          },
+          "tts": null,
+          "conversation": null,
+          "agent": {
+            "first_message": "[kindred] హలో! నేను ఈ రోజు మీకు ఎలా సహాయం చేయగలను?",
+            "language": null,
+            "max_conversation_duration_message": null,
+            "prompt": null
+          }
+        },
+        "first_message_translation": {
+          "source_hash": "{\"firstMessage\":\"[kindred] Hello! How can I help you today?\",\"language\":\"en\"}",
+          "text": "[kindred] హలో! నేను ఈ రోజు మీకు ఎలా సహాయం చేయగలను?"
+        },
+        "soft_timeout_translation": {
+          "source_hash": "{\"softTimeoutMessage\":\"Hhmmmm...yeah.\",\"language\":\"en\"}",
+          "text": "హ్మ్మ్మ్...అవును."
+        }
+      },
+      "zh": {
+        "overrides": {
+          "turn": {
+            "soft_timeout_config": {
+              "message": "嗯……是的。"
+            }
+          },
+          "tts": null,
+          "conversation": null,
+          "agent": {
+            "first_message": "[kindred] 你好！今天我能帮你什么？",
+            "language": null,
+            "max_conversation_duration_message": null,
+            "prompt": null
+          }
+        },
+        "first_message_translation": {
+          "source_hash": "{\"firstMessage\":\"[kindred] Hello! How can I help you today?\",\"language\":\"en\"}",
+          "text": "[kindred] 你好！今天我能帮你什么？"
+        },
+        "soft_timeout_translation": {
+          "source_hash": "{\"softTimeoutMessage\":\"Hhmmmm...yeah.\",\"language\":\"en\"}",
+          "text": "嗯……是的。"
+        }
+      }
+    },
+    "vad": {
+      "background_voice_detection": false
+    },
+    "agent": {
+      "first_message": "[kindred] Hello! How can I help you today?",
+      "language": "en",
+      "hinglish_mode": false,
+      "dynamic_variables": {
+        "dynamic_variable_placeholders": {
+          "system_prompt_context": "none"
+        }
+      },
+      "disable_first_message_interruptions": true,
+      "max_conversation_duration_message": "Unfortunately, this conversation has reached its length limit. Please start a new chat to proceed.",
+      "prompt": {
+        "prompt": "# system_prompt_context\nsystem_prompt_context will only be specified once in this system prompt. Multiple key details and context surrounding this conversation are provided in this singular object. Your system prompt will guide you on how to leverage this data to provide the best tailored and enriched experience to the user.\n \nsystem_prompt_context:\n<{{system_prompt_context}}/>\n\n# SYSTEM PROMPT\n<system_prompt_placeholder/>\n\n# GREETING / FIRST MESSAGE\nstatic universal prompt needed: INSTRUCT AGENT THAT THEY ALREADY GAVE THE FIRST MESSAGE DURING THE CALL, BUT SOMETIMES IT COULD HAVE OCCURRED TO EARLY <first_message_placeholder/> <--Always copy from actual agent's first message AWAITING THE PERSON TO ANSWER AND SPEAK BEFORE PROCEEDING, repeating \"Hello?\" periodically. WITH PITFALL WARNINGS ABOUT not confusing person speaking with VOICEMAIL DETECTION, AUTO ATTENDANT, HOLD MUSIC, RINGTONE, DIAL TONE MENUS, AND RELATED CASES WHERE THERE IS AUDIO BUT NO ONE IS ACTUALLY THERE\n\n# BACKGROUND SPEECH\nWARN ABOUT BACKGROUND SPEECH CONFUSION. PRETEND BEING ANOTHER HUMAN HAVING TROUBLE HEARING THE CALLER IF GARBLED CHAOTIC OR IRRELEVANT STT IS INCOMING\n\n# VOICEMAIL DETECTION\nstatic universal prompt needed: INSTRUCT AGENT AWAITING THE VOICEMAIL TONE TO LEAVE A TAILORED SCRIPTED VOICEMAIL. ETC ETC\n\n# FEEDBACK REQUEST\nstatic universal prompt needed: ALWAYS FOLLOW UP WITH A FEEDBACK REQUEST before end call like \"Would you like to provide any feedback for this call to help me improve?\" AND THAT AGENT WILL PASS IT ALONG.",
+        "llm": "qwen36-35b-a3b",
+        "reasoning_effort": "high",
+        "thinking_budget": null,
+        "temperature": 0.25,
+        "max_tokens": 2000,
+        "tool_ids": [],
+        "built_in_tools": {
+          "end_call": {
+            "type": "system",
+            "name": "end_call",
+            "description": "",
+            "response_timeout_secs": 20,
+            "disable_interruptions": false,
+            "force_pre_tool_speech": false,
+            "pre_tool_speech": "auto",
+            "assignments": [],
+            "tool_call_sound": null,
+            "tool_call_sound_behavior": "auto",
+            "tool_error_handling_mode": "auto",
+            "params": {
+              "system_tool_type": "end_call"
+            }
+          },
+          "language_detection": {
+            "type": "system",
+            "name": "language_detection",
+            "description": "",
+            "response_timeout_secs": 20,
+            "disable_interruptions": false,
+            "force_pre_tool_speech": false,
+            "pre_tool_speech": "auto",
+            "assignments": [],
+            "tool_call_sound": null,
+            "tool_call_sound_behavior": "auto",
+            "tool_error_handling_mode": "auto",
+            "params": {
+              "system_tool_type": "language_detection"
+            }
+          },
+          "transfer_to_agent": null,
+          "transfer_to_number": null,
+          "skip_turn": {
+            "type": "system",
+            "name": "skip_turn",
+            "description": "",
+            "response_timeout_secs": 20,
+            "disable_interruptions": false,
+            "force_pre_tool_speech": false,
+            "pre_tool_speech": "auto",
+            "assignments": [],
+            "tool_call_sound": null,
+            "tool_call_sound_behavior": "auto",
+            "tool_error_handling_mode": "auto",
+            "params": {
+              "system_tool_type": "skip_turn"
+            }
+          },
+          "play_keypad_touch_tone": {
+            "type": "system",
+            "name": "play_keypad_touch_tone",
+            "description": "",
+            "response_timeout_secs": 20,
+            "disable_interruptions": false,
+            "force_pre_tool_speech": false,
+            "pre_tool_speech": "auto",
+            "assignments": [],
+            "tool_call_sound": null,
+            "tool_call_sound_behavior": "auto",
+            "tool_error_handling_mode": "auto",
+            "params": {
+              "system_tool_type": "play_keypad_touch_tone",
+              "use_out_of_band_dtmf": true,
+              "suppress_turn_after_dtmf": false
+            }
+          },
+          "voicemail_detection": {
+            "type": "system",
+            "name": "voicemail_detection",
+            "description": "",
+            "response_timeout_secs": 20,
+            "disable_interruptions": false,
+            "force_pre_tool_speech": false,
+            "pre_tool_speech": "auto",
+            "assignments": [],
+            "tool_call_sound": null,
+            "tool_call_sound_behavior": "auto",
+            "tool_error_handling_mode": "auto",
+            "params": {
+              "system_tool_type": "voicemail_detection",
+              "voicemail_message": ""
+            }
+          },
+          "update_state": null,
+          "memory_entry_search": null,
+          "memory_entry_create": null,
+          "memory_entry_update": null,
+          "memory_entry_delete": null,
+          "agent_prompt_change": null,
+          "procedure_update": null,
+          "transfer_to_genesys_chat": null
+        },
+        "enable_parallel_tool_calls": false,
+        "mcp_server_ids": [],
+        "native_mcp_server_ids": [],
+        "knowledge_base": [],
+        "custom_llm": null,
+        "speech_engine": null,
+        "ignore_default_personality": true,
+        "rag": {
+          "enabled": false,
+          "embedding_model": "e5_mistral_7b_instruct",
+          "optional_rag_enabled": false,
+          "max_vector_distance": 0.6,
+          "max_documents_length": 50000,
+          "max_retrieved_rag_chunks_count": 20,
+          "num_candidates": null,
+          "query_rewrite_prompt_override": null
+        },
+        "timezone": "America/New_York",
+        "backup_llm_config": {
+          "preference": "override",
+          "order": [
+            "claude-opus-4-7",
+            "gpt-5.4-mini"
+          ]
+        },
+        "cascade_timeout_seconds": 8.0,
+        "tools": [
+          {
+            "type": "system",
+            "name": "end_call",
+            "description": "",
+            "response_timeout_secs": 20,
+            "disable_interruptions": false,
+            "force_pre_tool_speech": false,
+            "pre_tool_speech": "auto",
+            "assignments": [],
+            "tool_call_sound": null,
+            "tool_call_sound_behavior": "auto",
+            "tool_error_handling_mode": "auto",
+            "params": {
+              "system_tool_type": "end_call"
+            }
+          },
+          {
+            "type": "system",
+            "name": "language_detection",
+            "description": "",
+            "response_timeout_secs": 20,
+            "disable_interruptions": false,
+            "force_pre_tool_speech": false,
+            "pre_tool_speech": "auto",
+            "assignments": [],
+            "tool_call_sound": null,
+            "tool_call_sound_behavior": "auto",
+            "tool_error_handling_mode": "auto",
+            "params": {
+              "system_tool_type": "language_detection"
+            }
+          },
+          {
+            "type": "system",
+            "name": "skip_turn",
+            "description": "",
+            "response_timeout_secs": 20,
+            "disable_interruptions": false,
+            "force_pre_tool_speech": false,
+            "pre_tool_speech": "auto",
+            "assignments": [],
+            "tool_call_sound": null,
+            "tool_call_sound_behavior": "auto",
+            "tool_error_handling_mode": "auto",
+            "params": {
+              "system_tool_type": "skip_turn"
+            }
+          },
+          {
+            "type": "system",
+            "name": "play_keypad_touch_tone",
+            "description": "",
+            "response_timeout_secs": 20,
+            "disable_interruptions": false,
+            "force_pre_tool_speech": false,
+            "pre_tool_speech": "auto",
+            "assignments": [],
+            "tool_call_sound": null,
+            "tool_call_sound_behavior": "auto",
+            "tool_error_handling_mode": "auto",
+            "params": {
+              "system_tool_type": "play_keypad_touch_tone",
+              "use_out_of_band_dtmf": true,
+              "suppress_turn_after_dtmf": false
+            }
+          },
+          {
+            "type": "system",
+            "name": "voicemail_detection",
+            "description": "",
+            "response_timeout_secs": 20,
+            "disable_interruptions": false,
+            "force_pre_tool_speech": false,
+            "pre_tool_speech": "auto",
+            "assignments": [],
+            "tool_call_sound": null,
+            "tool_call_sound_behavior": "auto",
+            "tool_error_handling_mode": "auto",
+            "params": {
+              "system_tool_type": "voicemail_detection",
+              "voicemail_message": ""
+            }
+          }
+        ]
+      }
+    }
+  },
+  "metadata": {
+    "created_at_unix_secs": 1778638781,
+    "updated_at_unix_secs": 1778646969
+  },
+  "platform_settings": {
+    "evaluation": {
+      "criteria": []
+    },
+    "widget": {
+      "variant": "full",
+      "placement": "bottom-right",
+      "expandable": "never",
+      "avatar": {
+        "type": "orb",
+        "color_1": "#000000",
+        "color_2": "#FFFFFF"
+      },
+      "feedback_mode": "during",
+      "end_feedback": {
+        "type": "rating"
+      },
+      "bg_color": "#ffffff",
+      "text_color": "#000000",
+      "btn_color": "#000000",
+      "btn_text_color": "#ffffff",
+      "border_color": "#e1e1e1",
+      "focus_color": "#000000",
+      "border_radius": null,
+      "btn_radius": null,
+      "action_text": null,
+      "start_call_text": null,
+      "end_call_text": null,
+      "expand_text": null,
+      "listening_text": null,
+      "speaking_text": null,
+      "shareable_page_text": null,
+      "shareable_page_show_terms": true,
+      "terms_text": "#### Terms and conditions\n\nBy clicking \"Agree,\" and each time I interact with this AI agent, I consent to the recording, storage, and sharing of my communications with third-party service providers, and as described in the Privacy Policy.\nIf you do not wish to have your conversations recorded, please refrain from using this service.",
+      "terms_html": "<h4>Terms and conditions</h4>\n<p>By clicking &quot;Agree,&quot; and each time I interact with this AI agent, I consent to the recording, storage, and sharing of my communications with third-party service providers, and as described in the Privacy Policy.\nIf you do not wish to have your conversations recorded, please refrain from using this service.</p>\n",
+      "terms_key": "terms_accepted",
+      "show_avatar_when_collapsed": false,
+      "disable_banner": false,
+      "override_link": null,
+      "markdown_link_allowed_hosts": [
+        {
+          "hostname": "*"
+        }
+      ],
+      "markdown_link_include_www": true,
+      "markdown_link_allow_http": true,
+      "mic_muting_enabled": false,
+      "transcript_enabled": true,
+      "text_input_enabled": true,
+      "conversation_mode_toggle_enabled": false,
+      "default_expanded": false,
+      "always_expanded": false,
+      "dismissible": true,
+      "show_agent_status": true,
+      "show_conversation_id": true,
+      "strip_audio_tags": true,
+      "syntax_highlight_theme": null,
+      "text_contents": {
+        "main_label": null,
+        "start_call": null,
+        "start_chat": null,
+        "new_call": null,
+        "end_call": null,
+        "mute_microphone": null,
+        "change_language": null,
+        "collapse": null,
+        "expand": null,
+        "copied": null,
+        "accept_terms": null,
+        "dismiss_terms": null,
+        "listening_status": null,
+        "speaking_status": null,
+        "connecting_status": null,
+        "chatting_status": null,
+        "input_label": null,
+        "input_placeholder": null,
+        "input_placeholder_text_only": null,
+        "input_placeholder_new_conversation": null,
+        "user_ended_conversation": null,
+        "agent_ended_conversation": null,
+        "conversation_id": null,
+        "error_occurred": null,
+        "copy_id": null,
+        "initiate_feedback": null,
+        "request_follow_up_feedback": null,
+        "thanks_for_feedback": null,
+        "thanks_for_feedback_details": null,
+        "follow_up_feedback_placeholder": null,
+        "submit": null,
+        "go_back": null,
+        "send_message": null,
+        "text_mode": null,
+        "voice_mode": null,
+        "switched_to_text_mode": null,
+        "switched_to_voice_mode": null,
+        "copy": null,
+        "download": null,
+        "wrap": null,
+        "agent_working": null,
+        "agent_done": null,
+        "agent_error": null
+      },
+      "styles": {
+        "base": null,
+        "base_hover": null,
+        "base_active": null,
+        "base_border": null,
+        "base_subtle": null,
+        "base_primary": null,
+        "base_error": null,
+        "accent": null,
+        "accent_hover": null,
+        "accent_active": null,
+        "accent_border": null,
+        "accent_subtle": null,
+        "accent_primary": null,
+        "overlay_padding": null,
+        "button_radius": null,
+        "input_radius": null,
+        "bubble_radius": null,
+        "sheet_radius": null,
+        "compact_sheet_radius": null,
+        "dropdown_sheet_radius": null
+      },
+      "language_selector": true,
+      "supports_text_only": true,
+      "custom_avatar_path": null,
+      "language_presets": {
+        "de": {
+          "text_contents": null,
+          "terms_text": "#### Geschäftsbedingungen\n\nIndem ich auf \"Zustimmen\" klicke und jedes Mal, wenn ich mit diesem KI-Agenten interagiere, stimme ich der Aufzeichnung, Speicherung und Weitergabe meiner Kommunikation mit Drittanbietern zu, wie in der Datenschutzrichtlinie beschrieben.\nWenn Sie nicht möchten, dass Ihre Gespräche aufgezeichnet werden, verzichten Sie bitte auf die Nutzung dieses Dienstes.",
+          "terms_html": "<h4>Geschäftsbedingungen</h4>\n<p>Indem ich auf &quot;Zustimmen&quot; klicke und jedes Mal, wenn ich mit diesem KI-Agenten interagiere, stimme ich der Aufzeichnung, Speicherung und Weitergabe meiner Kommunikation mit Drittanbietern zu, wie in der Datenschutzrichtlinie beschrieben.\nWenn Sie nicht möchten, dass Ihre Gespräche aufgezeichnet werden, verzichten Sie bitte auf die Nutzung dieses Dienstes.</p>\n",
+          "terms_key": null,
+          "terms_translation": {
+            "source_hash": "{\"termsText\":\"#### Terms and conditions\\n\\nBy clicking \\\"Agree,\\\" and each time I interact with this AI agent, I consent to the recording, storage, and sharing of my communications with third-party service providers, and as described in the Privacy Policy.\\nIf you do not wish to have your conversations recorded, please refrain from using this service.\",\"language\":\"en\"}",
+            "text": "#### Geschäftsbedingungen\n\nIndem ich auf \"Zustimmen\" klicke und jedes Mal, wenn ich mit diesem KI-Agenten interagiere, stimme ich der Aufzeichnung, Speicherung und Weitergabe meiner Kommunikation mit Drittanbietern zu, wie in der Datenschutzrichtlinie beschrieben.\nWenn Sie nicht möchten, dass Ihre Gespräche aufgezeichnet werden, verzichten Sie bitte auf die Nutzung dieses Dienstes."
+          }
+        },
+        "es": {
+          "text_contents": null,
+          "terms_text": "#### Términos y condiciones\n\nAl hacer clic en \"Aceptar\", y cada vez que interactúo con este agente de IA, consiento la grabación, almacenamiento y compartición de mis comunicaciones con proveedores de servicios de terceros, y según se describe en la Política de Privacidad. Si no desea que sus conversaciones sean grabadas, por favor absténgase de usar este servicio.",
+          "terms_html": "<h4>Términos y condiciones</h4>\n<p>Al hacer clic en &quot;Aceptar&quot;, y cada vez que interactúo con este agente de IA, consiento la grabación, almacenamiento y compartición de mis comunicaciones con proveedores de servicios de terceros, y según se describe en la Política de Privacidad. Si no desea que sus conversaciones sean grabadas, por favor absténgase de usar este servicio.</p>\n",
+          "terms_key": null,
+          "terms_translation": {
+            "source_hash": "{\"termsText\":\"#### Terms and conditions\\n\\nBy clicking \\\"Agree,\\\" and each time I interact with this AI agent, I consent to the recording, storage, and sharing of my communications with third-party service providers, and as described in the Privacy Policy.\\nIf you do not wish to have your conversations recorded, please refrain from using this service.\",\"language\":\"en\"}",
+            "text": "#### Términos y condiciones\n\nAl hacer clic en \"Aceptar\", y cada vez que interactúo con este agente de IA, consiento la grabación, almacenamiento y compartición de mis comunicaciones con proveedores de servicios de terceros, y según se describe en la Política de Privacidad. Si no desea que sus conversaciones sean grabadas, por favor absténgase de usar este servicio."
+          }
+        },
+        "fr": {
+          "text_contents": null,
+          "terms_text": "#### Conditions générales\n\nEn cliquant sur \"Accepter\", et chaque fois que j'interagis avec cet agent IA, je consens à l'enregistrement, au stockage et au partage de mes communications avec des prestataires de services tiers, et comme décrit dans la Politique de confidentialité. Si vous ne souhaitez pas que vos conversations soient enregistrées, veuillez vous abstenir d'utiliser ce service.",
+          "terms_html": "<h4>Conditions générales</h4>\n<p>En cliquant sur &quot;Accepter&quot;, et chaque fois que j'interagis avec cet agent IA, je consens à l'enregistrement, au stockage et au partage de mes communications avec des prestataires de services tiers, et comme décrit dans la Politique de confidentialité. Si vous ne souhaitez pas que vos conversations soient enregistrées, veuillez vous abstenir d'utiliser ce service.</p>\n",
+          "terms_key": null,
+          "terms_translation": {
+            "source_hash": "{\"termsText\":\"#### Terms and conditions\\n\\nBy clicking \\\"Agree,\\\" and each time I interact with this AI agent, I consent to the recording, storage, and sharing of my communications with third-party service providers, and as described in the Privacy Policy.\\nIf you do not wish to have your conversations recorded, please refrain from using this service.\",\"language\":\"en\"}",
+            "text": "#### Conditions générales\n\nEn cliquant sur \"Accepter\", et chaque fois que j'interagis avec cet agent IA, je consens à l'enregistrement, au stockage et au partage de mes communications avec des prestataires de services tiers, et comme décrit dans la Politique de confidentialité. Si vous ne souhaitez pas que vos conversations soient enregistrées, veuillez vous abstenir d'utiliser ce service."
+          }
+        },
+        "ga": {
+          "text_contents": null,
+          "terms_text": "#### Téarmaí agus coinníollacha\n\nTrí chliceáil ar \"Aontaím,\" agus gach uair a idirghníomhaím leis an ngníomhaire AI seo, tugaim cead don taifeadadh, stóráil, agus comhroinnt mo chumarsáidí le soláthraithe seirbhíse tríú páirtí, agus mar a thuairiscítear sa Pholasaí Príobháideachais.\nMura mian leat go dtaifeadfaí do chomhráite, le do thoil staon ó úsáid a bhaint as an tseirbhís seo.",
+          "terms_html": "<h4>Téarmaí agus coinníollacha</h4>\n<p>Trí chliceáil ar &quot;Aontaím,&quot; agus gach uair a idirghníomhaím leis an ngníomhaire AI seo, tugaim cead don taifeadadh, stóráil, agus comhroinnt mo chumarsáidí le soláthraithe seirbhíse tríú páirtí, agus mar a thuairiscítear sa Pholasaí Príobháideachais.\nMura mian leat go dtaifeadfaí do chomhráite, le do thoil staon ó úsáid a bhaint as an tseirbhís seo.</p>\n",
+          "terms_key": null,
+          "terms_translation": {
+            "source_hash": "{\"termsText\":\"#### Terms and conditions\\n\\nBy clicking \\\"Agree,\\\" and each time I interact with this AI agent, I consent to the recording, storage, and sharing of my communications with third-party service providers, and as described in the Privacy Policy.\\nIf you do not wish to have your conversations recorded, please refrain from using this service.\",\"language\":\"en\"}",
+            "text": "#### Téarmaí agus coinníollacha\n\nTrí chliceáil ar \"Aontaím,\" agus gach uair a idirghníomhaím leis an ngníomhaire AI seo, tugaim cead don taifeadadh, stóráil, agus comhroinnt mo chumarsáidí le soláthraithe seirbhíse tríú páirtí, agus mar a thuairiscítear sa Pholasaí Príobháideachais.\nMura mian leat go dtaifeadfaí do chomhráite, le do thoil staon ó úsáid a bhaint as an tseirbhís seo."
+          }
+        },
+        "hi": {
+          "text_contents": null,
+          "terms_text": "#### नियम और शर्तें\n\n\"Agree\" पर क्लिक करके, और हर बार जब मैं इस AI एजेंट के साथ बातचीत करता हूँ, तो मैं अपनी संचार को तीसरे पक्ष के सेवा प्रदाताओं के साथ रिकॉर्डिंग, भंडारण, और साझा करने के लिए सहमति देता हूँ, जैसा कि गोपनीयता नीति में वर्णित है। यदि आप अपनी बातचीत को रिकॉर्ड नहीं करना चाहते हैं, तो कृपया इस सेवा का उपयोग करने से बचें।",
+          "terms_html": "<h4>नियम और शर्तें</h4>\n<p>&quot;Agree&quot; पर क्लिक करके, और हर बार जब मैं इस AI एजेंट के साथ बातचीत करता हूँ, तो मैं अपनी संचार को तीसरे पक्ष के सेवा प्रदाताओं के साथ रिकॉर्डिंग, भंडारण, और साझा करने के लिए सहमति देता हूँ, जैसा कि गोपनीयता नीति में वर्णित है। यदि आप अपनी बातचीत को रिकॉर्ड नहीं करना चाहते हैं, तो कृपया इस सेवा का उपयोग करने से बचें।</p>\n",
+          "terms_key": null,
+          "terms_translation": {
+            "source_hash": "{\"termsText\":\"#### Terms and conditions\\n\\nBy clicking \\\"Agree,\\\" and each time I interact with this AI agent, I consent to the recording, storage, and sharing of my communications with third-party service providers, and as described in the Privacy Policy.\\nIf you do not wish to have your conversations recorded, please refrain from using this service.\",\"language\":\"en\"}",
+            "text": "#### नियम और शर्तें\n\n\"Agree\" पर क्लिक करके, और हर बार जब मैं इस AI एजेंट के साथ बातचीत करता हूँ, तो मैं अपनी संचार को तीसरे पक्ष के सेवा प्रदाताओं के साथ रिकॉर्डिंग, भंडारण, और साझा करने के लिए सहमति देता हूँ, जैसा कि गोपनीयता नीति में वर्णित है। यदि आप अपनी बातचीत को रिकॉर्ड नहीं करना चाहते हैं, तो कृपया इस सेवा का उपयोग करने से बचें।"
+          }
+        },
+        "ja": {
+          "text_contents": null,
+          "terms_text": "#### 利用規約\n\n「同意する」をクリックし、このAIエージェントとやり取りするたびに、私は通信が第三者のサービスプロバイダーと記録、保存、共有されること、およびプライバシーポリシーに記載されていることに同意します。\n会話を記録されたくない場合は、このサービスの使用を控えてください。",
+          "terms_html": "<h4>利用規約</h4>\n<p>「同意する」をクリックし、このAIエージェントとやり取りするたびに、私は通信が第三者のサービスプロバイダーと記録、保存、共有されること、およびプライバシーポリシーに記載されていることに同意します。\n会話を記録されたくない場合は、このサービスの使用を控えてください。</p>\n",
+          "terms_key": null,
+          "terms_translation": {
+            "source_hash": "{\"termsText\":\"#### Terms and conditions\\n\\nBy clicking \\\"Agree,\\\" and each time I interact with this AI agent, I consent to the recording, storage, and sharing of my communications with third-party service providers, and as described in the Privacy Policy.\\nIf you do not wish to have your conversations recorded, please refrain from using this service.\",\"language\":\"en\"}",
+            "text": "#### 利用規約\n\n「同意する」をクリックし、このAIエージェントとやり取りするたびに、私は通信が第三者のサービスプロバイダーと記録、保存、共有されること、およびプライバシーポリシーに記載されていることに同意します。\n会話を記録されたくない場合は、このサービスの使用を控えてください。"
+          }
+        },
+        "kn": {
+          "text_contents": null,
+          "terms_text": "#### ನಿಯಮಗಳು ಮತ್ತು ಷರತ್ತುಗಳು\n\n\"ಒಪ್ಪುತ್ತೇನೆ\" ಕ್ಲಿಕ್ ಮಾಡುವ ಮೂಲಕ, ಮತ್ತು ಪ್ರತಿ ಬಾರಿ ನಾನು ಈ AI ಏಜೆಂಟ್‌ನೊಂದಿಗೆ ಸಂವಹನ ಮಾಡುವಾಗ, ನನ್ನ ಸಂವಹನಗಳನ್ನು ಮೂರನೇ ಪಕ್ಷದ ಸೇವಾ ಒದಗಿಸುವವರೊಂದಿಗೆ ದಾಖಲಿಸುವುದು, ಸಂಗ್ರಹಿಸುವುದು ಮತ್ತು ಹಂಚಿಕೊಳ್ಳುವುದಕ್ಕೆ, ಮತ್ತು ಗೌಪ್ಯತಾ ನೀತಿಯಲ್ಲಿ ವಿವರಿಸಿದಂತೆ, ನಾನು ಒಪ್ಪುತ್ತೇನೆ. ನಿಮ್ಮ ಸಂಭಾಷಣೆಗಳನ್ನು ದಾಖಲಿಸಲು ನೀವು ಇಚ್ಛಿಸದಿದ್ದರೆ, ದಯವಿಟ್ಟು ಈ ಸೇವೆಯನ್ನು ಬಳಸುವುದನ್ನು ತಡೆಯಿರಿ.",
+          "terms_html": "<h4>ನಿಯಮಗಳು ಮತ್ತು ಷರತ್ತುಗಳು</h4>\n<p>&quot;ಒಪ್ಪುತ್ತೇನೆ&quot; ಕ್ಲಿಕ್ ಮಾಡುವ ಮೂಲಕ, ಮತ್ತು ಪ್ರತಿ ಬಾರಿ ನಾನು ಈ AI ಏಜೆಂಟ್‌ನೊಂದಿಗೆ ಸಂವಹನ ಮಾಡುವಾಗ, ನನ್ನ ಸಂವಹನಗಳನ್ನು ಮೂರನೇ ಪಕ್ಷದ ಸೇವಾ ಒದಗಿಸುವವರೊಂದಿಗೆ ದಾಖಲಿಸುವುದು, ಸಂಗ್ರಹಿಸುವುದು ಮತ್ತು ಹಂಚಿಕೊಳ್ಳುವುದಕ್ಕೆ, ಮತ್ತು ಗೌಪ್ಯತಾ ನೀತಿಯಲ್ಲಿ ವಿವರಿಸಿದಂತೆ, ನಾನು ಒಪ್ಪುತ್ತೇನೆ. ನಿಮ್ಮ ಸಂಭಾಷಣೆಗಳನ್ನು ದಾಖಲಿಸಲು ನೀವು ಇಚ್ಛಿಸದಿದ್ದರೆ, ದಯವಿಟ್ಟು ಈ ಸೇವೆಯನ್ನು ಬಳಸುವುದನ್ನು ತಡೆಯಿರಿ.</p>\n",
+          "terms_key": null,
+          "terms_translation": {
+            "source_hash": "{\"termsText\":\"#### Terms and conditions\\n\\nBy clicking \\\"Agree,\\\" and each time I interact with this AI agent, I consent to the recording, storage, and sharing of my communications with third-party service providers, and as described in the Privacy Policy.\\nIf you do not wish to have your conversations recorded, please refrain from using this service.\",\"language\":\"en\"}",
+            "text": "#### ನಿಯಮಗಳು ಮತ್ತು ಷರತ್ತುಗಳು\n\n\"ಒಪ್ಪುತ್ತೇನೆ\" ಕ್ಲಿಕ್ ಮಾಡುವ ಮೂಲಕ, ಮತ್ತು ಪ್ರತಿ ಬಾರಿ ನಾನು ಈ AI ಏಜೆಂಟ್‌ನೊಂದಿಗೆ ಸಂವಹನ ಮಾಡುವಾಗ, ನನ್ನ ಸಂವಹನಗಳನ್ನು ಮೂರನೇ ಪಕ್ಷದ ಸೇವಾ ಒದಗಿಸುವವರೊಂದಿಗೆ ದಾಖಲಿಸುವುದು, ಸಂಗ್ರಹಿಸುವುದು ಮತ್ತು ಹಂಚಿಕೊಳ್ಳುವುದಕ್ಕೆ, ಮತ್ತು ಗೌಪ್ಯತಾ ನೀತಿಯಲ್ಲಿ ವಿವರಿಸಿದಂತೆ, ನಾನು ಒಪ್ಪುತ್ತೇನೆ. ನಿಮ್ಮ ಸಂಭಾಷಣೆಗಳನ್ನು ದಾಖಲಿಸಲು ನೀವು ಇಚ್ಛಿಸದಿದ್ದರೆ, ದಯವಿಟ್ಟು ಈ ಸೇವೆಯನ್ನು ಬಳಸುವುದನ್ನು ತಡೆಯಿರಿ."
+          }
+        },
+        "ko": {
+          "text_contents": null,
+          "terms_text": "#### 약관\n\n\"동의\"를 클릭하고 이 AI 에이전트와 상호작용할 때마다, 나는 내 의사소통이 제3자 서비스 제공업체와의 기록, 저장 및 공유에 동의하며, 이는 개인정보 보호정책에 설명된 대로입니다. 대화가 기록되기를 원하지 않으시면 이 서비스를 사용하지 마십시오.",
+          "terms_html": "<h4>약관</h4>\n<p>&quot;동의&quot;를 클릭하고 이 AI 에이전트와 상호작용할 때마다, 나는 내 의사소통이 제3자 서비스 제공업체와의 기록, 저장 및 공유에 동의하며, 이는 개인정보 보호정책에 설명된 대로입니다. 대화가 기록되기를 원하지 않으시면 이 서비스를 사용하지 마십시오.</p>\n",
+          "terms_key": null,
+          "terms_translation": {
+            "source_hash": "{\"termsText\":\"#### Terms and conditions\\n\\nBy clicking \\\"Agree,\\\" and each time I interact with this AI agent, I consent to the recording, storage, and sharing of my communications with third-party service providers, and as described in the Privacy Policy.\\nIf you do not wish to have your conversations recorded, please refrain from using this service.\",\"language\":\"en\"}",
+            "text": "#### 약관\n\n\"동의\"를 클릭하고 이 AI 에이전트와 상호작용할 때마다, 나는 내 의사소통이 제3자 서비스 제공업체와의 기록, 저장 및 공유에 동의하며, 이는 개인정보 보호정책에 설명된 대로입니다. 대화가 기록되기를 원하지 않으시면 이 서비스를 사용하지 마십시오."
+          }
+        },
+        "ms": {
+          "text_contents": null,
+          "terms_text": "#### Terma dan syarat\n\nDengan mengklik \"Setuju,\" dan setiap kali saya berinteraksi dengan ejen AI ini, saya bersetuju dengan rakaman, penyimpanan, dan perkongsian komunikasi saya dengan penyedia perkhidmatan pihak ketiga, dan seperti yang diterangkan dalam Dasar Privasi. Jika anda tidak ingin perbualan anda dirakam, sila elakkan daripada menggunakan perkhidmatan ini.",
+          "terms_html": "<h4>Terma dan syarat</h4>\n<p>Dengan mengklik &quot;Setuju,&quot; dan setiap kali saya berinteraksi dengan ejen AI ini, saya bersetuju dengan rakaman, penyimpanan, dan perkongsian komunikasi saya dengan penyedia perkhidmatan pihak ketiga, dan seperti yang diterangkan dalam Dasar Privasi. Jika anda tidak ingin perbualan anda dirakam, sila elakkan daripada menggunakan perkhidmatan ini.</p>\n",
+          "terms_key": null,
+          "terms_translation": {
+            "source_hash": "{\"termsText\":\"#### Terms and conditions\\n\\nBy clicking \\\"Agree,\\\" and each time I interact with this AI agent, I consent to the recording, storage, and sharing of my communications with third-party service providers, and as described in the Privacy Policy.\\nIf you do not wish to have your conversations recorded, please refrain from using this service.\",\"language\":\"en\"}",
+            "text": "#### Terma dan syarat\n\nDengan mengklik \"Setuju,\" dan setiap kali saya berinteraksi dengan ejen AI ini, saya bersetuju dengan rakaman, penyimpanan, dan perkongsian komunikasi saya dengan penyedia perkhidmatan pihak ketiga, dan seperti yang diterangkan dalam Dasar Privasi. Jika anda tidak ingin perbualan anda dirakam, sila elakkan daripada menggunakan perkhidmatan ini."
+          }
+        },
+        "pl": {
+          "text_contents": null,
+          "terms_text": "#### Warunki i zasady\n\nKlikając „Zgadzam się” i za każdym razem, gdy wchodzę w interakcję z tym agentem AI, wyrażam zgodę na nagrywanie, przechowywanie i udostępnianie moich komunikacji z zewnętrznymi dostawcami usług, zgodnie z opisem w Polityce Prywatności. Jeśli nie chcesz, aby Twoje rozmowy były nagrywane, prosimy o powstrzymanie się od korzystania z tej usługi.",
+          "terms_html": "<h4>Warunki i zasady</h4>\n<p>Klikając „Zgadzam się” i za każdym razem, gdy wchodzę w interakcję z tym agentem AI, wyrażam zgodę na nagrywanie, przechowywanie i udostępnianie moich komunikacji z zewnętrznymi dostawcami usług, zgodnie z opisem w Polityce Prywatności. Jeśli nie chcesz, aby Twoje rozmowy były nagrywane, prosimy o powstrzymanie się od korzystania z tej usługi.</p>\n",
+          "terms_key": null,
+          "terms_translation": {
+            "source_hash": "{\"termsText\":\"#### Terms and conditions\\n\\nBy clicking \\\"Agree,\\\" and each time I interact with this AI agent, I consent to the recording, storage, and sharing of my communications with third-party service providers, and as described in the Privacy Policy.\\nIf you do not wish to have your conversations recorded, please refrain from using this service.\",\"language\":\"en\"}",
+            "text": "#### Warunki i zasady\n\nKlikając „Zgadzam się” i za każdym razem, gdy wchodzę w interakcję z tym agentem AI, wyrażam zgodę na nagrywanie, przechowywanie i udostępnianie moich komunikacji z zewnętrznymi dostawcami usług, zgodnie z opisem w Polityce Prywatności. Jeśli nie chcesz, aby Twoje rozmowy były nagrywane, prosimy o powstrzymanie się od korzystania z tej usługi."
+          }
+        },
+        "pt": {
+          "text_contents": null,
+          "terms_text": "#### Termos e condições\n\nAo clicar em \"Concordo\" e cada vez que interajo com este agente de IA, consinto com a gravação, armazenamento e compartilhamento das minhas comunicações com provedores de serviços terceirizados, conforme descrito na Política de Privacidade. Se você não deseja que suas conversas sejam gravadas, por favor, evite usar este serviço.",
+          "terms_html": "<h4>Termos e condições</h4>\n<p>Ao clicar em &quot;Concordo&quot; e cada vez que interajo com este agente de IA, consinto com a gravação, armazenamento e compartilhamento das minhas comunicações com provedores de serviços terceirizados, conforme descrito na Política de Privacidade. Se você não deseja que suas conversas sejam gravadas, por favor, evite usar este serviço.</p>\n",
+          "terms_key": null,
+          "terms_translation": {
+            "source_hash": "{\"termsText\":\"#### Terms and conditions\\n\\nBy clicking \\\"Agree,\\\" and each time I interact with this AI agent, I consent to the recording, storage, and sharing of my communications with third-party service providers, and as described in the Privacy Policy.\\nIf you do not wish to have your conversations recorded, please refrain from using this service.\",\"language\":\"en\"}",
+            "text": "#### Termos e condições\n\nAo clicar em \"Concordo\" e cada vez que interajo com este agente de IA, consinto com a gravação, armazenamento e compartilhamento das minhas comunicações com provedores de serviços terceirizados, conforme descrito na Política de Privacidade. Se você não deseja que suas conversas sejam gravadas, por favor, evite usar este serviço."
+          }
+        },
+        "pt-br": {
+          "text_contents": null,
+          "terms_text": "#### Termos e condições\n\nAo clicar em \"Concordo\" e cada vez que interajo com este agente de IA, consinto com a gravação, armazenamento e compartilhamento de minhas comunicações com provedores de serviços terceirizados, conforme descrito na Política de Privacidade. Se você não deseja que suas conversas sejam gravadas, por favor, evite usar este serviço.",
+          "terms_html": "<h4>Termos e condições</h4>\n<p>Ao clicar em &quot;Concordo&quot; e cada vez que interajo com este agente de IA, consinto com a gravação, armazenamento e compartilhamento de minhas comunicações com provedores de serviços terceirizados, conforme descrito na Política de Privacidade. Se você não deseja que suas conversas sejam gravadas, por favor, evite usar este serviço.</p>\n",
+          "terms_key": null,
+          "terms_translation": {
+            "source_hash": "{\"termsText\":\"#### Terms and conditions\\n\\nBy clicking \\\"Agree,\\\" and each time I interact with this AI agent, I consent to the recording, storage, and sharing of my communications with third-party service providers, and as described in the Privacy Policy.\\nIf you do not wish to have your conversations recorded, please refrain from using this service.\",\"language\":\"en\"}",
+            "text": "#### Termos e condições\n\nAo clicar em \"Concordo\" e cada vez que interajo com este agente de IA, consinto com a gravação, armazenamento e compartilhamento de minhas comunicações com provedores de serviços terceirizados, conforme descrito na Política de Privacidade. Se você não deseja que suas conversas sejam gravadas, por favor, evite usar este serviço."
+          }
+        },
+        "ta": {
+          "text_contents": null,
+          "terms_text": "#### விதிமுறைகள் மற்றும் நிபந்தனைகள்\n\n\"ஒப்புக்கொள்\" என்பதைக் கிளிக் செய்வதன் மூலம், மற்றும் ஒவ்வொரு முறையும் நான் இந்த AI முகவரியுடன் தொடர்பு கொள்கிறேன், என் தொடர்புகளை மூன்றாம் தரப்பு சேவை வழங்குநர்களுடன் பதிவு, சேமிப்பு மற்றும் பகிர்வதற்கு, மற்றும் தனியுரிமைக் கொள்கையில் விவரிக்கப்பட்டுள்ளபடி, நான் ஒப்புக்கொள்கிறேன். உங்கள் உரையாடல்கள் பதிவு செய்யப்பட வேண்டாம் என விரும்பினால், தயவுசெய்து இந்த சேவையை பயன்படுத்த வேண்டாம்.",
+          "terms_html": "<h4>விதிமுறைகள் மற்றும் நிபந்தனைகள்</h4>\n<p>&quot;ஒப்புக்கொள்&quot; என்பதைக் கிளிக் செய்வதன் மூலம், மற்றும் ஒவ்வொரு முறையும் நான் இந்த AI முகவரியுடன் தொடர்பு கொள்கிறேன், என் தொடர்புகளை மூன்றாம் தரப்பு சேவை வழங்குநர்களுடன் பதிவு, சேமிப்பு மற்றும் பகிர்வதற்கு, மற்றும் தனியுரிமைக் கொள்கையில் விவரிக்கப்பட்டுள்ளபடி, நான் ஒப்புக்கொள்கிறேன். உங்கள் உரையாடல்கள் பதிவு செய்யப்பட வேண்டாம் என விரும்பினால், தயவுசெய்து இந்த சேவையை பயன்படுத்த வேண்டாம்.</p>\n",
+          "terms_key": null,
+          "terms_translation": {
+            "source_hash": "{\"termsText\":\"#### Terms and conditions\\n\\nBy clicking \\\"Agree,\\\" and each time I interact with this AI agent, I consent to the recording, storage, and sharing of my communications with third-party service providers, and as described in the Privacy Policy.\\nIf you do not wish to have your conversations recorded, please refrain from using this service.\",\"language\":\"en\"}",
+            "text": "#### விதிமுறைகள் மற்றும் நிபந்தனைகள்\n\n\"ஒப்புக்கொள்\" என்பதைக் கிளிக் செய்வதன் மூலம், மற்றும் ஒவ்வொரு முறையும் நான் இந்த AI முகவரியுடன் தொடர்பு கொள்கிறேன், என் தொடர்புகளை மூன்றாம் தரப்பு சேவை வழங்குநர்களுடன் பதிவு, சேமிப்பு மற்றும் பகிர்வதற்கு, மற்றும் தனியுரிமைக் கொள்கையில் விவரிக்கப்பட்டுள்ளபடி, நான் ஒப்புக்கொள்கிறேன். உங்கள் உரையாடல்கள் பதிவு செய்யப்பட வேண்டாம் என விரும்பினால், தயவுசெய்து இந்த சேவையை பயன்படுத்த வேண்டாம்."
+          }
+        },
+        "te": {
+          "text_contents": null,
+          "terms_text": "#### నిబంధనలు మరియు షరతులు\n\n\"అంగీకరించు\" పై క్లిక్ చేయడం ద్వారా, మరియు ప్రతి సారి నేను ఈ AI ఏజెంట్‌తో పరస్పర చర్య చేయడం ద్వారా, నా కమ్యూనికేషన్లను మూడవ పక్ష సేవా ప్రదాతలతో రికార్డు చేయడం, నిల్వ చేయడం మరియు పంచుకోవడం, మరియు గోప్యతా విధానంలో వివరించినట్లుగా, నేను అంగీకరిస్తున్నాను. మీ సంభాషణలు రికార్డు చేయబడకూడదని మీరు కోరుకుంటే, దయచేసి ఈ సేవను ఉపయోగించడం మానుకోండి.",
+          "terms_html": "<h4>నిబంధనలు మరియు షరతులు</h4>\n<p>&quot;అంగీకరించు&quot; పై క్లిక్ చేయడం ద్వారా, మరియు ప్రతి సారి నేను ఈ AI ఏజెంట్‌తో పరస్పర చర్య చేయడం ద్వారా, నా కమ్యూనికేషన్లను మూడవ పక్ష సేవా ప్రదాతలతో రికార్డు చేయడం, నిల్వ చేయడం మరియు పంచుకోవడం, మరియు గోప్యతా విధానంలో వివరించినట్లుగా, నేను అంగీకరిస్తున్నాను. మీ సంభాషణలు రికార్డు చేయబడకూడదని మీరు కోరుకుంటే, దయచేసి ఈ సేవను ఉపయోగించడం మానుకోండి.</p>\n",
+          "terms_key": null,
+          "terms_translation": {
+            "source_hash": "{\"termsText\":\"#### Terms and conditions\\n\\nBy clicking \\\"Agree,\\\" and each time I interact with this AI agent, I consent to the recording, storage, and sharing of my communications with third-party service providers, and as described in the Privacy Policy.\\nIf you do not wish to have your conversations recorded, please refrain from using this service.\",\"language\":\"en\"}",
+            "text": "#### నిబంధనలు మరియు షరతులు\n\n\"అంగీకరించు\" పై క్లిక్ చేయడం ద్వారా, మరియు ప్రతి సారి నేను ఈ AI ఏజెంట్‌తో పరస్పర చర్య చేయడం ద్వారా, నా కమ్యూనికేషన్లను మూడవ పక్ష సేవా ప్రదాతలతో రికార్డు చేయడం, నిల్వ చేయడం మరియు పంచుకోవడం, మరియు గోప్యతా విధానంలో వివరించినట్లుగా, నేను అంగీకరిస్తున్నాను. మీ సంభాషణలు రికార్డు చేయబడకూడదని మీరు కోరుకుంటే, దయచేసి ఈ సేవను ఉపయోగించడం మానుకోండి."
+          }
+        },
+        "zh": {
+          "text_contents": null,
+          "terms_text": "#### 条款和条件\n\n通过点击“同意”，以及每次与此AI代理互动时，我同意按照隐私政策中所述，将我的通信记录、存储和与第三方服务提供商共享。如果您不希望您的对话被记录，请避免使用此服务。",
+          "terms_html": "<h4>条款和条件</h4>\n<p>通过点击“同意”，以及每次与此AI代理互动时，我同意按照隐私政策中所述，将我的通信记录、存储和与第三方服务提供商共享。如果您不希望您的对话被记录，请避免使用此服务。</p>\n",
+          "terms_key": null,
+          "terms_translation": {
+            "source_hash": "{\"termsText\":\"#### Terms and conditions\\n\\nBy clicking \\\"Agree,\\\" and each time I interact with this AI agent, I consent to the recording, storage, and sharing of my communications with third-party service providers, and as described in the Privacy Policy.\\nIf you do not wish to have your conversations recorded, please refrain from using this service.\",\"language\":\"en\"}",
+            "text": "#### 条款和条件\n\n通过点击“同意”，以及每次与此AI代理互动时，我同意按照隐私政策中所述，将我的通信记录、存储和与第三方服务提供商共享。如果您不希望您的对话被记录，请避免使用此服务。"
+          }
+        }
+      }
+    },
+    "data_collection": {},
+    "data_collection_scopes": {},
+    "overrides": {
+      "conversation_config_override": {
+        "turn": {
+          "soft_timeout_config": {
+            "message": false
+          }
+        },
+        "tts": {
+          "voice_id": true,
+          "stability": true,
+          "speed": true,
+          "similarity_boost": true
+        },
+        "conversation": {
+          "text_only": true
+        },
+        "agent": {
+          "first_message": true,
+          "language": true,
+          "max_conversation_duration_message": false,
+          "prompt": {
+            "prompt": true,
+            "llm": true,
+            "tool_ids": true,
+            "native_mcp_server_ids": false,
+            "knowledge_base": true
+          }
+        }
+      },
+      "custom_llm_extra_body": false,
+      "enable_conversation_initiation_client_data_from_webhook": true,
+      "enable_starting_workflow_node_id_from_client": true
+    },
+    "workspace_overrides": {
+      "conversation_initiation_client_data_webhook": null,
+      "webhooks": {
+        "post_call_webhook_id": null,
+        "events": [
+          "transcript"
+        ],
+        "transcript_format": "json",
+        "send_audio": false
+      }
+    },
+    "testing": {
+      "attached_tests": [],
+      "referenced_tests_ids": []
+    },
+    "archived": false,
+    "guardrails": {
+      "version": "1",
+      "focus": {
+        "is_enabled": true
+      },
+      "prompt_injection": {
+        "is_enabled": true
+      },
+      "content": {
+        "execution_mode": "blocking",
+        "config": {
+          "sexual": {
+            "is_enabled": true,
+            "threshold": "low"
+          },
+          "violence": {
+            "is_enabled": true,
+            "threshold": "low"
+          },
+          "harassment": {
+            "is_enabled": true,
+            "threshold": "low"
+          },
+          "self_harm": {
+            "is_enabled": true,
+            "threshold": "low"
+          },
+          "profanity": {
+            "is_enabled": false,
+            "threshold": "medium"
+          },
+          "religion_or_politics": {
+            "is_enabled": false,
+            "threshold": "medium"
+          },
+          "medical_and_legal_information": {
+            "is_enabled": false,
+            "threshold": "medium"
+          }
+        },
+        "trigger_action": {
+          "type": "retry",
+          "feedback": "Your response was blocked by a guardrail that blocks content that matches this condition/category: '{{trigger_reason}}' During your next turn you must tell the user \"I'm sorry but I can't answer that question, would you like to know something else?\"."
+        }
+      },
+      "moderation": null,
+      "custom": {
+        "config": {
+          "configs": []
+        }
+      }
+    },
+    "summary_language": null,
+    "auth": {
+      "enable_auth": false,
+      "allowlist": [],
+      "require_origin_header": false,
+      "shareable_token": null
+    },
+    "call_limits": {
+      "agent_concurrency_limit": -1,
+      "daily_limit": 100000,
+      "bursting_enabled": true
+    },
+    "ban": null,
+    "smb_metadata": null,
+    "privacy": {
+      "record_voice": true,
+      "retention_days": -1,
+      "delete_transcript_and_pii": false,
+      "delete_audio": false,
+      "apply_to_existing_conversations": false,
+      "zero_retention_mode": false,
+      "conversation_history_redaction": {
+        "enabled": false,
+        "entities": []
+      }
+    },
+    "trust_context": "unknown",
+    "analysis_llm": "gpt-5",
+    "alerting": null,
+    "safety": {
+      "is_blocked_ivc": false,
+      "is_blocked_non_ivc": false,
+      "ignore_safety_evaluation": false
+    }
+  },
+  "phone_numbers": [],
+  "whatsapp_accounts": [],
+  "workflow": {
+    "edges": {},
+    "nodes": {
+      "start_node": {
+        "type": "start",
+        "position": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "edge_order": []
+      }
+    },
+    "prevent_subagent_loops": true
+  },
+  "access_info": {
+    "is_creator": true,
+    "creator_name": "Cody Arnold",
+    "creator_email": "cody@wranngle.com",
+    "role": "admin",
+    "anonymous_access_level_override": null
+  },
+  "tags": [],
+  "version_id": "agtvrsn_8201krfsxv3feg3bta7pyh8cnnyw",
+  "branch_id": "agtbrch_6501krfj3zjme0j9ytbnjea9mwkf",
+  "main_branch_id": "agtbrch_6501krfj3zjme0j9ytbnjea9mwkf",
+  "coaching_settings": {
+    "type": "coached",
+    "memory_base_id": "agent_8401krfj3xrqek2bfw71fyw2nzq0"
+  },
+  "procedures": {},
+  "procedures_enabled": false,
+  "procedure_settings": {
+    "compiler_mode": "append"
+  },
+  "trust_context": "unknown"
+}
