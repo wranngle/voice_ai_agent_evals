@@ -44,7 +44,7 @@ function verifyElevenLabsSignature(
 }
 ```
 
-A working implementation lives in [`lib/security/elevenlabs-signature.ts`](../lib/security/elevenlabs-signature.ts) — `verifyElevenLabsSignature(rawBody, headerValue, sharedSecret, options?)` returns `{ok: true}` on success or `{ok: false, reason: 'malformed_header' | 'stale_or_missing_signature' | 'signature_mismatch'}`. Both verify and sign throw on an empty `sharedSecret` rather than silently HMAC'ing with an empty key. Test coverage lives at `tests/integration/elevenlabs-signature.test.ts` (16 cases — header parsing, tolerance window, body-tampering detection, custom-clock injection, empty-secret guard).
+A working implementation lives in [`src/security/elevenlabs-signature.ts`](../src/security/elevenlabs-signature.ts) — `verifyElevenLabsSignature(rawBody, headerValue, sharedSecret, options?)` returns `{ok: true}` on success or `{ok: false, reason: 'malformed_header' | 'stale_or_missing_signature' | 'signature_mismatch'}`. Both verify and sign throw on an empty `sharedSecret` rather than silently HMAC'ing with an empty key. Test coverage lives at `tests/integration/elevenlabs-signature.test.ts` (16 cases — header parsing, tolerance window, body-tampering detection, custom-clock injection, empty-secret guard).
 
 ## Signed replay tests
 
@@ -98,4 +98,4 @@ Other fields exist on the wire but aren't consumed — they're available if a fu
 
 ## Rotating the shared secret
 
-ElevenLabs returns a webhook's HMAC secret only at creation time. The webhook URL itself is **immutable**, so rotation = create new webhook + repoint references + delete old. Operators run this manually against the ElevenLabs API; this repo only ships the verifier (`lib/security/elevenlabs-signature.ts`), not the create/rotate orchestration.
+ElevenLabs returns a webhook's HMAC secret only at creation time. The webhook URL itself is **immutable**, so rotation = create new webhook + repoint references + delete old. Operators run this manually against the ElevenLabs API; this repo only ships the verifier (`src/security/elevenlabs-signature.ts`), not the create/rotate orchestration.
