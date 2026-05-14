@@ -20,7 +20,10 @@
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true,
     "isolatedModules": true,
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+    "paths": {
+      "@wranngle/voice-evals/scenarios": ["./src/scenarios/index.ts"]
+    }
   },
   "include": [
     "**/*.ts",

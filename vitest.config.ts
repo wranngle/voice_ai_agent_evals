@@ -1,4 +1,7 @@
+import {fileURLToPath} from 'node:url';
 import {defineConfig} from 'vitest/config';
+
+const srcDir = fileURLToPath(new URL('src', import.meta.url));
 
 /*
  * CONVENTION-BASED TEST CLASSIFICATION
@@ -215,6 +218,21 @@ const offlineProjects = [
   },
 ];
 
+(offlineProjects as any[]).push({
+  resolve: {
+    alias: {
+      '@wranngle/voice-evals/scenarios': `${srcDir}/scenarios/index.ts`,
+    },
+  },
+  test: {
+    name: 'scenarios',
+    root: '.',
+    include: ['tests/scenarios/**/*.test.ts'],
+    environment: 'node' as const,
+    testTimeout: 30_000,
+  },
+});
+
 // Mixed-live projects: at least one describe block calls real HTTP behind a
 // `describe.skipIf(process.env.CI)` guard. CI runs the unguarded portion
 // (mocked); local runs hit the real endpoint when env vars are configured.
@@ -235,6 +253,11 @@ export const OFFLINE_PROJECTS = offlineProjects.map(p => p.test.name);
 export const LIVE_PROJECTS = liveProjects.map(p => p.test.name);
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@wranngle/voice-evals/scenarios': `${srcDir}/scenarios/index.ts`,
+    },
+  },
   test: {
     globals: true,
     environment: 'node',
