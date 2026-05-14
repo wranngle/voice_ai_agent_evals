@@ -13,6 +13,12 @@
 
 import type {TestCase} from '../testing/types';
 import {slugify} from '../internal/slug';
+import {
+  LATENCY_LEG_NAMES,
+  type LatencyLeg,
+  type LatencyLegName,
+  type LatencyWaterfall,
+} from '../types/latency';
 import type {ElevenLabsPostCallPayload, ImportedTestCases} from './types';
 
 type ImportOptions = {
@@ -86,12 +92,119 @@ export function importPostCallWebhook(
     });
   }
 
+  const waterfalls = extractLatencyWaterfalls(data.transcript);
+
   return {
     cases,
     source: {
       agent_id: agentId,
       conversation_id: conversationId,
       transcript_summary: summary,
+    },
+    ...(waterfalls && {waterfalls}),
+  };
+}
+
+/**
+ * Maps an ElevenLabs `conversation_turn_metrics` key to one of the four
+ * canonical waterfall legs. Returns `null` if the key is unrelated to a
+ * leg (cost, total time, etc.) or already aggregated.
+ *
+ * Keys observed in ElevenLabs post-call payloads (May 2026):
+ *   convai_llm_service_ttfb / convai_llm_service_ttf_sentence  -> llm
+ *   convai_asr_service_ttfb                                    -> stt
+ *   convai_tts_service_ttfb                                    -> tts
+ *   convai_tool_calls_total_ms / convai_tool_call_ttfb         -> tool
+ *
+ * Numbers in the payload arrive in seconds (floats); we round to integer ms.
+ */
+const LEG_KEY_PATTERNS: Array<{pattern: RegExp; leg: LatencyLegName}> = [
+  {pattern: /(^|_)(asr|stt)(_|$)/i, leg: 'stt'},
+  {pattern: /(^|_)llm(_|$)/i, leg: 'llm'},
+  {pattern: /(^|_)tool(_|$)/i, leg: 'tool'},
+  {pattern: /(^|_)tts(_|$)/i, leg: 'tts'},
+];
+
+function classifyMetricKey(key: string): LatencyLegName | null {
+  for (const {pattern, leg} of LEG_KEY_PATTERNS) {
+    if (pattern.test(key)) return leg;
+  }
+  return null;
+}
+
+function toIntegerMs(raw: unknown): number | null {
+  if (typeof raw !== 'number' || !Number.isFinite(raw) || raw < 0) return null;
+  // ElevenLabs reports turn metrics in seconds; coerce to ms.
+  // Heuristic: a positive value under 60 is seconds (a single turn rarely exceeds 60s
+  // for any one leg); values >= 60 are already ms.
+  const ms = raw < 60 ? raw * 1000 : raw;
+  return Math.round(ms);
+}
+
+function summarizeTurnMetrics(
+  metrics: Record<string, unknown>,
+): Map<LatencyLegName, number> {
+  const sums = new Map<LatencyLegName, number>();
+  for (const [key, value] of Object.entries(metrics)) {
+    const leg = classifyMetricKey(key);
+    if (!leg) continue;
+    const ms = toIntegerMs(value);
+    if (ms === null) continue;
+    sums.set(leg, (sums.get(leg) ?? 0) + ms);
+  }
+  return sums;
+}
+
+function buildLegs(sums: Map<LatencyLegName, number>): LatencyLeg[] {
+  return LATENCY_LEG_NAMES.map(name => ({
+    name,
+    duration_ms: sums.get(name) ?? 0,
+  }));
+}
+
+function extractLatencyWaterfalls(
+  transcript: ElevenLabsPostCallPayload['data'] extends infer D
+    ? D extends {transcript?: infer T} ? T : undefined
+    : undefined,
+): {turns: LatencyWaterfall[]; conversation: LatencyWaterfall} | undefined {
+  if (!Array.isArray(transcript) || transcript.length === 0) return undefined;
+
+  const turns: LatencyWaterfall[] = [];
+  const totals = new Map<LatencyLegName, number>();
+  let sawMetrics = false;
+
+  for (const [index, turn] of transcript.entries()) {
+    const metrics = (turn as {conversation_turn_metrics?: Record<string, unknown>})
+      .conversation_turn_metrics;
+    if (!metrics || typeof metrics !== 'object') continue;
+    sawMetrics = true;
+
+    const sums = summarizeTurnMetrics(metrics);
+    if (sums.size === 0) continue;
+
+    const legs = buildLegs(sums);
+    const totalMs = legs.reduce((acc, leg) => acc + leg.duration_ms, 0);
+    turns.push({scope: 'turn', turn_index: index, legs, total_ms: totalMs});
+
+    for (const [leg, ms] of sums.entries()) {
+      totals.set(leg, (totals.get(leg) ?? 0) + ms);
+    }
+  }
+
+  if (!sawMetrics) return undefined;
+
+  const conversationLegs = buildLegs(totals);
+  const conversationTotal = conversationLegs.reduce(
+    (acc, leg) => acc + leg.duration_ms,
+    0,
+  );
+
+  return {
+    turns,
+    conversation: {
+      scope: 'conversation',
+      legs: conversationLegs,
+      total_ms: conversationTotal,
     },
   };
 }
