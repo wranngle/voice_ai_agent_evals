@@ -1,6 +1,7 @@
 # @wranngle/voice-evals
 
 [![CI](https://github.com/wranngle/voice-evals/actions/workflows/vitest.yml/badge.svg)](https://github.com/wranngle/voice-evals/actions/workflows/vitest.yml)
+[![Live](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fwranngle%2Fvoice-evals%2Fmain%2Fdocs%2Flive-status.json)](https://github.com/wranngle/voice-evals/actions/workflows/live-badge.yml)
 [![License: MIT](https://img.shields.io/github/license/wranngle/voice-evals?style=flat-square)](LICENSE)
 [![npm](https://img.shields.io/npm/v/@wranngle/voice-evals?style=flat-square)](https://www.npmjs.com/package/@wranngle/voice-evals)
 
