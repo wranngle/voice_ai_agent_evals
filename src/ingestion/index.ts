@@ -25,6 +25,13 @@ export type {
   ProposedTestCase,
 } from './types';
 
+export {LATENCY_LEG_NAMES} from '../types/latency';
+export type {
+  LatencyLeg,
+  LatencyLegName,
+  LatencyWaterfall,
+} from '../types/latency';
+
 export {importPostCallWebhook} from './post-call-import';
 export {proposeTestCases} from './llm-data-layer';
 export {designAssertions} from './designer';

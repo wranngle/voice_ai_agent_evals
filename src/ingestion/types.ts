@@ -8,6 +8,7 @@
  */
 
 import type {TestCase} from '../testing/types';
+import type {LatencyWaterfall} from '../types/latency';
 
 /**
  * Minimal shape of an ElevenLabs post-call webhook payload (`post_call_transcription`).
@@ -98,5 +99,14 @@ export type ImportedTestCases = {
     agent_id?: string;
     conversation_id?: string;
     transcript_summary?: string;
+  };
+  /**
+   * Per-turn latency breakdowns (STT / LLM / Tool / TTS) and a conversation-
+   * total summary. Populated when the post-call payload carries any
+   * `conversation_turn_metrics` field; absent otherwise.
+   */
+  waterfalls?: {
+    turns: LatencyWaterfall[];
+    conversation: LatencyWaterfall;
   };
 };
