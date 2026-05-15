@@ -128,7 +128,7 @@
     "eval": "bun run src/eval/run.ts",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:offline": "vitest run --project ingestion --project integration --project governance --project templates --project agent_evals --project elevenlabs --project n8n-eval --project mcp --project wrapper --project scoring --project ingestion-llm --project regression --project remediation --project cli --project factory --project n8n --project report --project log --project scenarios --project refinement --project compare --project fuzz --project budget --project replay --project _meta_audit",
+    "test:offline": "vitest run --project ingestion --project integration --project governance --project templates --project agent_evals --project elevenlabs --project n8n-eval --project mcp --project wrapper --project scoring --project ingestion-llm --project regression --project remediation --project cli --project factory --project n8n --project report --project log --project scenarios --project refinement --project compare --project fuzz --project budget --project replay --project leaderboard --project _meta_audit",
     "test:ui": "vitest --ui",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",
@@ -151,6 +151,7 @@
     "testing:gtm-ops": "bun run scripts/run-gtm-ops-adapter.ts",
     "compare": "bun run src/compare/cli.ts",
     "demo:compare": "bun run src/compare/cli.ts --runs examples/compare/run-aria.json,examples/compare/run-nova.json --out out/compare.html",
+    "leaderboard": "bun run src/leaderboard/cli.ts",
     "typecheck": "tsc --noEmit",
     "lint": "xo",
     "lint:fix": "xo --fix"
