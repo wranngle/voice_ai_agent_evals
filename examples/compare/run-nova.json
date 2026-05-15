@@ -1,0 +1,16 @@
+{
+  "agentId": "nova-v2",
+  "scenario": "refund-flow",
+  "outcome": {
+    "status": "failed",
+    "score": 0.74,
+    "errors": ["barge_in_handling: yielded slowly (480ms vs 300ms budget)"],
+    "dimensions": [
+      {"name": "intent_match", "status": "passed", "score": 1.0, "detail": "Caller intent classified correctly on first turn"},
+      {"name": "policy_compliance", "status": "passed", "score": 0.95, "detail": "Disclosed refund window and exception clause"},
+      {"name": "barge_in_handling", "status": "failed", "score": 0.4, "detail": "Yielded 480ms after caller interjection (budget 300ms)"},
+      {"name": "latency_p95_ms", "status": "passed", "score": 0.78, "detail": "p95 TTFB 1120ms (budget 1500ms)"},
+      {"name": "hallucination_check", "status": "passed", "score": 0.88, "detail": "No fabricated policy details"}
+    ]
+  }
+}

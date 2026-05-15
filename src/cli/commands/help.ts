@@ -98,6 +98,12 @@ PRIMARY COMMANDS
       Diff the latest stored run against a named baseline. Exits 1 if any
       regressions — wire into CI for gate.
 
+  compare --runs <path,path,...> [--out <file|->]
+      Render a side-by-side scorecard across N runs of the same scenario
+      (each --runs entry is a RunResult JSON: agentId, scenario, outcome).
+      Emits a self-contained HTML document with one \`<th>Δ</th>\` column
+      per non-baseline agent. Writes to --out or stdout (--out -).
+
   doctor [--install] [--dry-run]
       Sidecar status report. --install provisions the Python venv (uv +
       gepa) under ~/.cache/voice-evals/python/<version>/.
