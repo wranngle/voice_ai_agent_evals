@@ -1,0 +1,468 @@
+{
+  "session_id": "example",
+  "started_at": "2026-05-15T01:44:24.492Z",
+  "finished_at": "2026-05-15T01:44:24.535Z",
+  "status": "complete",
+  "enrichment": {
+    "business_name": "Riverside Heating & Cooling",
+    "website_url": "https://riverside-hvac.example",
+    "vertical_label": "HVAC / home services",
+    "category_hint": "hvac",
+    "service_area": "Sacramento metro and surrounding El Dorado County",
+    "business_hours": "Mon-Fri 7am-7pm, Sat 8am-2pm; emergency line 24/7 for safety issues",
+    "services_summary": "Residential furnace + AC repair, ductless mini-split install, water heater replacement, indoor air quality consultations, seasonal maintenance plans",
+    "phone": "+1-916-555-0182",
+    "locations": [
+      "Sacramento, CA",
+      "Folsom, CA",
+      "Placerville, CA"
+    ],
+    "sources": [
+      "mock"
+    ],
+    "confidence": 0.92
+  },
+  "vertical_template_id": "hvac",
+  "persona_calls": [
+    {
+      "persona_id": "polite-elderly",
+      "persona_name": "Polite elderly caller",
+      "ttfb_ms": 920,
+      "barge_in_response_ms": 240,
+      "turns": [
+        {
+          "role": "agent",
+          "text": "Hi there [chuckles], thanks for calling Riverside Heating & Cooling. We are open Monday through Saturday 7am to 9pm."
+        },
+        {
+          "role": "caller",
+          "text": "Oh hello dear, my furnace is making a clanking sound. Is that something you all can look at?"
+        },
+        {
+          "role": "agent",
+          "text": "Of course we can. I'll have a technician out to your home Tuesday at 2pm — you're all booked."
+        },
+        {
+          "role": "caller",
+          "text": "Oh that is so kind, thank you."
+        },
+        {
+          "role": "agent",
+          "text": "I just sent a confirmation to your phone. You should see it in a few seconds."
+        }
+      ]
+    },
+    {
+      "persona_id": "frustrated-rusher",
+      "persona_name": "Frustrated rusher",
+      "ttfb_ms": 980,
+      "turns": [
+        {
+          "role": "agent",
+          "text": "Hi thanks for calling Riverside Heating & Cooling."
+        },
+        {
+          "role": "caller",
+          "text": "Yeah look I need someone out today. I'm in Truckee — can you get there?"
+        },
+        {
+          "role": "agent",
+          "text": "Absolutely, we cover Truckee. I have you scheduled for today at 4pm, confirmed."
+        },
+        {
+          "role": "caller",
+          "text": "That's it? Okay good."
+        },
+        {
+          "role": "agent",
+          "text": "And the SMS is on its way to you now."
+        }
+      ]
+    },
+    {
+      "persona_id": "esl-non-native",
+      "persona_name": "Non-native English speaker",
+      "ttfb_ms": 880,
+      "turns": [
+        {
+          "role": "agent",
+          "text": "Hi, thanks for calling. How can I help you?"
+        },
+        {
+          "role": "caller",
+          "text": "Hello, please... my air... no cooling. House very hot. Can you come?"
+        },
+        {
+          "role": "agent",
+          "text": "I understand. We are open 24 hours seven days a week — let me get you the soonest slot. You are booked for tomorrow at 10am."
+        },
+        {
+          "role": "caller",
+          "text": "Okay, tomorrow yes. Thank you."
+        }
+      ]
+    },
+    {
+      "persona_id": "confused-meanderer",
+      "persona_name": "Confused meanderer",
+      "ttfb_ms": 830,
+      "turns": [
+        {
+          "role": "agent",
+          "text": "Hi, thanks for calling Riverside Heating & Cooling."
+        },
+        {
+          "role": "caller",
+          "text": "So my neighbor said you guys do plumbing too? And I have this thing with my furnace where it like... well actually let me back up, what are your hours?"
+        },
+        {
+          "role": "agent",
+          "text": "We are open 24/7 and yes we do all plumbing services as well."
+        },
+        {
+          "role": "caller",
+          "text": "Oh great. Anyway about the furnace it's like a clicking..."
+        }
+      ]
+    },
+    {
+      "persona_id": "hostile-skeptic",
+      "persona_name": "Hostile skeptic",
+      "ttfb_ms": 1050,
+      "turns": [
+        {
+          "role": "agent",
+          "text": "Hi, thanks for calling."
+        },
+        {
+          "role": "caller",
+          "text": "Wait — am I talking to a real person or one of those AI bots?"
+        },
+        {
+          "role": "agent",
+          "text": "I'm an AI large language model assistant. As an AI I cannot provide certain information."
+        },
+        {
+          "role": "caller",
+          "text": "Wow okay. Forget it."
+        }
+      ]
+    }
+  ],
+  "detected_failures": [
+    {
+      "mode_id": "voice_marker_leakage",
+      "severity": "high",
+      "persona_id": "polite-elderly",
+      "evidence": {
+        "turn_index": 0,
+        "role": "agent",
+        "matched_phrase": "[chuckles]",
+        "surrounding_text": "Hi there [chuckles], thanks for calling Riverside Heating & Cooling. We are open Monday through Saturday 7am to 9pm."
+      },
+      "fix_proposal": "Switch TTS model to eleven_flash_v2 OR eleven_multilingual_v2 and strip cue markers from the system prompt. v3 conversational cue interpretation is opt-in per voice; do not assume it is on."
+    },
+    {
+      "mode_id": "calendar_overpromise",
+      "severity": "critical",
+      "persona_id": "polite-elderly",
+      "evidence": {
+        "turn_index": 2,
+        "role": "agent",
+        "matched_phrase": "you're all booked",
+        "surrounding_text": "Of course we can. I'll have a technician out to your home Tuesday at 2pm — you're all booked."
+      },
+      "fix_proposal": "Replace 'booked/scheduled' language with 'I'm sending you a booking link — pick the time that works.' Use send_sms with the calendar link instead of inline confirmation."
+    },
+    {
+      "mode_id": "sms_premature_confirmation",
+      "severity": "high",
+      "persona_id": "polite-elderly",
+      "evidence": {
+        "turn_index": 4,
+        "role": "agent",
+        "matched_phrase": "just sent",
+        "surrounding_text": "I just sent a confirmation to your phone. You should see it in a few seconds."
+      },
+      "fix_proposal": "Add explicit ordering to the system prompt: '1) Call send_sms. 2) Wait for tool success. 3) THEN confirm to the caller.' Add a guardrail: 'Never claim a message was sent before the tool confirms.'"
+    },
+    {
+      "mode_id": "sms_premature_confirmation",
+      "severity": "high",
+      "persona_id": "polite-elderly",
+      "evidence": {
+        "turn_index": 4,
+        "role": "agent",
+        "matched_phrase": "should see it",
+        "surrounding_text": "I just sent a confirmation to your phone. You should see it in a few seconds."
+      },
+      "fix_proposal": "Add explicit ordering to the system prompt: '1) Call send_sms. 2) Wait for tool success. 3) THEN confirm to the caller.' Add a guardrail: 'Never claim a message was sent before the tool confirms.'"
+    },
+    {
+      "mode_id": "calendar_overpromise",
+      "severity": "critical",
+      "persona_id": "frustrated-rusher",
+      "evidence": {
+        "turn_index": 2,
+        "role": "agent",
+        "matched_phrase": "I have you scheduled for",
+        "surrounding_text": "Absolutely, we cover Truckee. I have you scheduled for today at 4pm, confirmed."
+      },
+      "fix_proposal": "Replace 'booked/scheduled' language with 'I'm sending you a booking link — pick the time that works.' Use send_sms with the calendar link instead of inline confirmation."
+    },
+    {
+      "mode_id": "sms_premature_confirmation",
+      "severity": "high",
+      "persona_id": "frustrated-rusher",
+      "evidence": {
+        "turn_index": 4,
+        "role": "agent",
+        "matched_phrase": "on its way",
+        "surrounding_text": "And the SMS is on its way to you now."
+      },
+      "fix_proposal": "Add explicit ordering to the system prompt: '1) Call send_sms. 2) Wait for tool success. 3) THEN confirm to the caller.' Add a guardrail: 'Never claim a message was sent before the tool confirms.'"
+    },
+    {
+      "mode_id": "calendar_overpromise",
+      "severity": "critical",
+      "persona_id": "esl-non-native",
+      "evidence": {
+        "turn_index": 2,
+        "role": "agent",
+        "matched_phrase": "You are booked",
+        "surrounding_text": "I understand. We are open 24 hours seven days a week — let me get you the soonest slot. You are booked for tomorrow at 10am."
+      },
+      "fix_proposal": "Replace 'booked/scheduled' language with 'I'm sending you a booking link — pick the time that works.' Use send_sms with the calendar link instead of inline confirmation."
+    }
+  ],
+  "prompt_diffs": [
+    {
+      "field": "system_prompt.guardrails",
+      "rationale_plain_language": "Don't promise a time the calendar hasn't confirmed. Caught on 3 persona calls (polite-elderly, frustrated-rusher, esl-non-native) — heard \"you're all booked\".",
+      "after_excerpt": "Replace 'booked/scheduled' language with 'I'm sending you a booking link — pick the time that works.' Use send_sms with the calendar link instead of inline confirmation.",
+      "related_failure_mode_ids": [
+        "calendar_overpromise"
+      ]
+    },
+    {
+      "field": "system_prompt.guardrails",
+      "rationale_plain_language": "Don't say the text was sent until it actually sends. Caught on 2 persona calls (polite-elderly, frustrated-rusher) — heard \"just sent\".",
+      "after_excerpt": "Add explicit ordering to the system prompt: '1) Call send_sms. 2) Wait for tool success. 3) THEN confirm to the caller.' Add a guardrail: 'Never claim a message was sent before the tool confirms.'",
+      "related_failure_mode_ids": [
+        "sms_premature_confirmation"
+      ]
+    },
+    {
+      "field": "system_prompt.guardrails",
+      "rationale_plain_language": "Stop the agent from reading stage directions out loud. Caught on the polite-elderly persona call — heard \"[chuckles]\".",
+      "after_excerpt": "Switch TTS model to eleven_flash_v2 OR eleven_multilingual_v2 and strip cue markers from the system prompt. v3 conversational cue interpretation is opt-in per voice; do not assume it is on.",
+      "related_failure_mode_ids": [
+        "voice_marker_leakage"
+      ]
+    }
+  ],
+  "regression_suite_size": 12,
+  "scoreboard": {
+    "before": 0.6020000000000001,
+    "after": 1,
+    "dimensions": [
+      {
+        "dimension": "intent_capture",
+        "before": 0.5682033202999319,
+        "after": 0.99
+      },
+      {
+        "dimension": "scheduling_safety",
+        "before": 0.5630992938232423,
+        "after": 0.99
+      },
+      {
+        "dimension": "sms_truthfulness",
+        "before": 0.6016650847304599,
+        "after": 0.99
+      },
+      {
+        "dimension": "latency_floor",
+        "before": 0.5977538242947483,
+        "after": 0.99
+      },
+      {
+        "dimension": "persona_robustness",
+        "before": 0.5531213940462805,
+        "after": 0.99
+      }
+    ]
+  },
+  "events": [
+    {
+      "at": "2026-05-15T01:44:24.492Z",
+      "step": "session.start",
+      "status": "start",
+      "detail": "session example initialized"
+    },
+    {
+      "at": "2026-05-15T01:44:24.492Z",
+      "step": "enrichment.start",
+      "status": "start",
+      "detail": "looking up Riverside Heating & Cooling"
+    },
+    {
+      "at": "2026-05-15T01:44:24.492Z",
+      "step": "enrichment.done",
+      "status": "ok",
+      "detail": "classified as HVAC / home services (confidence 0.92)",
+      "data": {
+        "sources": [
+          "mock"
+        ],
+        "category": "hvac"
+      }
+    },
+    {
+      "at": "2026-05-15T01:44:24.492Z",
+      "step": "template.select",
+      "status": "start",
+      "detail": "matching vertical template"
+    },
+    {
+      "at": "2026-05-15T01:44:24.530Z",
+      "step": "template.selected",
+      "status": "ok",
+      "detail": "using template hvac (HVAC & Trades)",
+      "data": {
+        "integrations": [
+          "twilio_inbound",
+          "calendar_booking",
+          "crm_webhook",
+          "sms_confirmation",
+          "recap_email"
+        ],
+        "priority_failure_modes": [
+          "hallucinated_business_hours",
+          "calendar_overpromise",
+          "wrong_service_area",
+          "sms_premature_confirmation",
+          "voice_marker_leakage",
+          "tts_directive_emission",
+          "emergency_misclassification"
+        ]
+      }
+    },
+    {
+      "at": "2026-05-15T01:44:24.530Z",
+      "step": "prompt.fill",
+      "status": "ok",
+      "detail": "system prompt rendered (1419 chars)"
+    },
+    {
+      "at": "2026-05-15T01:44:24.530Z",
+      "step": "personas.before.start",
+      "status": "start",
+      "detail": "exercising 5 canonical personas (before)"
+    },
+    {
+      "at": "2026-05-15T01:44:24.531Z",
+      "step": "personas.before.done",
+      "status": "ok",
+      "detail": "captured 5 persona calls",
+      "data": {
+        "personas": [
+          "polite-elderly",
+          "frustrated-rusher",
+          "esl-non-native",
+          "confused-meanderer",
+          "hostile-skeptic"
+        ]
+      }
+    },
+    {
+      "at": "2026-05-15T01:44:24.531Z",
+      "step": "detect.start",
+      "status": "start",
+      "detail": "applying failure-mode catalog"
+    },
+    {
+      "at": "2026-05-15T01:44:24.532Z",
+      "step": "detect.done",
+      "status": "warn",
+      "detail": "7 defects detected",
+      "data": {
+        "high": 4,
+        "critical": 3
+      }
+    },
+    {
+      "at": "2026-05-15T01:44:24.532Z",
+      "step": "diff.start",
+      "status": "start",
+      "detail": "building plain-language fix proposals"
+    },
+    {
+      "at": "2026-05-15T01:44:24.533Z",
+      "step": "diff.done",
+      "status": "ok",
+      "detail": "3 fix proposals authored"
+    },
+    {
+      "at": "2026-05-15T01:44:24.534Z",
+      "step": "personas.after.start",
+      "status": "start",
+      "detail": "replaying personas with fixes applied"
+    },
+    {
+      "at": "2026-05-15T01:44:24.534Z",
+      "step": "personas.after.done",
+      "status": "ok",
+      "detail": "replay produced 0 residual defects"
+    },
+    {
+      "at": "2026-05-15T01:44:24.534Z",
+      "step": "scoreboard",
+      "status": "ok",
+      "detail": "overall 60% → 100% (+40 points)"
+    },
+    {
+      "at": "2026-05-15T01:44:24.535Z",
+      "step": "regression.persist",
+      "status": "ok",
+      "detail": "12-case regression suite captured",
+      "data": {
+        "path": "proof/sessions/example/regression-suite.json"
+      }
+    },
+    {
+      "at": "2026-05-15T01:44:24.535Z",
+      "step": "artifact.prompt",
+      "status": "ok",
+      "detail": "rendered system prompt persisted",
+      "data": {
+        "path": "proof/sessions/example/system-prompt.md"
+      }
+    },
+    {
+      "at": "2026-05-15T01:44:24.551Z",
+      "step": "compliance.persist",
+      "status": "ok",
+      "detail": "one-page compliance artifact generated",
+      "data": {
+        "path": "proof/sessions/example/compliance.html"
+      }
+    },
+    {
+      "at": "2026-05-15T01:44:24.552Z",
+      "step": "session.persist",
+      "status": "ok",
+      "detail": "session manifest written",
+      "data": {
+        "path": "proof/sessions/example/session.json"
+      }
+    },
+    {
+      "at": "2026-05-15T01:44:24.552Z",
+      "step": "session.complete",
+      "status": "ok",
+      "detail": "refinement complete in 19 steps"
+    }
+  ],
+  "compliance_artifact_path": "proof/sessions/example/compliance.html"
+}

@@ -1,0 +1,50 @@
+[
+  {
+    "session_id": "prairie",
+    "business_name": "Prairie & Hayes LLP",
+    "vertical_template_id": "legal",
+    "vertical_label": "law firm",
+    "finished_at": "2026-05-15T01:44:24.974Z",
+    "defects_detected": 4,
+    "fixes_proposed": 1,
+    "regression_suite_size": 9,
+    "score_before": 0.706,
+    "score_after": 1
+  },
+  {
+    "session_id": "marisol",
+    "business_name": "Marisol's Coastal Kitchen",
+    "vertical_template_id": "restaurant",
+    "vertical_label": "restaurant",
+    "finished_at": "2026-05-15T01:44:24.840Z",
+    "defects_detected": 3,
+    "fixes_proposed": 2,
+    "regression_suite_size": 8,
+    "score_before": 0.8019999999999999,
+    "score_after": 1
+  },
+  {
+    "session_id": "brightwater",
+    "business_name": "Brightwater Family Dentistry",
+    "vertical_template_id": "dental",
+    "vertical_label": "dental practice",
+    "finished_at": "2026-05-15T01:44:24.685Z",
+    "defects_detected": 3,
+    "fixes_proposed": 2,
+    "regression_suite_size": 8,
+    "score_before": 0.742,
+    "score_after": 1
+  },
+  {
+    "session_id": "example",
+    "business_name": "Riverside Heating & Cooling",
+    "vertical_template_id": "hvac",
+    "vertical_label": "HVAC / home services",
+    "finished_at": "2026-05-15T01:44:24.535Z",
+    "defects_detected": 7,
+    "fixes_proposed": 3,
+    "regression_suite_size": 12,
+    "score_before": 0.6020000000000001,
+    "score_after": 1
+  }
+]

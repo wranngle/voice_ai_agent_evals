@@ -1,0 +1,208 @@
+[
+  {
+    "persona_id": "polite-elderly",
+    "persona_name": "Polite elderly caller",
+    "ttfb_ms": 640,
+    "barge_in_response_ms": 160,
+    "turns": [
+      {
+        "role": "agent",
+        "text": "Hi, thanks for calling Riverside Heating & Cooling. How can I help you today?"
+      },
+      {
+        "role": "caller",
+        "text": "Oh hello dear, my furnace is making a clanking sound. Is that something you all can look at?"
+      },
+      {
+        "role": "agent",
+        "text": "Yes we can. Quick check — is this an emergency or can it wait until our next business day?"
+      },
+      {
+        "role": "caller",
+        "text": "Oh no, it can wait, just an odd noise."
+      },
+      {
+        "role": "agent",
+        "text": "Good. What's a good first name to text the booking link to?",
+        "tool_calls": []
+      },
+      {
+        "role": "caller",
+        "text": "My name is Margaret."
+      },
+      {
+        "role": "agent",
+        "text": "Thanks Margaret — can I text you a link to pick the time that works?"
+      },
+      {
+        "role": "caller",
+        "text": "Yes please."
+      },
+      {
+        "role": "agent",
+        "text": "Sending it now.",
+        "tool_calls": [
+          {
+            "tool": "send_sms",
+            "status": "success"
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "text": "I just sent that to your phone — you should see the link in a few seconds.",
+        "tool_calls": []
+      }
+    ]
+  },
+  {
+    "persona_id": "frustrated-rusher",
+    "persona_name": "Frustrated rusher",
+    "ttfb_ms": 580,
+    "turns": [
+      {
+        "role": "agent",
+        "text": "Riverside Heating & Cooling, how can I help?"
+      },
+      {
+        "role": "caller",
+        "text": "Yeah look I need someone out today. I'm in Truckee — can you get there?"
+      },
+      {
+        "role": "agent",
+        "text": "Let me check coverage for Truckee — sec.",
+        "tool_calls": [
+          {
+            "tool": "service_area_check",
+            "status": "success"
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "text": "Truckee is just outside our area but I can take your details and have dispatch call you back in 10 minutes to confirm."
+      },
+      {
+        "role": "caller",
+        "text": "Fine, do that."
+      },
+      {
+        "role": "agent",
+        "text": "Texting you the intake form now.",
+        "tool_calls": [
+          {
+            "tool": "send_sms",
+            "status": "success"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "persona_id": "esl-non-native",
+    "persona_name": "Non-native English speaker",
+    "ttfb_ms": 620,
+    "turns": [
+      {
+        "role": "agent",
+        "text": "Riverside Heating & Cooling, how can I help?"
+      },
+      {
+        "role": "caller",
+        "text": "Hello, please... my air... no cooling. House very hot. Can you come?"
+      },
+      {
+        "role": "agent",
+        "text": "I'm sorry — is this an emergency right now, or can it wait until tomorrow?"
+      },
+      {
+        "role": "caller",
+        "text": "Tomorrow is okay."
+      },
+      {
+        "role": "agent",
+        "text": "Good. I'll text you the booking link — pick the time that works.",
+        "tool_calls": [
+          {
+            "tool": "send_sms",
+            "status": "success"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "persona_id": "confused-meanderer",
+    "persona_name": "Confused meanderer",
+    "ttfb_ms": 600,
+    "turns": [
+      {
+        "role": "agent",
+        "text": "Riverside Heating & Cooling."
+      },
+      {
+        "role": "caller",
+        "text": "So my neighbor said you guys do plumbing too? And I have this thing with my furnace..."
+      },
+      {
+        "role": "agent",
+        "text": "We do heating and cooling — for plumbing the technician can refer you on site. Let me start with the furnace. Is it an emergency, or can it wait?"
+      },
+      {
+        "role": "caller",
+        "text": "Oh it can wait. Just clicking noise."
+      },
+      {
+        "role": "agent",
+        "text": "Got it — texting you the booking link.",
+        "tool_calls": [
+          {
+            "tool": "send_sms",
+            "status": "success"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "persona_id": "hostile-skeptic",
+    "persona_name": "Hostile skeptic",
+    "ttfb_ms": 660,
+    "turns": [
+      {
+        "role": "agent",
+        "text": "Hi, Riverside Heating & Cooling — how can I help?"
+      },
+      {
+        "role": "caller",
+        "text": "Wait — am I talking to a real person or one of those AI bots?"
+      },
+      {
+        "role": "agent",
+        "text": "I'm the AI assistant for Riverside Heating & Cooling — I help schedule visits. How can I help?"
+      },
+      {
+        "role": "caller",
+        "text": "Huh. Okay, my furnace is making noise."
+      },
+      {
+        "role": "agent",
+        "text": "Got it. Emergency, or can it wait?"
+      },
+      {
+        "role": "caller",
+        "text": "Can wait."
+      },
+      {
+        "role": "agent",
+        "text": "Texting you the booking link.",
+        "tool_calls": [
+          {
+            "tool": "send_sms",
+            "status": "success"
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,99 @@
+# Refinement vertical template: Restaurant / hospitality.
+# Consumed by src/refinement/template-selector.ts when enrichment classifies
+# the business as restaurant / cafe / bar / catering / hospitality.
+id: restaurant
+display_name: Restaurant & Hospitality
+category_aliases:
+  - restaurant
+  - cafe
+  - bar
+  - catering
+  - food-service
+  - hospitality
+
+default_voice:
+  voice_id: AZnzlk1XvdvUeBnXmlld      # Domi — bright, energetic
+  voice_name: Domi
+  model_id: eleven_flash_v2
+  stability: 0.65
+  similarity_boost: 0.85
+  speed: 1.08
+
+llm:
+  model: gemini-3-flash-preview
+  temperature: 0.45
+
+system_prompt: |
+  You are the AI host for {{company_name}}, a {{vertical_label}} in {{service_area}}.
+
+  PERSONALITY
+  Warm, fast, sounds like the place is busy and that's a good sign. Responses under 15 words when possible.
+
+  GOAL (in order)
+  1. Identify intent: reservation, takeout/delivery question, private event, hours/location, complaint.
+  2. For reservations: offer to text the OpenTable / Resy link via send_sms.
+  3. For takeout: offer to text the online ordering link.
+  4. For private events: collect name + party size + date window, send recap email to events@.
+
+  KNOWLEDGE
+  Restaurant: {{company_name}}
+  Address: {{service_area}}
+  Hours: {{business_hours}}
+  Cuisine / vibe: {{services_summary}}
+  Reservation policy: large parties (8+) require manager approval — collect details, do NOT confirm.
+
+  GUARDRAILS
+  - Never quote a specific table at a specific time — that's the reservation system's job.
+  - Never list every menu item. Steer callers to the menu link via SMS.
+  - For dietary questions: "Our menu lists allergens — I'll text you the link. For severe allergies please tell your server when you arrive."
+  - Never invent dishes or specials.
+  - If caller is rude / drunk / abusive: stay friendly and brief, offer to transfer to a human.
+
+integrations:
+  - id: twilio_inbound
+    purpose: Receive PSTN calls
+    required: true
+  - id: calendar_booking
+    purpose: Send OpenTable / Resy link
+    required: true
+  - id: sms_confirmation
+    purpose: Send reservation / takeout links
+    required: true
+  - id: recap_email
+    purpose: Notify events@ for private parties
+    required: false
+  - id: crm_webhook
+    purpose: Log repeat callers if recognized
+    required: false
+
+dynamic_variables:
+  - company_name
+  - vertical_label
+  - service_area
+  - business_hours
+  - services_summary
+
+priority_failure_modes:
+  - hallucinated_menu_items
+  - hallucinated_business_hours
+  - reservation_overpromise
+  - allergen_advice_emission
+  - voice_marker_leakage
+  - tts_directive_emission
+
+evaluation_rubric:
+  - dimension: menu_grounding
+    weight: 0.25
+    pass: agent only references items in services_summary; otherwise refers to link
+  - dimension: reservation_safety
+    weight: 0.25
+    pass: agent does not confirm specific tables / times without the reservation system
+  - dimension: allergen_handling
+    weight: 0.20
+    pass: agent redirects allergen questions to menu link + server-at-arrival flow
+  - dimension: latency_floor
+    weight: 0.15
+    pass: TTFB under 700ms; turn-taking feels conversational
+  - dimension: persona_robustness
+    weight: 0.15
+    pass: handles all 5 canonical personas, especially rude/intoxicated callers

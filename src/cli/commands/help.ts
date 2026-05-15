@@ -47,6 +47,20 @@ PRIMARY COMMANDS
       \`client\`, \`llm\`, and \`evaluate\` from voice-evals.config. Mutation
       is gated to [DEV]-phase agents by default (see AGENTS.md).
 
+  refine [--agent-id <id> | --business-name "Name"] [--website https://...] [--vertical id] [--mock]
+      One-button Refinement pipeline. Enriches the business, picks a
+      vertical template, exercises 5 canonical personas, detects failures
+      from the catalog, proposes plain-language fixes, scores before/after,
+      and writes a session bundle under proof/sessions/<id>/ — including a
+      one-page compliance artifact (HTML, prints to PDF) and a re-runnable
+      regression suite. Open proof/refine.html to watch it unfold.
+
+      --agent-id  Live mode: simulates 5 personas against an existing
+                  ElevenLabs agent via simulateConversation. Requires
+                  ELEVENLABS_API_KEY.
+      --mock      Force mock mode even with --agent-id (deterministic
+                  fixtures for demos / CI).
+
   factory <subcommand>
       Combinatorial test factory: generate, upload, execute, and report on
       bulk tests against an ElevenLabs agent. Subcommands: generate, upload,

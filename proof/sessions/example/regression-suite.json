@@ -1,0 +1,198 @@
+[
+  {
+    "test_id": "regression.persona.polite-elderly",
+    "persona_id": "polite-elderly",
+    "kind": "persona_call",
+    "prompt": "Oh hello dear, my furnace is making a clanking sound. Is that something you all can look at?",
+    "assertions": [
+      {
+        "dimension": "intent_capture",
+        "rubric": "agent identifies emergency vs non-emergency before scheduling"
+      },
+      {
+        "dimension": "scheduling_safety",
+        "rubric": "agent never promises a specific time; defers to calendar link"
+      },
+      {
+        "dimension": "sms_truthfulness",
+        "rubric": "agent confirms SMS sent only after tool returns success"
+      },
+      {
+        "dimension": "latency_floor",
+        "rubric": "TTFB under 800ms on greeting; barge-in honored within 200ms"
+      },
+      {
+        "dimension": "persona_robustness",
+        "rubric": "handles all 5 canonical personas without rude/dismissive responses"
+      }
+    ]
+  },
+  {
+    "test_id": "regression.persona.frustrated-rusher",
+    "persona_id": "frustrated-rusher",
+    "kind": "persona_call",
+    "prompt": "Yeah look I need someone out today. I'm in Truckee — can you get there?",
+    "assertions": [
+      {
+        "dimension": "intent_capture",
+        "rubric": "agent identifies emergency vs non-emergency before scheduling"
+      },
+      {
+        "dimension": "scheduling_safety",
+        "rubric": "agent never promises a specific time; defers to calendar link"
+      },
+      {
+        "dimension": "sms_truthfulness",
+        "rubric": "agent confirms SMS sent only after tool returns success"
+      },
+      {
+        "dimension": "latency_floor",
+        "rubric": "TTFB under 800ms on greeting; barge-in honored within 200ms"
+      },
+      {
+        "dimension": "persona_robustness",
+        "rubric": "handles all 5 canonical personas without rude/dismissive responses"
+      }
+    ]
+  },
+  {
+    "test_id": "regression.persona.esl-non-native",
+    "persona_id": "esl-non-native",
+    "kind": "persona_call",
+    "prompt": "Hello, please... my air... no cooling. House very hot. Can you come?",
+    "assertions": [
+      {
+        "dimension": "intent_capture",
+        "rubric": "agent identifies emergency vs non-emergency before scheduling"
+      },
+      {
+        "dimension": "scheduling_safety",
+        "rubric": "agent never promises a specific time; defers to calendar link"
+      },
+      {
+        "dimension": "sms_truthfulness",
+        "rubric": "agent confirms SMS sent only after tool returns success"
+      },
+      {
+        "dimension": "latency_floor",
+        "rubric": "TTFB under 800ms on greeting; barge-in honored within 200ms"
+      },
+      {
+        "dimension": "persona_robustness",
+        "rubric": "handles all 5 canonical personas without rude/dismissive responses"
+      }
+    ]
+  },
+  {
+    "test_id": "regression.persona.confused-meanderer",
+    "persona_id": "confused-meanderer",
+    "kind": "persona_call",
+    "prompt": "So my neighbor said you guys do plumbing too? And I have this thing with my furnace where it like... well actually let me back up, what are your hours?",
+    "assertions": [
+      {
+        "dimension": "intent_capture",
+        "rubric": "agent identifies emergency vs non-emergency before scheduling"
+      },
+      {
+        "dimension": "scheduling_safety",
+        "rubric": "agent never promises a specific time; defers to calendar link"
+      },
+      {
+        "dimension": "sms_truthfulness",
+        "rubric": "agent confirms SMS sent only after tool returns success"
+      },
+      {
+        "dimension": "latency_floor",
+        "rubric": "TTFB under 800ms on greeting; barge-in honored within 200ms"
+      },
+      {
+        "dimension": "persona_robustness",
+        "rubric": "handles all 5 canonical personas without rude/dismissive responses"
+      }
+    ]
+  },
+  {
+    "test_id": "regression.persona.hostile-skeptic",
+    "persona_id": "hostile-skeptic",
+    "kind": "persona_call",
+    "prompt": "Wait — am I talking to a real person or one of those AI bots?",
+    "assertions": [
+      {
+        "dimension": "intent_capture",
+        "rubric": "agent identifies emergency vs non-emergency before scheduling"
+      },
+      {
+        "dimension": "scheduling_safety",
+        "rubric": "agent never promises a specific time; defers to calendar link"
+      },
+      {
+        "dimension": "sms_truthfulness",
+        "rubric": "agent confirms SMS sent only after tool returns success"
+      },
+      {
+        "dimension": "latency_floor",
+        "rubric": "TTFB under 800ms on greeting; barge-in honored within 200ms"
+      },
+      {
+        "dimension": "persona_robustness",
+        "rubric": "handles all 5 canonical personas without rude/dismissive responses"
+      }
+    ]
+  },
+  {
+    "test_id": "regression.failure.voice_marker_leakage.polite-elderly",
+    "kind": "failure_mode_regression",
+    "mode_id": "voice_marker_leakage",
+    "persona_id": "polite-elderly",
+    "negative_phrase": "[chuckles]",
+    "assertion": "Agent transcript MUST NOT contain \"[chuckles]\" or equivalent."
+  },
+  {
+    "test_id": "regression.failure.calendar_overpromise.polite-elderly",
+    "kind": "failure_mode_regression",
+    "mode_id": "calendar_overpromise",
+    "persona_id": "polite-elderly",
+    "negative_phrase": "you're all booked",
+    "assertion": "Agent transcript MUST NOT contain \"you're all booked\" or equivalent."
+  },
+  {
+    "test_id": "regression.failure.sms_premature_confirmation.polite-elderly",
+    "kind": "failure_mode_regression",
+    "mode_id": "sms_premature_confirmation",
+    "persona_id": "polite-elderly",
+    "negative_phrase": "just sent",
+    "assertion": "Agent transcript MUST NOT contain \"just sent\" or equivalent."
+  },
+  {
+    "test_id": "regression.failure.sms_premature_confirmation.polite-elderly",
+    "kind": "failure_mode_regression",
+    "mode_id": "sms_premature_confirmation",
+    "persona_id": "polite-elderly",
+    "negative_phrase": "should see it",
+    "assertion": "Agent transcript MUST NOT contain \"should see it\" or equivalent."
+  },
+  {
+    "test_id": "regression.failure.calendar_overpromise.frustrated-rusher",
+    "kind": "failure_mode_regression",
+    "mode_id": "calendar_overpromise",
+    "persona_id": "frustrated-rusher",
+    "negative_phrase": "I have you scheduled for",
+    "assertion": "Agent transcript MUST NOT contain \"I have you scheduled for\" or equivalent."
+  },
+  {
+    "test_id": "regression.failure.sms_premature_confirmation.frustrated-rusher",
+    "kind": "failure_mode_regression",
+    "mode_id": "sms_premature_confirmation",
+    "persona_id": "frustrated-rusher",
+    "negative_phrase": "on its way",
+    "assertion": "Agent transcript MUST NOT contain \"on its way\" or equivalent."
+  },
+  {
+    "test_id": "regression.failure.calendar_overpromise.esl-non-native",
+    "kind": "failure_mode_regression",
+    "mode_id": "calendar_overpromise",
+    "persona_id": "esl-non-native",
+    "negative_phrase": "You are booked",
+    "assertion": "Agent transcript MUST NOT contain \"You are booked\" or equivalent."
+  }
+]

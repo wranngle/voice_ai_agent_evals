@@ -74,6 +74,22 @@ async function dispatch(): Promise<number | undefined> {
       });
     }
 
+    case 'refine': {
+      const {runRefine} = await import('./cli/commands/refine');
+      const businessName = readStringFlag('--business-name');
+      const websiteUrl = readStringFlag('--website');
+      const vertical = readStringFlag('--vertical');
+      const sessionId = readStringFlag('--session-id');
+      const outDir = readStringFlag('--out-dir');
+      const agentId = readStringFlag('--agent-id');
+      const mock = process.argv.includes('--mock');
+      const personaCsv = readStringFlag('--personas');
+      const personaIds = personaCsv ? personaCsv.split(',').map(s => s.trim()).filter(Boolean) : undefined;
+      return runRefine({
+        businessName, websiteUrl, vertical, sessionId, outDir, mock, personaIds, agentId,
+      });
+    }
+
     case 'baseline': {
       const subcommand = process.argv[3];
       const name = process.argv[4];
@@ -151,5 +167,6 @@ function readStringFlag(flag: string): string | undefined {
     return undefined;
   }
 
-  return process.argv[idx + 1];
+  const value = process.argv[idx + 1];
+  return value.startsWith('--') ? undefined : value;
 }

@@ -36,6 +36,18 @@ voice-evals demo — synthesizing 2.0s stereo fixture (caller=L, agent=R)
 Runs in under a second on a clean Node ≥20 runner, exits 0, opens an HTML
 report. Recording: [`docs/demo.cast`](docs/demo.cast) (asciinema).
 
+## One-button Refinement
+
+The strategic destination of this repo is a feature ElevenLabs ships inside their agent builder (see [`proof/pitch.html`](proof/pitch.html)). The `refine` CLI verb is the runnable wedge:
+
+```bash
+voice-evals refine --mock --business-name "Riverside Heating & Cooling"
+```
+
+In ~30 seconds it enriches the business, picks one of four shipped vertical templates (HVAC, dental, restaurant, legal), exercises the 5 canonical personas, applies the failure-mode catalog ([`config/failure-mode-catalog.json`](config/failure-mode-catalog.json), 21 modes across the ElevenLabs configuration surface), proposes plain-language fixes, scores before/after, and writes a session bundle under `proof/sessions/<id>/` — including a one-page compliance HTML (prints to PDF) and a re-runnable regression suite.
+
+Open [`proof/refine.html`](proof/refine.html) to watch a run unfold (timeline · enrichment · personas with inline defect highlights · fix proposals · scoreboard · regression suite · compliance artifact). Four sessions ship seeded; arrow-key through them via the sidebar.
+
 ## Quickstart
 
 ```bash

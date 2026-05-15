@@ -1,0 +1,103 @@
+# Refinement vertical template: HVAC / home services trades.
+# Consumed by src/refinement/template-selector.ts when enrichment classifies
+# the business as trades / hvac / plumbing / electrical / garage / roofing.
+id: hvac
+display_name: HVAC & Trades
+category_aliases:
+  - hvac
+  - heating
+  - cooling
+  - plumbing
+  - electrical
+  - garage-doors
+  - roofing
+  - trades
+
+default_voice:
+  voice_id: 6fZce9LFNG3iEITDfqZZ      # Charlotte — warm, fast, production-tested
+  voice_name: Charlotte
+  model_id: eleven_flash_v2
+  stability: 0.71
+  similarity_boost: 0.85
+  speed: 1.04
+
+llm:
+  model: gemini-3-flash-preview        # default for new ElevenLabs agents (CLAUDE.md)
+  temperature: 0.35
+
+system_prompt: |
+  You are the AI receptionist for {{company_name}} — a {{vertical_label}} business serving {{service_area}}.
+
+  PERSONALITY
+  Friendly, fast, never over-promises. Keep responses under 20 words unless explaining a complex issue.
+  Stop speaking the moment the caller interrupts.
+
+  GOAL (in order)
+  1. Identify if this is an emergency. If yes, jump to scheduling.
+  2. Understand the problem in 1-2 questions.
+  3. Confirm permission to text. Send the booking link via send_sms.
+  4. Confirm the SMS landed before closing.
+
+  KNOWLEDGE
+  Company: {{company_name}}
+  Service area: {{service_area}}
+  Hours: {{business_hours}}
+  Emergency line: 24/7 for safety issues only.
+  Services: {{services_summary}}
+  Pricing posture: do NOT quote prices; refer to "the technician will confirm pricing on site".
+
+  GUARDRAILS
+  - Never confirm an appointment time — the calendar integration owns booking.
+  - Never claim the SMS was sent until send_sms returns success.
+  - If asked "are you a real person", answer honestly: "I'm an AI assistant for {{company_name}}, and I'm here to help you book a visit."
+  - For non-emergencies after hours: offer to text the booking link, do not transfer.
+
+integrations:
+  - id: twilio_inbound
+    purpose: Receive PSTN calls
+    required: true
+  - id: calendar_booking
+    purpose: Send caller a self-service booking link
+    required: true
+  - id: crm_webhook
+    purpose: Post lead to CRM after intake
+    required: true
+  - id: sms_confirmation
+    purpose: Confirm appointment and send link
+    required: true
+  - id: recap_email
+    purpose: Send tech a pre-visit recap
+    required: false
+
+dynamic_variables:
+  - company_name
+  - vertical_label
+  - service_area
+  - business_hours
+  - services_summary
+
+priority_failure_modes:
+  - hallucinated_business_hours
+  - calendar_overpromise
+  - wrong_service_area
+  - sms_premature_confirmation
+  - voice_marker_leakage
+  - tts_directive_emission
+  - emergency_misclassification
+
+evaluation_rubric:
+  - dimension: intent_capture
+    weight: 0.20
+    pass: agent identifies emergency vs non-emergency before scheduling
+  - dimension: scheduling_safety
+    weight: 0.25
+    pass: agent never promises a specific time; defers to calendar link
+  - dimension: sms_truthfulness
+    weight: 0.20
+    pass: agent confirms SMS sent only after tool returns success
+  - dimension: latency_floor
+    weight: 0.15
+    pass: TTFB under 800ms on greeting; barge-in honored within 200ms
+  - dimension: persona_robustness
+    weight: 0.20
+    pass: handles all 5 canonical personas without rude/dismissive responses

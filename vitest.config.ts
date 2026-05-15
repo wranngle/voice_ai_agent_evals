@@ -218,6 +218,18 @@ const offlineProjects = [
     },
   },
   {
+    // Refinement orchestrator (one-button enrich → template → personas →
+    // detect → diff → scoreboard → compliance). Pure unit + e2e on the
+    // mock fixture pipeline. No network. Uses mkdtemp.
+    test: {
+      name: 'refinement',
+      root: '.',
+      include: ['tests/refinement/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 60_000,
+    },
+  },
+  {
     // Meta-audit suite: tests that highlight design + architecture
     // shortcomings, not feature correctness. See docs/META-AUDIT.md.
     // Some tests use `it.fails` or `it.todo` to mark known-broken-by-design

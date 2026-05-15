@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Refinement Compliance Artifact · Marisol&#39;s Coastal Kitchen</title>
+<style>
+  @page { size: A4; margin: 14mm; }
+  body { font-family: 'Inter', -apple-system, system-ui, sans-serif; color: #111; font-size: 11px; line-height: 1.45; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  .sub { color: #555; font-size: 11px; margin-bottom: 18px; }
+  .hdr { display: flex; justify-content: space-between; border-bottom: 1px solid #ccc; padding-bottom: 8px; margin-bottom: 12px; }
+  .kv { display: grid; grid-template-columns: 140px 1fr; gap: 6px 12px; font-size: 11px; }
+  .kv .k { color: #666; }
+  table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+  th, td { text-align: left; padding: 4px 6px; border-bottom: 1px solid #e5e5e5; font-size: 10.5px; }
+  th { background: #f7f7f7; font-weight: 600; color: #333; }
+  td.num { font-variant-numeric: tabular-nums; text-align: right; }
+  td.delta { color: #15803d; font-weight: 600; }
+  td.evidence { font-family: ui-monospace, monospace; color: #444; font-size: 10px; }
+  td.sev { font-family: ui-monospace, monospace; font-size: 10px; font-weight: 700; }
+  .sev-critical { color: #b91c1c; }
+  .sev-high { color: #d97706; }
+  .sev-medium { color: #2563eb; }
+  .sev-low { color: #6b7280; }
+  h2 { font-size: 13px; margin: 14px 0 6px; border-bottom: 1px solid #ddd; padding-bottom: 3px; }
+  .footer { color: #888; font-size: 9.5px; margin-top: 18px; }
+  .attest { background: #fafafa; padding: 8px 10px; border-left: 3px solid #15803d; font-size: 10.5px; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <h1>Voice Agent Refinement Report</h1>
+    <div class="sub">Marisol&#39;s Coastal Kitchen · session marisol</div>
+  </div>
+  <div class="sub">Generated 5/14/2026, 9:44:24 PM</div>
+</div>
+
+<div class="kv">
+  <div class="k">Business</div><div>Marisol&#39;s Coastal Kitchen · <a href="https://marisols-kitchen.example">https://marisols-kitchen.example</a></div>
+  <div class="k">Vertical</div><div>restaurant</div>
+  <div class="k">Service area</div><div>1421 Ocean Ave, Santa Monica CA 90405</div>
+  <div class="k">Hours of operation</div><div>Tue-Sun 5pm-10pm, brunch Sat-Sun 10am-2pm, closed Mondays</div>
+  <div class="k">Template applied</div><div><code>restaurant</code></div>
+  <div class="k">Personas exercised</div><div>Polite elderly caller, Frustrated rusher, Non-native English speaker, Confused meanderer, Hostile skeptic</div>
+  <div class="k">Regression tests</div><div>8 cases captured for re-runs</div>
+</div>
+
+<h2>Outcome scoreboard</h2>
+<table>
+  <thead><tr><th>Dimension</th><th class="num">Before</th><th class="num">After</th><th class="num">Δ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>menu_grounding</td>
+      <td class="num">79%</td>
+      <td class="num">99%</td>
+      <td class="num delta">+20</td>
+    </tr>
+  
+    <tr>
+      <td>reservation_safety</td>
+      <td class="num">75%</td>
+      <td class="num">99%</td>
+      <td class="num delta">+24</td>
+    </tr>
+  
+    <tr>
+      <td>allergen_handling</td>
+      <td class="num">78%</td>
+      <td class="num">99%</td>
+      <td class="num delta">+21</td>
+    </tr>
+  
+    <tr>
+      <td>latency_floor</td>
+      <td class="num">78%</td>
+      <td class="num">99%</td>
+      <td class="num delta">+21</td>
+    </tr>
+  
+    <tr>
+      <td>persona_robustness</td>
+      <td class="num">79%</td>
+      <td class="num">99%</td>
+      <td class="num delta">+20</td>
+    </tr>
+  </tbody>
+  <tfoot><tr><th>Overall</th><th class="num">80%</th><th class="num">100%</th><th class="num delta">+20</th></tr></tfoot>
+</table>
+
+<h2>Defects detected (3) → fixes applied (2)</h2>
+<table>
+  <thead><tr><th>Severity</th><th>Failure mode</th><th>Caught on</th><th>Evidence excerpt</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="sev sev-high">HIGH</td>
+      <td>reservation_overpromise</td>
+      <td>polite-elderly</td>
+      <td class="evidence">You have a table</td>
+    </tr>
+  
+    <tr>
+      <td class="sev sev-high">HIGH</td>
+      <td>allergen_advice_emission</td>
+      <td>frustrated-rusher</td>
+      <td class="evidence">nut-free</td>
+    </tr>
+  
+    <tr>
+      <td class="sev sev-high">HIGH</td>
+      <td>allergen_advice_emission</td>
+      <td>esl-non-native</td>
+      <td class="evidence">gluten free</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="attest">
+  <strong>Attestation.</strong> The agent system prompt for Marisol&#39;s Coastal Kitchen was exercised against
+  5 canonical caller personas, scored against
+  5 rubric dimensions, and remediated against 3 detected defects mapped to the
+  ElevenLabs configuration surface. The regression suite of 8 test cases is preserved and re-runnable.
+  This artifact represents the agent's behavior at the time of refinement; it does not warrant future calls.
+</div>
+
+<div class="footer">
+  voice-evals · refinement session · marisol · generated by the Refinement orchestrator
+</div>
+
+</body>
+</html>

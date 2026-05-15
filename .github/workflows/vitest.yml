@@ -52,6 +52,7 @@ jobs:
             --project report \
             --project log \
             --project scenarios \
+            --project refinement \
             --project _meta_audit \
             2>&1 | tee /tmp/vitest-bun.log
       - name: Write GITHUB_STEP_SUMMARY
@@ -106,6 +107,7 @@ jobs:
             --project report \
             --project log \
             --project scenarios \
+            --project refinement \
             --project _meta_audit \
             2>&1 | tee /tmp/vitest-node.log
       - name: Write GITHUB_STEP_SUMMARY

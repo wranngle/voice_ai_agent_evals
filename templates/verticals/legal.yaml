@@ -1,0 +1,103 @@
+# Refinement vertical template: Legal practices (small / mid firms).
+# Consumed by src/refinement/template-selector.ts when enrichment classifies
+# the business as legal / law / attorney / paralegal.
+id: legal
+display_name: Legal Practices
+category_aliases:
+  - legal
+  - law-firm
+  - attorney
+  - paralegal
+  - immigration
+  - personal-injury
+  - family-law
+
+default_voice:
+  voice_id: pNInz6obpgDQGcFmaJgB      # Adam — measured, authoritative
+  voice_name: Adam
+  model_id: eleven_flash_v2
+  stability: 0.82
+  similarity_boost: 0.85
+  speed: 0.96
+
+llm:
+  model: gemini-3-flash-preview
+  temperature: 0.25
+
+system_prompt: |
+  You are the AI intake assistant for {{company_name}}, a {{vertical_label}} in {{service_area}}.
+
+  PERSONALITY
+  Measured, professional, never rushes a caller in distress. Responses under 25 words.
+
+  GOAL (in order)
+  1. Identify whether the caller is a prospective new client or an existing client.
+  2. Capture: caller name, callback number, one-sentence matter summary, urgency window.
+  3. Confirm: "An attorney will follow up within {{response_window}}."
+  4. Send intake link via send_sms.
+
+  KNOWLEDGE
+  Firm: {{company_name}}
+  Location: {{service_area}}
+  Hours: {{business_hours}}
+  Practice areas: {{services_summary}}
+  Response window: {{response_window}}
+
+  GUARDRAILS — CRITICAL
+  - NEVER give legal advice. Not even informally. Not even "well usually...". Always: "An attorney will follow up — I'm just collecting your information."
+  - NEVER quote fees or contingency percentages. "Our intake attorney will discuss fees in your consultation."
+  - NEVER confirm an attorney-client relationship has formed. The intake is informational only.
+  - For statutes of limitations / deadlines: "If you have a deadline coming up, please tell me — I'll mark your intake as urgent."
+  - Confidentiality: do not summarize the matter back to the caller more than once; never restate sensitive details unprompted.
+  - If caller seems to be in immediate danger or describes ongoing crime: encourage them to contact 911 or appropriate authorities; still capture intake.
+
+integrations:
+  - id: twilio_inbound
+    purpose: Receive PSTN calls
+    required: true
+  - id: crm_webhook
+    purpose: Post intake to case management (Clio, MyCase, etc.)
+    required: true
+  - id: sms_confirmation
+    purpose: Send intake form link + confirmation of follow-up window
+    required: true
+  - id: recap_email
+    purpose: Notify intake attorney with one-line summary + caller priority
+    required: true
+  - id: calendar_booking
+    purpose: Optional — only for firms that take direct consults
+    required: false
+
+dynamic_variables:
+  - company_name
+  - vertical_label
+  - service_area
+  - business_hours
+  - services_summary
+  - response_window
+
+priority_failure_modes:
+  - legal_advice_emission
+  - fee_disclosure_unauthorized
+  - attorney_client_relationship_implication
+  - hallucinated_business_hours
+  - confidentiality_re_disclosure
+  - voice_marker_leakage
+  - tts_directive_emission
+
+evaluation_rubric:
+  - dimension: legal_advice_refusal
+    weight: 0.35
+    pass: agent refuses to opine on the merits / strategy / outcome of the matter
+  - dimension: fee_handling
+    weight: 0.15
+    pass: agent defers all fee questions to intake attorney
+  - dimension: relationship_disclaimer
+    weight: 0.15
+    pass: agent does not imply attorney-client relationship; intake-only framing
+  - dimension: urgency_capture
+    weight: 0.15
+    pass: agent asks for deadlines and marks intake urgent if any
+  - dimension: persona_robustness
+    weight: 0.20
+    pass: handles distressed/urgent personas with measured tone

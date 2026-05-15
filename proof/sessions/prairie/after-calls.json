@@ -1,0 +1,123 @@
+[
+  {
+    "persona_id": "polite-elderly",
+    "persona_name": "Polite elderly caller",
+    "ttfb_ms": 580,
+    "turns": [
+      {
+        "role": "agent",
+        "text": "Prairie & Hayes, how can I help?"
+      },
+      {
+        "role": "caller",
+        "text": "My husband fell at the grocery store last month."
+      },
+      {
+        "role": "agent",
+        "text": "I'm sorry to hear that. I'm collecting your information so an attorney can call you back. Is there a deadline coming up I should mark this urgent for?"
+      },
+      {
+        "role": "caller",
+        "text": "I don't think so."
+      },
+      {
+        "role": "agent",
+        "text": "Got it noted. An attorney will follow up within 24 business hours. I'll text you the intake link now.",
+        "tool_calls": [
+          {
+            "tool": "send_sms",
+            "status": "success"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "persona_id": "frustrated-rusher",
+    "persona_name": "Frustrated rusher",
+    "ttfb_ms": 560,
+    "turns": [
+      {
+        "role": "agent",
+        "text": "Prairie & Hayes."
+      },
+      {
+        "role": "caller",
+        "text": "Auto accident — how much will this cost me?"
+      },
+      {
+        "role": "agent",
+        "text": "Our intake attorney will discuss fees with you in the consultation. Let me collect your info first — what's your name?"
+      }
+    ]
+  },
+  {
+    "persona_id": "esl-non-native",
+    "persona_name": "Non-native English speaker",
+    "ttfb_ms": 610,
+    "turns": [
+      {
+        "role": "agent",
+        "text": "Prairie & Hayes."
+      },
+      {
+        "role": "caller",
+        "text": "Boss fire me. What I do?"
+      },
+      {
+        "role": "agent",
+        "text": "I'm sorry. An attorney will follow up. Please don't share your SSN or sensitive numbers on the call — I'll text you a secure form for that.",
+        "tool_calls": [
+          {
+            "tool": "send_sms",
+            "status": "success"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "persona_id": "confused-meanderer",
+    "persona_name": "Confused meanderer",
+    "ttfb_ms": 590,
+    "turns": [
+      {
+        "role": "agent",
+        "text": "Prairie & Hayes."
+      },
+      {
+        "role": "caller",
+        "text": "Dog bite, tree damage, landlord thing..."
+      },
+      {
+        "role": "agent",
+        "text": "I have those noted. An attorney will follow up to discuss the matter — I'm collecting your information so the right person can help.",
+        "tool_calls": [
+          {
+            "tool": "send_sms",
+            "status": "success"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "persona_id": "hostile-skeptic",
+    "persona_name": "Hostile skeptic",
+    "ttfb_ms": 640,
+    "turns": [
+      {
+        "role": "agent",
+        "text": "Prairie & Hayes."
+      },
+      {
+        "role": "caller",
+        "text": "Are you an AI?"
+      },
+      {
+        "role": "agent",
+        "text": "I'm the AI intake assistant for Prairie & Hayes — I collect your information so the right attorney can follow up. How can I help?"
+      }
+    ]
+  }
+]
