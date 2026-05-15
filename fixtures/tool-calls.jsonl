@@ -1,0 +1,5 @@
+{"conversation_id":"conv_abc123","turn_index":2,"tool_name":"send_sms","arguments":{"to":"+14155550100","body":"Hi Casey — here's the booking confirmation link you asked for: https://example.com/c/9F2.","from":"+18335551212"}}
+{"conversation_id":"conv_abc123","turn_index":5,"tool_name":"book_appointment","arguments":{"caller_name":"Casey Rivera","starts_at":"2026-05-20T14:30:00-04:00","duration_minutes":30,"service":"consult","notes":"Asked about HVAC quarterly maintenance plan."}}
+{"conversation_id":"conv_def456","turn_index":3,"tool_name":"transfer_to_agent","arguments":{"queue":"billing","reason":"Caller disputes a charge from 2026-04-15 and requested a human.","warm_transfer":true,"caller_id":"+14155550199"}}
+{"conversation_id":"conv_ghi789","turn_index":1,"tool_name":"send_sms","arguments":{"to":"+442071838750","body":"Your callback is scheduled for 9:15 AM London time."}}
+{"conversation_id":"conv_ghi789","turn_index":4,"tool_name":"book_appointment","arguments":{"caller_name":"Jordan Park","starts_at":"2026-05-21T09:15:00Z","duration_minutes":15,"service":"follow_up"}}
