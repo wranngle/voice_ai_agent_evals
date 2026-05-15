@@ -55,6 +55,7 @@ jobs:
             --project refinement \
             --project compare \
             --project fuzz \
+            --project budget \
             --project _meta_audit \
             2>&1 | tee /tmp/vitest-bun.log
       - name: Write GITHUB_STEP_SUMMARY
@@ -112,6 +113,7 @@ jobs:
             --project refinement \
             --project compare \
             --project fuzz \
+            --project budget \
             --project _meta_audit \
             2>&1 | tee /tmp/vitest-node.log
       - name: Write GITHUB_STEP_SUMMARY

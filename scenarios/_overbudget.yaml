@@ -1,0 +1,19 @@
+# Intentionally over-budget scenario fixture — exercises the budget enforcer.
+#
+# Underscore-prefixed so it sorts/discovers as an opt-in demo, not a default
+# happy-path scenario. Pair it with the sample budget at
+# `voice-evals.budget.yaml.sample` (cost_per_turn_usd: 0.001) and
+# `npm run eval` will exit non-zero with:
+#
+#   BUDGET_BREACH: cost_per_turn_usd 0.0042 > 0.001
+#
+# The other metrics here are inside the sample budget so they do NOT breach
+# — the demo is deliberately surgical: one breach, one line.
+id: _overbudget
+description: Deliberately-over-budget fixture; cost_per_turn_usd exceeds 0.001 max.
+
+metrics:
+  cost_per_turn_usd: 0.0042
+  ttfb_p95_ms: 690
+  end_to_first_audio_p95_ms: 1320
+  total_turn_p95_ms: 2950

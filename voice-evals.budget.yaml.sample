@@ -1,0 +1,23 @@
+# voice-evals budget enforcer — sample config.
+#
+# Copy to `voice-evals.budget.yaml` at repo root (or pass --budget <path>
+# to `npm run eval`) to gate eval runs on per-turn cost and per-turn latency.
+#
+# Any metric a scenario emits but the budget does not list is ignored.
+# Any metric the budget lists but the scenario does not emit is ignored.
+# A metric that appears in both and exceeds the budget fails the run with
+# a single `BUDGET_BREACH: <metric> <observed> > <max>` line to stdout
+# and process exit code 1. Multiple breaches are emitted one per line.
+
+budgets:
+  # USD spent per conversational turn (LLM + ASR + TTS combined).
+  cost_per_turn_usd: 0.001
+
+  # End-to-first-audio p95 latency in milliseconds.
+  end_to_first_audio_p95_ms: 1400
+
+  # Time-to-first-byte p95 latency in milliseconds.
+  ttfb_p95_ms: 800
+
+  # Total turn p95 latency in milliseconds (caller speech end → agent done).
+  total_turn_p95_ms: 3000
