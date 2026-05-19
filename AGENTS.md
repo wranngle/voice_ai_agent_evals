@@ -9,7 +9,7 @@ This project uses the same DEV-only modification model as the n8n project, but w
 Rules:
 - Phases: `[DEV]`, `[ALPHA]`, `[BETA]`, `[PROD]`, `[ARCHIVED]`. Only `[DEV]` may be modified by an agent autonomously; everything else requires explicit user approval to touch.
 - New agents you create are auto-assigned `[DEV]`. Promotions to any other phase need the user to explicitly say "yes, promote to BETA" — they cannot be done as a side effect of an update.
-- Names without a `[PHASE]` prefix are treated as a naming-standard violation; rename to `[DEV] <name>` before proceeding.
+- Names without a `[PHASE]` prefix are treated as `[DEV]` — modify freely. (Rule changed 2026-05-14: prefix-less agents are no longer treated as governance violations; they're implicit `[DEV]`. Rename to a real `[PHASE]` later when you promote.)
 - ElevenLabs MCP doesn't expose a delete operation; treat that as policy, not just API limitation. To retire an agent: rename with `[ARCHIVED]` prefix, then update governance state.
 - Before creating a new agent, check the existing roster for similar ones (70%+ name/system-prompt similarity → strongly prefer cloning; 40-70% → at least surface to the user).
 

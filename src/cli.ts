@@ -91,6 +91,14 @@ async function dispatch(): Promise<number | undefined> {
       });
     }
 
+    case 'ceo-demo': {
+      const {runCeoDemo} = await import('./cli/commands/ceo-demo');
+      const agentIdArg = process.argv[3] && !process.argv[3].startsWith('--') ? process.argv[3] : undefined;
+      const scenarios = readNumberFlag('--scenarios');
+      const concurrency = readNumberFlag('--concurrency');
+      return runCeoDemo({agentId: agentIdArg, scenarios, concurrency});
+    }
+
     case 'baseline': {
       const subcommand = process.argv[3];
       const name = process.argv[4];

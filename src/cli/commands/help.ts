@@ -61,6 +61,14 @@ PRIMARY COMMANDS
       --mock      Force mock mode even with --agent-id (deterministic
                   fixtures for demos / CI).
 
+  ceo-demo [agent-id] [--scenarios N] [--concurrency N]
+      The central-promise eval: N scenarios × 5 canonical personas against
+      a live ElevenLabs agent via simulate-conversation. Produces a single
+      pass-rate number, per-persona breakdown, and a JSON report under
+      reports/. Defaults to the [DEV] INBOUND TEMPLATE agent. Requires
+      ELEVENLABS_API_KEY. See docs/META-AUDIT.md §5 for what it does NOT
+      prove (audio path, TTS quality, real-call dynamics).
+
   factory <subcommand>
       Combinatorial test factory: generate, upload, execute, and report on
       bulk tests against an ElevenLabs agent. Subcommands: generate, upload,

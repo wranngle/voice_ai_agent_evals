@@ -107,6 +107,62 @@ describe('META-AUDIT: v1 system prompt has the five canonical sections in order'
     const bytes = Buffer.byteLength(text, 'utf8');
     expect(bytes).toBeLessThan(2 * 1024 * 1024);
   });
+
+  it('forbids v3 TTS bracket-directive emissions ([calm], [laughs], etc.)', () => {
+    // Surfaced 2026-05-14 by `voice-evals ceo-demo` — the LLM (qwen36-35b-a3b)
+    // was emitting `[calm]` in 4/15 trial transcripts. v3 conversational TTS
+    // interprets bracketed tokens as emotion / non-verbal cues; if the prompt
+    // doesn't explicitly forbid them, the model hallucinates them.
+    const text = readFileSync(PROMPT_V1_PATH, 'utf8');
+    expect(text).toMatch(/bracket(ed)?\s+(style\s+)?directive|TTS\s+markup|\[calm\]|\[laughs\]/i);
+  });
+});
+
+describe('META-AUDIT: first_message has no bracketed-directive prefix', () => {
+  // Surfaced 2026-05-14 by `voice-evals ceo-demo` — both [DEV] clones had
+  // `[kindred]<U+00A0>Hello!` in first_message. On a real v3 TTS call the
+  // bracket-prefix is spoken or mis-routed. This test ensures the snapshot
+  // (which is the cloning seed) never reintroduces the pattern.
+  // The post-fix snapshot is the canonical production-shape today. The bare
+  // [TEMPLATE] source has no [PHASE] prefix and per AGENTS.md cannot be
+  // autonomously mutated until renamed, so it is intentionally out of scope.
+  const SNAPSHOT_FILES = [
+    'snapshots/dev-inbound-template-2026-05-14-post-kindred-fix.json',
+  ];
+  const BRACKET_PREFIX = /^\[[a-zA-Z][a-zA-Z0-9_-]*\][ \t \s]+/;
+
+  for (const file of SNAPSHOT_FILES) {
+    it(`${file}: agent.first_message has no [directive] prefix`, () => {
+      const path = join(ROOT, file);
+      if (!existsSync(path)) return;
+      const snap = JSON.parse(readFileSync(path, 'utf8'));
+      const fm: string | undefined = snap.conversation_config?.agent?.first_message;
+      if (typeof fm === 'string') {
+        expect(fm, `first_message must not start with a bracket-directive: "${fm.slice(0, 40)}..."`).not.toMatch(BRACKET_PREFIX);
+      }
+    });
+
+    it(`${file}: every language_preset override.first_message has no [directive] prefix`, () => {
+      const path = join(ROOT, file);
+      if (!existsSync(path)) return;
+      const snap = JSON.parse(readFileSync(path, 'utf8'));
+      const presets = snap.conversation_config?.language_presets ?? {};
+      for (const [lang, preset] of Object.entries(presets) as Array<[string, {overrides?: {agent?: {first_message?: string}}}]>) {
+        const fm = preset.overrides?.agent?.first_message;
+        if (typeof fm === 'string') {
+          expect(fm, `${lang}.overrides.agent.first_message starts with bracket-directive: "${fm.slice(0, 40)}..."`).not.toMatch(BRACKET_PREFIX);
+        }
+      }
+    });
+
+    it(`${file}: system prompt forbids v3 bracket-directive emissions`, () => {
+      const path = join(ROOT, file);
+      if (!existsSync(path)) return;
+      const snap = JSON.parse(readFileSync(path, 'utf8'));
+      const prompt: string = snap.conversation_config?.agent?.prompt?.prompt ?? '';
+      expect(prompt).toMatch(/bracket(ed)?\s+(style\s+)?directive|TTS\s+markup|\[calm\]|\[laughs\]/i);
+    });
+  }
 });
 
 describe('META-AUDIT: data_collection template matches ElevenLabs shape', () => {
