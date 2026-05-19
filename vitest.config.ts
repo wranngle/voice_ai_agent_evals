@@ -274,6 +274,17 @@ const offlineProjects = [
     },
   },
   {
+    // R2 #5 public leaderboard generator. Pure aggregation + render +
+    // filesystem-isolated CLI tests (mkdtemp).
+    test: {
+      name: 'leaderboard',
+      root: '.',
+      include: ['tests/leaderboard/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
+  {
     // Meta-audit suite: tests that highlight design + architecture
     // shortcomings, not feature correctness. See docs/META-AUDIT.md.
     // Some tests use `it.fails` or `it.todo` to mark known-broken-by-design
