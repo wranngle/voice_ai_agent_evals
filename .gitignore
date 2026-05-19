@@ -108,6 +108,11 @@ _bmad-output/
 .playwright-mcp/
 
 # ===================
+# git-awesome runtime artifacts
+# ===================
+.artifacts/
+
+# ===================
 # Husky auto-managed (we use lefthook now — lefthook.yml is committed)
 # ===================
 .husky/_/
