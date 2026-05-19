@@ -9,6 +9,7 @@
  *   ingest <txt>     transcript → ProposedTestCase[] via LLM data layer
  *   polish <agent>   closed-loop remediation (proposer + apply + iterate)
  *   baseline ...     versioned regression baselines + diff
+ *   compare ...      side-by-side scorecard for N agents (--runs a,b --out f)
  *   doctor           Python sidecar status / install
  *   legacy <cmd>     legacy harness (v0.x scenario YAML / .test-data flow)
  *   --help, -h       this help
@@ -104,6 +105,11 @@ async function dispatch(): Promise<number | undefined> {
 
       process.stdout.write('usage: voice-evals baseline {capture|diff} <name>\n');
       return 1;
+    }
+
+    case 'compare': {
+      const {runCompareCli} = await import('./compare/cli');
+      return runCompareCli(process.argv.slice(3));
     }
 
     case 'factory': {

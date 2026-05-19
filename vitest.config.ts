@@ -230,6 +230,16 @@ const offlineProjects = [
     },
   },
   {
+    // r2 #1: comparative scorecard for N agents. Pure unit tests; no network.
+    test: {
+      name: 'compare',
+      root: '.',
+      include: ['tests/compare/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
+  {
     // Meta-audit suite: tests that highlight design + architecture
     // shortcomings, not feature correctness. See docs/META-AUDIT.md.
     // Some tests use `it.fails` or `it.todo` to mark known-broken-by-design

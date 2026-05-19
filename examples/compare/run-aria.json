@@ -1,0 +1,16 @@
+{
+  "agentId": "aria-v1",
+  "scenario": "refund-flow",
+  "outcome": {
+    "status": "passed",
+    "score": 0.91,
+    "errors": [],
+    "dimensions": [
+      {"name": "intent_match", "status": "passed", "score": 1.0, "detail": "Caller intent classified correctly on first turn"},
+      {"name": "policy_compliance", "status": "passed", "score": 0.9, "detail": "Disclosed refund window per policy doc"},
+      {"name": "barge_in_handling", "status": "passed", "score": 0.85, "detail": "Yielded within 240ms of caller interjection"},
+      {"name": "latency_p95_ms", "status": "passed", "score": 0.92, "detail": "p95 TTFB 820ms (budget 1500ms)"},
+      {"name": "hallucination_check", "status": "passed", "score": 0.88, "detail": "No fabricated policy details"}
+    ]
+  }
+}
