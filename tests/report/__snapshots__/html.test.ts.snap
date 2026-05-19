@@ -1,0 +1,84 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`renderHtml (filesystem) > matches a stable snapshot for fixed inputs 1`] = `
+"<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>voice-evals scorecard — snapshot-fixture</title>
+<style>
+  :root { color-scheme: light dark; --pass:#1f9d55; --fail:#c0392b; --skip:#888; --bg:#0f1115; --fg:#e8e8e8; --panel:#171a21; --rule:#2a2f3a; }
+  * { box-sizing: border-box; }
+  body { font:14px/1.5 system-ui,-apple-system,Segoe UI,Helvetica,Arial,sans-serif; margin:0; padding:24px; background:var(--bg); color:var(--fg); }
+  h1 { font-size:18px; margin:0 0 4px; font-weight:600; }
+  .sub { color:#999; margin-bottom:16px; }
+  .panel { background:var(--panel); border:1px solid var(--rule); border-radius:8px; padding:16px; margin-bottom:16px; }
+  .overall { display:flex; align-items:baseline; gap:12px; }
+  .overall .num { font-size:40px; font-weight:700; }
+  .overall .pct { font-size:14px; color:#999; }
+  .status-passed { color:var(--pass); }
+  .status-failed { color:var(--fail); }
+  .status-error  { color:var(--fail); }
+  .status-skipped{ color:var(--skip); }
+  table { width:100%; border-collapse:collapse; }
+  th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--rule); vertical-align:top; }
+  th { font-weight:600; color:#bbb; font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+  .flag { width:1.5em; }
+  .score-cell { font-variant-numeric:tabular-nums; width:5em; }
+  .name { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  .detail { color:#bbb; }
+  audio { width:100%; }
+  .meta { color:#888; font-size:12px; }
+  code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; background:#222831; padding:1px 5px; border-radius:3px; }
+</style>
+</head>
+<body>
+<h1>voice-evals scorecard</h1>
+<div class="sub">run <code>snapshot-fixture</code> · generated <code>2026-05-14T00:00:00.000Z</code></div>
+
+<div class="panel">
+  <div class="overall">
+    <span class="num status-failed" data-testid="overall-score">0.70</span>
+    <span class="pct">/ 1.00 · <span class="status-failed">failed</span></span>
+  </div>
+  <div class="meta">stereo, 48000 Hz, 16-bit, 1200ms</div>
+</div>
+
+<div class="panel">
+  <h2 style="font-size:13px;margin:0 0 8px;color:#bbb;text-transform:uppercase;letter-spacing:.04em;">Dimensions</h2>
+  <table>
+    <thead><tr><th class="flag"></th><th>Dimension</th><th>Score</th><th>Detail</th></tr></thead>
+    <tbody>
+            <tr data-testid="dimension-row" data-dimension="voice_activity" data-status="passed">
+        <td class="flag status-passed">✓</td>
+        <td class="name">voice_activity</td>
+        <td class="score-cell">1.00</td>
+        <td class="detail">caller spoke 820ms ≥ 500ms threshold</td>
+      </tr>
+      <tr data-testid="dimension-row" data-dimension="barge_in_recovery" data-status="failed">
+        <td class="flag status-failed">✗</td>
+        <td class="name">barge_in_recovery</td>
+        <td class="score-cell">0.40</td>
+        <td class="detail">overlap 360ms &gt; 250ms budget</td>
+      </tr>
+      <tr data-testid="dimension-row" data-dimension="transcript_fidelity" data-status="skipped">
+        <td class="flag status-skipped">·</td>
+        <td class="name">transcript_fidelity</td>
+        <td class="score-cell"></td>
+        <td class="detail">no reference transcript supplied</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="panel">
+  <h2 style="font-size:13px;margin:0 0 8px;color:#bbb;text-transform:uppercase;letter-spacing:.04em;">Source audio</h2>
+  <audio controls preload="metadata" data-testid="transcript-audio" src="/fixtures/sample.wav"></audio>
+  <div class="meta" style="margin-top:6px;">/fixtures/sample.wav</div>
+</div>
+
+</body>
+</html>
+"
+`;

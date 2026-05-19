@@ -164,6 +164,17 @@ const offlineProjects = [
     },
   },
   {
+    // HTML scorecard renderer. Pure string + filesystem unit tests using
+    // mkdtemp; no network, no DOM runtime needed.
+    test: {
+      name: 'report',
+      root: '.',
+      include: ['tests/report/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
+  {
     // v1.1 combinatorial test factory (cartesian, pairwise IPO, sample
     // strategies + YAML template loader/expander). Pure unit tests.
     test: {

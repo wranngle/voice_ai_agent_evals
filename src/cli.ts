@@ -45,7 +45,9 @@ async function dispatch(): Promise<number | undefined> {
     case 'score': {
       const {runScore} = await import('./cli/commands/score');
       const path = process.argv[3];
-      return runScore({path});
+      const htmlOut = readStringFlag('--html-out');
+      const runId = readStringFlag('--run-id');
+      return runScore({path, htmlOut, runId});
     }
 
     case 'ingest': {
@@ -134,4 +136,13 @@ function readNumberFlag(flag: string): number | undefined {
 
   const value = Number.parseInt(process.argv[idx + 1], 10);
   return Number.isFinite(value) ? value : undefined;
+}
+
+function readStringFlag(flag: string): string | undefined {
+  const idx = process.argv.indexOf(flag);
+  if (idx === -1 || idx + 1 >= process.argv.length) {
+    return undefined;
+  }
+
+  return process.argv[idx + 1];
 }
