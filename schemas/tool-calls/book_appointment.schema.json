@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.wranngle.com/voice-evals/tool-calls/book_appointment.schema.json",
+  "title": "book_appointment",
+  "description": "Booking call against the calendar tool. Recorded from the ElevenLabs post-call webhook.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["caller_name", "starts_at", "duration_minutes"],
+  "properties": {
+    "caller_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "starts_at": {
+      "type": "string",
+      "description": "ISO-8601 timestamp with timezone offset.",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}([+-][0-9]{2}:[0-9]{2}|Z)$"
+    },
+    "duration_minutes": {
+      "type": "integer",
+      "minimum": 5,
+      "maximum": 240
+    },
+    "service": {
+      "type": "string",
+      "enum": ["consult", "follow_up", "demo", "intake"]
+    },
+    "notes": {
+      "type": "string",
+      "maxLength": 2000
+    }
+  }
+}

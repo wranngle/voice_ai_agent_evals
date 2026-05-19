@@ -262,6 +262,18 @@ const offlineProjects = [
     },
   },
   {
+    // Schema-validated tool-call replay: validates JSONL fixtures captured
+    // from the post-call webhook against per-tool JSON Schemas in
+    // schemas/tool-calls/. Pure parsing + validation, no network.
+    test: {
+      name: 'replay',
+      root: '.',
+      include: ['tests/replay/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
+  {
     // Meta-audit suite: tests that highlight design + architecture
     // shortcomings, not feature correctness. See docs/META-AUDIT.md.
     // Some tests use `it.fails` or `it.todo` to mark known-broken-by-design

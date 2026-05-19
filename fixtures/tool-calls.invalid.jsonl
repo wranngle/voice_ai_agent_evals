@@ -1,0 +1,5 @@
+{"conversation_id":"conv_bad001","turn_index":2,"tool_name":"send_sms","arguments":{"to":"4155550100","body":"Missing E.164 plus prefix; should fail the regex."}}
+{"conversation_id":"conv_bad002","turn_index":4,"tool_name":"book_appointment","arguments":{"caller_name":"Pat","starts_at":"tomorrow at 3","duration_minutes":30}}
+{"conversation_id":"conv_bad003","turn_index":3,"tool_name":"transfer_to_agent","arguments":{"queue":"engineering","reason":"Wrong queue value — not in enum."}}
+{"conversation_id":"conv_bad004","turn_index":1,"tool_name":"send_sms","arguments":{"to":"+14155550100","body":""}}
+{"conversation_id":"conv_bad005","turn_index":2,"tool_name":"unknown_tool","arguments":{"foo":"bar"}}
