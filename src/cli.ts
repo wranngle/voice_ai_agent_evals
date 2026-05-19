@@ -48,7 +48,8 @@ async function dispatch(): Promise<number | undefined> {
       const path = process.argv[3];
       const htmlOut = readStringFlag('--html-out');
       const runId = readStringFlag('--run-id');
-      return runScore({path, htmlOut, runId});
+      const jsonLog = readStringFlag('--json-log');
+      return runScore({path, htmlOut, runId, jsonLogPath: jsonLog});
     }
 
     case 'demo': {

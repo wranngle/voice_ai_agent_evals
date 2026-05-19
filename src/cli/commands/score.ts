@@ -19,6 +19,7 @@ import {
 import type {DimensionScore} from '../../scoring/types';
 import {renderHtml} from '../../report/html';
 import {createTracer} from '../../internal/jsonl-trace';
+import {createEcsLogger, type EcsLogger} from '../../log/ecs';
 
 const trace = createTracer('cli.score');
 // JSONL tracing — emit start/end events from dispatch entry points.
@@ -40,6 +41,10 @@ export type ScoreOptions = {
   htmlOut?: string;
   /** Optional stable run id surfaced in the report header. */
   runId?: string;
+  /** Path to NDJSON ECS log sink. When absent the channel is a no-op. */
+  jsonLogPath?: string | undefined;
+  /** Inject a pre-built ECS logger (test seam). Bypasses jsonLogPath. */
+  ecsLogger?: EcsLogger;
 };
 
 export async function runScore(options: ScoreOptions): Promise<number> {
@@ -47,22 +52,32 @@ export async function runScore(options: ScoreOptions): Promise<number> {
     process.stdout.write(`${line}\n`);
   });
 
+  const ecs = options.ecsLogger ?? createEcsLogger({path: options.jsonLogPath});
+  ecs.info('score.start', {
+    'voice.score.path': options.path,
+    'voice.score.bytes_injected': options.bytes !== undefined,
+  }, 'voice-evals score invoked');
+
   if (!options.path && !options.bytes) {
     out('error: voice-evals score requires a path to a WAV file');
     out('usage: voice-evals score <wav-file>');
+    ecs.error('score.usage_error', {'voice.score.reason': 'missing_path'}, 'missing wav path argument');
     return 1;
   }
 
   let bytes: Uint8Array;
   if (options.bytes) {
     bytes = options.bytes;
+    ecs.info('score.load', {'voice.score.source': 'bytes'}, 'wav bytes injected');
   } else {
     if (!existsSync(options.path)) {
       out(`error: file not found: ${options.path}`);
+      ecs.error('score.load_failed', {'voice.score.path': options.path, 'voice.score.reason': 'enoent'}, 'wav file not found');
       return 1;
     }
 
     bytes = new Uint8Array(readFileSync(options.path));
+    ecs.info('score.load', {'voice.score.path': options.path, 'voice.score.bytes_len': bytes.byteLength}, 'wav file read');
   }
 
   let wav: WavInfo;
@@ -70,24 +85,51 @@ export async function runScore(options: ScoreOptions): Promise<number> {
     wav = parseWav(bytes);
   } catch (error) {
     out(`error: not a WAV PCM file: ${(error as Error).message}`);
+    ecs.error('score.parse_failed', {'error.message': (error as Error).message}, 'wav parse failed');
     return 1;
   }
 
   const minSpeechMs = options.minSpeechMs ?? 500;
   const maxOverlapMs = options.maxOverlapMs ?? 250;
 
+  ecs.info('score.parse', {
+    'voice.wav.channels': wav.channels,
+    'voice.wav.sample_rate': wav.sampleRate,
+    'voice.wav.bits_per_sample': wav.bitsPerSample,
+    'voice.wav.duration_ms': Math.round(wav.durationMs),
+  }, 'wav parsed');
+
   out(`Audio: ${wav.channels === 1 ? 'mono' : 'stereo'}, ${wav.sampleRate} Hz, ${wav.bitsPerSample}-bit, ${Math.round(wav.durationMs)}ms`);
   out('');
+
+  ecs.info('score.thresholds', {
+    'voice.score.min_speech_ms': minSpeechMs,
+    'voice.score.max_overlap_ms': maxOverlapMs,
+  }, 'scoring thresholds resolved');
+
+  ecs.info('score.scorer_selected', {
+    'voice.score.scorer_set': wav.channels === 1 ? 'mono' : 'stereo_with_barge_in',
+  }, 'scorer set selected');
 
   const dimensions: DimensionScore[] = wav.channels === 1
     ? [scoreVoiceActivity(wav, {minSpeechMs, name: 'voice_activity'})]
     : buildStereoDimensions(wav, minSpeechMs, maxOverlapMs);
+
+  ecs.info('score.dimensions_computed', {
+    'voice.score.dimension_count': dimensions.length,
+    'voice.score.mode': wav.channels === 1 ? 'mono' : 'stereo',
+  }, 'dimensions computed');
 
   let anyFailed = false;
   for (const d of dimensions) {
     const flag = d.status === 'passed' ? '✓' : '✗';
     const scoreText = d.score === undefined ? '' : ` (${d.score.toFixed(2)})`;
     out(`  ${flag} ${d.name}${scoreText}: ${d.detail ?? ''}`);
+    ecs.info('score.dimension', {
+      'voice.dimension.name': d.name,
+      'voice.dimension.status': d.status,
+      'voice.dimension.score': d.score ?? null,
+    }, `${d.name}: ${d.status}`);
     if (d.status !== 'passed' && d.status !== 'skipped') {
       anyFailed = true;
     }
@@ -107,6 +149,11 @@ export async function runScore(options: ScoreOptions): Promise<number> {
     out('');
     out(`HTML scorecard: ${rendered.htmlPath}`);
   }
+
+  ecs.info('score.complete', {
+    'voice.score.failed': anyFailed,
+    'voice.score.exit_code': anyFailed ? 1 : 0,
+  }, anyFailed ? 'score failed' : 'score passed');
 
   return anyFailed ? 1 : 0;
 }
