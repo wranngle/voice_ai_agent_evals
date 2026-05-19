@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "label": "live",
+  "message": "live",
+  "color": "brightgreen",
+  "status": "success",
+  "fixture": ".test-data/sample.wav",
+  "checkedAt": "2026-05-14T06:56:58Z"
+}

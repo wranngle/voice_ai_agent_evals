@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Refinement · ElevenLabs · pitch</title>
+<link rel="preconnect" href="https://rsms.me/">
+<link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+<style>
+  :root {
+    --bg: #0c0e10;
+    --bg-1: #14171b;
+    --bg-2: #1a1e23;
+    --bg-3: #232830;
+    --line: #2a2f37;
+    --line-2: #1f2329;
+    --ink: #e9ecef;
+    --ink-1: #b6bcc4;
+    --ink-2: #7e8590;
+    --ink-3: #535862;
+    --good: #4ade80;
+    --bad: #f87171;
+    --warn: #fbbf24;
+    --info: #60a5fa;
+    --mono: ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-feature-settings: 'cv11','tnum','ss01';
+    -webkit-font-smoothing: antialiased;
+    height: 100vh; overflow: hidden;
+  }
+  .deck {
+    height: 100vh; width: 100vw;
+    display: flex; flex-direction: column;
+  }
+  .topbar {
+    display: flex; align-items: center; gap: 18px;
+    height: 44px; padding: 0 20px;
+    background: var(--bg-1);
+    border-bottom: 1px solid var(--line);
+    font-family: var(--mono); font-size: 12px;
+  }
+  .topbar .brand { font-weight: 600; color: var(--ink); }
+  .topbar .brand .sub { color: var(--ink-2); font-weight: 400; margin-left: 6px; }
+  .topbar .meta { color: var(--ink-2); }
+  .topbar .spacer { flex: 1; }
+  .topbar .pager { color: var(--ink-1); }
+  .topbar .pager b { color: var(--ink); }
+  .topbar .hint { color: var(--ink-3); font-size: 11px; }
+
+  .stage {
+    flex: 1; display: flex; align-items: stretch; justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+  .slide {
+    width: 100%; max-width: 1200px;
+    padding: 36px 56px;
+    display: none;
+    flex-direction: column;
+    gap: 14px;
+    overflow-y: auto;
+  }
+  .slide.active { display: flex; }
+
+  .slide-num {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-3);
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+  }
+  .slide-title {
+    font-size: 30px; font-weight: 600; letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .slide-sub {
+    font-family: var(--mono); font-size: 12px;
+    color: var(--ink-2);
+    margin-bottom: 8px;
+  }
+  .lede {
+    font-size: 17px; color: var(--ink); line-height: 1.5;
+    margin-bottom: 4px;
+  }
+  .body { color: var(--ink-1); font-size: 15px; line-height: 1.6; }
+  .body p { margin-bottom: 12px; }
+  .body strong { color: var(--ink); font-weight: 600; }
+  .body em { font-style: normal; color: var(--info); }
+
+  /* TWO-COL split for some slides */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 980px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* MOCK frames */
+  .mock {
+    border: 1px solid var(--line);
+    background: var(--bg-1);
+    border-radius: 6px;
+    padding: 14px;
+    font-family: var(--mono); font-size: 12px;
+    color: var(--ink-1);
+  }
+  .mock .label {
+    color: var(--ink-3); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+  .mock .row { padding: 4px 0; border-bottom: 1px dashed var(--line-2); }
+  .mock .row:last-child { border-bottom: 0; }
+  .mock .row .k { color: var(--ink-2); display: inline-block; width: 130px; }
+  .mock .row .v { color: var(--ink); }
+  .mock .row .v.empty { color: var(--bad); }
+  .mock .row .v.ok { color: var(--good); }
+  .mock.bad { border-color: rgba(248,113,113,0.30); background: linear-gradient(180deg, rgba(248,113,113,0.04), var(--bg-1)); }
+  .mock.good { border-color: rgba(74,222,128,0.30); background: linear-gradient(180deg, rgba(74,222,128,0.04), var(--bg-1)); }
+
+  /* BEATS — a tile grid for beat 2 / 4 */
+  .tiles3 {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+    margin-top: 8px;
+  }
+  @media (max-width: 980px) { .tiles3 { grid-template-columns: 1fr; } }
+  .tile {
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 16px;
+  }
+  .tile .h {
+    color: var(--ink); font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 15px;
+  }
+  .tile .h .step {
+    color: var(--info); font-family: var(--mono); font-size: 11px; font-weight: 400;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    margin-right: 8px;
+  }
+  .tile .p { color: var(--ink-1); font-size: 13px; line-height: 1.55; }
+  .tile .p .pillrow { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .tile .pill {
+    display: inline-block; padding: 1px 7px; border-radius: 3px;
+    background: var(--bg-3); color: var(--ink-1); font-size: 11px;
+    font-family: var(--mono);
+  }
+
+  /* PROCESS list for beat 3 */
+  .process {
+    display: flex; flex-direction: column; gap: 10px;
+    font-size: 14px; color: var(--ink-1); line-height: 1.5;
+  }
+  .process-row { display: grid; grid-template-columns: 180px 1fr; gap: 14px; align-items: flex-start; }
+  .process-row .step {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.08em;
+    padding-top: 3px;
+  }
+  .process-row .what strong { color: var(--ink); }
+
+  /* BIZ outcomes for beat 4 */
+  .outcomes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 980px) { .outcomes { grid-template-columns: 1fr; } }
+  .outcome {
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 16px;
+  }
+  .outcome .arrow {
+    color: var(--good); font-family: var(--mono); font-size: 12px; font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .outcome .h { color: var(--ink); font-weight: 600; margin-bottom: 6px; }
+  .outcome .p { color: var(--ink-1); font-size: 13px; line-height: 1.55; }
+
+  /* CLOSE slide quote */
+  .close-quote {
+    font-size: 26px; line-height: 1.35; font-weight: 500;
+    color: var(--ink); letter-spacing: -0.015em;
+    margin: 20px 0; padding-left: 18px;
+    border-left: 3px solid var(--info);
+  }
+  .close-quote em { color: var(--info); font-style: normal; }
+  .close-tail { color: var(--ink-1); font-size: 14px; line-height: 1.6; }
+
+  /* FLAGS */
+  .flags { display: flex; flex-direction: column; gap: 12px; }
+  .flag {
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--warn);
+    border-radius: 4px;
+    padding: 14px 16px;
+  }
+  .flag .h { color: var(--ink); font-weight: 600; margin-bottom: 4px; font-size: 14px; }
+  .flag .p { color: var(--ink-1); font-size: 13px; line-height: 1.55; }
+
+  /* NAV */
+  .nav {
+    position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 4px;
+    z-index: 5;
+  }
+  .nav .pip {
+    width: 22px; height: 4px; border-radius: 2px;
+    background: var(--bg-3);
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .nav .pip:hover { background: var(--line); }
+  .nav .pip.active { background: var(--info); }
+
+  .arrow-btn {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    background: transparent; border: 1px solid var(--line);
+    color: var(--ink-2);
+    width: 36px; height: 36px;
+    border-radius: 50%; cursor: pointer;
+    font-family: var(--mono); font-size: 16px;
+    transition: color 0.12s, border-color 0.12s, background 0.12s;
+  }
+  .arrow-btn:hover { color: var(--ink); border-color: var(--ink-2); background: var(--bg-1); }
+  .arrow-btn.left { left: 16px; }
+  .arrow-btn.right { right: 16px; }
+</style>
+</head>
+<body>
+
+<div class="deck">
+  <div class="topbar">
+    <div class="brand">Refinement<span class="sub">· ElevenLabs feature pitch</span></div>
+    <div class="meta">audience: product team + CEO</div>
+    <div class="spacer"></div>
+    <div class="pager"><b id="slide-cur">1</b>/<span id="slide-total">7</span></div>
+    <div class="hint">← →</div>
+  </div>
+
+  <div class="stage" id="stage">
+
+    <!-- SLIDE 1: 5s OPEN -->
+    <section class="slide active" data-i="0">
+      <div class="slide-num">00 · five second open</div>
+      <div class="slide-title">Every agent created on ElevenLabs should ship at this quality from minute one, not month three.</div>
+
+      <div class="two-col" style="margin-top: 10px">
+        <div class="mock bad">
+          <div class="label">today · agent builder, new customer</div>
+          <div class="row"><span class="k">name</span><span class="v empty">(empty)</span></div>
+          <div class="row"><span class="k">system prompt</span><span class="v empty">(blank — good luck)</span></div>
+          <div class="row"><span class="k">voice</span><span class="v">pick one of 1,500</span></div>
+          <div class="row"><span class="k">integrations</span><span class="v empty">(wire them yourself)</span></div>
+          <div class="row"><span class="k">tests</span><span class="v empty">(none)</span></div>
+          <div class="row"><span class="k">compliance artifact</span><span class="v empty">(none)</span></div>
+          <div class="row"><span class="k">first call quality</span><span class="v empty">coin flip</span></div>
+        </div>
+
+        <div class="mock good">
+          <div class="label">with Refinement · same screen, one button click, 30s later</div>
+          <div class="row"><span class="k">name</span><span class="v ok">Riverside Heating &amp; Cooling — Intake</span></div>
+          <div class="row"><span class="k">system prompt</span><span class="v ok">vertical template, tested vs 5 personas</span></div>
+          <div class="row"><span class="k">voice</span><span class="v ok">Charlotte · production v3</span></div>
+          <div class="row"><span class="k">integrations</span><span class="v ok">Twilio · calendar · CRM · SMS · email · 7 more</span></div>
+          <div class="row"><span class="k">tests</span><span class="v ok">15 regression cases from caller log</span></div>
+          <div class="row"><span class="k">compliance artifact</span><span class="v ok">1-page PDF in the dashboard</span></div>
+          <div class="row"><span class="k">first call quality</span><span class="v ok">live demo plays · works</span></div>
+        </div>
+      </div>
+
+      <div style="margin-top: 14px; font-family: var(--mono); font-size: 12px; color: var(--ink-2);">
+        live console: <a href="refine.html?session=example" style="color: var(--info); text-decoration: none;">proof/refine.html?session=example</a> &nbsp;·&nbsp;
+        4 sessions seeded (HVAC / dental / restaurant / legal). Open the timeline tab for the surfaced experience.
+      </div>
+    </section>
+
+    <!-- SLIDE 2: BEAT 1 — THE GAP -->
+    <section class="slide" data-i="1">
+      <div class="slide-num">beat 01 · ~60s</div>
+      <div class="slide-title">The gap every customer hits today.</div>
+
+      <div class="body">
+        <p>Right now ElevenLabs gives every new customer the same starting point. Blank agent. Blank prompt. Pick a voice. Good luck.</p>
+        <p>The customers who succeed are the ones with a <strong>prompt engineer on staff</strong>. The customers who churn are the small and mid market accounts who built an agent, placed three test calls, heard it fail in a way they did not understand, and quietly walked away.</p>
+        <p>The platform is <strong>bottlenecked on the skill of the customer, not the capability of the product</strong>. Every new agent that gets created is a coin flip on whether the customer can self serve their way to something they would actually deploy.</p>
+        <p>The agents that get deployed badly become the bad demo videos on Twitter. The platform takes the reputation hit for a customer skill gap.</p>
+      </div>
+    </section>
+
+    <!-- SLIDE 3: BEAT 2 — WHAT THE FEATURE DOES -->
+    <section class="slide" data-i="2">
+      <div class="slide-num">beat 02 · ~90s</div>
+      <div class="slide-title">What the feature actually does.</div>
+      <div class="slide-sub">A refinement layer that runs inside the agent builder.</div>
+
+      <div class="tiles3">
+        <div class="tile">
+          <div class="h"><span class="step">step 1</span>Enrichment</div>
+          <div class="p">
+            Customer types a business name or pastes a website URL. The system enriches automatically:
+            <span class="pillrow">
+              <span class="pill">Clay firmographics</span>
+              <span class="pill">website scrape</span>
+              <span class="pill">Google Maps</span>
+              <span class="pill">business hours</span>
+              <span class="pill">service area</span>
+            </span>
+            Business category drives template selection. Trades contractor gets the trades template. Dentist gets the dentist template. Each comes pre-wired with the common ElevenLabs integrations for that vertical:
+            <span class="pillrow">
+              <span class="pill">Twilio inbound</span>
+              <span class="pill">calendar booking</span>
+              <span class="pill">CRM webhook</span>
+              <span class="pill">SMS confirmation</span>
+              <span class="pill">recap email</span>
+            </span>
+            The customer did not have to know any of this existed. It is just there.
+          </div>
+        </div>
+
+        <div class="tile">
+          <div class="h"><span class="step">step 2</span>Ingestion</div>
+          <div class="p">
+            The customer drops in their data. Any data.
+            <span class="pillrow">
+              <span class="pill">call logs</span>
+              <span class="pill">CSV of FAQs</span>
+              <span class="pill">PDF service menu</span>
+              <span class="pill">one bad call transcript</span>
+            </span>
+            The system ingests it and turns it into a test suite. Real customer language becomes the regression battery. The bad call becomes the first test that the agent has to pass.
+          </div>
+        </div>
+
+        <div class="tile">
+          <div class="h"><span class="step">step 3</span>Refinement loop</div>
+          <div class="p">
+            The agent gets exercised against five canonical personas:
+            <span class="pillrow">
+              <span class="pill">polite elderly</span>
+              <span class="pill">frustrated rusher</span>
+              <span class="pill">non-native English</span>
+              <span class="pill">confused meanderer</span>
+              <span class="pill">hostile skeptic</span>
+            </span>
+            The system watches every failure mode the platform has ever seen across the entire ElevenLabs configuration surface:
+            <span class="pillrow">
+              <span class="pill">voice marker leakage</span>
+              <span class="pill">TTS directive emission</span>
+              <span class="pill">hallucinated hours</span>
+              <span class="pill">wrong service area</span>
+              <span class="pill">calendar overpromise</span>
+            </span>
+            Every failure becomes a fix proposal. Every fix becomes a regression test. The customer watches it happen.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: BEAT 3 — SURFACED EXPERIENCE -->
+    <section class="slide" data-i="3">
+      <div class="slide-num">beat 03 · ~90s</div>
+      <div class="slide-title">The surfaced experience.</div>
+      <div class="slide-sub">Refinement cannot be a black box that returns a green checkmark two minutes later. The customer has to feel the quality being built. So every step renders.</div>
+
+      <div class="process">
+        <div class="process-row"><div class="step">website scrape</div><div class="what"><strong>shows what was learned.</strong> Tone, services, hours, branches, the words the business actually uses with its own customers.</div></div>
+        <div class="process-row"><div class="step">persona calls</div><div class="what"><strong>play as audio.</strong> The customer hears the elderly caller, the rusher, the skeptic. They hear their agent answer each one.</div></div>
+        <div class="process-row"><div class="step">defects</div><div class="what"><strong>highlight inline in the transcript</strong> with the exact phrase that failed. Not "test #4 failed" — the actual words.</div></div>
+        <div class="process-row"><div class="step">fix proposal</div><div class="what"><strong>shows the prompt diff in plain language</strong>, not engineer language. "Added a rule: don't promise a time when you cannot confirm it."</div></div>
+        <div class="process-row"><div class="step">compliance artifact</div><div class="what"><strong>generates as a one-page PDF</strong> the customer can hand to their lawyer.</div></div>
+        <div class="process-row"><div class="step">regression suite</div><div class="what"><strong>shows up as a dashboard</strong> the customer can re-run next month, after they edit the prompt or change a voice.</div></div>
+      </div>
+
+      <div class="body" style="margin-top: 14px">
+        <p>The emotional proof is that the customer <strong>watched their agent get better in front of their eyes</strong>. They saw the bad call get caught. They saw the fix get proposed. They saw the test get added. They heard the new version handle the same call cleanly.</p>
+        <p>They did not need to know what a system prompt is. They did not need to write a single rubric. They did not need to be a prompt engineer. They just needed to want a working voice agent for their business and the platform gave them one.</p>
+        <p>This is what beats the procurement question by erasing it. The compliance team does not have to ask <em>how do you verify agent behavior</em> because the artifact is sitting in the dashboard from the moment the agent was created.</p>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: BEAT 4 — BUSINESS IMPACT -->
+    <section class="slide" data-i="4">
+      <div class="slide-num">beat 04 · ~60s</div>
+      <div class="slide-title">What this does to the business.</div>
+      <div class="slide-sub">Three things change for ElevenLabs the moment this ships inside the builder.</div>
+
+      <div class="outcomes">
+        <div class="outcome">
+          <div class="arrow">↑ activation rate</div>
+          <div class="h">First call is the polished call.</div>
+          <div class="p">
+            Today a meaningful fraction of created agents never get a second call placed against them. Customer tried it, it was bad, they bounced.
+            With refinement, the first call the customer places is the polished call. The activation curve moves and cohort retention follows.
+          </div>
+        </div>
+
+        <div class="outcome">
+          <div class="arrow">→ self-serve TAM</div>
+          <div class="h">Skill floor collapses.</div>
+          <div class="p">
+            Every small business owner who would buy a voice agent if it just worked is currently locked out because they do not know how to make one work.
+            Refinement collapses the skill floor. <strong>The self-serve TAM widens by an order of magnitude</strong> because the customer no longer needs a prompt engineer to reach a deployable agent.
+          </div>
+        </div>
+
+        <div class="outcome">
+          <div class="arrow">↓ enterprise cycle</div>
+          <div class="h">SE demo: 3 weeks → an afternoon.</div>
+          <div class="p">
+            The sales engineer who used to spend three weeks crafting a custom demo per prospect now generates the demo in an afternoon, against the prospect's actual business data, with the regression artifact attached. The POC phase shortens. The procurement gauntlet has its answers pre-filled.
+          </div>
+        </div>
+      </div>
+
+      <div class="body" style="margin-top: 18px; padding: 14px; border: 1px dashed var(--line); border-radius: 6px">
+        <p style="margin-bottom: 0">
+          <strong>Overpromise line.</strong> Refinement turns the agent builder from a workbench for prompt engineers into a finished product for every business on earth. The platform stops selling capability and starts selling <em>outcomes</em>. The acquisition story stops being <em>come build a voice agent</em> and starts being <em>come receive a voice agent built for your business in thirty seconds</em>. That is a different company at a different valuation.
+        </p>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: CLOSE -->
+    <section class="slide" data-i="5">
+      <div class="slide-num">close</div>
+      <div class="slide-title">ElevenLabs ships the engine. Refinement ships the car.</div>
+
+      <div class="close-quote">
+        Every agent created on the platform from the day this lands is a deployable production-grade voice agent <em>enriched with the business's own data</em>, <em>tested against its own customers</em>, <em>wrapped in its own compliance artifact</em>, and <em>surfaced in a way that the business owner watched happen and trusts</em>.
+      </div>
+
+      <div class="close-tail">
+        Right now the customer is expected to build the car. Refinement removes that expectation. Every new agent ships at production quality from minute one, not month three.
+      </div>
+    </section>
+
+    <!-- SLIDE 7: HONEST FLAGS -->
+    <section class="slide" data-i="6">
+      <div class="slide-num">two honest flags · if anyone asks</div>
+      <div class="slide-title">Things to know before this ships.</div>
+
+      <div class="flags">
+        <div class="flag">
+          <div class="h">Legal surface on enrichment sources.</div>
+          <div class="p">
+            Clay-style firmographic data, Google Maps, and website scraping all have terms of service that have to be cleared before this ships inside the product. That is a real conversation and not a technical conversation.
+          </div>
+        </div>
+
+        <div class="flag">
+          <div class="h">The failure mode catalog is a network effect — and the network effect belongs inside ElevenLabs.</div>
+          <div class="p">
+            The refinement loop is only as good as the failure mode catalog it draws from. The system needs to learn from every agent across the platform to keep getting better. That means the feature actually wants to be <strong>inside</strong> ElevenLabs, not outside it. Outside, it sees only the agents the SDK user runs. Inside, it sees every agent created, every call placed, every defect that ever shipped. The feature becomes more valuable the more it is embedded. That is the strategic reason this belongs in the product and not in a third-party SDK competing with the product.
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <button class="arrow-btn left" id="prev" aria-label="prev">‹</button>
+  <button class="arrow-btn right" id="next" aria-label="next">›</button>
+
+  <div class="nav" id="nav"></div>
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const total = slides.length;
+const navEl = document.getElementById('nav');
+const slideCur = document.getElementById('slide-cur');
+const slideTotal = document.getElementById('slide-total');
+slideTotal.textContent = total;
+
+let idx = 0;
+
+for (let i = 0; i < total; i++) {
+  const pip = document.createElement('div');
+  pip.className = 'pip' + (i === 0 ? ' active' : '');
+  pip.dataset.i = i;
+  pip.onclick = () => go(Number(pip.dataset.i));
+  navEl.appendChild(pip);
+}
+
+function go(i) {
+  if (i < 0 || i >= total) return;
+  slides[idx].classList.remove('active');
+  navEl.children[idx].classList.remove('active');
+  idx = i;
+  slides[idx].classList.add('active');
+  navEl.children[idx].classList.add('active');
+  slideCur.textContent = idx + 1;
+}
+
+document.getElementById('prev').onclick = () => go(idx - 1);
+document.getElementById('next').onclick = () => go(idx + 1);
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown' || e.key === 'l') { e.preventDefault(); go(idx + 1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === 'h') { e.preventDefault(); go(idx - 1); }
+  else if (e.key === 'Home') go(0);
+  else if (e.key === 'End') go(total - 1);
+  else if (e.key >= '1' && e.key <= '9') {
+    const target = Number(e.key) - 1;
+    if (target < total) go(target);
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,776 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Refinement · session console</title>
+<link rel="preconnect" href="https://rsms.me/">
+<link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+<style>
+  :root {
+    --bg: #0c0e10;
+    --bg-1: #14171b;
+    --bg-2: #1a1e23;
+    --bg-3: #232830;
+    --line: #2a2f37;
+    --line-2: #1f2329;
+    --ink: #e9ecef;
+    --ink-1: #b6bcc4;
+    --ink-2: #7e8590;
+    --ink-3: #535862;
+    --good: #4ade80;
+    --bad: #f87171;
+    --warn: #fbbf24;
+    --info: #60a5fa;
+    --crit: #ef4444;
+    --med: #2563eb;
+    --low: #6b7280;
+    --mono: ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg); color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-feature-settings: 'cv11','tnum','ss01';
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    font-size: 13px;
+  }
+  a { color: var(--info); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, .mono { font-family: var(--mono); }
+
+  .topbar {
+    display: flex; align-items: center; gap: 18px;
+    height: 44px; padding: 0 20px;
+    background: var(--bg-1);
+    border-bottom: 1px solid var(--line);
+    font-family: var(--mono); font-size: 12px;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .topbar .brand { font-weight: 600; color: var(--ink); }
+  .topbar .brand .sub { color: var(--ink-2); font-weight: 400; margin-left: 6px; }
+  .topbar .meta { color: var(--ink-2); }
+  .topbar .spacer { flex: 1; }
+  .topbar a.btn {
+    color: var(--ink-2); padding: 4px 10px;
+    border: 1px solid var(--line); border-radius: 4px;
+    font-size: 11px;
+  }
+  .topbar a.btn:hover { color: var(--ink); border-color: var(--ink-2); text-decoration: none; }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    min-height: calc(100vh - 44px);
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: var(--bg-1);
+    border-right: 1px solid var(--line);
+    padding: 16px;
+    overflow-y: auto;
+  }
+  .sidebar h2 {
+    font-family: var(--mono);
+    font-size: 10px; letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 12px;
+  }
+  .sessions { display: flex; flex-direction: column; gap: 6px; }
+  .session-card {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: border-color 0.12s, background 0.12s;
+  }
+  .session-card:hover { border-color: var(--ink-3); }
+  .session-card.active {
+    border-color: var(--info);
+    background: linear-gradient(180deg, rgba(96,165,250,0.06), var(--bg-2));
+  }
+  .session-card .name { font-weight: 600; color: var(--ink); font-size: 13px; margin-bottom: 3px; }
+  .session-card .meta { font-family: var(--mono); font-size: 10.5px; color: var(--ink-2); display: flex; gap: 10px; flex-wrap: wrap; }
+  .session-card .meta .delta { color: var(--good); }
+  .session-card .meta .defects { color: var(--warn); }
+
+  .filter-row { display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
+  .pill-toggle {
+    font-family: var(--mono); font-size: 10px;
+    background: var(--bg-2); color: var(--ink-2);
+    border: 1px solid var(--line);
+    padding: 3px 8px; border-radius: 12px;
+    cursor: pointer;
+  }
+  .pill-toggle.on { background: var(--info); color: var(--bg); border-color: var(--info); }
+
+  /* MAIN */
+  .main { padding: 20px 28px 80px; max-width: 1200px; }
+  .session-header { display: flex; align-items: baseline; gap: 14px; margin-bottom: 6px; }
+  .session-header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+  .session-header .vlabel { font-family: var(--mono); font-size: 11px; color: var(--ink-2); padding: 2px 8px; border: 1px solid var(--line); border-radius: 3px; }
+  .session-sub { color: var(--ink-2); font-size: 12px; margin-bottom: 18px; font-family: var(--mono); }
+  .session-sub a { color: var(--info); }
+
+  /* SCOREBOARD strip */
+  .scoreboard {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+  @media (max-width: 900px) { .scoreboard { grid-template-columns: repeat(2, 1fr); } }
+  .stat {
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 10px 12px;
+  }
+  .stat .label { font-family: var(--mono); font-size: 10px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .stat .value { font-size: 22px; font-weight: 600; color: var(--ink); letter-spacing: -0.02em; }
+  .stat .value.delta { color: var(--good); }
+  .stat .sub { color: var(--ink-2); font-size: 11px; font-family: var(--mono); margin-top: 2px; }
+
+  /* TABS */
+  .tabs {
+    display: flex; gap: 0;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 18px;
+    overflow-x: auto;
+  }
+  .tab {
+    padding: 8px 14px;
+    font-family: var(--mono); font-size: 11.5px;
+    color: var(--ink-2);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.active { color: var(--ink); border-bottom-color: var(--info); }
+  .tab .badge { font-size: 9.5px; background: var(--bg-3); color: var(--ink-1); padding: 1px 5px; border-radius: 8px; margin-left: 6px; }
+
+  .pane { display: none; }
+  .pane.active { display: block; }
+
+  /* TIMELINE pane */
+  .timeline-controls { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
+  .timeline-controls button {
+    background: var(--bg-2); color: var(--ink-1);
+    border: 1px solid var(--line);
+    padding: 4px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: var(--mono); font-size: 11px;
+  }
+  .timeline-controls button:hover { color: var(--ink); border-color: var(--ink-3); }
+  .timeline {
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 6px 0;
+    font-family: var(--mono); font-size: 12px;
+  }
+  .ev {
+    display: grid;
+    grid-template-columns: 72px 24px 200px 1fr;
+    align-items: baseline;
+    padding: 5px 14px;
+    border-bottom: 1px solid var(--line-2);
+    color: var(--ink-1);
+    opacity: 1;
+    transition: opacity 0.18s;
+  }
+  .ev:last-child { border-bottom: 0; }
+  .ev.hidden { opacity: 0.18; }
+  .ev .t { color: var(--ink-3); font-size: 10.5px; }
+  .ev .g { font-size: 13px; }
+  .ev .step { color: var(--ink-2); }
+  .ev .detail { color: var(--ink); }
+  .ev.start .g { color: var(--info); }
+  .ev.ok .g { color: var(--good); }
+  .ev.warn .g { color: var(--warn); }
+  .ev.fail .g { color: var(--bad); }
+  .ev .data-pill { font-size: 10px; color: var(--ink-3); margin-left: 8px; padding: 1px 6px; border: 1px solid var(--line); border-radius: 3px; }
+
+  /* ENRICHMENT pane */
+  .enrich-grid {
+    display: grid; grid-template-columns: 200px 1fr; gap: 8px 16px;
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 14px 16px;
+    font-size: 12.5px;
+  }
+  .enrich-grid .k { color: var(--ink-2); font-family: var(--mono); font-size: 11px; }
+  .enrich-grid .v { color: var(--ink); }
+  .source-pill {
+    display: inline-block; font-family: var(--mono); font-size: 10px;
+    padding: 1px 6px; border-radius: 3px;
+    background: var(--bg-3); color: var(--ink-1); margin-right: 4px;
+  }
+
+  /* PERSONAS pane */
+  .persona-row {
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .persona-header {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-2);
+    font-family: var(--mono); font-size: 12px;
+  }
+  .persona-header .name { color: var(--ink); font-weight: 600; }
+  .persona-header .stats { color: var(--ink-2); font-size: 11px; }
+  .persona-header .stats .bad { color: var(--bad); }
+  .persona-header .stats .ok { color: var(--good); }
+  .transcript-pair { display: grid; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 1100px) { .transcript-pair { grid-template-columns: 1fr; } }
+  .transcript-col {
+    padding: 10px 14px;
+    border-right: 1px solid var(--line);
+  }
+  .transcript-col:last-child { border-right: 0; }
+  .transcript-col .label {
+    font-family: var(--mono); font-size: 10px;
+    color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+  .transcript-col.before .label { color: var(--bad); }
+  .transcript-col.after .label { color: var(--good); }
+  .turn {
+    font-size: 12px; line-height: 1.55;
+    padding: 5px 0;
+    color: var(--ink-1);
+  }
+  .turn .who { font-family: var(--mono); font-size: 10px; color: var(--ink-3); display: inline-block; width: 56px; }
+  .turn.agent .who { color: var(--info); }
+  .turn.caller .who { color: var(--warn); }
+  .turn mark {
+    background: rgba(248,113,113,0.20);
+    color: var(--bad);
+    padding: 1px 3px;
+    border-radius: 2px;
+    border: 1px solid rgba(248,113,113,0.35);
+  }
+  .turn .tool {
+    display: inline-block;
+    font-family: var(--mono); font-size: 10px;
+    color: var(--ink-2); margin-left: 6px;
+    padding: 1px 6px; background: var(--bg-3);
+    border-radius: 3px;
+  }
+
+  /* DIFFS pane */
+  .diff-card {
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--info);
+    border-radius: 5px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  .diff-card .field { font-family: var(--mono); font-size: 10px; color: var(--ink-3); margin-bottom: 4px; }
+  .diff-card .title { font-weight: 600; color: var(--ink); font-size: 14px; margin-bottom: 6px; }
+  .diff-card .rationale { color: var(--ink-1); font-size: 12.5px; line-height: 1.55; margin-bottom: 8px; }
+  .diff-card .after {
+    background: var(--bg-2);
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-family: var(--mono); font-size: 11.5px;
+    color: var(--ink); line-height: 1.5;
+    border-left: 2px solid var(--good);
+  }
+  .diff-card .modes {
+    margin-top: 6px;
+    font-family: var(--mono); font-size: 10px;
+    color: var(--ink-3);
+  }
+  .diff-card .modes .mode-pill {
+    display: inline-block;
+    background: var(--bg-3); color: var(--ink-1);
+    padding: 1px 6px; border-radius: 3px;
+    margin-right: 4px;
+  }
+
+  /* DEFECTS pane */
+  .defect-card {
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    display: grid;
+    grid-template-columns: 80px 200px 1fr;
+    gap: 10px;
+    align-items: baseline;
+  }
+  .defect-card .sev {
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    text-align: center; padding: 2px 0;
+    border-radius: 3px;
+  }
+  .defect-card .sev.critical { background: rgba(239,68,68,0.18); color: var(--crit); }
+  .defect-card .sev.high { background: rgba(251,191,36,0.18); color: var(--warn); }
+  .defect-card .sev.medium { background: rgba(37,99,235,0.18); color: var(--med); }
+  .defect-card .sev.low { background: rgba(107,114,128,0.18); color: var(--low); }
+  .defect-card .mode { font-family: var(--mono); font-size: 11px; color: var(--ink); }
+  .defect-card .mode .persona { color: var(--ink-3); font-size: 10px; display: block; margin-top: 2px; }
+  .defect-card .evidence { color: var(--ink-1); font-size: 12px; line-height: 1.5; }
+  .defect-card .evidence code {
+    background: var(--bg-3); padding: 1px 5px; border-radius: 3px; color: var(--bad); font-size: 11px;
+  }
+
+  /* SCOREBOARD pane */
+  .rubric-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .rubric-table th { text-align: left; background: var(--bg-1); padding: 8px 12px; font-weight: 600; color: var(--ink-2); border-bottom: 1px solid var(--line); font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .rubric-table td { padding: 8px 12px; border-bottom: 1px solid var(--line-2); color: var(--ink-1); }
+  .rubric-table td.num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); }
+  .rubric-table td.delta { color: var(--good); font-weight: 600; }
+  .rubric-table .bar-wrap { display: inline-block; width: 130px; height: 5px; background: var(--bg-3); border-radius: 3px; overflow: hidden; margin-left: 8px; vertical-align: middle; }
+  .rubric-table .bar { height: 100%; background: var(--good); }
+  .rubric-table .bar.before { background: var(--bad); }
+
+  /* REGRESSION pane */
+  .reg-card {
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    display: grid;
+    grid-template-columns: 280px 100px 1fr;
+    gap: 10px;
+    font-size: 12px;
+    align-items: baseline;
+  }
+  .reg-card .id { font-family: var(--mono); font-size: 10.5px; color: var(--ink-2); }
+  .reg-card .kind { font-family: var(--mono); font-size: 10px; color: var(--ink-3); }
+  .reg-card .body { color: var(--ink-1); font-size: 11.5px; }
+
+  /* COMPLIANCE pane */
+  .compliance-frame {
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    overflow: hidden;
+    height: 800px;
+  }
+  .compliance-frame iframe { width: 100%; height: 100%; border: 0; }
+
+  /* PROMPT pane */
+  .prompt-pre {
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 14px 18px;
+    font-family: var(--mono); font-size: 11.5px;
+    color: var(--ink-1); line-height: 1.55;
+    white-space: pre-wrap;
+    overflow-x: auto;
+  }
+
+  .empty {
+    color: var(--ink-2); font-size: 13px;
+    padding: 40px; text-align: center;
+    border: 1px dashed var(--line); border-radius: 5px;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">Refinement<span class="sub">· session console</span></div>
+  <div class="meta" id="sessionMeta">no session selected</div>
+  <div class="spacer"></div>
+  <a class="btn" href="pitch.html">← pitch deck</a>
+  <a class="btn" href="index.html">data console</a>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <h2>filters</h2>
+    <div class="filter-row" id="verticalFilter"></div>
+    <h2 style="margin-top:20px">sessions</h2>
+    <div class="sessions" id="sessionsList"><div class="empty">loading…</div></div>
+  </aside>
+
+  <main class="main" id="main">
+    <div class="empty">Select a session from the left.</div>
+  </main>
+</div>
+
+<script>
+const SEV_ORDER = {critical: 0, high: 1, medium: 2, low: 3};
+let allSessions = [];
+let currentSession = null;
+let verticalFilter = null;
+
+async function loadIndex() {
+  const r = await fetch('sessions/index.json');
+  if (!r.ok) {
+    document.getElementById('sessionsList').innerHTML = '<div class="empty">No sessions yet.<br>Run <code>voice-evals refine --mock --business-name "…"</code></div>';
+    return;
+  }
+  allSessions = await r.json();
+  renderVerticalFilter();
+  renderSessionList();
+  const params = new URLSearchParams(location.search);
+  const want = params.get('session') ?? allSessions[0]?.session_id;
+  if (want) await loadSession(want);
+}
+
+function renderVerticalFilter() {
+  const verticals = [...new Set(allSessions.map(s => s.vertical_template_id))];
+  const el = document.getElementById('verticalFilter');
+  el.innerHTML = '<span class="pill-toggle ' + (verticalFilter === null ? 'on' : '') + '" data-v="">all</span>' +
+    verticals.map(v => `<span class="pill-toggle ${verticalFilter === v ? 'on' : ''}" data-v="${v}">${v}</span>`).join('');
+  for (const pill of el.querySelectorAll('.pill-toggle')) {
+    pill.onclick = () => {
+      verticalFilter = pill.dataset.v || null;
+      renderVerticalFilter();
+      renderSessionList();
+    };
+  }
+}
+
+function renderSessionList() {
+  const list = document.getElementById('sessionsList');
+  const filtered = verticalFilter
+    ? allSessions.filter(s => s.vertical_template_id === verticalFilter)
+    : allSessions;
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="empty">No sessions match.</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(s => {
+    const delta = ((s.score_after - s.score_before) * 100).toFixed(0);
+    const active = currentSession && currentSession.session_id === s.session_id ? 'active' : '';
+    return `<div class="session-card ${active}" data-id="${s.session_id}">
+      <div class="name">${escapeHtml(s.business_name)}</div>
+      <div class="meta">
+        <span>${s.vertical_template_id}</span>
+        <span class="defects">${s.defects_detected} defects</span>
+        <span class="delta">+${delta} pts</span>
+      </div>
+    </div>`;
+  }).join('');
+  for (const card of list.querySelectorAll('.session-card')) {
+    card.onclick = () => loadSession(card.dataset.id);
+  }
+}
+
+async function loadSession(id) {
+  const r = await fetch(`sessions/${id}/session.json`);
+  if (!r.ok) {
+    document.getElementById('main').innerHTML = `<div class="empty">Session ${escapeHtml(id)} not found.</div>`;
+    return;
+  }
+  currentSession = await r.json();
+  history.replaceState(null, '', `?session=${id}`);
+  renderSessionList();
+  renderSession();
+}
+
+function renderSession() {
+  const s = currentSession;
+  const total = (s.scoreboard.after - s.scoreboard.before) * 100;
+  document.getElementById('sessionMeta').textContent =
+    `${s.session_id} · ${s.events.length} events · ${s.detected_failures.length} defects · +${total.toFixed(0)} pts`;
+
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="session-header">
+      <h1>${escapeHtml(s.enrichment.business_name)}</h1>
+      <span class="vlabel">${escapeHtml(s.enrichment.vertical_label)}</span>
+    </div>
+    <div class="session-sub">
+      ${s.enrichment.website_url ? `<a href="${escapeAttr(s.enrichment.website_url)}">${escapeHtml(s.enrichment.website_url)}</a> · ` : ''}
+      template <code>${escapeHtml(s.vertical_template_id)}</code> · started ${new Date(s.started_at).toLocaleString()}
+    </div>
+
+    <div class="scoreboard">
+      <div class="stat">
+        <div class="label">overall score</div>
+        <div class="value delta">+${total.toFixed(0)} pts</div>
+        <div class="sub">${(s.scoreboard.before*100).toFixed(0)}% → ${(s.scoreboard.after*100).toFixed(0)}%</div>
+      </div>
+      <div class="stat">
+        <div class="label">defects detected</div>
+        <div class="value">${s.detected_failures.length}</div>
+        <div class="sub">across ${new Set(s.detected_failures.map(f=>f.persona_id)).size || 0} personas</div>
+      </div>
+      <div class="stat">
+        <div class="label">fixes proposed</div>
+        <div class="value">${s.prompt_diffs.length}</div>
+        <div class="sub">grouped by mode</div>
+      </div>
+      <div class="stat">
+        <div class="label">regression tests</div>
+        <div class="value">${s.regression_suite_size}</div>
+        <div class="sub">re-runnable</div>
+      </div>
+      <div class="stat">
+        <div class="label">personas</div>
+        <div class="value">${s.persona_calls.length}/5</div>
+        <div class="sub">canonical battery</div>
+      </div>
+    </div>
+
+    <div class="tabs" id="tabs">
+      <div class="tab active" data-pane="timeline">timeline <span class="badge">${s.events.length}</span></div>
+      <div class="tab" data-pane="enrichment">enrichment</div>
+      <div class="tab" data-pane="personas">personas <span class="badge">${s.persona_calls.length}</span></div>
+      <div class="tab" data-pane="defects">defects <span class="badge">${s.detected_failures.length}</span></div>
+      <div class="tab" data-pane="diffs">fix proposals <span class="badge">${s.prompt_diffs.length}</span></div>
+      <div class="tab" data-pane="scoreboard">scoreboard</div>
+      <div class="tab" data-pane="regression">regression suite <span class="badge">${s.regression_suite_size}</span></div>
+      <div class="tab" data-pane="prompt">system prompt</div>
+      <div class="tab" data-pane="compliance">compliance artifact</div>
+    </div>
+
+    <section class="pane active" id="pane-timeline">${renderTimeline(s)}</section>
+    <section class="pane" id="pane-enrichment">${renderEnrichment(s)}</section>
+    <section class="pane" id="pane-personas">${renderPersonas(s)}</section>
+    <section class="pane" id="pane-defects">${renderDefects(s)}</section>
+    <section class="pane" id="pane-diffs">${renderDiffs(s)}</section>
+    <section class="pane" id="pane-scoreboard">${renderScoreboard(s)}</section>
+    <section class="pane" id="pane-regression">${renderRegression(s)}</section>
+    <section class="pane" id="pane-prompt">${renderPrompt(s)}</section>
+    <section class="pane" id="pane-compliance">${renderCompliance(s)}</section>
+  `;
+
+  for (const tab of document.querySelectorAll('#tabs .tab')) {
+    tab.onclick = () => {
+      document.querySelectorAll('#tabs .tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('pane-' + tab.dataset.pane).classList.add('active');
+    };
+  }
+
+  const replayBtn = document.getElementById('replayBtn');
+  if (replayBtn) {
+    replayBtn.onclick = () => replayTimeline(s);
+  }
+}
+
+const GLYPH = {start: '→', ok: '✓', warn: '!', fail: '✗'};
+
+function renderTimeline(s) {
+  return `
+    <div class="timeline-controls">
+      <button id="replayBtn">▶ replay</button>
+      <span>${s.events.length} events · ${((new Date(s.finished_at) - new Date(s.started_at))/1000).toFixed(2)}s total</span>
+    </div>
+    <div class="timeline">
+      ${s.events.map((e,i) => `
+        <div class="ev ${e.status}" data-i="${i}">
+          <div class="t">${e.at.slice(11,19)}</div>
+          <div class="g">${GLYPH[e.status] || '·'}</div>
+          <div class="step">${escapeHtml(e.step)}</div>
+          <div class="detail">${escapeHtml(e.detail)}${e.data ? renderData(e.data) : ''}</div>
+        </div>
+      `).join('')}
+    </div>`;
+}
+
+function renderData(data) {
+  return Object.entries(data).slice(0,3).map(([k,v]) => {
+    const val = Array.isArray(v) ? v.slice(0,3).join(',') + (v.length>3?'…':'') : String(v);
+    return `<span class="data-pill">${escapeHtml(k)}=${escapeHtml(val)}</span>`;
+  }).join('');
+}
+
+function replayTimeline(s) {
+  const evs = document.querySelectorAll('#pane-timeline .ev');
+  evs.forEach(el => el.classList.add('hidden'));
+  let i = 0;
+  const step = () => {
+    if (i >= evs.length) return;
+    evs[i].classList.remove('hidden');
+    evs[i].scrollIntoView({block: 'nearest', behavior: 'smooth'});
+    i++;
+    setTimeout(step, 220);
+  };
+  step();
+}
+
+function renderEnrichment(s) {
+  const e = s.enrichment;
+  return `<div class="enrich-grid">
+    <div class="k">business_name</div><div class="v">${escapeHtml(e.business_name)}</div>
+    <div class="k">vertical_label</div><div class="v">${escapeHtml(e.vertical_label)}</div>
+    <div class="k">category_hint</div><div class="v"><code>${escapeHtml(e.category_hint)}</code></div>
+    <div class="k">website_url</div><div class="v">${e.website_url ? `<a href="${escapeAttr(e.website_url)}">${escapeHtml(e.website_url)}</a>` : '<em>—</em>'}</div>
+    <div class="k">phone</div><div class="v"><code>${escapeHtml(e.phone || '—')}</code></div>
+    <div class="k">service_area</div><div class="v">${escapeHtml(e.service_area)}</div>
+    <div class="k">business_hours</div><div class="v">${escapeHtml(e.business_hours)}</div>
+    <div class="k">services_summary</div><div class="v">${escapeHtml(e.services_summary)}</div>
+    <div class="k">locations</div><div class="v">${(e.locations||[]).map(l=>`<code>${escapeHtml(l)}</code>`).join(' · ') || '<em>—</em>'}</div>
+    <div class="k">sources</div><div class="v">${(e.sources||[]).map(s=>`<span class="source-pill">${escapeHtml(s)}</span>`).join('')}</div>
+    <div class="k">confidence</div><div class="v"><code>${e.confidence.toFixed(2)}</code></div>
+  </div>`;
+}
+
+function renderPersonas(s) {
+  const failuresByPersona = {};
+  for (const f of s.detected_failures) {
+    failuresByPersona[f.persona_id] = (failuresByPersona[f.persona_id] || []);
+    failuresByPersona[f.persona_id].push(f);
+  }
+  return s.persona_calls.map(call => {
+    const fs = failuresByPersona[call.persona_id] || [];
+    return `<div class="persona-row">
+      <div class="persona-header">
+        <span class="name">${escapeHtml(call.persona_name)}</span>
+        <span class="stats">
+          TTFB <code>${call.ttfb_ms || '—'}ms</code> ·
+          defects <span class="${fs.length ? 'bad' : 'ok'}">${fs.length}</span>
+        </span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript-col before">
+          <div class="label">before · raw agent</div>
+          ${call.turns.map((t,i) => renderTurn(t, i, fs)).join('')}
+        </div>
+        <div class="transcript-col after">
+          <div class="label">after · fixes applied</div>
+          <div class="turn"><em style="color:var(--ink-2);font-size:11px">(replay against the new prompt; see after-calls.json)</em></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderTurn(turn, index, failures) {
+  let text = escapeHtml(turn.text);
+  for (const f of failures) {
+    if (f.evidence.turn_index === index && f.evidence.matched_phrase) {
+      const phrase = escapeHtml(f.evidence.matched_phrase);
+      text = text.replace(phrase, `<mark title="${escapeAttr(f.mode_id)}">${phrase}</mark>`);
+    }
+  }
+  const tools = (turn.tool_calls || []).map(tc =>
+    `<span class="tool">tool:${escapeHtml(tc.tool)}=${escapeHtml(tc.status)}</span>`
+  ).join('');
+  return `<div class="turn ${turn.role}"><span class="who">${turn.role}:</span>${text}${tools}</div>`;
+}
+
+function renderDefects(s) {
+  if (s.detected_failures.length === 0) {
+    return '<div class="empty">No defects detected on this run. 🎯</div>';
+  }
+  const sorted = [...s.detected_failures].sort((a,b) => SEV_ORDER[a.severity] - SEV_ORDER[b.severity]);
+  return sorted.map(f => `
+    <div class="defect-card">
+      <div class="sev ${f.severity}">${f.severity.toUpperCase()}</div>
+      <div class="mode">${escapeHtml(f.mode_id)}<span class="persona">caught on ${escapeHtml(f.persona_id)}</span></div>
+      <div class="evidence">heard: <code>${escapeHtml(f.evidence.matched_phrase || f.evidence.surrounding_text.slice(0,80))}</code></div>
+    </div>
+  `).join('');
+}
+
+function renderDiffs(s) {
+  if (s.prompt_diffs.length === 0) {
+    return '<div class="empty">No fix proposals needed on this run.</div>';
+  }
+  return s.prompt_diffs.map(d => `
+    <div class="diff-card">
+      <div class="field">${escapeHtml(d.field)}</div>
+      <div class="title">${escapeHtml(d.rationale_plain_language.split('.')[0])}</div>
+      <div class="rationale">${escapeHtml(d.rationale_plain_language)}</div>
+      <div class="after">${escapeHtml(d.after_excerpt)}</div>
+      <div class="modes">${d.related_failure_mode_ids.map(m => `<span class="mode-pill">${escapeHtml(m)}</span>`).join('')}</div>
+    </div>
+  `).join('');
+}
+
+function renderScoreboard(s) {
+  const dims = s.scoreboard.dimensions;
+  return `<table class="rubric-table">
+    <thead><tr><th>dimension</th><th>before</th><th>after</th><th>Δ</th></tr></thead>
+    <tbody>
+      ${dims.map(d => `
+        <tr>
+          <td>${escapeHtml(d.dimension)}</td>
+          <td class="num">${(d.before*100).toFixed(0)}% <span class="bar-wrap"><span class="bar before" style="width:${(d.before*100).toFixed(0)}%"></span></span></td>
+          <td class="num">${(d.after*100).toFixed(0)}% <span class="bar-wrap"><span class="bar" style="width:${(d.after*100).toFixed(0)}%"></span></span></td>
+          <td class="num delta">+${((d.after - d.before)*100).toFixed(0)}</td>
+        </tr>
+      `).join('')}
+      <tr style="background:var(--bg-1);font-weight:600">
+        <td>overall</td>
+        <td class="num">${(s.scoreboard.before*100).toFixed(0)}%</td>
+        <td class="num">${(s.scoreboard.after*100).toFixed(0)}%</td>
+        <td class="num delta">+${((s.scoreboard.after - s.scoreboard.before)*100).toFixed(0)}</td>
+      </tr>
+    </tbody>
+  </table>`;
+}
+
+async function renderRegression(s) {
+  const id = s.session_id;
+  setTimeout(async () => {
+    try {
+      const r = await fetch(`sessions/${id}/regression-suite.json`);
+      if (!r.ok) return;
+      const tests = await r.json();
+      const el = document.getElementById('pane-regression');
+      if (!el) return;
+      el.innerHTML = `<div style="margin-bottom:12px;color:var(--ink-2);font-size:12px;font-family:var(--mono)">
+        ${tests.length} regression tests captured · runnable via <code>voice-evals factory execute --bundle sessions/${id}/regression-suite.json</code>
+      </div>` + tests.map(t => `
+        <div class="reg-card">
+          <div class="id">${escapeHtml(t.test_id)}</div>
+          <div class="kind">${escapeHtml(t.kind)}</div>
+          <div class="body">${escapeHtml(t.assertion || (t.assertions ? t.assertions.length + ' dimensions' : ''))}</div>
+        </div>
+      `).join('');
+    } catch {}
+  }, 30);
+  return `<div class="empty">loading regression suite…</div>`;
+}
+
+function renderPrompt(s) {
+  const id = s.session_id;
+  setTimeout(async () => {
+    try {
+      const r = await fetch(`sessions/${id}/system-prompt.md`);
+      if (!r.ok) return;
+      const text = await r.text();
+      const el = document.getElementById('pane-prompt');
+      if (!el) return;
+      el.innerHTML = `<pre class="prompt-pre">${escapeHtml(text)}</pre>`;
+    } catch {}
+  }, 30);
+  return `<div class="empty">loading rendered system prompt…</div>`;
+}
+
+function renderCompliance(s) {
+  return `<div class="compliance-frame"><iframe src="sessions/${s.session_id}/compliance.html"></iframe></div>
+    <div style="margin-top:10px;color:var(--ink-2);font-size:12px;font-family:var(--mono)">
+      Print this iframe to PDF for the hand-to-lawyer artifact. Layout is A4 print-tuned.
+    </div>`;
+}
+
+function escapeHtml(v) {
+  return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+function escapeAttr(v) { return escapeHtml(v); }
+
+loadIndex();
+</script>
+
+</body>
+</html>

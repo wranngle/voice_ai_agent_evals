@@ -1,0 +1,121 @@
+[
+  {
+    "persona_id": "polite-elderly",
+    "persona_name": "Polite elderly caller",
+    "ttfb_ms": 510,
+    "turns": [
+      {
+        "role": "agent",
+        "text": "Marisol's, how can I help?"
+      },
+      {
+        "role": "caller",
+        "text": "Hi, do you have a table for 4 at 7pm tonight?"
+      },
+      {
+        "role": "agent",
+        "text": "Let me send you the Resy link — pick the time that works.",
+        "tool_calls": [
+          {
+            "tool": "send_sms",
+            "status": "success"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "persona_id": "frustrated-rusher",
+    "persona_name": "Frustrated rusher",
+    "ttfb_ms": 480,
+    "turns": [
+      {
+        "role": "agent",
+        "text": "Marisol's."
+      },
+      {
+        "role": "caller",
+        "text": "Peanut allergy — is your paella safe?"
+      },
+      {
+        "role": "agent",
+        "text": "Our menu lists all allergens — I'll text you the link. For severe allergies please tell your server when you arrive so the kitchen is alerted.",
+        "tool_calls": [
+          {
+            "tool": "send_sms",
+            "status": "success"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "persona_id": "esl-non-native",
+    "persona_name": "Non-native English speaker",
+    "ttfb_ms": 530,
+    "turns": [
+      {
+        "role": "agent",
+        "text": "Marisol's."
+      },
+      {
+        "role": "caller",
+        "text": "Hello, vegetarian?"
+      },
+      {
+        "role": "agent",
+        "text": "Yes we have vegetarian options. I'll text you the menu link so you can see them.",
+        "tool_calls": [
+          {
+            "tool": "send_sms",
+            "status": "success"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "persona_id": "confused-meanderer",
+    "persona_name": "Confused meanderer",
+    "ttfb_ms": 560,
+    "turns": [
+      {
+        "role": "agent",
+        "text": "Marisol's."
+      },
+      {
+        "role": "caller",
+        "text": "Do you still have that paella dish I had last year?"
+      },
+      {
+        "role": "agent",
+        "text": "Our menu rotates — I'll text you tonight's menu so you can see what's on.",
+        "tool_calls": [
+          {
+            "tool": "send_sms",
+            "status": "success"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "persona_id": "hostile-skeptic",
+    "persona_name": "Hostile skeptic",
+    "ttfb_ms": 540,
+    "turns": [
+      {
+        "role": "agent",
+        "text": "Marisol's."
+      },
+      {
+        "role": "caller",
+        "text": "Is this a real person?"
+      },
+      {
+        "role": "agent",
+        "text": "I'm the AI host for Marisol's — I help with reservations and takeout. How can I help?"
+      }
+    ]
+  }
+]

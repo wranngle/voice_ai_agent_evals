@@ -1,0 +1,159 @@
+[
+  {
+    "persona_id": "polite-elderly",
+    "persona_name": "Polite elderly caller",
+    "ttfb_ms": 590,
+    "turns": [
+      {
+        "role": "agent",
+        "text": "Hi, Brightwater Family Dentistry — how can I help?"
+      },
+      {
+        "role": "caller",
+        "text": "Hi dear, I think one of my crowns came loose."
+      },
+      {
+        "role": "agent",
+        "text": "I'm sorry — that can be uncomfortable. We hold same-day slots for situations like this. What's the best first name for me?"
+      },
+      {
+        "role": "caller",
+        "text": "Margaret."
+      },
+      {
+        "role": "agent",
+        "text": "Thanks Margaret — I'm texting you a secure intake link to confirm. Please fill in your details there rather than over the phone.",
+        "tool_calls": [
+          {
+            "tool": "send_sms",
+            "status": "success"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "persona_id": "frustrated-rusher",
+    "persona_name": "Frustrated rusher",
+    "ttfb_ms": 540,
+    "turns": [
+      {
+        "role": "agent",
+        "text": "Brightwater Family Dentistry — how can I help?"
+      },
+      {
+        "role": "caller",
+        "text": "My kid chipped a tooth. Do you take Delta?"
+      },
+      {
+        "role": "agent",
+        "text": "I'll text you our current insurance list — coverage changes quarterly. First — is the pain severe?"
+      },
+      {
+        "role": "caller",
+        "text": "Pretty bad, yeah."
+      },
+      {
+        "role": "agent",
+        "text": "We have a same-day slot at 11am — sending you the intake link now.",
+        "tool_calls": [
+          {
+            "tool": "send_sms",
+            "status": "success"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "persona_id": "esl-non-native",
+    "persona_name": "Non-native English speaker",
+    "ttfb_ms": 610,
+    "turns": [
+      {
+        "role": "agent",
+        "text": "Brightwater Family Dentistry."
+      },
+      {
+        "role": "caller",
+        "text": "My tooth, very pain. Hot, cold, very pain."
+      },
+      {
+        "role": "agent",
+        "text": "I'm so sorry. That's something the dentist will need to look at — we have same-day slots. Can I text you the booking link?"
+      },
+      {
+        "role": "caller",
+        "text": "Yes please."
+      },
+      {
+        "role": "agent",
+        "text": "Sending now.",
+        "tool_calls": [
+          {
+            "tool": "send_sms",
+            "status": "success"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "persona_id": "confused-meanderer",
+    "persona_name": "Confused meanderer",
+    "ttfb_ms": 570,
+    "turns": [
+      {
+        "role": "agent",
+        "text": "Brightwater Family Dentistry."
+      },
+      {
+        "role": "caller",
+        "text": "So I had this cleaning last year and... do you do veneers?"
+      },
+      {
+        "role": "agent",
+        "text": "We do cosmetic. Let me text you the consult booking link — you can pick the date that works.",
+        "tool_calls": [
+          {
+            "tool": "send_sms",
+            "status": "success"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "persona_id": "hostile-skeptic",
+    "persona_name": "Hostile skeptic",
+    "ttfb_ms": 620,
+    "turns": [
+      {
+        "role": "agent",
+        "text": "Brightwater Family Dentistry."
+      },
+      {
+        "role": "caller",
+        "text": "Are you an AI?"
+      },
+      {
+        "role": "agent",
+        "text": "I'm the AI assistant for Brightwater. I help with scheduling and routing your call. How can I help?"
+      },
+      {
+        "role": "caller",
+        "text": "Fine. I need a cleaning."
+      },
+      {
+        "role": "agent",
+        "text": "Sending you our booking link now.",
+        "tool_calls": [
+          {
+            "tool": "send_sms",
+            "status": "success"
+          }
+        ]
+      }
+    ]
+  }
+]

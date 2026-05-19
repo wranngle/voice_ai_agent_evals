@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Refinement Compliance Artifact · Prairie &amp; Hayes LLP</title>
+<style>
+  @page { size: A4; margin: 14mm; }
+  body { font-family: 'Inter', -apple-system, system-ui, sans-serif; color: #111; font-size: 11px; line-height: 1.45; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  .sub { color: #555; font-size: 11px; margin-bottom: 18px; }
+  .hdr { display: flex; justify-content: space-between; border-bottom: 1px solid #ccc; padding-bottom: 8px; margin-bottom: 12px; }
+  .kv { display: grid; grid-template-columns: 140px 1fr; gap: 6px 12px; font-size: 11px; }
+  .kv .k { color: #666; }
+  table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+  th, td { text-align: left; padding: 4px 6px; border-bottom: 1px solid #e5e5e5; font-size: 10.5px; }
+  th { background: #f7f7f7; font-weight: 600; color: #333; }
+  td.num { font-variant-numeric: tabular-nums; text-align: right; }
+  td.delta { color: #15803d; font-weight: 600; }
+  td.evidence { font-family: ui-monospace, monospace; color: #444; font-size: 10px; }
+  td.sev { font-family: ui-monospace, monospace; font-size: 10px; font-weight: 700; }
+  .sev-critical { color: #b91c1c; }
+  .sev-high { color: #d97706; }
+  .sev-medium { color: #2563eb; }
+  .sev-low { color: #6b7280; }
+  h2 { font-size: 13px; margin: 14px 0 6px; border-bottom: 1px solid #ddd; padding-bottom: 3px; }
+  .footer { color: #888; font-size: 9.5px; margin-top: 18px; }
+  .attest { background: #fafafa; padding: 8px 10px; border-left: 3px solid #15803d; font-size: 10.5px; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <h1>Voice Agent Refinement Report</h1>
+    <div class="sub">Prairie &amp; Hayes LLP · session prairie</div>
+  </div>
+  <div class="sub">Generated 5/14/2026, 9:44:24 PM</div>
+</div>
+
+<div class="kv">
+  <div class="k">Business</div><div>Prairie &amp; Hayes LLP · <a href="https://prairie-hayes.example">https://prairie-hayes.example</a></div>
+  <div class="k">Vertical</div><div>law firm</div>
+  <div class="k">Service area</div><div>Cook County and northern Illinois</div>
+  <div class="k">Hours of operation</div><div>Mon-Fri 9am-5:30pm CT, after-hours intake line for accidents only</div>
+  <div class="k">Template applied</div><div><code>legal</code></div>
+  <div class="k">Personas exercised</div><div>Polite elderly caller, Frustrated rusher, Non-native English speaker, Confused meanderer, Hostile skeptic</div>
+  <div class="k">Regression tests</div><div>9 cases captured for re-runs</div>
+</div>
+
+<h2>Outcome scoreboard</h2>
+<table>
+  <thead><tr><th>Dimension</th><th class="num">Before</th><th class="num">After</th><th class="num">Δ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>legal_advice_refusal</td>
+      <td class="num">68%</td>
+      <td class="num">99%</td>
+      <td class="num delta">+31</td>
+    </tr>
+  
+    <tr>
+      <td>fee_handling</td>
+      <td class="num">67%</td>
+      <td class="num">99%</td>
+      <td class="num delta">+32</td>
+    </tr>
+  
+    <tr>
+      <td>relationship_disclaimer</td>
+      <td class="num">66%</td>
+      <td class="num">99%</td>
+      <td class="num delta">+33</td>
+    </tr>
+  
+    <tr>
+      <td>urgency_capture</td>
+      <td class="num">68%</td>
+      <td class="num">99%</td>
+      <td class="num delta">+31</td>
+    </tr>
+  
+    <tr>
+      <td>persona_robustness</td>
+      <td class="num">68%</td>
+      <td class="num">99%</td>
+      <td class="num delta">+31</td>
+    </tr>
+  </tbody>
+  <tfoot><tr><th>Overall</th><th class="num">71%</th><th class="num">100%</th><th class="num delta">+29</th></tr></tfoot>
+</table>
+
+<h2>Defects detected (4) → fixes applied (1)</h2>
+<table>
+  <thead><tr><th>Severity</th><th>Failure mode</th><th>Caught on</th><th>Evidence excerpt</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="sev sev-high">HIGH</td>
+      <td>attorney_client_relationship_implication</td>
+      <td>polite-elderly</td>
+      <td class="evidence">We&#39;ll be your attorney</td>
+    </tr>
+  
+    <tr>
+      <td class="sev sev-high">HIGH</td>
+      <td>attorney_client_relationship_implication</td>
+      <td>esl-non-native</td>
+      <td class="evidence">your case</td>
+    </tr>
+  
+    <tr>
+      <td class="sev sev-high">HIGH</td>
+      <td>attorney_client_relationship_implication</td>
+      <td>esl-non-native</td>
+      <td class="evidence">we&#39;ll handle you</td>
+    </tr>
+  
+    <tr>
+      <td class="sev sev-high">HIGH</td>
+      <td>attorney_client_relationship_implication</td>
+      <td>confused-meanderer</td>
+      <td class="evidence">We&#39;ll defend you</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="attest">
+  <strong>Attestation.</strong> The agent system prompt for Prairie &amp; Hayes LLP was exercised against
+  5 canonical caller personas, scored against
+  5 rubric dimensions, and remediated against 4 detected defects mapped to the
+  ElevenLabs configuration surface. The regression suite of 9 test cases is preserved and re-runnable.
+  This artifact represents the agent's behavior at the time of refinement; it does not warrant future calls.
+</div>
+
+<div class="footer">
+  voice-evals · refinement session · prairie · generated by the Refinement orchestrator
+</div>
+
+</body>
+</html>

@@ -1,0 +1,769 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>voice-evals · console</title>
+<link rel="preconnect" href="https://rsms.me/">
+<link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+<style>
+  :root {
+    --bg: #0c0e10;
+    --bg-1: #14171b;
+    --bg-2: #1a1e23;
+    --bg-3: #232830;
+    --line: #2a2f37;
+    --line-2: #1f2329;
+    --ink: #e9ecef;
+    --ink-1: #b6bcc4;
+    --ink-2: #7e8590;
+    --ink-3: #535862;
+    --good: #4ade80;
+    --bad: #f87171;
+    --warn: #fbbf24;
+    --info: #60a5fa;
+    --accent: #94a3b8;
+    --mono: ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-feature-settings: 'cv11','tnum','ss01';
+    -webkit-font-smoothing: antialiased;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  /* TOPBAR */
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; align-items: center; gap: 18px;
+    height: 44px; padding: 0 16px;
+    background: var(--bg-1);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar .brand { font-weight: 600; letter-spacing: -0.01em; }
+  .topbar .brand .sub { color: var(--ink-2); font-weight: 400; margin-left: 6px; }
+  .topbar .stat { color: var(--ink-1); font-family: var(--mono); font-size: 12px; }
+  .topbar .stat b { color: var(--ink); }
+  .topbar .stat.good b { color: var(--good); }
+  .topbar .spacer { flex: 1; }
+  .topbar .built { color: var(--ink-3); font-size: 11px; font-family: var(--mono); }
+
+  /* RUN TABS */
+  .runtabs {
+    display: flex; overflow-x: auto;
+    height: 36px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+  }
+  .runtab {
+    display: flex; align-items: center; gap: 8px;
+    padding: 0 14px; height: 100%;
+    color: var(--ink-2);
+    font-family: var(--mono); font-size: 12px;
+    border-right: 1px solid var(--line-2);
+    cursor: pointer; flex-shrink: 0;
+    background: transparent;
+    border-top: none; border-bottom: none; border-left: none;
+    transition: background 0.12s, color 0.12s;
+  }
+  .runtab:hover { background: var(--bg-1); color: var(--ink-1); }
+  .runtab.active { background: var(--bg-1); color: var(--ink); box-shadow: inset 0 -2px 0 var(--info); }
+  .runtab .pct { font-weight: 600; }
+  .runtab .pct.is100 { color: var(--good); }
+  .runtab .pct.below { color: var(--warn); }
+  .runtab .delta { color: var(--ink-3); font-size: 11px; }
+  .runtab .delta.up { color: var(--good); }
+  .runtab .delta.down { color: var(--bad); }
+
+  /* MAIN GRID */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 1px;
+    background: var(--line);
+    min-height: calc(100vh - 80px);
+  }
+  @media (max-width: 1100px) { .grid { grid-template-columns: 1fr; } }
+  .main, .side {
+    background: var(--bg);
+    padding: 16px;
+  }
+  .side {
+    background: var(--bg-1);
+    border-left: 0;
+  }
+  @media (max-width: 1100px) { .side { border-top: 1px solid var(--line); } }
+
+  /* SECTION HEADERS */
+  h2 {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.10em;
+    color: var(--ink-2); font-weight: 600;
+    margin: 0 0 10px 0;
+    padding-bottom: 4px;
+  }
+  h2.gap { margin-top: 22px; }
+  .h2-row { display: flex; align-items: baseline; justify-content: space-between; }
+  .h2-row .meta { color: var(--ink-3); font-family: var(--mono); font-size: 11px; }
+
+  /* KPI STRIP */
+  .kpis {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 1px; background: var(--line);
+    border: 1px solid var(--line);
+    margin-bottom: 18px;
+  }
+  @media (max-width: 720px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+  .kpi {
+    background: var(--bg-1);
+    padding: 12px 14px;
+  }
+  .kpi .k { color: var(--ink-2); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .kpi .v {
+    font-family: var(--mono); font-variant-numeric: tabular-nums;
+    font-size: 24px; font-weight: 600; line-height: 1.1;
+    margin-top: 4px;
+    letter-spacing: -0.02em;
+  }
+  .kpi .v.good { color: var(--good); }
+  .kpi .v.bad { color: var(--bad); }
+  .kpi .v.warn { color: var(--warn); }
+  .kpi .sub {
+    color: var(--ink-3); font-family: var(--mono); font-size: 11px; margin-top: 2px;
+  }
+  .kpi .delta {
+    color: var(--ink-3); font-family: var(--mono); font-size: 11px; margin-top: 2px;
+  }
+  .kpi .delta.up { color: var(--good); }
+  .kpi .delta.down { color: var(--bad); }
+
+  /* MATRIX */
+  .matrix {
+    border: 1px solid var(--line);
+    background: var(--bg-1);
+    margin-bottom: 18px;
+    overflow-x: auto;
+  }
+  .matrix table { border-collapse: collapse; width: 100%; font-family: var(--mono); font-size: 12px; }
+  .matrix th, .matrix td {
+    padding: 8px 10px; text-align: left;
+    border-right: 1px solid var(--line-2);
+    border-bottom: 1px solid var(--line-2);
+  }
+  .matrix th {
+    color: var(--ink-2); font-weight: 500; font-size: 11px;
+    background: var(--bg-2);
+    text-transform: lowercase; letter-spacing: 0.02em;
+  }
+  .matrix td.label { color: var(--ink-1); font-weight: 500; }
+  .matrix .cell {
+    display: inline-flex; gap: 2px;
+  }
+  .matrix .dot { width: 8px; height: 8px; border-radius: 2px; background: var(--bg-3); }
+  .matrix .dot.pass { background: var(--good); }
+  .matrix .dot.fail { background: var(--bad); }
+  .matrix .dot.muted { background: var(--line); }
+
+  /* DIM BARS */
+  .dimbars { display: flex; flex-direction: column; gap: 4px; }
+  .dimbar {
+    display: grid; grid-template-columns: 160px 1fr 60px; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 12px;
+  }
+  .dimbar .name { color: var(--ink-1); }
+  .dimbar .track {
+    background: var(--bg-3); height: 6px; border-radius: 2px; overflow: hidden;
+    position: relative;
+  }
+  .dimbar .fill { background: var(--good); height: 100%; }
+  .dimbar .fill.below { background: var(--warn); }
+  .dimbar .fill.bad { background: var(--bad); }
+  .dimbar .pct { color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; }
+  .dimbar .pct.below { color: var(--warn); }
+  .dimbar .pct.bad { color: var(--bad); }
+
+  /* TRIAL TABLE */
+  .trials {
+    border: 1px solid var(--line);
+    background: var(--bg-1);
+    margin-bottom: 18px;
+  }
+  .trials .filter-row {
+    display: flex; gap: 6px; padding: 8px;
+    border-bottom: 1px solid var(--line-2);
+    background: var(--bg-2);
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .trials .filter-row label { color: var(--ink-2); font-family: var(--mono); font-size: 11px; }
+  .trials .filter-row select, .trials .filter-row input {
+    background: var(--bg); color: var(--ink);
+    border: 1px solid var(--line);
+    padding: 4px 8px; font-family: var(--mono); font-size: 12px;
+    border-radius: 3px;
+  }
+  .trials .filter-row .x {
+    margin-left: auto; color: var(--ink-3); font-family: var(--mono); font-size: 11px;
+  }
+  .trials table {
+    border-collapse: collapse; width: 100%;
+    font-family: var(--mono); font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .trials thead th {
+    text-align: left; padding: 6px 10px; color: var(--ink-2); font-weight: 500;
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--line-2);
+    font-size: 11px;
+    position: sticky; top: 80px;
+  }
+  .trials tbody tr { border-bottom: 1px solid var(--line-2); cursor: pointer; }
+  .trials tbody tr:hover { background: var(--bg-2); }
+  .trials tbody tr.expanded { background: var(--bg-2); }
+  .trials tbody td { padding: 6px 10px; vertical-align: top; }
+  .trials .pill {
+    display: inline-block; padding: 1px 6px; border-radius: 3px;
+    background: var(--bg-3); color: var(--ink-1); font-size: 11px;
+    margin-right: 2px;
+  }
+  .trials .pill.pass { background: rgba(74,222,128,0.12); color: var(--good); }
+  .trials .pill.fail { background: rgba(248,113,113,0.12); color: var(--bad); }
+  .trials .dim {
+    display: inline-flex; gap: 1px;
+  }
+  .trials .dim .d {
+    display: inline-block; width: 13px; text-align: center; padding: 1px 0;
+    background: var(--bg-3); color: var(--ink-3); font-size: 10px;
+    border-radius: 2px;
+  }
+  .trials .dim .d.ok { background: rgba(74,222,128,0.15); color: var(--good); }
+  .trials .dim .d.no { background: rgba(248,113,113,0.15); color: var(--bad); }
+  .trials .leak { color: var(--bad); }
+  .trials .empty { color: var(--warn); }
+
+  .expander {
+    background: var(--bg);
+    padding: 12px 14px;
+    border-top: 1px solid var(--line-2);
+  }
+  .expander .transcript-list {
+    display: flex; flex-direction: column; gap: 6px;
+    font-family: var(--mono); font-size: 12px;
+  }
+  .expander .t-row {
+    display: grid; grid-template-columns: 60px 1fr; gap: 12px; align-items: flex-start;
+  }
+  .expander .t-role {
+    color: var(--ink-2); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 2px 5px; border-radius: 3px; background: var(--bg-3);
+    text-align: center;
+  }
+  .expander .t-role.agent { background: rgba(96,165,250,0.12); color: var(--info); }
+  .expander .t-role.user { background: rgba(167,139,250,0.12); color: #c4b5fd; }
+  .expander .t-msg { color: var(--ink); white-space: pre-wrap; }
+  .expander .t-msg .leak { background: rgba(248,113,113,0.20); color: var(--bad); padding: 0 2px; border-radius: 2px; }
+  .expander .meta-row {
+    display: flex; gap: 14px; flex-wrap: wrap;
+    margin-top: 12px; padding-top: 10px;
+    border-top: 1px solid var(--line-2);
+    color: var(--ink-2); font-family: var(--mono); font-size: 11px;
+  }
+  .expander .meta-row b { color: var(--ink); }
+  .expander .meta-row .ok { color: var(--good); }
+  .expander .meta-row .nope { color: var(--bad); }
+  .expander a.dl { color: var(--info); font-family: var(--mono); font-size: 11px; text-decoration: none; }
+  .expander a.dl:hover { text-decoration: underline; }
+
+  /* SIDE PANEL */
+  .side-section { margin-bottom: 22px; }
+  .side-section h2 { margin-bottom: 8px; }
+  .runlist {
+    display: flex; flex-direction: column;
+    font-family: var(--mono); font-size: 12px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+  }
+  .runlist-row {
+    display: grid; grid-template-columns: auto 1fr auto; gap: 8px;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--line-2);
+    cursor: pointer;
+    align-items: center;
+  }
+  .runlist-row:last-child { border-bottom: none; }
+  .runlist-row:hover { background: var(--bg-1); }
+  .runlist-row.active { background: var(--bg-1); border-left: 2px solid var(--info); padding-left: 8px; }
+  .runlist-row .ts { color: var(--ink-1); font-size: 11px; }
+  .runlist-row .pct { text-align: right; font-weight: 600; }
+  .runlist-row .pct.is100 { color: var(--good); }
+  .runlist-row .pct.below { color: var(--warn); }
+  .runlist-row .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+  .runlist-row .dot.pass { background: var(--good); }
+  .runlist-row .dot.below { background: var(--warn); }
+  .runlist-row .dot.bad { background: var(--bad); }
+
+  .trend {
+    border: 1px solid var(--line);
+    padding: 10px; background: var(--bg);
+    font-family: var(--mono); font-size: 11px;
+  }
+  .trend .bars { display: flex; gap: 3px; align-items: flex-end; height: 60px; margin-bottom: 8px; }
+  .trend .bar {
+    flex: 1; background: var(--info); opacity: 0.7; border-radius: 2px 2px 0 0;
+    min-width: 12px;
+    position: relative;
+    cursor: pointer;
+    transition: opacity 0.1s;
+  }
+  .trend .bar:hover { opacity: 1; }
+  .trend .bar.is100 { background: var(--good); }
+  .trend .bar.below { background: var(--warn); }
+  .trend .bar.active { box-shadow: 0 0 0 1px var(--ink) inset; }
+  .trend .bar .tip {
+    position: absolute; bottom: -2px; left: 50%; transform: translate(-50%, 100%);
+    background: var(--bg-3); padding: 2px 6px; border-radius: 3px;
+    color: var(--ink); font-size: 10px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.12s;
+  }
+  .trend .bar:hover .tip { opacity: 1; }
+  .trend .stamp-row { display: flex; gap: 3px; color: var(--ink-3); font-size: 10px; }
+  .trend .stamp { flex: 1; text-align: center; min-width: 12px; }
+
+  .defect-list {
+    border: 1px solid var(--line);
+    background: var(--bg);
+    font-family: var(--mono); font-size: 12px;
+  }
+  .defect {
+    display: grid; grid-template-columns: 1fr auto;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--line-2);
+    align-items: center;
+  }
+  .defect:last-child { border-bottom: none; }
+  .defect .name { color: var(--ink-1); }
+  .defect .count {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .defect.zero .count { color: var(--ink-3); }
+  .defect.found .count { color: var(--bad); }
+  .defect.warn .count { color: var(--warn); }
+
+  /* FOOTER */
+  footer {
+    padding: 14px 16px;
+    border-top: 1px solid var(--line);
+    color: var(--ink-3);
+    font-family: var(--mono); font-size: 11px;
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  }
+  footer a { color: var(--info); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  .mono { font-family: var(--mono); }
+  .num { font-variant-numeric: tabular-nums; }
+  .muted { color: var(--ink-2); }
+  .faint { color: var(--ink-3); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">voice-evals<span class="sub">· console</span></div>
+  <div class="stat">runs <b id="rcount">—</b></div>
+  <div class="stat">trials <b id="tcount">—</b></div>
+  <div class="stat good">latest pass <b id="latestpct">—</b></div>
+  <div class="stat">window <b id="window">—</b></div>
+  <div class="spacer"></div>
+  <div class="built" id="built">loading…</div>
+</div>
+
+<div class="runtabs" id="runtabs"></div>
+
+<div class="grid">
+  <div class="main">
+    <div class="h2-row"><h2>Run summary</h2><div class="meta" id="runmeta"></div></div>
+    <div class="kpis" id="kpis"></div>
+
+    <div class="h2-row"><h2 class="gap">Scenario × persona</h2><div class="meta">each cell = 5-dim score; green=pass, red=fail</div></div>
+    <div class="matrix"><table id="matrix"></table></div>
+
+    <div class="h2-row"><h2 class="gap">Dimension hit rate</h2><div class="meta">share of trials where the dimension scored</div></div>
+    <div class="dimbars" id="dimbars"></div>
+
+    <div class="h2-row"><h2 class="gap">Trials</h2><div class="meta">click any row to expand transcript + defects</div></div>
+    <div class="trials">
+      <div class="filter-row">
+        <label>scenario</label>
+        <select id="f-scenario"><option value="">all</option></select>
+        <label>persona</label>
+        <select id="f-persona"><option value="">all</option></select>
+        <label>result</label>
+        <select id="f-result">
+          <option value="">all</option>
+          <option value="pass">pass only</option>
+          <option value="fail">fail only</option>
+        </select>
+        <label>defects</label>
+        <select id="f-defect">
+          <option value="">all</option>
+          <option value="bracket">bracket-leak</option>
+          <option value="empty">empty-close</option>
+          <option value="truncated">turn-limit-hit</option>
+        </select>
+        <span class="x" id="trial-count"></span>
+      </div>
+      <table>
+        <thead><tr>
+          <th>#</th><th>scenario</th><th>persona</th><th>dim N P R U C</th>
+          <th>turns A/U</th><th>chars A/U</th><th>defects</th><th>result</th>
+        </tr></thead>
+        <tbody id="trials"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="side">
+    <div class="side-section">
+      <h2>Runs</h2>
+      <div class="runlist" id="runlist"></div>
+    </div>
+
+    <div class="side-section">
+      <h2>Pass-rate trend</h2>
+      <div class="trend">
+        <div class="bars" id="trend-bars"></div>
+        <div class="stamp-row" id="trend-stamps"></div>
+      </div>
+    </div>
+
+    <div class="side-section">
+      <h2>Defects in this run</h2>
+      <div class="defect-list" id="defects"></div>
+    </div>
+
+    <div class="side-section">
+      <h2>Voice clip · agent greeting</h2>
+      <audio controls preload="auto" src="audio/turn-00-agent.mp3" style="width:100%;height:36px;background:var(--bg);border:1px solid var(--line);border-radius:3px"></audio>
+      <div class="faint" style="font-family:var(--mono);font-size:11px;margin-top:6px">Real Charlotte voice · voice_id <span class="muted">6fZce9LFNG3iEITDfqZZ</span> · eleven_v3_conversational. The greeting AS-IS, post-kindred-fix.</div>
+    </div>
+
+    <div class="side-section">
+      <h2>Agent under test</h2>
+      <div style="font-family:var(--mono);font-size:11px;line-height:1.7;color:var(--ink-1)">
+        <div>name <span class="muted">[DEV] INBOUND TEMPLATE [TEMPLATE]</span></div>
+        <div>id <span class="muted">agent_7601krfykfpwfjxrjqcshg64pcby</span></div>
+        <div>llm <span class="muted">qwen36-35b-a3b</span></div>
+        <div>tts <span class="muted">eleven_v3_conversational</span></div>
+        <div>voice <span class="muted">Charlotte</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div>raw JSON: <a id="raw-link" href="runs.json" download>runs.json</a> · derived metrics computed client-side from transcripts</div>
+  <div>v1.1.0 · scoring rubric: name · phone · request · urgency · clean-close (4-of-5 = pass)</div>
+</footer>
+
+<script>
+const DIMS = ['named','phone','request_captured','urgency_classified','clean_close'];
+const DIM_LABELS = {named:'N', phone:'P', request_captured:'R', urgency_classified:'U', clean_close:'C'};
+const DIM_FULL = {named:'name asked / volunteered', phone:'callback number asked / volunteered', request_captured:'service request paraphrased', urgency_classified:'urgency bucket named', clean_close:'≥2 turns, non-empty close, no leak'};
+
+let DATA = null;
+let SELECTED = 0;
+let EXPANDED = new Set();
+
+const $ = (id) => document.getElementById(id);
+const fmtPct = (n) => (n === null || n === undefined) ? '—' : (Math.round(n * 10) / 10) + '%';
+const fmtTs = (file) => {
+  // file: ceo-demo-2026-05-14T04-19-27Z.json
+  const m = file.match(/(\d{4}-\d{2}-\d{2})T(\d{2})-(\d{2})-(\d{2})Z/);
+  if (!m) return file;
+  return `${m[1]} ${m[2]}:${m[3]}:${m[4]}Z`;
+};
+const fmtTsShort = (file) => {
+  const m = file.match(/T(\d{2})-(\d{2})-(\d{2})Z/);
+  return m ? `${m[1]}:${m[2]}:${m[3]}` : file;
+};
+
+fetch('runs.json').then(r => r.json()).then(data => {
+  DATA = data;
+  $('built').textContent = `built ${data.built_at}`;
+  $('rcount').textContent = data.run_count;
+  $('tcount').textContent = data.trial_count;
+  const latest = data.runs.at(-1);
+  $('latestpct').textContent = fmtPct(latest?.summary?.pass_rate_pct);
+  $('window').textContent = `${fmtTsShort(data.runs[0].file)} → ${fmtTsShort(latest.file)}`;
+  SELECTED = data.runs.length - 1;
+  renderTabs();
+  renderRunlist();
+  renderTrend();
+  renderRun();
+}).catch(err => {
+  $('built').textContent = `error loading runs.json — ${err.message}`;
+});
+
+function renderTabs() {
+  const html = DATA.runs.map((r, i) => {
+    const pct = r.summary.pass_rate_pct;
+    const cls = pct === 100 ? 'is100' : (pct < 90 ? 'below' : '');
+    const d = r.trend.pass_delta_pct;
+    const dCls = d === null ? '' : (d > 0 ? 'up' : (d < 0 ? 'down' : ''));
+    const dStr = d === null ? '·' : (d > 0 ? `+${d}` : d);
+    return `<button class="runtab ${i === SELECTED ? 'active' : ''}" data-i="${i}">
+      <span>${fmtTsShort(r.file)}</span>
+      <span class="pct ${cls}">${pct}%</span>
+      <span class="delta ${dCls}">${dStr}</span>
+    </button>`;
+  }).join('');
+  $('runtabs').innerHTML = html;
+  $('runtabs').querySelectorAll('.runtab').forEach(b => {
+    b.onclick = () => { SELECTED = Number(b.dataset.i); EXPANDED = new Set(); renderTabs(); renderRunlist(); renderTrend(); renderRun(); };
+  });
+}
+
+function renderRunlist() {
+  const html = DATA.runs.map((r, i) => {
+    const pct = r.summary.pass_rate_pct;
+    const cls = pct === 100 ? 'is100' : (pct < 90 ? 'below' : '');
+    const dot = pct === 100 ? 'pass' : (pct < 90 ? 'below' : 'pass');
+    return `<div class="runlist-row ${i === SELECTED ? 'active' : ''}" data-i="${i}">
+      <div class="dot ${dot}"></div>
+      <div class="ts">${fmtTsShort(r.file)} · ${r.summary.passed}/${r.summary.total}</div>
+      <div class="pct ${cls}">${pct}%</div>
+    </div>`;
+  }).join('');
+  $('runlist').innerHTML = html;
+  $('runlist').querySelectorAll('.runlist-row').forEach(b => {
+    b.onclick = () => { SELECTED = Number(b.dataset.i); EXPANDED = new Set(); renderTabs(); renderRunlist(); renderTrend(); renderRun(); };
+  });
+}
+
+function renderTrend() {
+  const maxPct = Math.max(100, ...DATA.runs.map(r => r.summary.pass_rate_pct));
+  const html = DATA.runs.map((r, i) => {
+    const pct = r.summary.pass_rate_pct;
+    const h = (pct / maxPct) * 60;
+    const cls = pct === 100 ? 'is100' : (pct < 90 ? 'below' : '');
+    return `<div class="bar ${cls} ${i === SELECTED ? 'active' : ''}" data-i="${i}" style="height:${Math.max(h, 2)}px">
+      <span class="tip">${fmtTsShort(r.file)} · ${pct}% · ${r.summary.passed}/${r.summary.total}</span>
+    </div>`;
+  }).join('');
+  $('trend-bars').innerHTML = html;
+  $('trend-stamps').innerHTML = DATA.runs.map(r => `<div class="stamp">${fmtTsShort(r.file).slice(0,5)}</div>`).join('');
+  $('trend-bars').querySelectorAll('.bar').forEach(b => {
+    b.onclick = () => { SELECTED = Number(b.dataset.i); EXPANDED = new Set(); renderTabs(); renderRunlist(); renderTrend(); renderRun(); };
+  });
+}
+
+function renderRun() {
+  const run = DATA.runs[SELECTED];
+  $('runmeta').textContent = `${fmtTs(run.file)} · ${run.summary.passed}/${run.summary.total} · ${Math.round(run.summary.elapsed_ms / 100) / 10}s elapsed · ${run.defects.has_transcripts ? 'transcripts available' : 'no transcripts (early run)'}`;
+
+  // KPIs
+  const pct = run.summary.pass_rate_pct;
+  const d = run.trend.pass_delta_pct;
+  const dEl = d === null ? '·' : (d > 0 ? `+${d}%` : `${d}%`);
+  const dCls = d === null ? '' : (d > 0 ? 'up' : (d < 0 ? 'down' : ''));
+  const dimBelow = run.summary.per_dimension.filter(r => r.hit_rate_pct < 100);
+  const passDimCls = pct === 100 ? 'good' : (pct < 90 ? 'warn' : '');
+  const defectCount = run.defects.has_transcripts ? (run.defects.bracket_leak_trials + run.defects.empty_close_trials + run.defects.mustache_leak_trials) : 0;
+  const defectCls = !run.defects.has_transcripts ? '' : (defectCount === 0 ? 'good' : 'bad');
+
+  $('kpis').innerHTML = `
+    <div class="kpi">
+      <div class="k">pass rate</div>
+      <div class="v ${passDimCls}">${pct}%</div>
+      <div class="sub">${run.summary.passed}/${run.summary.total} trials</div>
+      <div class="delta ${dCls}">vs prev ${dEl}</div>
+    </div>
+    <div class="kpi">
+      <div class="k">dimensions</div>
+      <div class="v">${5 - dimBelow.length}/5</div>
+      <div class="sub">${dimBelow.length === 0 ? 'all hit 100%' : dimBelow.map(d => DIM_LABELS[d.dimension]).join(' ') + ' below'}</div>
+      <div class="delta">·</div>
+    </div>
+    <div class="kpi">
+      <div class="k">defects found</div>
+      <div class="v ${defectCls}">${run.defects.has_transcripts ? defectCount : '—'}</div>
+      <div class="sub">${run.defects.has_transcripts ? `${run.defects.bracket_leak_trials} bracket · ${run.defects.empty_close_trials} empty-close` : 'no transcripts'}</div>
+      <div class="delta">·</div>
+    </div>
+    <div class="kpi">
+      <div class="k">elapsed</div>
+      <div class="v">${Math.round(run.summary.elapsed_ms / 1000)}s</div>
+      <div class="sub">${Math.round(run.summary.elapsed_ms / run.summary.total / 100) / 10}s / trial (conc 5)</div>
+      <div class="delta">·</div>
+    </div>
+    <div class="kpi">
+      <div class="k">errors</div>
+      <div class="v ${run.summary.errors.length > 0 ? 'bad' : ''}">${run.summary.errors.length}</div>
+      <div class="sub">http+fetch failures</div>
+      <div class="delta">·</div>
+    </div>
+  `;
+
+  // Matrix
+  const personas = run.summary.per_persona.map(p => p.persona_id);
+  const scenarios = run.summary.per_scenario.map(s => s.scenario_id);
+  const trialByCell = {};
+  for (const r of run.results) {
+    const k = r.scenario_id + '|' + r.persona_id;
+    if (!trialByCell[k]) trialByCell[k] = [];
+    trialByCell[k].push(r);
+  }
+  let mh = '<thead><tr><th></th>' + personas.map(p => `<th>${p}</th>`).join('') + '</tr></thead><tbody>';
+  for (const s of scenarios) {
+    mh += `<tr><td class="label">${s}</td>`;
+    for (const p of personas) {
+      const trials = trialByCell[s + '|' + p] || [];
+      const dots = trials.map(t => `<span class="dot ${t.passed ? 'pass' : 'fail'}" title="${t.scenario_id}|${t.persona_id}"></span>`).join('');
+      mh += `<td><span class="cell">${dots || '<span class="dot muted"></span>'}</span></td>`;
+    }
+    mh += '</tr>';
+  }
+  mh += '</tbody>';
+  $('matrix').innerHTML = mh;
+
+  // Dim bars
+  const dh = run.summary.per_dimension.map(d => {
+    const pctV = d.hit_rate_pct;
+    const cls = pctV === 100 ? '' : (pctV < 70 ? 'bad' : 'below');
+    return `<div class="dimbar" title="${DIM_FULL[d.dimension]}">
+      <div class="name">${d.dimension}</div>
+      <div class="track"><div class="fill ${cls}" style="width:${pctV}%"></div></div>
+      <div class="pct ${cls}">${d.hits}/${run.summary.total} · ${pctV}%</div>
+    </div>`;
+  }).join('');
+  $('dimbars').innerHTML = dh;
+
+  // Filters
+  const fsc = $('f-scenario'); fsc.innerHTML = '<option value="">all</option>' + scenarios.map(s => `<option>${s}</option>`).join('');
+  const fpe = $('f-persona'); fpe.innerHTML = '<option value="">all</option>' + personas.map(p => `<option>${p}</option>`).join('');
+  fsc.onchange = renderTrials; fpe.onchange = renderTrials;
+  $('f-result').onchange = renderTrials; $('f-defect').onchange = renderTrials;
+
+  // Defects panel
+  const def = run.defects;
+  const seen = def.bracket_leaks_seen || {};
+  const seenList = Object.entries(seen).sort((a,b) => b[1]-a[1]).map(([tok, c]) => `<span class="muted">${tok}×${c}</span>`).join(' ');
+  $('defects').innerHTML = !def.has_transcripts ? `<div class="defect" style="padding:10px"><span class="muted">no transcripts captured for this run</span></div>` : `
+    <div class="defect ${def.bracket_leak_trials === 0 ? 'zero' : 'found'}"><span class="name">bracket-leak trials</span><span class="count">${def.bracket_leak_trials}</span></div>
+    ${seenList ? `<div class="defect zero"><span class="name muted" style="font-size:11px">${seenList}</span><span></span></div>` : ''}
+    <div class="defect ${def.mustache_leak_trials === 0 ? 'zero' : 'found'}"><span class="name">mustache-leak {{var}}</span><span class="count">${def.mustache_leak_trials}</span></div>
+    <div class="defect ${def.empty_close_trials === 0 ? 'zero' : 'warn'}"><span class="name">empty closing turn</span><span class="count">${def.empty_close_trials}</span></div>
+    <div class="defect ${def.truncated_trials === 0 ? 'zero' : 'warn'}"><span class="name">truncated by turn limit</span><span class="count">${def.truncated_trials}</span></div>
+  `;
+
+  renderTrials();
+}
+
+function renderTrials() {
+  const run = DATA.runs[SELECTED];
+  const fs = $('f-scenario').value;
+  const fp = $('f-persona').value;
+  const fr = $('f-result').value;
+  const fd = $('f-defect').value;
+
+  const rows = run.results.filter(r => {
+    if (fs && r.scenario_id !== fs) return false;
+    if (fp && r.persona_id !== fp) return false;
+    if (fr === 'pass' && !r.passed) return false;
+    if (fr === 'fail' && r.passed) return false;
+    if (fd === 'bracket' && !(r.derived?.bracket_leak_count > 0)) return false;
+    if (fd === 'empty' && !r.derived?.empty_close) return false;
+    if (fd === 'truncated' && !r.derived?.truncated_by_turn_limit) return false;
+    return true;
+  });
+
+  $('trial-count').textContent = `${rows.length} of ${run.results.length}`;
+
+  const html = rows.map((r, idx) => {
+    const realIdx = run.results.indexOf(r);
+    const expanded = EXPANDED.has(realIdx);
+    const dim = DIMS.map(d => `<span class="d ${r.score[d] ? 'ok' : 'no'}">${DIM_LABELS[d]}</span>`).join('');
+    const der = r.derived;
+    const defects = !der ? '<span class="faint">—</span>' :
+      `${der.bracket_leak_count > 0 ? `<span class="leak">${der.bracket_leak_count}brk(${der.bracket_leaks.join(',')})</span>` : ''}
+       ${der.empty_close ? '<span class="empty">empty-close</span>' : ''}
+       ${der.mustache_leak_count > 0 ? `<span class="leak">{{leak}}</span>` : ''}
+       ${der.truncated_by_turn_limit ? '<span class="faint">turn-limit</span>' : ''}`;
+    const row = `<tr class="${expanded ? 'expanded' : ''}" data-idx="${realIdx}">
+      <td>${realIdx + 1}</td>
+      <td>${r.scenario_id}</td>
+      <td>${r.persona_id}</td>
+      <td><div class="dim">${dim}</div></td>
+      <td>${r.agent_turns}/${r.user_turns}</td>
+      <td>${der ? `${der.agent_chars}/${der.user_chars}` : '<span class="faint">—</span>'}</td>
+      <td>${defects.trim() || '<span class="faint">clean</span>'}</td>
+      <td><span class="pill ${r.passed ? 'pass' : 'fail'}">${r.passed ? 'pass' : 'fail'}</span></td>
+    </tr>`;
+    if (!expanded) return row;
+    return row + buildExpander(r, realIdx);
+  }).join('');
+
+  $('trials').innerHTML = html;
+  $('trials').querySelectorAll('tr[data-idx]').forEach(tr => {
+    tr.onclick = (e) => {
+      const idx = Number(tr.dataset.idx);
+      if (EXPANDED.has(idx)) EXPANDED.delete(idx); else EXPANDED.add(idx);
+      renderTrials();
+    };
+  });
+}
+
+function buildExpander(r, idx) {
+  const transcript = r.transcript || [];
+  const turns = transcript.map((t, i) => {
+    const cleaned = t.message.replace(/\s+/g, ' ').trim();
+    const highlighted = cleaned.replace(/\[[a-z][a-z0-9_-]+\]/gi, m => `<span class="leak">${m}</span>`);
+    return `<div class="t-row">
+      <div class="t-role ${t.role}">${t.role}</div>
+      <div class="t-msg">${highlighted || '<span class="faint">(empty)</span>'}</div>
+    </div>`;
+  }).join('');
+
+  const der = r.derived;
+  const derMeta = !der ? '<span class="muted">no transcript captured for this run</span>' : `
+    <span>bracket-leaks <b class="${der.bracket_leak_count > 0 ? 'nope' : 'ok'}">${der.bracket_leak_count}</b>${der.bracket_leaks.length ? ` (${der.bracket_leaks.join(', ')})` : ''}</span>
+    <span>mustache-leaks <b class="${der.mustache_leak_count > 0 ? 'nope' : 'ok'}">${der.mustache_leak_count}</b></span>
+    <span>empty-close <b class="${der.empty_close ? 'nope' : 'ok'}">${der.empty_close ? 'yes' : 'no'}</b></span>
+    <span>turn-limit-hit <b>${der.truncated_by_turn_limit ? 'yes' : 'no'}</b></span>
+    <span>chars A/U <b>${der.agent_chars}/${der.user_chars}</b></span>
+    <span>avg-turn chars A/U <b>${der.avg_agent_turn_chars}/${der.avg_user_turn_chars}</b></span>
+    <span>phone-volunteered <b>${der.phone_digits_volunteered ? 'yes' : 'no'}</b></span>
+  `;
+
+  const dimDetail = DIMS.map(d => `<span>${d} <b class="${r.score[d] ? 'ok' : 'nope'}">${r.score[d] ? 'hit' : 'miss'}</b></span>`).join('');
+
+  return `<tr><td colspan="8" class="expander">
+    ${transcript.length ? `<div class="transcript-list">${turns}</div>` : '<div class="muted" style="font-family:var(--mono);font-size:11px">No transcript saved (early runs did not persist them).</div>'}
+    <div class="meta-row">${dimDetail}</div>
+    <div class="meta-row">${derMeta}</div>
+    <div class="meta-row"><a class="dl" href="javascript:void(0)" onclick='downloadTrial(${idx})'>copy trial JSON</a></div>
+  </td></tr>`;
+}
+
+function downloadTrial(idx) {
+  const r = DATA.runs[SELECTED].results[idx];
+  const blob = new Blob([JSON.stringify(r, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `trial-${DATA.runs[SELECTED].file.replace('.json','')}-${r.scenario_id}-${r.persona_id}.json`;
+  a.click(); URL.revokeObjectURL(url);
+}
+
+</script>
+</body>
+</html>
