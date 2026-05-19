@@ -59,6 +59,15 @@ const offlineProjects = [
   },
   {
     test: {
+      name: 'templates',
+      root: '.',
+      include: ['tests/templates/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
+  {
+    test: {
       name: 'agent_evals',
       root: '.',
       include: ['tests/agent_evals/**/*.test.ts'],
