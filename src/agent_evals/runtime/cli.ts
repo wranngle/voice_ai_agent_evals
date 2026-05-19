@@ -10,6 +10,12 @@ import {
 } from '../providers';
 import {createEvaluator} from '../service';
 import {renderResultsMarkdown} from '../ui';
+import {
+  defaultBaselinePath,
+  notifySinkFromEnv,
+  readBaseline,
+  writeBaseline,
+} from '../../notify';
 
 async function main(): Promise<void> {
   const fixturePath = process.argv[2];
@@ -47,7 +53,23 @@ async function main(): Promise<void> {
     }
   }
 
-  const failed = results.filter(r => !r.passed).length;
+  const passed = results.filter(r => r.passed).length;
+  const total = results.length;
+  const notifySink = notifySinkFromEnv(process.env);
+  if (notifySink !== undefined && process.env.VOICE_EVALS_NOTIFY_WEBHOOK_URL) {
+    const baselinePath = defaultBaselinePath(process.env);
+    const previous = readBaseline(baselinePath);
+    const delta = previous === undefined ? undefined : passed - previous.passed;
+    try {
+      await notifySink.report({passed, total, delta});
+      writeBaseline(baselinePath, {passed, total});
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      process.stderr.write(`notify webhook failed: ${message}\n`);
+    }
+  }
+
+  const failed = total - passed;
   process.exit(failed === 0 ? 0 : 1);
 }
 
