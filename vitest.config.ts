@@ -240,6 +240,17 @@ const offlineProjects = [
     },
   },
   {
+    // Prompt-injection fuzzer. Pure unit tests with the bundled mock agent
+    // responder; mkdtemp/rm isolation so no test writes leak to repo.
+    test: {
+      name: 'fuzz',
+      root: '.',
+      include: ['tests/fuzz/**/*.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
+  {
     // Meta-audit suite: tests that highlight design + architecture
     // shortcomings, not feature correctness. See docs/META-AUDIT.md.
     // Some tests use `it.fails` or `it.todo` to mark known-broken-by-design
