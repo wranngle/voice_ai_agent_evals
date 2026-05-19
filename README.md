@@ -12,6 +12,29 @@ Phases 0-5 are merged on `feat/v1.0-bun-package`; Phase 6 (CLI completion + docs
 
 See [`CHANGELOG.md`](CHANGELOG.md) for per-phase detail.
 
+## 60-second demo
+
+No API keys, no config, no env vars — try it cold:
+
+```console
+$ npx @wranngle/voice-evals demo
+voice-evals demo — synthesizing 2.0s stereo fixture (caller=L, agent=R)
+  audio: stereo, 48000 Hz, 2000ms
+  ✓ voice_activity_caller (1.00): 2 segment(s), 1100ms total speech (min 300ms)
+  ✓ voice_activity_agent  (1.00): 1 segment(s),  350ms total speech (min 300ms)
+  ✓ barge_in_recovery     (1.00): no barge-in detected (clean turn-taking)
+
+  overall: 1.00 (3/3 dimensions passed)
+
+  report: /tmp/voice-evals-demo/run-1731543210/index.html
+  elapsed: 69ms
+
+  → next: voice-evals score <your-wav>
+```
+
+Runs in under a second on a clean Node ≥20 runner, exits 0, opens an HTML
+report. Recording: [`docs/demo.cast`](docs/demo.cast) (asciinema).
+
 ## Quickstart
 
 ```bash
