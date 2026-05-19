@@ -36,6 +36,7 @@ jobs:
             --project ingestion \
             --project integration \
             --project governance \
+            --project templates \
             --project agent_evals \
             --project elevenlabs \
             --project n8n-eval \
@@ -88,6 +89,7 @@ jobs:
             --project ingestion \
             --project integration \
             --project governance \
+            --project templates \
             --project agent_evals \
             --project elevenlabs \
             --project n8n-eval \
