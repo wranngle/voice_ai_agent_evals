@@ -1,0 +1,133 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`adversarial preset catalogue: snapshot > matches the committed shape 1`] = `
+[
+  {
+    "assertions": [
+      {
+        "axis": "asr_word_error_rate",
+        "expected": {
+          "max": 0.15,
+        },
+        "weight": 1,
+      },
+      {
+        "axis": "ttfb_p95_ms",
+        "expected": "pass",
+        "weight": 0.5,
+      },
+      {
+        "axis": "total_turn_p95_ms",
+        "expected": "pass",
+        "weight": 0.5,
+      },
+    ],
+    "audioOverlay": {
+      "kind": "noise",
+      "profile": "restaurant",
+      "snrDb": 6,
+    },
+    "description": "Restaurant background noise bed at +6dB SNR — exercises ASR robustness on a typical service-call environment.",
+    "id": "noise",
+    "partialCredit": true,
+    "scenarioSlug": "adversarial-noise-restaurant",
+  },
+  {
+    "assertions": [
+      {
+        "axis": "barge_in_recovery",
+        "expected": {
+          "max_yield_ms": 350,
+          "yielded": true,
+        },
+        "weight": 1,
+      },
+      {
+        "axis": "tool_call_routing",
+        "expected": {
+          "route": "continue",
+        },
+        "weight": 0.5,
+      },
+      {
+        "axis": "total_turn_p95_ms",
+        "expected": "pass",
+        "weight": 0.5,
+      },
+    ],
+    "audioOverlay": {
+      "caller_phrase": "wait — actually, can you",
+      "kind": "interrupt",
+      "offsetMs": 400,
+    },
+    "description": "Caller barges in 400ms into the agent turn — exercises barge-in detection and graceful yield.",
+    "id": "interrupt",
+    "partialCredit": false,
+    "scenarioSlug": "adversarial-interrupt-mid-turn",
+  },
+  {
+    "assertions": [
+      {
+        "axis": "reprompt_on_low_confidence",
+        "expected": {
+          "triggered": true,
+        },
+        "weight": 1,
+      },
+      {
+        "axis": "tool_call_schema",
+        "expected": {
+          "parameters_pass": true,
+        },
+        "weight": 0.5,
+      },
+      {
+        "axis": "ttfb_p95_ms",
+        "expected": "pass",
+        "weight": 0.5,
+      },
+    ],
+    "audioOverlay": {
+      "highFreqAttenuationDb": 12,
+      "kind": "mumble",
+      "rate": "slow",
+    },
+    "description": "Low-articulation caller — high-frequency attenuation plus slow rate, exercises low-confidence ASR re-prompting.",
+    "id": "mumble",
+    "partialCredit": true,
+    "scenarioSlug": "adversarial-mumble-low-articulation",
+  },
+  {
+    "assertions": [
+      {
+        "axis": "asr_word_error_rate",
+        "expected": {
+          "max": 0.12,
+        },
+        "weight": 1,
+      },
+      {
+        "axis": "tool_call_schema",
+        "expected": {
+          "parameters_pass": true,
+        },
+        "weight": 1,
+      },
+      {
+        "axis": "total_turn_p95_ms",
+        "expected": "pass",
+        "weight": 0.5,
+      },
+    ],
+    "audioOverlay": {
+      "kind": "accent",
+      "locale": "en-IN",
+      "severity": "moderate",
+    },
+    "description": "Moderate non-native English prosody — exercises accent-robust ASR and tool-call slot extraction.",
+    "id": "accent",
+    "partialCredit": true,
+    "scenarioSlug": "adversarial-accent-en-in",
+  },
+]
+`;

@@ -35,6 +35,7 @@ const SUBPATH_ENTRIES = [
   {name: 'remediation', entry: 'src/remediation/index.ts', outdir: 'dist/remediation'},
   {name: 'factory',    entry: 'src/factory/index.ts',    outdir: 'dist/factory'},
   {name: 'n8n',        entry: 'src/n8n/index.ts',        outdir: 'dist/n8n'},
+  {name: 'scenarios',  entry: 'src/scenarios/index.ts',  outdir: 'dist/scenarios'},
 ];
 
 function run(cmd, args, label) {
