@@ -251,6 +251,17 @@ const offlineProjects = [
     },
   },
   {
+    // Cost+latency budget enforcer: gate over per-turn cost and per-turn
+    // latency budgets read from voice-evals.budget.yaml at eval-time.
+    test: {
+      name: 'budget',
+      root: '.',
+      include: ['tests/budget.test.ts'],
+      environment: 'node' as const,
+      testTimeout: 30_000,
+    },
+  },
+  {
     // Meta-audit suite: tests that highlight design + architecture
     // shortcomings, not feature correctness. See docs/META-AUDIT.md.
     // Some tests use `it.fails` or `it.todo` to mark known-broken-by-design

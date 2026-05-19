@@ -1,0 +1,12 @@
+# voice-evals budget — active config. The eval runner reads this on every
+# `npm run eval` and emits BUDGET_BREACH lines for any scenario whose
+# emitted metric exceeds the listed maximum.
+#
+# Documented in voice-evals.budget.yaml.sample; this is the live copy that
+# ships with the repo. Tune per agent / per environment.
+
+budgets:
+  cost_per_turn_usd: 0.001
+  end_to_first_audio_p95_ms: 1400
+  ttfb_p95_ms: 800
+  total_turn_p95_ms: 3000
