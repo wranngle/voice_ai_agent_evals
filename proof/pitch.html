@@ -8,20 +8,20 @@
 <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
 <style>
   :root {
-    --bg: #0c0e10;
-    --bg-1: #14171b;
-    --bg-2: #1a1e23;
-    --bg-3: #232830;
+    --bg: #12111a;
+    --bg-1: #1a1822;
+    --bg-2: #201e28;
+    --bg-3: #2b2835;
     --line: #2a2f37;
     --line-2: #1f2329;
     --ink: #e9ecef;
     --ink-1: #b6bcc4;
     --ink-2: #7e8590;
     --ink-3: #535862;
-    --good: #4ade80;
-    --bad: #f87171;
-    --warn: #fbbf24;
-    --info: #60a5fa;
+    --good: #5D8C61;
+    --bad: #cf3c69;
+    --warn: #ff9e33;
+    --info: #ff5f00;
     --mono: ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -32,6 +32,11 @@
     font-feature-settings: 'cv11','tnum','ss01';
     -webkit-font-smoothing: antialiased;
     height: 100vh; overflow: hidden;
+  }
+  button:focus-visible,
+  a:focus-visible {
+    outline: 2px solid var(--info);
+    outline-offset: 2px;
   }
   .deck {
     height: 100vh; width: 100vw;
@@ -50,7 +55,29 @@
   .topbar .spacer { flex: 1; }
   .topbar .pager { color: var(--ink-1); }
   .topbar .pager b { color: var(--ink); }
+  .topbar .slide-label {
+    color: var(--ink-2);
+    max-width: 360px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   .topbar .hint { color: var(--ink-3); font-size: 11px; }
+  @media (max-width: 720px) {
+    .topbar {
+      height: auto;
+      min-height: 44px;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      padding: 10px 14px;
+    }
+    .topbar .brand { flex-basis: 100%; }
+    .topbar .slide-label {
+      flex-basis: 100%;
+      max-width: 100%;
+    }
+    .topbar .spacer { display: none; }
+  }
 
   .stage {
     flex: 1; display: flex; align-items: stretch; justify-content: center;
@@ -65,6 +92,11 @@
     gap: 14px;
     overflow-y: auto;
   }
+  @media (max-width: 720px) {
+    .slide {
+      padding: 22px 18px 112px;
+    }
+  }
   .slide.active { display: flex; }
 
   .slide-num {
@@ -78,6 +110,12 @@
     line-height: 1.15;
     color: var(--ink);
     margin-bottom: 4px;
+  }
+  @media (max-width: 420px) {
+    .slide-title {
+      font-size: 24px;
+      line-height: 1.2;
+    }
   }
   .slide-sub {
     font-family: var(--mono); font-size: 12px;
@@ -161,6 +199,12 @@
     padding-top: 3px;
   }
   .process-row .what strong { color: var(--ink); }
+  @media (max-width: 640px) {
+    .process-row {
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+  }
 
   /* BIZ outcomes for beat 4 */
   .outcomes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
@@ -205,10 +249,16 @@
     position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);
     display: flex; gap: 4px;
     z-index: 5;
+    padding: 8px 10px;
+    background: rgba(18,17,26,0.82);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    backdrop-filter: blur(8px);
   }
   .nav .pip {
     width: 22px; height: 4px; border-radius: 2px;
     background: var(--bg-3);
+    border: 0;
     cursor: pointer;
     transition: background 0.12s;
   }
@@ -227,6 +277,21 @@
   .arrow-btn:hover { color: var(--ink); border-color: var(--ink-2); background: var(--bg-1); }
   .arrow-btn.left { left: 16px; }
   .arrow-btn.right { right: 16px; }
+  @media (max-width: 720px) {
+    .arrow-btn {
+      top: auto;
+      bottom: 12px;
+      transform: none;
+      background: var(--bg-1);
+    }
+    .arrow-btn.left { left: 14px; }
+    .arrow-btn.right { right: 14px; }
+    .nav {
+      bottom: 18px;
+      max-width: calc(100vw - 112px);
+      overflow-x: auto;
+    }
+  }
 </style>
 </head>
 <body>
@@ -236,6 +301,7 @@
     <div class="brand">Refinement<span class="sub">· ElevenLabs feature pitch</span></div>
     <div class="meta">audience: product team + CEO</div>
     <div class="spacer"></div>
+    <div class="slide-label" id="slide-label"></div>
     <div class="pager"><b id="slide-cur">1</b>/<span id="slide-total">7</span></div>
     <div class="hint">← →</div>
   </div>
@@ -460,8 +526,8 @@
 
   </div>
 
-  <button class="arrow-btn left" id="prev" aria-label="prev">‹</button>
-  <button class="arrow-btn right" id="next" aria-label="next">›</button>
+  <button class="arrow-btn left" id="prev" aria-label="Previous slide">‹</button>
+  <button class="arrow-btn right" id="next" aria-label="Next slide">›</button>
 
   <div class="nav" id="nav"></div>
 </div>
@@ -472,14 +538,20 @@ const total = slides.length;
 const navEl = document.getElementById('nav');
 const slideCur = document.getElementById('slide-cur');
 const slideTotal = document.getElementById('slide-total');
+const slideLabel = document.getElementById('slide-label');
 slideTotal.textContent = total;
 
 let idx = 0;
+slideLabel.textContent = slides[0].querySelector('.slide-title')?.textContent || '';
 
 for (let i = 0; i < total; i++) {
-  const pip = document.createElement('div');
+  const pip = document.createElement('button');
   pip.className = 'pip' + (i === 0 ? ' active' : '');
+  pip.type = 'button';
   pip.dataset.i = i;
+  pip.title = slides[i].querySelector('.slide-title')?.textContent || 'Untitled';
+  pip.setAttribute('aria-label', `Go to slide ${i + 1}: ${pip.title}`);
+  pip.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
   pip.onclick = () => go(Number(pip.dataset.i));
   navEl.appendChild(pip);
 }
@@ -488,10 +560,13 @@ function go(i) {
   if (i < 0 || i >= total) return;
   slides[idx].classList.remove('active');
   navEl.children[idx].classList.remove('active');
+  navEl.children[idx].setAttribute('aria-pressed', 'false');
   idx = i;
   slides[idx].classList.add('active');
   navEl.children[idx].classList.add('active');
+  navEl.children[idx].setAttribute('aria-pressed', 'true');
   slideCur.textContent = idx + 1;
+  slideLabel.textContent = slides[idx].querySelector('.slide-title')?.textContent || '';
 }
 
 document.getElementById('prev').onclick = () => go(idx - 1);

@@ -8,21 +8,21 @@
 <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
 <style>
   :root {
-    --bg: #0c0e10;
-    --bg-1: #14171b;
-    --bg-2: #1a1e23;
-    --bg-3: #232830;
+    --bg: #12111a;
+    --bg-1: #1a1822;
+    --bg-2: #201e28;
+    --bg-3: #2b2835;
     --line: #2a2f37;
     --line-2: #1f2329;
     --ink: #e9ecef;
     --ink-1: #b6bcc4;
     --ink-2: #7e8590;
     --ink-3: #535862;
-    --good: #4ade80;
-    --bad: #f87171;
-    --warn: #fbbf24;
-    --info: #60a5fa;
-    --crit: #ef4444;
+    --good: #5D8C61;
+    --bad: #cf3c69;
+    --warn: #ff9e33;
+    --info: #ff5f00;
+    --crit: #cf3c69;
     --med: #2563eb;
     --low: #6b7280;
     --mono: ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
@@ -39,6 +39,16 @@
   a { color: var(--info); text-decoration: none; }
   a:hover { text-decoration: underline; }
   code, .mono { font-family: var(--mono); }
+  button {
+    font: inherit;
+  }
+  button:focus-visible,
+  a:focus-visible,
+  select:focus-visible,
+  input:focus-visible {
+    outline: 2px solid var(--info);
+    outline-offset: 2px;
+  }
 
   .topbar {
     display: flex; align-items: center; gap: 18px;
@@ -58,11 +68,35 @@
     font-size: 11px;
   }
   .topbar a.btn:hover { color: var(--ink); border-color: var(--ink-2); text-decoration: none; }
+  @media (max-width: 720px) {
+    .topbar {
+      height: auto;
+      min-height: 44px;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      padding: 10px 14px;
+    }
+    .topbar .brand {
+      flex-basis: 100%;
+    }
+    .topbar .meta {
+      max-width: 100%;
+      overflow-wrap: anywhere;
+    }
+    .topbar .spacer {
+      display: none;
+    }
+  }
 
   .layout {
     display: grid;
     grid-template-columns: 320px 1fr;
     min-height: calc(100vh - 44px);
+  }
+  @media (max-width: 860px) {
+    .layout {
+      grid-template-columns: 1fr;
+    }
   }
 
   /* SIDEBAR */
@@ -71,6 +105,17 @@
     border-right: 1px solid var(--line);
     padding: 16px;
     overflow-y: auto;
+  }
+  @media (max-width: 860px) {
+    .sidebar {
+      border-right: 0;
+      border-bottom: 1px solid var(--line);
+      overflow: visible;
+    }
+    .sessions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
   }
   .sidebar h2 {
     font-family: var(--mono);
@@ -81,6 +126,9 @@
   }
   .sessions { display: flex; flex-direction: column; gap: 6px; }
   .session-card {
+    display: block;
+    width: 100%;
+    text-align: left;
     background: var(--bg-2);
     border: 1px solid var(--line);
     border-radius: 5px;
@@ -109,7 +157,18 @@
   .pill-toggle.on { background: var(--info); color: var(--bg); border-color: var(--info); }
 
   /* MAIN */
-  .main { padding: 20px 28px 80px; max-width: 1200px; }
+  .main { padding: 20px 28px 80px; max-width: 1200px; min-width: 0; }
+  @media (max-width: 720px) {
+    .main {
+      padding: 16px 14px 48px;
+      max-width: 100%;
+    }
+    .session-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+  }
   .session-header { display: flex; align-items: baseline; gap: 14px; margin-bottom: 6px; }
   .session-header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
   .session-header .vlabel { font-family: var(--mono); font-size: 11px; color: var(--ink-2); padding: 2px 8px; border: 1px solid var(--line); border-radius: 3px; }
@@ -143,6 +202,8 @@
     overflow-x: auto;
   }
   .tab {
+    background: transparent;
+    border: 0;
     padding: 8px 14px;
     font-family: var(--mono); font-size: 11.5px;
     color: var(--ink-2);
@@ -176,6 +237,16 @@
     padding: 6px 0;
     font-family: var(--mono); font-size: 12px;
   }
+  @media (max-width: 760px) {
+    .ev {
+      grid-template-columns: 58px 20px 1fr;
+      gap: 6px;
+    }
+    .ev .detail {
+      grid-column: 3;
+      overflow-wrap: anywhere;
+    }
+  }
   .ev {
     display: grid;
     grid-template-columns: 72px 24px 200px 1fr;
@@ -197,6 +268,16 @@
   .ev.warn .g { color: var(--warn); }
   .ev.fail .g { color: var(--bad); }
   .ev .data-pill { font-size: 10px; color: var(--ink-3); margin-left: 8px; padding: 1px 6px; border: 1px solid var(--line); border-radius: 3px; }
+  @media (max-width: 760px) {
+    .ev {
+      grid-template-columns: 58px 20px 1fr;
+      gap: 6px;
+    }
+    .ev .detail {
+      grid-column: 3;
+      overflow-wrap: anywhere;
+    }
+  }
 
   /* ENRICHMENT pane */
   .enrich-grid {
@@ -206,6 +287,15 @@
     border-radius: 5px;
     padding: 14px 16px;
     font-size: 12.5px;
+  }
+  @media (max-width: 700px) {
+    .enrich-grid {
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+    .enrich-grid .k {
+      margin-top: 8px;
+    }
   }
   .enrich-grid .k { color: var(--ink-2); font-family: var(--mono); font-size: 11px; }
   .enrich-grid .v { color: var(--ink); }
@@ -230,6 +320,12 @@
     background: var(--bg-2);
     font-family: var(--mono); font-size: 12px;
   }
+  @media (max-width: 700px) {
+    .persona-header {
+      flex-direction: column;
+      gap: 4px;
+    }
+  }
   .persona-header .name { color: var(--ink); font-weight: 600; }
   .persona-header .stats { color: var(--ink-2); font-size: 11px; }
   .persona-header .stats .bad { color: var(--bad); }
@@ -239,6 +335,7 @@
   .transcript-col {
     padding: 10px 14px;
     border-right: 1px solid var(--line);
+    min-width: 0;
   }
   .transcript-col:last-child { border-right: 0; }
   .transcript-col .label {
@@ -252,6 +349,7 @@
     font-size: 12px; line-height: 1.55;
     padding: 5px 0;
     color: var(--ink-1);
+    overflow-wrap: anywhere;
   }
   .turn .who { font-family: var(--mono); font-size: 10px; color: var(--ink-3); display: inline-block; width: 56px; }
   .turn.agent .who { color: var(--info); }
@@ -262,6 +360,21 @@
     padding: 1px 3px;
     border-radius: 2px;
     border: 1px solid rgba(248,113,113,0.35);
+  }
+  .after-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .after-chip {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--good);
+    background: rgba(93,140,97,0.14);
+    border: 1px solid rgba(93,140,97,0.32);
+    border-radius: 3px;
+    padding: 2px 6px;
   }
   .turn .tool {
     display: inline-block;
@@ -315,6 +428,16 @@
     gap: 10px;
     align-items: baseline;
   }
+  @media (max-width: 780px) {
+    .defect-card {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+    .defect-card .sev {
+      width: max-content;
+      padding: 2px 8px;
+    }
+  }
   .defect-card .sev {
     font-family: var(--mono); font-size: 10px; font-weight: 700;
     text-align: center; padding: 2px 0;
@@ -354,6 +477,11 @@
     font-size: 12px;
     align-items: baseline;
   }
+  @media (max-width: 780px) {
+    .reg-card {
+      grid-template-columns: 1fr;
+    }
+  }
   .reg-card .id { font-family: var(--mono); font-size: 10.5px; color: var(--ink-2); }
   .reg-card .kind { font-family: var(--mono); font-size: 10px; color: var(--ink-3); }
   .reg-card .body { color: var(--ink-1); font-size: 11.5px; }
@@ -367,6 +495,31 @@
     height: 800px;
   }
   .compliance-frame iframe { width: 100%; height: 100%; border: 0; }
+  .compliance-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--ink-1);
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .action-btn:hover {
+    color: var(--ink);
+    border-color: var(--info);
+    text-decoration: none;
+  }
 
   /* PROMPT pane */
   .prompt-pre {
@@ -433,14 +586,30 @@ async function loadIndex() {
 function renderVerticalFilter() {
   const verticals = [...new Set(allSessions.map(s => s.vertical_template_id))];
   const el = document.getElementById('verticalFilter');
-  el.innerHTML = '<span class="pill-toggle ' + (verticalFilter === null ? 'on' : '') + '" data-v="">all</span>' +
-    verticals.map(v => `<span class="pill-toggle ${verticalFilter === v ? 'on' : ''}" data-v="${v}">${v}</span>`).join('');
+  el.innerHTML = '<button class="pill-toggle ' + (verticalFilter === null ? 'on' : '') + '" type="button" data-v="" aria-pressed="' + (verticalFilter === null ? 'true' : 'false') + '">all</button>' +
+    verticals.map(v => `<button class="pill-toggle ${verticalFilter === v ? 'on' : ''}" type="button" data-v="${escapeAttr(v)}" aria-pressed="${verticalFilter === v ? 'true' : 'false'}">${escapeHtml(v)}</button>`).join('');
   for (const pill of el.querySelectorAll('.pill-toggle')) {
-    pill.onclick = () => {
+    pill.onclick = async () => {
       verticalFilter = pill.dataset.v || null;
       renderVerticalFilter();
       renderSessionList();
+      await reconcileFilteredSelection();
     };
+  }
+}
+
+async function reconcileFilteredSelection() {
+  const filtered = verticalFilter
+    ? allSessions.filter(s => s.vertical_template_id === verticalFilter)
+    : allSessions;
+  if (filtered.length === 0) {
+    currentSession = null;
+    document.getElementById('sessionMeta').textContent = 'no session selected';
+    document.getElementById('main').innerHTML = '<div class="empty">No sessions match this filter.</div>';
+    return;
+  }
+  if (!currentSession || !filtered.some(s => s.session_id === currentSession.session_id)) {
+    await loadSession(filtered[0].session_id);
   }
 }
 
@@ -456,14 +625,14 @@ function renderSessionList() {
   list.innerHTML = filtered.map(s => {
     const delta = ((s.score_after - s.score_before) * 100).toFixed(0);
     const active = currentSession && currentSession.session_id === s.session_id ? 'active' : '';
-    return `<div class="session-card ${active}" data-id="${s.session_id}">
+    return `<button class="session-card ${active}" type="button" data-id="${escapeAttr(s.session_id)}" aria-pressed="${active ? 'true' : 'false'}">
       <div class="name">${escapeHtml(s.business_name)}</div>
       <div class="meta">
         <span>${s.vertical_template_id}</span>
         <span class="defects">${s.defects_detected} defects</span>
         <span class="delta">+${delta} pts</span>
       </div>
-    </div>`;
+    </button>`;
   }).join('');
   for (const card of list.querySelectorAll('.session-card')) {
     card.onclick = () => loadSession(card.dataset.id);
@@ -477,9 +646,20 @@ async function loadSession(id) {
     return;
   }
   currentSession = await r.json();
+  currentSession.after_calls = await loadAfterCalls(id);
   history.replaceState(null, '', `?session=${id}`);
   renderSessionList();
   renderSession();
+}
+
+async function loadAfterCalls(id) {
+  try {
+    const r = await fetch(`sessions/${id}/after-calls.json`);
+    if (!r.ok) return [];
+    return await r.json();
+  } catch {
+    return [];
+  }
 }
 
 function renderSession() {
@@ -528,15 +708,15 @@ function renderSession() {
     </div>
 
     <div class="tabs" id="tabs">
-      <div class="tab active" data-pane="timeline">timeline <span class="badge">${s.events.length}</span></div>
-      <div class="tab" data-pane="enrichment">enrichment</div>
-      <div class="tab" data-pane="personas">personas <span class="badge">${s.persona_calls.length}</span></div>
-      <div class="tab" data-pane="defects">defects <span class="badge">${s.detected_failures.length}</span></div>
-      <div class="tab" data-pane="diffs">fix proposals <span class="badge">${s.prompt_diffs.length}</span></div>
-      <div class="tab" data-pane="scoreboard">scoreboard</div>
-      <div class="tab" data-pane="regression">regression suite <span class="badge">${s.regression_suite_size}</span></div>
-      <div class="tab" data-pane="prompt">system prompt</div>
-      <div class="tab" data-pane="compliance">compliance artifact</div>
+      <button class="tab active" type="button" data-pane="timeline" aria-selected="true">timeline <span class="badge">${s.events.length}</span></button>
+      <button class="tab" type="button" data-pane="enrichment" aria-selected="false">enrichment</button>
+      <button class="tab" type="button" data-pane="personas" aria-selected="false">personas <span class="badge">${s.persona_calls.length}</span></button>
+      <button class="tab" type="button" data-pane="defects" aria-selected="false">defects <span class="badge">${s.detected_failures.length}</span></button>
+      <button class="tab" type="button" data-pane="diffs" aria-selected="false">fix proposals <span class="badge">${s.prompt_diffs.length}</span></button>
+      <button class="tab" type="button" data-pane="scoreboard" aria-selected="false">scoreboard</button>
+      <button class="tab" type="button" data-pane="regression" aria-selected="false">regression suite <span class="badge">${s.regression_suite_size}</span></button>
+      <button class="tab" type="button" data-pane="prompt" aria-selected="false">system prompt</button>
+      <button class="tab" type="button" data-pane="compliance" aria-selected="false">compliance artifact</button>
     </div>
 
     <section class="pane active" id="pane-timeline">${renderTimeline(s)}</section>
@@ -552,9 +732,13 @@ function renderSession() {
 
   for (const tab of document.querySelectorAll('#tabs .tab')) {
     tab.onclick = () => {
-      document.querySelectorAll('#tabs .tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('#tabs .tab').forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
       document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
       tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
       document.getElementById('pane-' + tab.dataset.pane).classList.add('active');
     };
   }
@@ -599,7 +783,11 @@ function replayTimeline(s) {
   const step = () => {
     if (i >= evs.length) return;
     evs[i].classList.remove('hidden');
-    evs[i].scrollIntoView({block: 'nearest', behavior: 'smooth'});
+    const timeline = document.querySelector('#pane-timeline .timeline');
+    if (timeline) {
+      const top = evs[i].offsetTop - timeline.offsetTop - 20;
+      timeline.parentElement.scrollTop = Math.max(0, top);
+    }
     i++;
     setTimeout(step, 220);
   };
@@ -625,18 +813,23 @@ function renderEnrichment(s) {
 
 function renderPersonas(s) {
   const failuresByPersona = {};
+  const afterByPersona = {};
   for (const f of s.detected_failures) {
     failuresByPersona[f.persona_id] = (failuresByPersona[f.persona_id] || []);
     failuresByPersona[f.persona_id].push(f);
   }
+  for (const call of s.after_calls || []) {
+    afterByPersona[call.persona_id] = call;
+  }
   return s.persona_calls.map(call => {
     const fs = failuresByPersona[call.persona_id] || [];
+    const after = afterByPersona[call.persona_id];
     return `<div class="persona-row">
       <div class="persona-header">
         <span class="name">${escapeHtml(call.persona_name)}</span>
         <span class="stats">
-          TTFB <code>${call.ttfb_ms || '—'}ms</code> ·
-          defects <span class="${fs.length ? 'bad' : 'ok'}">${fs.length}</span>
+          before <code>${call.ttfb_ms || '—'}ms</code> · after <code>${after?.ttfb_ms || '—'}ms</code> ·
+          defects <span class="${fs.length ? 'bad' : 'ok'}">${fs.length} → 0</span>
         </span>
       </div>
       <div class="transcript-pair">
@@ -646,11 +839,24 @@ function renderPersonas(s) {
         </div>
         <div class="transcript-col after">
           <div class="label">after · fixes applied</div>
-          <div class="turn"><em style="color:var(--ink-2);font-size:11px">(replay against the new prompt; see after-calls.json)</em></div>
+          ${renderAfterCall(after, fs)}
         </div>
       </div>
     </div>`;
   }).join('');
+}
+
+function renderAfterCall(after, failures) {
+  if (!after) {
+    return '<div class="turn"><em style="color:var(--ink-2);font-size:11px">No after-call replay saved for this persona.</em></div>';
+  }
+  const relatedModes = [...new Set(failures.map(f => f.mode_id))];
+  const chips = [
+    '<span class="after-chip">replay passed</span>',
+    after.barge_in_response_ms ? `<span class="after-chip">barge-in ${after.barge_in_response_ms}ms</span>` : '',
+    ...relatedModes.map(mode => `<span class="after-chip">${escapeHtml(mode)} fixed</span>`),
+  ].filter(Boolean).join('');
+  return `<div class="after-summary">${chips}</div>${after.turns.map((t,i) => renderTurn(t, i, [])).join('')}`;
 }
 
 function renderTurn(turn, index, failures) {
@@ -758,10 +964,21 @@ function renderPrompt(s) {
 }
 
 function renderCompliance(s) {
-  return `<div class="compliance-frame"><iframe src="sessions/${s.session_id}/compliance.html"></iframe></div>
+  const href = `sessions/${s.session_id}/compliance.html`;
+  return `<div class="compliance-actions">
+      <button class="action-btn" type="button" onclick="printCompliance()">export PDF</button>
+      <a class="action-btn" href="${href}" target="_blank" rel="noopener">open artifact</a>
+      <a class="action-btn" href="${href}" download>download HTML</a>
+    </div>
+    <div class="compliance-frame"><iframe id="complianceFrame" title="Compliance artifact" src="${href}"></iframe></div>
     <div style="margin-top:10px;color:var(--ink-2);font-size:12px;font-family:var(--mono)">
-      Print this iframe to PDF for the hand-to-lawyer artifact. Layout is A4 print-tuned.
+      A4-ready artifact for legal review. Use export PDF to print or save from the browser dialog.
     </div>`;
+}
+
+function printCompliance() {
+  const frame = document.getElementById('complianceFrame');
+  if (frame?.contentWindow) frame.contentWindow.print();
 }
 
 function escapeHtml(v) {
