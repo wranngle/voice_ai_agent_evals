@@ -15,12 +15,12 @@ import {existsSync, readFileSync, writeFileSync} from 'node:fs';
 import {type GeneratedTest, generatedToCreatePayload} from '../../../factory';
 import type {TestSummary} from '../../../wrapper/tests';
 import type {VoiceEvalsClient} from '../../../wrapper/types';
-import {buildClientFromEnv} from './client-builder';
 import {createTracer} from '../../../internal/jsonl-trace';
+import {buildClientFromEnv} from './client-builder';
 
 const trace = createTracer('cli.factory.upload');
 // JSONL tracing — emit start/end events from dispatch entry points.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 void trace;
 
 export type FactoryUploadOptions = {

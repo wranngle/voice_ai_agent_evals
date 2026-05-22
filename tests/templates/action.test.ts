@@ -31,7 +31,7 @@ describe('voice-evals-gate.yml.template — consumer-facing gating workflow', ()
     expect(raw).toMatch(/if:\s*failure\(\)/);
     const steps = (doc.jobs as any)?.gate?.steps as Array<Record<string, unknown>> | undefined;
     expect(Array.isArray(steps)).toBe(true);
-    const guarded = steps!.filter((s) => typeof s.if === 'string' && (s.if as string).includes('failure()'));
+    const guarded = steps!.filter(s => typeof s.if === 'string' && (s.if).includes('failure()'));
     expect(guarded.length).toBeGreaterThanOrEqual(1);
   });
 
@@ -59,11 +59,11 @@ describe('README — 4-line copy-paste install snippet', () => {
   });
 
   it('shows a ≤4-line shell command sequence (mkdir, curl, gh, git)', () => {
-    const block = readme.match(/```bash\nmkdir -p \.github\/workflows[\s\S]*?```/);
+    const block = /```bash\nmkdir -p \.github\/workflows[\s\S]*?```/.exec(readme);
     expect(block, 'install bash block not found').toBeTruthy();
     const lines = block![0]
       .split('\n')
-      .filter((l) => l && !l.startsWith('```') && !l.trim().startsWith('#'));
+      .filter(l => l && !l.startsWith('```') && !l.trim().startsWith('#'));
     const logicalLines = lines.reduce((acc, l) => acc + (l.trimEnd().endsWith('\\') ? 0 : 1), 0);
     expect(logicalLines).toBeLessThanOrEqual(4);
     expect(logicalLines).toBeGreaterThanOrEqual(3);

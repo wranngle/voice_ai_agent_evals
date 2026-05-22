@@ -20,7 +20,7 @@
  */
 
 import {writeFileSync, existsSync, mkdirSync} from 'node:fs';
-import {join, dirname} from 'node:path';
+import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {buildPostCallWorkflow, buildMonitoringWorkflow, buildClientInitiationWorkflow} from './build-elevenlabs-workflows.mjs';
 import {createTracer} from './lib/jsonl-trace.mjs';
@@ -29,10 +29,10 @@ const trace = createTracer('script.deploy-n8n-workflows');
 trace.info('start');
 
 const __filename = fileURLToPath(import.meta.url);
-const ROOT = join(dirname(__filename), '..');
+const ROOT = path.join(path.dirname(__filename), '..');
 
 const N8N_API_URL = (process.env.N8N_API_URL || '').replace(/\/$/, '');
-const N8N_API_KEY = process.env.N8N_API_KEY;
+const {N8N_API_KEY} = process.env;
 if (!N8N_API_URL || !N8N_API_KEY) {
   console.error('N8N_API_URL and N8N_API_KEY required');
   process.exit(2);
@@ -57,14 +57,17 @@ async function n8n(path, init = {}) {
     headers: {
       'X-N8N-API-KEY': N8N_API_KEY,
       'content-type': 'application/json',
-      ...(init.headers || {}),
+      ...init.headers,
     },
   });
 }
 
 async function findByName(name) {
   const r = await n8n(`/workflows?name=${encodeURIComponent(name)}`);
-  if (!r.ok) return null;
+  if (!r.ok) {
+    return null;
+  }
+
   const j = await r.json();
   const list = j.data || j;
   return Array.isArray(list) ? list.find(w => w.name === name) : null;
@@ -73,7 +76,9 @@ async function findByName(name) {
 async function deploy(builderOutput) {
   const {name, nodes, connections, settings} = builderOutput;
   const existing = await findByName(name);
-  const body = {name, nodes, connections, settings};
+  const body = {
+    name, nodes, connections, settings,
+  };
 
   let resp;
   if (existing) {
@@ -91,6 +96,7 @@ async function deploy(builderOutput) {
     trace.error('deploy_failed', {workflow: name, http: resp.status, body: errBody});
     return null;
   }
+
   const result = await resp.json();
   const wf = result.data || result;
 
@@ -104,7 +110,9 @@ async function deploy(builderOutput) {
 
 console.log(`\nDeploying to ${PUBLIC_BASE} ...\n`);
 
-const post = await deploy(buildPostCallWorkflow({secret: SECRET, ingestUrl: INGEST_URL, audioSinkUrl: AUDIO_SINK_URL, alertWebhookUrl: ALERT_WEBHOOK_URL}));
+const post = await deploy(buildPostCallWorkflow({
+  secret: SECRET, ingestUrl: INGEST_URL, audioSinkUrl: AUDIO_SINK_URL, alertWebhookUrl: ALERT_WEBHOOK_URL,
+}));
 const mon = await deploy(buildMonitoringWorkflow({secret: SECRET, ingestUrl: INGEST_URL}));
 const init = await deploy(buildClientInitiationWorkflow());
 
@@ -123,9 +131,14 @@ const registry = {
   },
 };
 
-const snapshotsDir = join(ROOT, 'snapshots');
-if (!existsSync(snapshotsDir)) mkdirSync(snapshotsDir, {recursive: true});
-const registryPath = join(snapshotsDir, `n8n-webhooks-${new Date().toISOString().slice(0, 10)}.json`);
+const snapshotsDir = path.join(ROOT, 'snapshots');
+if (!existsSync(snapshotsDir)) {
+  mkdirSync(snapshotsDir, {recursive: true});
+}
+
+const registryPath = path.join(snapshotsDir, `n8n-webhooks-${new Date().toISOString().slice(0, 10)}.json`);
 writeFileSync(registryPath, JSON.stringify(registry, null, 2));
 console.log(`\nRegistry: ${registryPath}`);
-trace.info('end', {registry: registryPath, post: post?.id, mon: mon?.id, init: init?.id});
+trace.info('end', {
+  registry: registryPath, post: post?.id, mon: mon?.id, init: init?.id,
+});

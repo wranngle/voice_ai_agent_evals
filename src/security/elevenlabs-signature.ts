@@ -53,20 +53,25 @@ export function createReplayCache(): ReplayCache {
 
   function maybeSweep(): void {
     const now = Date.now();
-    if (now - lastSweep < 60_000) return; // sweep at most once per minute
+    if (now - lastSweep < 60_000) {
+      return;
+    } // sweep at most once per minute
+
     lastSweep = now;
     const cutoff = now - MAX_AGE_MS;
     for (const [key, addedAt] of seen) {
-      if (addedAt < cutoff) seen.delete(key);
+      if (addedAt < cutoff) {
+        seen.delete(key);
+      }
     }
   }
 
   return {
-    has: (key: string) => {
+    has(key: string) {
       maybeSweep();
       return seen.has(key);
     },
-    add: (key: string) => {
+    add(key: string) {
       seen.set(key, Date.now());
     },
   };

@@ -70,7 +70,7 @@ for (const a of AGENTS) {
   const newPrompt = `${before}\n\n${NEW_TONE_LINE}\n${after}`;
 
   // PATCH with full conversation_config; strip mutually-exclusive tool_ids.
-  const cc = JSON.parse(JSON.stringify(agent.conversation_config));
+  const cc = structuredClone(agent.conversation_config);
   cc.agent.prompt.prompt = newPrompt;
   if (cc.agent.prompt.tools && cc.agent.prompt.tool_ids) {
     delete cc.agent.prompt.tool_ids;

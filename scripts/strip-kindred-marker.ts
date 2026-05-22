@@ -20,7 +20,7 @@ export {};
 const API_BASE = 'https://api.elevenlabs.io/v1';
 // The leak is `[kindred]<NBSP>` (U+00A0), not `[kindred]<SP>` — verified via
 // codePointAt 0x00A0 at position 9 of the live first_message.
-const KINDRED_RE = /^\[kindred\][ \s]+/;
+const KINDRED_RE = /^\[kindred][\u00A0\s]+/;
 const AGENTS = [
   {id: 'agent_8401krfj3xrqek2bfw71fyw2nzq0', label: '[TEMPLATE] (source)'},
   {id: 'agent_7601krfykfpwfjxrjqcshg64pcby', label: '[DEV] INBOUND TEMPLATE'},
@@ -45,7 +45,10 @@ type ConversationConfig = {
 };
 
 function stripPrefix(s: string | undefined): string | undefined {
-  if (typeof s !== 'string') return s;
+  if (typeof s !== 'string') {
+    return s;
+  }
+
   return KINDRED_RE.test(s) ? s.replace(KINDRED_RE, '') : s;
 }
 
@@ -53,14 +56,17 @@ async function get(agentId: string): Promise<{conversation_config: ConversationC
   const r = await fetch(`${API_BASE}/convai/agents/${agentId}`, {
     headers: {'xi-api-key': apiKey!},
   });
-  if (!r.ok) throw new Error(`GET ${agentId} HTTP ${r.status}: ${await r.text()}`);
+  if (!r.ok) {
+    throw new Error(`GET ${agentId} HTTP ${r.status}: ${await r.text()}`);
+  }
+
   return await r.json() as {conversation_config: ConversationConfig; name: string};
 }
 
 async function patch(agentId: string, conversationConfig: ConversationConfig): Promise<void> {
   // PATCH semantics per project AGENTS.md: send full conversation_config.
   // tools AND tool_ids are mutually exclusive — if both present, drop tool_ids.
-  const cleaned: ConversationConfig = JSON.parse(JSON.stringify(conversationConfig));
+  const cleaned: ConversationConfig = structuredClone(conversationConfig);
   if (cleaned.agent?.prompt?.tools && cleaned.agent.prompt.tool_ids) {
     delete cleaned.agent.prompt.tool_ids;
   }
@@ -70,7 +76,9 @@ async function patch(agentId: string, conversationConfig: ConversationConfig): P
     headers: {'xi-api-key': apiKey!, 'content-type': 'application/json'},
     body: JSON.stringify({conversation_config: cleaned}),
   });
-  if (!r.ok) throw new Error(`PATCH ${agentId} HTTP ${r.status}: ${await r.text()}`);
+  if (!r.ok) {
+    throw new Error(`PATCH ${agentId} HTTP ${r.status}: ${await r.text()}`);
+  }
 }
 
 async function strip(agentId: string, label: string): Promise<{changed: number}> {
@@ -97,7 +105,7 @@ async function strip(agentId: string, label: string): Promise<{changed: number}>
   if (cc.language_presets) {
     for (const [lang, preset] of Object.entries(cc.language_presets)) {
       const fm = preset.overrides?.agent?.first_message;
-      if (typeof fm === 'string' && fm.match(KINDRED_RE)) {
+      if (typeof fm === 'string' && KINDRED_RE.test(fm)) {
         preset.overrides!.agent!.first_message = stripPrefix(fm)!;
         console.log(`  language_presets.${lang}.overrides.agent.first_message: stripped`);
         changed++;

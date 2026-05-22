@@ -14,12 +14,14 @@
  * 2+ files (yaml templates ↔ JSON catalog).
  */
 
-import {existsSync, mkdtempSync, readFileSync, rmSync} from 'node:fs';
+import {
+  existsSync, mkdtempSync, readFileSync, rmSync,
+} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-
-import {afterEach, beforeEach, describe, expect, it} from 'vitest';
-
+import {
+  afterEach, beforeEach, describe, expect, it,
+} from 'vitest';
 import {detectFailures, loadCatalog} from '../../src/refinement/failure-detector';
 import {runRefinement} from '../../src/refinement/orchestrator';
 import {getPersonaCalls} from '../../src/refinement/persona-fixtures';
@@ -58,14 +60,25 @@ describe('refinement orchestrator — central product promise', () => {
     expect(session.regression_suite_size).toBeGreaterThan(0);
 
     const expectedSteps = [
-      'session.start', 'enrichment.start', 'enrichment.done',
-      'template.select', 'template.selected', 'prompt.fill',
-      'personas.before.start', 'personas.before.done',
-      'detect.start', 'detect.done',
-      'diff.start', 'diff.done',
-      'personas.after.start', 'personas.after.done',
-      'scoreboard', 'regression.persist',
-      'artifact.prompt', 'compliance.persist', 'session.persist',
+      'session.start',
+      'enrichment.start',
+      'enrichment.done',
+      'template.select',
+      'template.selected',
+      'prompt.fill',
+      'personas.before.start',
+      'personas.before.done',
+      'detect.start',
+      'detect.done',
+      'diff.start',
+      'diff.done',
+      'personas.after.start',
+      'personas.after.done',
+      'scoreboard',
+      'regression.persist',
+      'artifact.prompt',
+      'compliance.persist',
+      'session.persist',
       'session.complete',
     ];
     for (const step of expectedSteps) {
@@ -86,7 +99,7 @@ describe('refinement orchestrator — central product promise', () => {
     const businesses: Record<string, string> = {
       hvac: 'Riverside Heating & Cooling',
       dental: 'Brightwater Family Dentistry',
-      restaurant: "Marisol's Coastal Kitchen",
+      restaurant: 'Marisol\'s Coastal Kitchen',
       legal: 'Prairie & Hayes LLP',
     };
 
@@ -119,8 +132,12 @@ describe('refinement orchestrator — central product promise', () => {
   });
 
   it('session index aggregates multiple runs and orders by recency', async () => {
-    await runRefinement({business_name: 'Riverside Heating & Cooling', mock: true, session_id: 'a', out_dir: workDir});
-    await runRefinement({business_name: 'Brightwater Family Dentistry', mock: true, session_id: 'b', out_dir: workDir});
+    await runRefinement({
+      business_name: 'Riverside Heating & Cooling', mock: true, session_id: 'a', out_dir: workDir,
+    });
+    await runRefinement({
+      business_name: 'Brightwater Family Dentistry', mock: true, session_id: 'b', out_dir: workDir,
+    });
     const index = JSON.parse(readFileSync(join(workDir, 'index.json'), 'utf8')) as Array<{session_id: string}>;
     expect(index.length).toBe(2);
     expect(index.map(e => e.session_id).sort()).toEqual(['a', 'b']);

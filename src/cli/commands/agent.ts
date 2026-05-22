@@ -11,12 +11,12 @@
  * since it moves an agent to a phase that the wrapper otherwise refuses.
  */
 
-import {buildClientFromEnv} from './factory/client-builder';
 import {createTracer} from '../../internal/jsonl-trace';
+import {buildClientFromEnv} from './factory/client-builder';
 
 const trace = createTracer('cli.agent');
 // JSONL tracing — emit start/end events from dispatch entry points.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 void trace;
 
 export type AgentDispatchOptions = {
@@ -143,8 +143,7 @@ function readStringFlag(argv: readonly string[], flag: string): string | undefin
 
 const PHASE_VALUES = new Set(['DEV', 'ALPHA', 'BETA', 'PROD', 'ARCHIVED']);
 
-function readPhaseListFlag(argv: readonly string[], flag: string)
-  : Array<'DEV' | 'ALPHA' | 'BETA' | 'PROD' | 'ARCHIVED'> | undefined {
+function readPhaseListFlag(argv: readonly string[], flag: string): Array<'DEV' | 'ALPHA' | 'BETA' | 'PROD' | 'ARCHIVED'> | undefined {
   const raw = readStringFlag(argv, flag);
   if (raw === undefined) {
     return undefined;

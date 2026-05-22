@@ -12,22 +12,22 @@ const PLAIN_LANGUAGE_TITLES: Record<string, string> = {
   tts_directive_emission: 'Remove tone instructions from the spoken script',
   hallucinated_business_hours: 'Never invent business hours',
   wrong_service_area: 'Confirm the caller is in our service area before booking',
-  calendar_overpromise: "Don't promise a time the calendar hasn't confirmed",
-  sms_premature_confirmation: "Don't say the text was sent until it actually sends",
+  calendar_overpromise: 'Don\'t promise a time the calendar hasn\'t confirmed',
+  sms_premature_confirmation: 'Don\'t say the text was sent until it actually sends',
   hipaa_data_leak_on_recording: 'Never repeat sensitive ID numbers on the recording',
   medical_advice_emission: 'Never give medical advice — intake only',
   legal_advice_emission: 'Never give legal advice — intake only',
   attorney_client_relationship_implication: 'Use neutral language; no implied representation',
-  fee_disclosure_unauthorized: "Don't quote fees, retainers, or contingencies",
+  fee_disclosure_unauthorized: 'Don\'t quote fees, retainers, or contingencies',
   hallucinated_menu_items: 'Only describe dishes that are actually on the menu',
   allergen_advice_emission: 'Never declare a dish safe for an allergy',
-  reservation_overpromise: "Don't confirm a table — send the booking link",
+  reservation_overpromise: 'Don\'t confirm a table — send the booking link',
   emergency_misclassification: 'Always ask explicitly whether the call is an emergency',
-  insurance_overclaim: "Don't list insurance plans verbally",
+  insurance_overclaim: 'Don\'t list insurance plans verbally',
   confidentiality_re_disclosure: 'Acknowledge the matter once; do not re-state details',
   persona_collapse: 'Stay in character as the business assistant',
   off_topic_drift: 'Redirect off-topic chat back to the reason for the call',
-  language_mismatch: "Match the caller's language",
+  language_mismatch: 'Match the caller\'s language',
   latency_floor_breach: 'Reply faster on the greeting',
 };
 
@@ -36,6 +36,7 @@ function summarizeAcrossPersonas(failures: DetectedFailure[]): string {
   if (personas.length === 1) {
     return `Caught on the ${personas[0]} persona call`;
   }
+
   return `Caught on ${personas.length} persona calls (${personas.slice(0, 3).join(', ')}${personas.length > 3 ? '…' : ''})`;
 }
 

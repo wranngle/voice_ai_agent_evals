@@ -1,6 +1,4 @@
 #!/usr/bin/env bun
-export {};
-
 /**
  * Build the CEO-grade proof clip — TTS-synthesize a hero conversation from
  * one of the ceo-demo report's passing transcripts, stitch into a single MP3.
@@ -15,7 +13,9 @@ export {};
  *   proof/transcript.json     the transcript used + metadata
  */
 
-import {existsSync, mkdirSync, readFileSync, writeFileSync, rmSync} from 'node:fs';
+import {
+  existsSync, mkdirSync, readFileSync, writeFileSync, rmSync,
+} from 'node:fs';
 import {execSync} from 'node:child_process';
 import {join} from 'node:path';
 
@@ -56,7 +56,7 @@ if (!hero?.transcript) {
   process.exit(1);
 }
 
-const cleanTurn = (s: string): string => s.replace(/\s+/g, ' ').trim();
+const cleanTurn = (s: string): string => s.replaceAll(/\s+/g, ' ').trim();
 
 const turns = hero.transcript
   .slice(0, MAX_TURNS)
@@ -68,24 +68,29 @@ console.log(`Turns: ${turns.length} (truncated from ${hero.transcript.length})`)
 console.log('');
 
 // Wipe and recreate the audio dir.
-if (existsSync(AUDIO_DIR)) rmSync(AUDIO_DIR, {recursive: true, force: true});
+if (existsSync(AUDIO_DIR)) {
+  rmSync(AUDIO_DIR, {recursive: true, force: true});
+}
+
 mkdirSync(AUDIO_DIR, {recursive: true});
 
-async function tts(text: string, voiceId: string): Promise<Buffer> {
+async function tts(text: string, voiceId: string): Promise<Uint8Array> {
   const r = await fetch(`${API_BASE}/text-to-speech/${voiceId}?output_format=mp3_44100_128`, {
     method: 'POST',
     headers: {'xi-api-key': apiKey!, 'content-type': 'application/json'},
     body: JSON.stringify({
       text,
       model_id: TTS_MODEL,
-      voice_settings: {stability: 0.55, similarity_boost: 0.75, style: 0.0, use_speaker_boost: true},
+      voice_settings: {
+        stability: 0.55, similarity_boost: 0.75, style: 0, use_speaker_boost: true,
+      },
     }),
   });
   if (!r.ok) {
     throw new Error(`TTS ${voiceId} HTTP ${r.status}: ${await r.text()}`);
   }
 
-  return Buffer.from(await r.arrayBuffer());
+  return new Uint8Array(await r.arrayBuffer());
 }
 
 // Run TTS in sequence to respect rate limits (TTS endpoint is sensitive).
@@ -113,7 +118,9 @@ const listPath = join(AUDIO_DIR, '_concat-list.txt');
 const interleaved: string[] = [];
 for (let i = 0; i < files.length; i++) {
   interleaved.push(`file '${files[i]}'`);
-  if (i < files.length - 1) interleaved.push(`file '${silencePath}'`);
+  if (i < files.length - 1) {
+    interleaved.push(`file '${silencePath}'`);
+  }
 }
 
 writeFileSync(listPath, interleaved.join('\n'));
@@ -155,6 +162,6 @@ console.log(`✓ clip:        ${outPath}`);
 console.log(`  duration:    ${durationSec.toFixed(1)}s`);
 console.log(`  size:        ${sizeKB} KB`);
 console.log(`  turns:       ${turns.length} (truncated from ${hero.transcript.length})`);
-console.log(`  agent voice: Charlotte`);
-console.log(`  caller voice:Roger`);
+console.log('  agent voice: Charlotte');
+console.log('  caller voice:Roger');
 console.log(`  transcript:  ${join(PROOF_DIR, 'transcript.json')}`);

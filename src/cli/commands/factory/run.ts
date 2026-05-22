@@ -17,14 +17,14 @@ import {
 } from '../../../factory';
 import type {TestSummary} from '../../../wrapper/tests';
 import type {VoiceEvalsClient} from '../../../wrapper/types';
+import {createTracer} from '../../../internal/jsonl-trace';
 import {buildClientFromEnv} from './client-builder';
 import {printInvocationSummary} from './execute';
 import type {UploadManifestEntry} from './upload';
-import {createTracer} from '../../../internal/jsonl-trace';
 
 const trace = createTracer('cli.factory.run');
 // JSONL tracing — emit start/end events from dispatch entry points.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 void trace;
 
 export type FactoryRunOptions = {

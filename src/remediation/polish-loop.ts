@@ -40,6 +40,23 @@ type LoopState = {
   lastDims?: readonly DimensionScore[];
 };
 
+type RemediationOutcome = {
+  options: PolishLoopOptions;
+  proposal: FixProposal;
+  appliedOk: boolean;
+  failingBefore: number;
+  failingAfter: number;
+};
+
+type FinishInput = {
+  history: PolishLoopStep[];
+  applied: FixProposal[];
+  reason: PolishLoopResult['stopped_because'];
+  finalFailingCount: number;
+  patternsDetected: Record<string, number>;
+  state: LoopState;
+};
+
 export async function polishLoop(options: PolishLoopOptions): Promise<PolishLoopResult> {
   const maxIterations = options.maxIterations ?? 3;
   const patience = options.patience ?? 2;
@@ -61,7 +78,9 @@ export async function polishLoop(options: PolishLoopOptions): Promise<PolishLoop
       history.push({
         iteration: i, failingBefore: 0, proposal: undefined, applied: false, failingAfter: 0,
       });
-      return finish(history, applied, 'all_passing', 0, patternTally, state);
+      return finish({
+        history, applied, reason: 'all_passing', finalFailingCount: 0, patternsDetected: patternTally, state,
+      });
     }
 
     const detected = await runAnalyze(options, failingBefore, failingHistory);
@@ -86,7 +105,9 @@ export async function polishLoop(options: PolishLoopOptions): Promise<PolishLoop
         failingAfter: failingBefore.length,
         patternsDetected: detected,
       });
-      return finish(history, applied, 'no_proposal', failingBefore.length, patternTally, state);
+      return finish({
+        history, applied, reason: 'no_proposal', finalFailingCount: failingBefore.length, patternsDetected: patternTally, state,
+      });
     }
 
     const applyResult = await applyFix({
@@ -121,14 +142,22 @@ export async function polishLoop(options: PolishLoopOptions): Promise<PolishLoop
     });
     failingHistory.push(failingAfter);
 
-    logRemediationOutcome(options, proposal, applyResult.applied, failingBefore.length, failingAfter);
+    logRemediationOutcome({
+      options,
+      proposal,
+      appliedOk: applyResult.applied,
+      failingBefore: failingBefore.length,
+      failingAfter,
+    });
 
     if (applyResult.applied) {
       applied.push(proposal);
     }
 
     if (failingAfter === 0) {
-      return finish(history, applied, 'all_passing', 0, patternTally, state);
+      return finish({
+        history, applied, reason: 'all_passing', finalFailingCount: 0, patternsDetected: patternTally, state,
+      });
     }
 
     if (failingAfter >= prevFailing) {
@@ -140,11 +169,15 @@ export async function polishLoop(options: PolishLoopOptions): Promise<PolishLoop
     prevFailing = failingAfter;
 
     if (consecutiveNoImprovement >= patience) {
-      return finish(history, applied, 'patience_exhausted', failingAfter, patternTally, state);
+      return finish({
+        history, applied, reason: 'patience_exhausted', finalFailingCount: failingAfter, patternsDetected: patternTally, state,
+      });
     }
   }
 
-  return finish(history, applied, 'max_iterations', prevFailing, patternTally, state);
+  return finish({
+    history, applied, reason: 'max_iterations', finalFailingCount: prevFailing, patternsDetected: patternTally, state,
+  });
 }
 
 async function collectDims(evaluate: PolishLoopOptions['evaluate']): Promise<{
@@ -207,13 +240,10 @@ function logPatternsDetected(
   }
 }
 
-function logRemediationOutcome(
-  options: PolishLoopOptions,
-  proposal: FixProposal,
-  appliedOk: boolean,
-  failingBefore: number,
-  failingAfter: number,
-): void {
+function logRemediationOutcome(input: RemediationOutcome): void {
+  const {
+    options, proposal, appliedOk, failingBefore, failingAfter,
+  } = input;
   if (!options.frictionLogPath) {
     return;
   }
@@ -227,14 +257,10 @@ function logRemediationOutcome(
   }, {path: options.frictionLogPath});
 }
 
-function finish(
-  history: PolishLoopStep[],
-  applied: FixProposal[],
-  reason: PolishLoopResult['stopped_because'],
-  finalFailingCount: number,
-  patternsDetected: Record<string, number>,
-  state: LoopState,
-): PolishLoopResult {
+function finish(input: FinishInput): PolishLoopResult {
+  const {
+    history, applied, reason, finalFailingCount, patternsDetected, state,
+  } = input;
   const out: PolishLoopResult = {
     iterations: history.length,
     applied,

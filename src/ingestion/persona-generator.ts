@@ -108,9 +108,15 @@ export function listPersonas(): readonly Persona[] {
  */
 export function buildPersonaSystemPrompt(persona: Persona, scenarioIntent: string): string {
   const t = persona.traits;
+  const speakingStyle = [
+    `Speaking style: pace ~${t.pace_wpm} wpm; disfluency rate ${t.disfluency_rate.toFixed(2)} (insert "um"/"uh"/false starts at that rate);`,
+    `interruption tendency ${t.interruption_tendency.toFixed(2)} (probability of cutting the agent off mid-utterance);`,
+    `frustration ramps at slope ${t.frustration_slope.toFixed(2)} (0 = unflappable, 1 = explodes quickly).`,
+  ].join(' ');
+
   return `You are roleplaying as ${persona.name}. ${t.description}
 
-Speaking style: pace ~${t.pace_wpm} wpm; disfluency rate ${t.disfluency_rate.toFixed(2)} (insert "um"/"uh"/false starts at that rate); interruption tendency ${t.interruption_tendency.toFixed(2)} (probability of cutting the agent off mid-utterance); frustration ramps at slope ${t.frustration_slope.toFixed(2)} (0 = unflappable, 1 = explodes quickly).
+${speakingStyle}
 
 Scenario intent: ${scenarioIntent}
 

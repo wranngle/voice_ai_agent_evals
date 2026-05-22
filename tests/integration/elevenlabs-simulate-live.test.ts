@@ -1,14 +1,16 @@
 /**
  * Live end-to-end exercise of an ElevenLabs agent via the simulate-conversation
- * API. Closes spiritual E1 (e2e through the agent's text+LLM pipeline) and
- * E7 (overrides verified end-to-end against a real agent).
+ * API. Closes spiritual E1 (e2e through the agent's text+LLM pipeline).
+ * The first-message override check is opt-in because the current
+ * simulate-conversation API reference does not list conversation_config_override
+ * as a supported request field.
  *
  * What this proves:
  *   - The agent is reachable and the API host accepts conversations.
- *   - The transcript returned by ElevenLabs is non-empty and structured.
- *   - When we pass a `conversation_config_override`, the override is visible
- *     in the response's `conversation_initiation_client_data_webhook_request`
- *     or in the rendered first agent turn.
+ *   - The simulated_conversation returned by ElevenLabs is non-empty and structured.
+ *   - When explicitly enabled by env, whether a `conversation_config_override`
+ *     appears in the rendered first agent turn for the configured agent/API
+ *     version.
  *
  * What this DOES NOT prove (honest about the audio gap):
  *   - Audio is synthesized correctly via TTS.
@@ -25,6 +27,7 @@
 import {describe, expect, it} from 'vitest';
 
 const SKIP = process.env.CI === 'true' || !process.env.ELEVENLABS_API_KEY;
+const RUN_OVERRIDE_CHECK = process.env.VOICE_EVALS_SIMULATE_OVERRIDE_CHECK === '1';
 const AGENT_ID = process.env.VOICE_EVALS_TEST_INBOUND_AGENT_ID
   ?? 'agent_7601krfykfpwfjxrjqcshg64pcby'; // [DEV] INBOUND TEMPLATE
 
@@ -62,12 +65,13 @@ describe.skipIf(SKIP)('META-AUDIT: live ElevenLabs simulate-conversation', () =>
         },
       },
       extra_evaluation_criteria: [],
+      new_turns_limit: 2,
     });
 
     expect(result.status, `simulate-conversation HTTP ${result.status}; body=${JSON.stringify(result.json).slice(0, 300)}`).toBeLessThan(500);
     if (result.status === 200) {
-      const json = result.json as {transcript?: unknown; conversation_id?: string; analysis?: unknown};
-      expect(json.transcript, 'transcript missing from simulation result').toBeTruthy();
+      const turns = extractSimulatedConversation(result.json);
+      expect(turns.length, `simulated_conversation missing/empty from simulation result: ${JSON.stringify(result.json).slice(0, 300)}`).toBeGreaterThan(0);
       // Some agents have an analysis block, some don't — assert only the
       // transcript is present.
     } else {
@@ -77,7 +81,7 @@ describe.skipIf(SKIP)('META-AUDIT: live ElevenLabs simulate-conversation', () =>
     }
   }, 120_000);
 
-  it('honors conversation_config_override on first_message (E7 proxy)', async () => {
+  it.skipIf(!RUN_OVERRIDE_CHECK)('honors conversation_config_override on first_message when the endpoint supports it', async () => {
     const overrideMessage = 'OVERRIDE_FIRST_MESSAGE_TEST_' + Date.now();
     const result = await simulate({
       simulation_specification: {
@@ -87,23 +91,56 @@ describe.skipIf(SKIP)('META-AUDIT: live ElevenLabs simulate-conversation', () =>
         },
       },
       extra_evaluation_criteria: [],
+      new_turns_limit: 2,
       conversation_config_override: {
         agent: {first_message: overrideMessage},
       },
     });
 
     if (result.status === 200) {
-      const json = result.json as {transcript?: Array<{role: string; message: string}>};
-      const transcript = json.transcript ?? [];
-      const agentTurns = transcript.filter(t => t.role === 'agent');
+      const agentTurns = extractSimulatedConversation(result.json).filter(t => t.role === 'agent');
       // The first agent turn (or one of the early ones) should match the override.
       const found = agentTurns.some(t => t.message?.includes(overrideMessage));
-      expect(found, `override "${overrideMessage}" not present in agent transcript: ${JSON.stringify(agentTurns.slice(0, 3))}`).toBe(true);
+      const preview = JSON.stringify(agentTurns.slice(0, 3));
+      expect(found, `override "${overrideMessage}" not present in agent transcript: ${preview}`).toBe(true);
     } else if (result.status === 403 || result.status === 422) {
       // Override may be disabled on the agent — surface the error explicitly.
-      throw new Error(`Override path rejected with HTTP ${result.status}: ${JSON.stringify(result.json)}. Check that platform_settings.overrides.conversation_config_override.agent.first_message=true on the test agent.`);
+      const message = `Override path rejected with HTTP ${result.status}: ${JSON.stringify(result.json)}. `
+        + 'Check that platform_settings.overrides.conversation_config_override.agent.first_message=true on the test agent.';
+      throw new Error(message);
     } else {
       throw new Error(`Simulation failed with HTTP ${result.status}: ${JSON.stringify(result.json)}`);
     }
   }, 120_000);
 });
+
+function extractSimulatedConversation(json: unknown): Array<{role: string; message?: string}> {
+  if (!json || typeof json !== 'object') {
+    return [];
+  }
+
+  const envelope = json as Record<string, unknown>;
+  const turns = envelope.simulated_conversation ?? envelope.simulatedConversation ?? envelope.transcript;
+  if (!Array.isArray(turns)) {
+    return [];
+  }
+
+  const normalized: Array<{role: string; message?: string}> = [];
+  for (const turn of turns) {
+    if (!turn || typeof turn !== 'object') {
+      continue;
+    }
+
+    const item = turn as Record<string, unknown>;
+    if (typeof item.role !== 'string') {
+      continue;
+    }
+
+    normalized.push({
+      role: item.role,
+      message: typeof item.message === 'string' ? item.message : undefined,
+    });
+  }
+
+  return normalized;
+}

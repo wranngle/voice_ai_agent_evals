@@ -12,9 +12,9 @@
 import {mkdtempSync, rmSync, existsSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-
-import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-
+import {
+  afterEach, beforeEach, describe, expect, it, vi,
+} from 'vitest';
 import {inferBusinessContextFromAgent, runLivePersonaCalls} from '../../src/refinement/live-adapter';
 import {runRefinement} from '../../src/refinement/orchestrator';
 import type {VoiceEvalsClient} from '../../src/wrapper/types';
@@ -60,14 +60,14 @@ function makeMockClient(perPersonaResponses: MockResponse[]): {
 const SAMPLE_LIVE_TRANSCRIPT = [
   {role: 'agent', message: 'Hi, Riverside Heating & Cooling — how can I help?', timeInCallSecs: 0.62},
   {role: 'user', message: 'Oh hello dear, my furnace is making a clanking sound. Can you help?', timeInCallSecs: 4.1},
-  {role: 'agent', message: "[chuckles] Of course! I have you booked for Tuesday at 2pm.", timeInCallSecs: 8.4},
-  {role: 'user', message: 'Thank you so much.', timeInCallSecs: 11.0},
+  {role: 'agent', message: '[chuckles] Of course! I have you booked for Tuesday at 2pm.', timeInCallSecs: 8.4},
+  {role: 'user', message: 'Thank you so much.', timeInCallSecs: 11},
   {role: 'agent', message: 'I just sent a confirmation to your phone.', timeInCallSecs: 13.5},
 ];
 
 const CLEAN_TRANSCRIPT = [
   {role: 'agent', message: 'Riverside Heating & Cooling — how can I help?', timeInCallSecs: 0.58},
-  {role: 'user', message: 'Hi, my furnace is making noise.', timeInCallSecs: 3.0},
+  {role: 'user', message: 'Hi, my furnace is making noise.', timeInCallSecs: 3},
   {
     role: 'agent',
     message: 'Got it — texting you the booking link now.',
@@ -89,9 +89,7 @@ afterEach(() => {
 
 describe('live-adapter — runLivePersonaCalls', () => {
   it('issues one simulateConversation call per persona and returns PersonaCall[] in the detector schema', async () => {
-    const {client, simulateConversation} = makeMockClient(
-      Array.from({length: 5}, () => ({simulatedConversation: SAMPLE_LIVE_TRANSCRIPT})),
-    );
+    const {client, simulateConversation} = makeMockClient(Array.from({length: 5}, () => ({simulatedConversation: SAMPLE_LIVE_TRANSCRIPT})));
 
     const calls = await runLivePersonaCalls({
       client,
@@ -149,7 +147,9 @@ describe('live-adapter — runLivePersonaCalls', () => {
 
   it('marks tool_calls without a matching result as pending', async () => {
     const transcript = [
-      {role: 'agent', message: 'Sending text.', toolCalls: [{toolName: 'send_sms'}], timeInCallSecs: 1},
+      {
+        role: 'agent', message: 'Sending text.', toolCalls: [{toolName: 'send_sms'}], timeInCallSecs: 1,
+      },
     ];
     const {client} = makeMockClient([{simulatedConversation: transcript}]);
     const calls = await runLivePersonaCalls({
@@ -174,9 +174,7 @@ describe('live-adapter — inferBusinessContextFromAgent', () => {
 
 describe('live-adapter — orchestrator integration', () => {
   it('runRefinement against a mocked live client produces a full session bundle and detects failures from the live transcript', async () => {
-    const {client, simulateConversation, agentGet} = makeMockClient(
-      Array.from({length: 5}, () => ({simulatedConversation: SAMPLE_LIVE_TRANSCRIPT})),
-    );
+    const {client, simulateConversation, agentGet} = makeMockClient(Array.from({length: 5}, () => ({simulatedConversation: SAMPLE_LIVE_TRANSCRIPT})));
 
     const session = await runRefinement({
       agent_id: 'agent_live_e2e',

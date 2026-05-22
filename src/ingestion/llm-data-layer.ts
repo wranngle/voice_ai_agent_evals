@@ -15,7 +15,8 @@
 
 import type {ProposedTestCase, IngestionOptions} from './types';
 
-const PROPOSER_SYSTEM_PROMPT = `You analyze a voice agent conversation transcript and propose 1-5 follow-up regression test cases that would catch any bug demonstrated in the transcript, plus adjacent failure modes worth probing.
+const PROPOSER_SYSTEM_PROMPT = `You analyze a voice agent conversation transcript and propose 1-5 follow-up regression test cases that would catch any bug demonstrated in the transcript.
+Also propose adjacent failure modes worth probing.
 
 Output a JSON array of objects. Each object MUST have these keys:
   suggested_id: kebab-case slug (lowercase, hyphenated, <= 48 chars)

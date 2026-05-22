@@ -16,7 +16,7 @@ function escape(value: unknown): string {
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
+    .replaceAll('\'', '&#39;');
 }
 
 export function renderComplianceArtifact(session: RefinementSession): string {
@@ -40,6 +40,13 @@ export function renderComplianceArtifact(session: RefinementSession): string {
       <td class="evidence">${escape(f.evidence.matched_phrase ?? f.evidence.surrounding_text.slice(0, 60))}</td>
     </tr>
   `).join('');
+
+  const businessLink = session.enrichment.website_url
+    ? ` · <a href="${escape(session.enrichment.website_url)}">${escape(session.enrichment.website_url)}</a>`
+    : '';
+  const overallBefore = (session.scoreboard.before * 100).toFixed(0);
+  const overallAfter = (session.scoreboard.after * 100).toFixed(0);
+  const overallDelta = ((session.scoreboard.after - session.scoreboard.before) * 100).toFixed(0);
 
   return `<!doctype html>
 <html lang="en">
@@ -81,7 +88,7 @@ export function renderComplianceArtifact(session: RefinementSession): string {
 </div>
 
 <div class="kv">
-  <div class="k">Business</div><div>${escape(session.enrichment.business_name)}${session.enrichment.website_url ? ` · <a href="${escape(session.enrichment.website_url)}">${escape(session.enrichment.website_url)}</a>` : ''}</div>
+  <div class="k">Business</div><div>${escape(session.enrichment.business_name)}${businessLink}</div>
   <div class="k">Vertical</div><div>${escape(session.enrichment.vertical_label)}</div>
   <div class="k">Service area</div><div>${escape(session.enrichment.service_area)}</div>
   <div class="k">Hours of operation</div><div>${escape(session.enrichment.business_hours)}</div>
@@ -94,7 +101,7 @@ export function renderComplianceArtifact(session: RefinementSession): string {
 <table>
   <thead><tr><th>Dimension</th><th class="num">Before</th><th class="num">After</th><th class="num">Δ</th></tr></thead>
   <tbody>${rubricRows || '<tr><td colspan="4">No rubric scored.</td></tr>'}</tbody>
-  <tfoot><tr><th>Overall</th><th class="num">${(session.scoreboard.before * 100).toFixed(0)}%</th><th class="num">${(session.scoreboard.after * 100).toFixed(0)}%</th><th class="num delta">+${((session.scoreboard.after - session.scoreboard.before) * 100).toFixed(0)}</th></tr></tfoot>
+  <tfoot><tr><th>Overall</th><th class="num">${overallBefore}%</th><th class="num">${overallAfter}%</th><th class="num delta">+${overallDelta}</th></tr></tfoot>
 </table>
 
 <h2>Defects detected (${failureCount}) → fixes applied (${fixCount})</h2>

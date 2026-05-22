@@ -48,21 +48,36 @@ const SUPPRESS = process.env.VOICE_EVALS_DISABLE_TRACE === '1';
 
 function logPathForToday(): string {
   const dir = join(process.cwd(), 'logs');
-  if (!existsSync(dir)) mkdirSync(dir, {recursive: true});
+  if (!existsSync(dir)) {
+    mkdirSync(dir, {recursive: true});
+  }
+
   const date = new Date().toISOString().slice(0, 10);
   return join(dir, `voice-evals-${date}.jsonl`);
 }
 
-function emit(channel: string, runId: string, level: TraceLevel, msg: string, fields?: TraceFields, key?: string): void {
-  if (SUPPRESS) return;
+type TraceEventInput = {
+  channel: string;
+  runId: string;
+  level: TraceLevel;
+  msg: string;
+  fields?: TraceFields;
+  key?: string;
+};
+
+function emit(input: TraceEventInput): void {
+  if (SUPPRESS) {
+    return;
+  }
+
   const event = {
     ts: new Date().toISOString(),
-    channel,
-    level,
-    run_id: runId,
-    ...(key === undefined ? {} : {key}),
-    msg,
-    ...(fields === undefined ? {} : {fields}),
+    channel: input.channel,
+    level: input.level,
+    run_id: input.runId,
+    ...(input.key === undefined ? {} : {key: input.key}),
+    msg: input.msg,
+    ...(input.fields === undefined ? {} : {fields: input.fields}),
   };
   try {
     appendFileSync(logPathForToday(), `${JSON.stringify(event)}\n`);
@@ -73,19 +88,25 @@ function emit(channel: string, runId: string, level: TraceLevel, msg: string, fi
 
 export function createTracer(channel: string, options: {runId?: string; key?: string} = {}): Tracer {
   const runId = options.runId ?? randomUUID();
-  const key = options.key;
+  const {key} = options;
   return {
     channel,
     runId,
-    info: (msg, fields) => {
-      emit(channel, runId, 'info', msg, fields, key);
+    info(msg, fields) {
+      emit({
+        channel, runId, level: 'info', msg, fields, key,
+      });
     },
-    warn: (msg, fields) => {
-      emit(channel, runId, 'warn', msg, fields, key);
+    warn(msg, fields) {
+      emit({
+        channel, runId, level: 'warn', msg, fields, key,
+      });
     },
-    error: (msg, fields) => {
-      emit(channel, runId, 'error', msg, fields, key);
+    error(msg, fields) {
+      emit({
+        channel, runId, level: 'error', msg, fields, key,
+      });
     },
-    child: (subChannel) => createTracer(`${channel}.${subChannel}`, {runId, key}),
+    child: subChannel => createTracer(`${channel}.${subChannel}`, {runId, key}),
   };
 }

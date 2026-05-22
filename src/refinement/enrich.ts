@@ -50,7 +50,7 @@ const MOCK_FIXTURES: Record<string, EnrichmentResult> = {
     confidence: 0.94,
   },
   marisol: {
-    business_name: "Marisol's Coastal Kitchen",
+    business_name: 'Marisol\'s Coastal Kitchen',
     website_url: 'https://marisols-kitchen.example',
     vertical_label: 'restaurant',
     category_hint: 'restaurant',
@@ -84,6 +84,7 @@ function classifyVertical(text: string): {category: string; vertical_label: stri
       return {category: heuristic.category, vertical_label: heuristic.vertical_label};
     }
   }
+
   return {category: 'hvac', vertical_label: 'small business'};
 }
 
@@ -116,15 +117,19 @@ function mockKeyFor(name: string): keyof typeof MOCK_FIXTURES | undefined {
   if (lower.includes('riverside')) {
     return 'riverside';
   }
+
   if (lower.includes('brightwater') || lower.includes('dental')) {
     return 'brightwater';
   }
+
   if (lower.includes('marisol') || lower.includes('kitchen')) {
     return 'marisol';
   }
+
   if (lower.includes('prairie') || lower.includes('hayes') || lower.includes('law') || lower.includes('llp')) {
     return 'prairie';
   }
+
   return undefined;
 }
 
@@ -134,9 +139,9 @@ export async function enrichFromAgentPrompt(input: {
 }): Promise<EnrichmentResult> {
   const blob = `${input.agentName} ${input.systemPrompt}`.slice(0, 8000);
   const classification = classifyVertical(blob);
-  const hoursMatch = blob.match(/(?:Hours?|Open):\s*([^.\n]{8,100})/i)
-    ?? blob.match(/(?:Mon|Tue|Wed)[^.\n]{8,80}/i);
-  const areaMatch = blob.match(/(?:service area|serving|located in|in)\s+([A-Z][^.\n]{4,80})/i);
+  const hoursMatch = (/(?:hours?|open):\s*([^.\n]{8,100})/i.exec(blob))
+    ?? (/(?:mon|tue|wed)[^.\n]{8,80}/i.exec(blob));
+  const areaMatch = /(?:service area|serving|located in|in)\s+([a-z][^.\n]{4,80})/i.exec(blob);
   return {
     business_name: input.agentName,
     vertical_label: classification.vertical_label,
@@ -159,6 +164,7 @@ export async function enrich(input: {
   if (input.mock && mockKey) {
     return MOCK_FIXTURES[mockKey];
   }
+
   if (input.mock) {
     return {
       business_name: name || 'Acme Small Business',

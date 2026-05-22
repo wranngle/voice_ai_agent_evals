@@ -27,15 +27,15 @@ import {existsSync} from 'node:fs';
 const EXTERNAL = ['@elevenlabs/elevenlabs-js', 'arktype', 'yaml'];
 
 const SUBPATH_ENTRIES = [
-  {name: 'wrapper',    entry: 'src/wrapper/index.ts',    outdir: 'dist/wrapper'},
-  {name: 'tests-api',  entry: 'src/wrapper/tests.ts',    outdir: 'dist/wrapper'},
-  {name: 'scoring',    entry: 'src/scoring/index.ts',    outdir: 'dist/scoring'},
-  {name: 'ingestion',  entry: 'src/ingestion/index.ts',  outdir: 'dist/ingestion'},
+  {name: 'wrapper', entry: 'src/wrapper/index.ts', outdir: 'dist/wrapper'},
+  {name: 'tests-api', entry: 'src/wrapper/tests.ts', outdir: 'dist/wrapper'},
+  {name: 'scoring', entry: 'src/scoring/index.ts', outdir: 'dist/scoring'},
+  {name: 'ingestion', entry: 'src/ingestion/index.ts', outdir: 'dist/ingestion'},
   {name: 'regression', entry: 'src/regression/index.ts', outdir: 'dist/regression'},
   {name: 'remediation', entry: 'src/remediation/index.ts', outdir: 'dist/remediation'},
-  {name: 'factory',    entry: 'src/factory/index.ts',    outdir: 'dist/factory'},
-  {name: 'n8n',        entry: 'src/n8n/index.ts',        outdir: 'dist/n8n'},
-  {name: 'scenarios',  entry: 'src/scenarios/index.ts',  outdir: 'dist/scenarios'},
+  {name: 'factory', entry: 'src/factory/index.ts', outdir: 'dist/factory'},
+  {name: 'n8n', entry: 'src/n8n/index.ts', outdir: 'dist/n8n'},
+  {name: 'scenarios', entry: 'src/scenarios/index.ts', outdir: 'dist/scenarios'},
 ];
 
 function run(cmd, args, label) {
@@ -114,12 +114,16 @@ async function main() {
   const pkg = JSON.parse(await readFile('package.json', 'utf8'));
   const missing = [];
   for (const [key, target] of Object.entries(pkg.exports ?? {})) {
-    if (key === './package.json' || typeof target !== 'object') continue;
+    if (key === './package.json' || typeof target !== 'object') {
+      continue;
+    }
+
     const importPath = target.import ?? target.default;
     if (importPath && !existsSync(importPath.replace(/^\.\//, ''))) {
       missing.push(`${key} -> ${importPath}`);
     }
   }
+
   if (missing.length > 0) {
     process.stderr.write(`✗ exports without runtime files:\n  ${missing.join('\n  ')}\n`);
     process.exit(1);

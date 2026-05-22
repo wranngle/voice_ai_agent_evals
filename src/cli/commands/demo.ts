@@ -18,7 +18,7 @@ import type {DimensionScore} from '../../scoring/types';
 import {createTracer} from '../../internal/jsonl-trace';
 
 const trace = createTracer('cli.demo');
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 void trace;
 
 export type DemoOptions = {

@@ -14,7 +14,7 @@ import type {RefineOptions} from '../../refinement/types';
 
 const trace = createTracer('cli.refine');
 // JSONL tracing — emit start/end events from dispatch entry points.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 void trace;
 
 export type RefineCliOptions = {
@@ -47,16 +47,18 @@ export async function runRefine(options: RefineCliOptions): Promise<number> {
       out('error: --agent-id requires ELEVENLABS_API_KEY in the environment (use --mock to override).');
       return 2;
     }
+
     const {createVoiceEvalsClient} = await import('../../wrapper');
     client = createVoiceEvalsClient({apiKey: process.env.ELEVENLABS_API_KEY});
   }
 
   out('');
   out(`  refining: ${options.agentId ? `agent ${options.agentId}` : options.businessName ?? options.websiteUrl}`);
-  out(`  mode:     ${isLive ? 'live (ElevenLabs simulateConversation)' : options.mock ? 'mock (deterministic fixtures)' : 'mock (no agent id given)'}`);
+  out(`  mode:     ${isLive ? 'live (ElevenLabs simulateConversation)' : (options.mock ? 'mock (deterministic fixtures)' : 'mock (no agent id given)')}`);
   if (options.vertical) {
     out(`  vertical: ${options.vertical} (override)`);
   }
+
   out('');
 
   const refineOpts: RefineOptions = {
@@ -76,7 +78,10 @@ export async function runRefine(options: RefineCliOptions): Promise<number> {
   });
 
   out('');
-  out(`  scoreboard: ${(session.scoreboard.before * 100).toFixed(0)}% → ${(session.scoreboard.after * 100).toFixed(0)}% (+${((session.scoreboard.after - session.scoreboard.before) * 100).toFixed(0)} points)`);
+  const beforePct = (session.scoreboard.before * 100).toFixed(0);
+  const afterPct = (session.scoreboard.after * 100).toFixed(0);
+  const deltaPct = ((session.scoreboard.after - session.scoreboard.before) * 100).toFixed(0);
+  out(`  scoreboard: ${beforePct}% → ${afterPct}% (+${deltaPct} points)`);
   out(`  defects:    ${session.detected_failures.length} detected → ${session.prompt_diffs.length} fixes proposed`);
   out(`  regression: ${session.regression_suite_size} cases captured for re-runs`);
   out('');

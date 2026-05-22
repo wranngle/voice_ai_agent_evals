@@ -71,17 +71,38 @@ export function buildClientInitiationResponse(args: BuildArgs): ClientInitiation
     type: 'conversation_initiation_client_data',
     dynamic_variables,
   };
-  if (args.conversation_config_override) response.conversation_config_override = args.conversation_config_override;
-  if (args.branch_id) response.branch_id = args.branch_id;
-  if (args.environment) response.environment = args.environment;
+  if (args.conversation_config_override) {
+    response.conversation_config_override = args.conversation_config_override;
+  }
+
+  if (args.branch_id) {
+    response.branch_id = args.branch_id;
+  }
+
+  if (args.environment) {
+    response.environment = args.environment;
+  }
+
   return response;
 }
 
 function isValidValue(v: unknown, t: 'string' | 'number' | 'boolean'): boolean {
-  if (v === undefined || v === null) return false;
-  if (t === 'string') return typeof v === 'string';
-  if (t === 'number') return typeof v === 'number' && Number.isFinite(v);
-  if (t === 'boolean') return typeof v === 'boolean';
+  if (v === undefined || v === null) {
+    return false;
+  }
+
+  if (t === 'string') {
+    return typeof v === 'string';
+  }
+
+  if (t === 'number') {
+    return typeof v === 'number' && Number.isFinite(v);
+  }
+
+  if (t === 'boolean') {
+    return typeof v === 'boolean';
+  }
+
   return false;
 }
 
@@ -111,7 +132,9 @@ export async function respondFast(args: RespondFastArgs): Promise<ClientInitiati
       enrichments = await Promise.race([
         enrich(input),
         new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('enrichment_timeout')), enrichmentTimeoutMs);
+          setTimeout(() => {
+            reject(new Error('enrichment_timeout'));
+          }, enrichmentTimeoutMs);
         }),
       ]);
     } catch {

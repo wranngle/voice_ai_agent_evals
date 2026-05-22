@@ -130,8 +130,8 @@ return [{json: {
   raw: p
 }}];`;
 
-const RESPOND_OK_BODY = `={{ JSON.stringify({status: 'ok', event: $json.event || $json.event_type || 'unknown', conversation_id: $json.conversation_id}) }}`;
-const RESPOND_DROPPED_BODY = `={{ JSON.stringify({status: 'rejected', reason: 'signature_invalid_or_stale'}) }}`;
+const RESPOND_OK_BODY = '={{ JSON.stringify({status: \'ok\', event: $json.event || $json.event_type || \'unknown\', conversation_id: $json.conversation_id}) }}';
+const RESPOND_DROPPED_BODY = '={{ JSON.stringify({status: \'rejected\', reason: \'signature_invalid_or_stale\'}) }}';
 
 function buildPostCallWorkflow({secret, ingestUrl, audioSinkUrl, alertWebhookUrl}) {
   return {
@@ -208,7 +208,9 @@ function buildPostCallWorkflow({secret, ingestUrl, audioSinkUrl, alertWebhookUrl
               {
                 conditions: {
                   options: {},
-                  conditions: [{id: 'r-tr', leftValue: '={{$json.event_type}}', rightValue: 'post_call_transcription', operator: {type: 'string', operation: 'equals'}}],
+                  conditions: [{
+                    id: 'r-tr', leftValue: '={{$json.event_type}}', rightValue: 'post_call_transcription', operator: {type: 'string', operation: 'equals'},
+                  }],
                   combinator: 'and',
                 },
                 outputKey: 'transcription',
@@ -217,7 +219,9 @@ function buildPostCallWorkflow({secret, ingestUrl, audioSinkUrl, alertWebhookUrl
               {
                 conditions: {
                   options: {},
-                  conditions: [{id: 'r-au', leftValue: '={{$json.event_type}}', rightValue: 'post_call_audio', operator: {type: 'string', operation: 'equals'}}],
+                  conditions: [{
+                    id: 'r-au', leftValue: '={{$json.event_type}}', rightValue: 'post_call_audio', operator: {type: 'string', operation: 'equals'},
+                  }],
                   combinator: 'and',
                 },
                 outputKey: 'audio',
@@ -226,7 +230,9 @@ function buildPostCallWorkflow({secret, ingestUrl, audioSinkUrl, alertWebhookUrl
               {
                 conditions: {
                   options: {},
-                  conditions: [{id: 'r-fa', leftValue: '={{$json.event_type}}', rightValue: 'call_initiation_failure', operator: {type: 'string', operation: 'equals'}}],
+                  conditions: [{
+                    id: 'r-fa', leftValue: '={{$json.event_type}}', rightValue: 'call_initiation_failure', operator: {type: 'string', operation: 'equals'},
+                  }],
                   combinator: 'and',
                 },
                 outputKey: 'failure',
@@ -273,7 +279,9 @@ function buildPostCallWorkflow({secret, ingestUrl, audioSinkUrl, alertWebhookUrl
         parameters: {
           conditions: {
             options: {caseSensitive: true},
-            conditions: [{id: 'has-ing', leftValue: ingestUrl || '', rightValue: '', operator: {type: 'string', operation: 'notEmpty'}}],
+            conditions: [{
+              id: 'has-ing', leftValue: ingestUrl || '', rightValue: '', operator: {type: 'string', operation: 'notEmpty'},
+            }],
             combinator: 'and',
           },
         },
@@ -300,7 +308,9 @@ function buildPostCallWorkflow({secret, ingestUrl, audioSinkUrl, alertWebhookUrl
         parameters: {
           conditions: {
             options: {caseSensitive: true},
-            conditions: [{id: 'has-asu', leftValue: audioSinkUrl || '', rightValue: '', operator: {type: 'string', operation: 'notEmpty'}}],
+            conditions: [{
+              id: 'has-asu', leftValue: audioSinkUrl || '', rightValue: '', operator: {type: 'string', operation: 'notEmpty'},
+            }],
             combinator: 'and',
           },
         },
@@ -316,7 +326,7 @@ function buildPostCallWorkflow({secret, ingestUrl, audioSinkUrl, alertWebhookUrl
           sendBody: true,
           contentType: 'json',
           jsonBody: '={{ JSON.stringify($json) }}',
-          options: {timeout: 10000, response: {response: {neverError: true}}},
+          options: {timeout: 10_000, response: {response: {neverError: true}}},
         },
       },
       {
@@ -327,7 +337,9 @@ function buildPostCallWorkflow({secret, ingestUrl, audioSinkUrl, alertWebhookUrl
         parameters: {
           conditions: {
             options: {caseSensitive: true},
-            conditions: [{id: 'has-alert', leftValue: alertWebhookUrl || '', rightValue: '', operator: {type: 'string', operation: 'notEmpty'}}],
+            conditions: [{
+              id: 'has-alert', leftValue: alertWebhookUrl || '', rightValue: '', operator: {type: 'string', operation: 'notEmpty'},
+            }],
             combinator: 'and',
           },
         },
@@ -419,41 +431,81 @@ function buildMonitoringWorkflow({secret, ingestUrl}) {
         typeVersion: 2,
         position: [0, 0],
         webhookId: randomUUID(),
-        parameters: {httpMethod: 'POST', path: 'elevenlabs/monitoring', responseMode: 'responseNode', options: {rawBody: true}},
+        parameters: {
+          httpMethod: 'POST', path: 'elevenlabs/monitoring', responseMode: 'responseNode', options: {rawBody: true},
+        },
       },
-      {name: 'Parse Signature', type: 'n8n-nodes-base.code', typeVersion: 2, position: [220, 0],
-        parameters: {language: 'javaScript', jsCode: PARSE_SIG_CODE}},
-      {name: 'HMAC Compute', type: 'n8n-nodes-base.crypto', typeVersion: 1, position: [440, 0],
-        parameters: {action: 'hmac', type: 'SHA256', value: '={{$json.signing_string}}', secret, encoding: 'hex', dataPropertyName: 'v0_computed'}},
-      {name: 'Verify Signature', type: 'n8n-nodes-base.if', typeVersion: 2, position: [660, 0],
-        parameters: {conditions: {options: {caseSensitive: true, leftValue: '', typeValidation: 'strict'}, conditions: [
-          {id: 'sig-eq', leftValue: '={{$json.v0_computed}}', rightValue: '={{$json.v0_received}}', operator: {type: 'string', operation: 'equals'}},
-          {id: 'sig-fresh', leftValue: '={{$json.age_seconds}}', rightValue: 1800, operator: {type: 'number', operation: 'lt'}},
-        ], combinator: 'and'}}},
-      {name: 'Format Monitoring', type: 'n8n-nodes-base.code', typeVersion: 2, position: [880, -80],
-        parameters: {language: 'javaScript', jsCode: FORMAT_MONITORING_CODE}},
-      {name: 'Has Ingest URL?', type: 'n8n-nodes-base.if', typeVersion: 2, position: [1100, -80],
-        parameters: {conditions: {options: {caseSensitive: true}, conditions: [{id: 'has-ing', leftValue: ingestUrl || '', rightValue: '', operator: {type: 'string', operation: 'notEmpty'}}], combinator: 'and'}}},
-      {name: 'POST Ingest', type: 'n8n-nodes-base.httpRequest', typeVersion: 4, position: [1320, -120],
-        parameters: {method: 'POST', url: ingestUrl || 'http://localhost/elevenlabs-ingest', sendBody: true, contentType: 'json', jsonBody: '={{ JSON.stringify($json) }}', options: {timeout: 3000, response: {response: {neverError: true}}}}},
-      {name: 'Respond 200', type: 'n8n-nodes-base.respondToWebhook', typeVersion: 1, position: [1540, -80],
-        parameters: {respondWith: 'json', responseBody: RESPOND_OK_BODY, options: {responseCode: 200}}},
-      {name: 'Respond 401', type: 'n8n-nodes-base.respondToWebhook', typeVersion: 1, position: [880, 120],
-        parameters: {respondWith: 'json', responseBody: RESPOND_DROPPED_BODY, options: {responseCode: 401}}},
+      {
+        name: 'Parse Signature', type: 'n8n-nodes-base.code', typeVersion: 2, position: [220, 0],
+        parameters: {language: 'javaScript', jsCode: PARSE_SIG_CODE},
+      },
+      {
+        name: 'HMAC Compute', type: 'n8n-nodes-base.crypto', typeVersion: 1, position: [440, 0],
+        parameters: {
+          action: 'hmac', type: 'SHA256', value: '={{$json.signing_string}}', secret, encoding: 'hex', dataPropertyName: 'v0_computed',
+        },
+      },
+      {
+        name: 'Verify Signature', type: 'n8n-nodes-base.if', typeVersion: 2, position: [660, 0],
+        parameters: {
+          conditions: {
+            options: {caseSensitive: true, leftValue: '', typeValidation: 'strict'}, conditions: [
+              {
+                id: 'sig-eq', leftValue: '={{$json.v0_computed}}', rightValue: '={{$json.v0_received}}', operator: {type: 'string', operation: 'equals'},
+              },
+              {
+                id: 'sig-fresh', leftValue: '={{$json.age_seconds}}', rightValue: 1800, operator: {type: 'number', operation: 'lt'},
+              },
+            ], combinator: 'and',
+          },
+        },
+      },
+      {
+        name: 'Format Monitoring', type: 'n8n-nodes-base.code', typeVersion: 2, position: [880, -80],
+        parameters: {language: 'javaScript', jsCode: FORMAT_MONITORING_CODE},
+      },
+      {
+        name: 'Has Ingest URL?', type: 'n8n-nodes-base.if', typeVersion: 2, position: [1100, -80],
+        parameters: {
+          conditions: {
+            options: {caseSensitive: true}, conditions: [{
+              id: 'has-ing', leftValue: ingestUrl || '', rightValue: '', operator: {type: 'string', operation: 'notEmpty'},
+            }], combinator: 'and',
+          },
+        },
+      },
+      {
+        name: 'POST Ingest', type: 'n8n-nodes-base.httpRequest', typeVersion: 4, position: [1320, -120],
+        parameters: {
+          method: 'POST', url: ingestUrl || 'http://localhost/elevenlabs-ingest', sendBody: true, contentType: 'json', jsonBody: '={{ JSON.stringify($json) }}', options: {timeout: 3000, response: {response: {neverError: true}}},
+        },
+      },
+      {
+        name: 'Respond 200', type: 'n8n-nodes-base.respondToWebhook', typeVersion: 1, position: [1540, -80],
+        parameters: {respondWith: 'json', responseBody: RESPOND_OK_BODY, options: {responseCode: 200}},
+      },
+      {
+        name: 'Respond 401', type: 'n8n-nodes-base.respondToWebhook', typeVersion: 1, position: [880, 120],
+        parameters: {respondWith: 'json', responseBody: RESPOND_DROPPED_BODY, options: {responseCode: 401}},
+      },
     ],
     connections: {
       Webhook: {main: [[{node: 'Parse Signature', type: 'main', index: 0}]]},
       'Parse Signature': {main: [[{node: 'HMAC Compute', type: 'main', index: 0}]]},
       'HMAC Compute': {main: [[{node: 'Verify Signature', type: 'main', index: 0}]]},
-      'Verify Signature': {main: [
-        [{node: 'Format Monitoring', type: 'main', index: 0}],
-        [{node: 'Respond 401', type: 'main', index: 0}],
-      ]},
+      'Verify Signature': {
+        main: [
+          [{node: 'Format Monitoring', type: 'main', index: 0}],
+          [{node: 'Respond 401', type: 'main', index: 0}],
+        ],
+      },
       'Format Monitoring': {main: [[{node: 'Has Ingest URL?', type: 'main', index: 0}]]},
-      'Has Ingest URL?': {main: [
-        [{node: 'POST Ingest', type: 'main', index: 0}],
-        [{node: 'Respond 200', type: 'main', index: 0}],
-      ]},
+      'Has Ingest URL?': {
+        main: [
+          [{node: 'POST Ingest', type: 'main', index: 0}],
+          [{node: 'Respond 200', type: 'main', index: 0}],
+        ],
+      },
       'POST Ingest': {main: [[{node: 'Respond 200', type: 'main', index: 0}]]},
     },
     settings: {executionOrder: 'v1'},
@@ -501,7 +553,9 @@ return [{json: {
         typeVersion: 2,
         position: [0, 0],
         webhookId: randomUUID(),
-        parameters: {httpMethod: 'POST', path: 'elevenlabs/initiation', responseMode: 'responseNode', options: {}},
+        parameters: {
+          httpMethod: 'POST', path: 'elevenlabs/initiation', responseMode: 'responseNode', options: {},
+        },
       },
       {
         name: 'Build Fast-Fail Response',
@@ -530,7 +584,9 @@ export {buildPostCallWorkflow, buildMonitoringWorkflow, buildClientInitiationWor
 
 // CLI: when invoked directly, print all three to /tmp for inspection.
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const args = {secret: 'PLACEHOLDER_SECRET', ingestUrl: '', audioSinkUrl: '', alertWebhookUrl: ''};
+  const args = {
+    secret: 'PLACEHOLDER_SECRET', ingestUrl: '', audioSinkUrl: '', alertWebhookUrl: '',
+  };
   const out = {
     post_call: buildPostCallWorkflow(args),
     monitoring: buildMonitoringWorkflow(args),

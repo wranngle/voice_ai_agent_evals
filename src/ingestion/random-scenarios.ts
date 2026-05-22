@@ -134,8 +134,16 @@ function generateIndustryScenario(
   const callVolume = CALL_VOLUMES[Math.floor(rng() * CALL_VOLUMES.length)];
   const interestLevel = INTEREST_LEVELS[Math.floor(rng() * INTEREST_LEVELS.length)];
   const willAcceptSms = rng() < 0.7;
+  const smsInstruction = willAcceptSms
+    ? 'When the agent asks if you want a demo link by text, AGREE and provide a phone number.'
+    : 'When the agent asks if you want a demo link by text, DECLINE — say you do not want SMS.';
 
-  const prompt = `You are ${name}, a ${interestLevel} prospect from a ${industry.name} business. Your call volume is ${callVolume}. You're calling about AI voice agents to handle after-hours calls. ${willAcceptSms ? 'When the agent asks if you want a demo link by text, AGREE and provide a phone number.' : 'When the agent asks if you want a demo link by text, DECLINE — say you do not want SMS.'}`;
+  const prompt = [
+    `You are ${name}, a ${interestLevel} prospect from a ${industry.name} business.`,
+    `Your call volume is ${callVolume}.`,
+    'You\'re calling about AI voice agents to handle after-hours calls.',
+    smsInstruction,
+  ].join(' ');
 
   return {
     id: `random_industry_${index}`,

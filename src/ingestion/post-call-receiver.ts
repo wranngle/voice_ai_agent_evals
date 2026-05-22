@@ -40,7 +40,9 @@ export type RunningReceiver = {
 
 export async function startPostCallReceiver(options: StartReceiverOptions): Promise<RunningReceiver> {
   const logsDir = options.logsDir ?? join(process.cwd(), 'logs', 'elevenlabs');
-  if (!existsSync(logsDir)) mkdirSync(logsDir, {recursive: true});
+  if (!existsSync(logsDir)) {
+    mkdirSync(logsDir, {recursive: true});
+  }
 
   const trace = createTracer('post-call-receiver');
 
@@ -51,8 +53,8 @@ export async function startPostCallReceiver(options: StartReceiverOptions): Prom
       return;
     }
 
-    const chunks: Buffer[] = [];
-    req.on('data', (c: Buffer) => chunks.push(c));
+    const chunks: Uint8Array[] = [];
+    req.on('data', (chunk: Uint8Array) => chunks.push(chunk));
     req.on('end', () => {
       const rawBody = Buffer.concat(chunks).toString('utf8');
       const sigHeader = req.headers['elevenlabs-signature'];
@@ -82,8 +84,8 @@ export async function startPostCallReceiver(options: StartReceiverOptions): Prom
       const event = {received_at: new Date().toISOString(), payload};
       try {
         appendFileSync(file, `${JSON.stringify(event)}\n`);
-      } catch (err) {
-        trace.error('append_failed', {file, err: String(err)});
+      } catch (error) {
+        trace.error('append_failed', {file, err: String(error)});
         res.writeHead(500, {'content-type': 'application/json'});
         res.end(JSON.stringify({ok: false, reason: 'sink_write_failed'}));
         return;
@@ -96,7 +98,7 @@ export async function startPostCallReceiver(options: StartReceiverOptions): Prom
     });
   });
 
-  await new Promise<void>((resolve) => {
+  await new Promise<void>(resolve => {
     server.listen(options.port ?? 0, () => {
       resolve();
     });
@@ -108,7 +110,7 @@ export async function startPostCallReceiver(options: StartReceiverOptions): Prom
   return {
     url: `http://127.0.0.1:${port}`,
     port,
-    close: () => new Promise<void>((resolve) => {
+    close: async () => new Promise<void>(resolve => {
       server.close(() => {
         resolve();
       });

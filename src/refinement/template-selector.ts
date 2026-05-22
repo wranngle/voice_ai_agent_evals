@@ -6,7 +6,6 @@
 import {readFileSync, readdirSync} from 'node:fs';
 import {join} from 'node:path';
 import {parse as parseYaml} from 'yaml';
-
 import type {EnrichmentResult, VerticalTemplate} from './types';
 
 const TEMPLATE_DIRS = [
@@ -25,6 +24,7 @@ function resolveTemplateDir(): string | undefined {
       // Try next.
     }
   }
+
   return undefined;
 }
 
@@ -68,7 +68,7 @@ export function selectTemplate(enrichment: EnrichmentResult, override?: string):
   return templates[0];
 }
 
-const VARIABLE_PATTERN = /\{\{\s*([a-z_][a-z0-9_]*)\s*\}\}/gi;
+const VARIABLE_PATTERN = /{{\s*([a-z_]\w*)\s*}}/gi;
 
 export function fillSystemPrompt(template: VerticalTemplate, enrichment: EnrichmentResult): string {
   const values: Record<string, string> = {

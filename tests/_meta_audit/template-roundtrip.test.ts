@@ -13,9 +13,9 @@
  * because we haven't done the clone yet — it's a future hardening step.
  */
 
-import {describe, expect, it} from 'vitest';
 import {readFileSync, existsSync} from 'node:fs';
 import {join} from 'node:path';
+import {describe, expect, it} from 'vitest';
 
 const SNAPSHOT_PATH = join(process.cwd(), 'snapshots', 'template-pre-hardening-2026-05-12.json');
 const TEMPLATE_AGENT_ID = 'agent_8401krfj3xrqek2bfw71fyw2nzq0';
@@ -37,15 +37,14 @@ describe.skipIf(skip)('META-AUDIT: live [TEMPLATE] agent roundtrip', () => {
     if (!existsSync(SNAPSHOT_PATH)) {
       throw new Error('snapshot missing — run snapshot step first');
     }
+
     const snap = JSON.parse(readFileSync(SNAPSHOT_PATH, 'utf8'));
     const response = await fetch(`https://api.elevenlabs.io/v1/convai/agents/${TEMPLATE_AGENT_ID}`, {
       headers: {'xi-api-key': process.env.ELEVENLABS_API_KEY!},
     });
     const live = await response.json() as {platform_settings: {guardrails: {content: {config: Record<string, {is_enabled: boolean}>}}}};
     for (const category of ['sexual', 'violence', 'harassment', 'self_harm']) {
-      expect(live.platform_settings.guardrails.content.config[category]?.is_enabled).toBe(
-        snap.platform_settings.guardrails.content.config[category]?.is_enabled,
-      );
+      expect(live.platform_settings.guardrails.content.config[category]?.is_enabled).toBe(snap.platform_settings.guardrails.content.config[category]?.is_enabled);
     }
   });
 });

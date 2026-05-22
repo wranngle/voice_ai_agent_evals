@@ -8,11 +8,15 @@
  * rejected at the wire) within the budget.
  */
 
-import {afterEach, beforeEach, describe, expect, it} from 'vitest';
-import {mkdtempSync, rmSync, existsSync, readFileSync} from 'node:fs';
+import {
+  mkdtempSync, rmSync, existsSync, readFileSync,
+} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createHmac} from 'node:crypto';
+import {
+  afterEach, beforeEach, describe, expect, it,
+} from 'vitest';
 import {startPostCallReceiver, type RunningReceiver} from '../../src/ingestion/post-call-receiver';
 import {createReplayCache} from '../../src/security/elevenlabs-signature';
 
@@ -46,7 +50,9 @@ describe('post-call receiver — persistent sink', () => {
     const body = JSON.stringify({
       type: 'post_call_transcription',
       event_timestamp: Math.floor(Date.now() / 1000),
-      data: {conversation_id: 'tx_test_001', agent_id: 'agent_X', status: 'done', transcript: [{role: 'agent', message: 'Hi'}]},
+      data: {
+        conversation_id: 'tx_test_001', agent_id: 'agent_X', status: 'done', transcript: [{role: 'agent', message: 'Hi'}],
+      },
     });
     const ts = Math.floor(Date.now() / 1000);
     const start = Date.now();

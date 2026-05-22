@@ -7,18 +7,18 @@
  * Usage:  ELEVENLABS_API_KEY=... node scripts/harden-template-agent.mjs [--dry-run]
  */
 
-import {readFileSync, writeFileSync, existsSync} from 'node:fs';
-import {join} from 'node:path';
+import {readFileSync, writeFileSync} from 'node:fs';
+import path from 'node:path';
 import {createTracer} from './lib/jsonl-trace.mjs';
 
 const ROOT = process.cwd();
 const trace = createTracer('script.harden-template-agent', {key: 'agent_8401krfj3xrqek2bfw71fyw2nzq0'});
 trace.info('start');
 const AGENT_ID = 'agent_8401krfj3xrqek2bfw71fyw2nzq0';
-const SNAPSHOT_PATH = join(ROOT, 'snapshots', 'template-pre-hardening-2026-05-12.json');
-const PROMPT_V1_PATH = join(ROOT, 'templates', 'elevenlabs-agents', 'template-system-prompt-v1.md');
-const DATA_COLLECTION_PATH = join(ROOT, 'templates', 'ai_conversation_data_collection_fields_template.json');
-const POST_SNAPSHOT_PATH = join(ROOT, 'snapshots', 'template-post-hardening-2026-05-12.json');
+const SNAPSHOT_PATH = path.join(ROOT, 'snapshots', 'template-pre-hardening-2026-05-12.json');
+const PROMPT_V1_PATH = path.join(ROOT, 'templates', 'elevenlabs-agents', 'template-system-prompt-v1.md');
+const DATA_COLLECTION_PATH = path.join(ROOT, 'templates', 'ai_conversation_data_collection_fields_template.json');
+const POST_SNAPSHOT_PATH = path.join(ROOT, 'snapshots', 'template-post-hardening-2026-05-12.json');
 
 const API_KEY = process.env.ELEVENLABS_API_KEY;
 if (!API_KEY) {
@@ -35,11 +35,14 @@ const dataCollectionTemplate = JSON.parse(readFileSync(DATA_COLLECTION_PATH, 'ut
 
 // 2. Extract the v1 prompt body from the first fenced code block in the md file
 const codeBlockMatch = promptMd.match(/```\n([\s\S]+?)\n```/);
-if (!codeBlockMatch) throw new Error('could not find prompt code block in template-system-prompt-v1.md');
+if (!codeBlockMatch) {
+  throw new Error('could not find prompt code block in template-system-prompt-v1.md');
+}
+
 const promptV1Body = codeBlockMatch[1].trim();
 
 // 3. Build the new conversation_config: deep-copy the snapshot, then mutate
-const conv = JSON.parse(JSON.stringify(snapshot.conversation_config));
+const conv = structuredClone(snapshot.conversation_config);
 
 // 3a. Replace system prompt with v1
 conv.agent.prompt.prompt = promptV1Body;
@@ -68,12 +71,12 @@ conv.turn.interruption_ignore_terms = [
 
 // 3f. Strip `tool_ids` if both `tools` and `tool_ids` are present (API mutex rule)
 if (Array.isArray(conv.agent.prompt.tools) && conv.agent.prompt.tools.length > 0
-    && Array.isArray(conv.agent.prompt.tool_ids)) {
+  && Array.isArray(conv.agent.prompt.tool_ids)) {
   delete conv.agent.prompt.tool_ids;
 }
 
 // 4. Build platform_settings updates (deep copy snapshot then mutate)
-const platform = JSON.parse(JSON.stringify(snapshot.platform_settings));
+const platform = structuredClone(snapshot.platform_settings);
 
 // 4a. Privacy redaction — ENTERPRISE-ONLY on this workspace. Cannot enable.
 //     Surface to user; recommend upgrade if PII storage is a concern given
@@ -101,6 +104,7 @@ for (const [_category, fields] of Object.entries(dataCollectionTemplate)) {
     flatDataCollection[identifier] = spec;
   }
 }
+
 platform.data_collection = flatDataCollection;
 
 // 5. Compose final PATCH body
@@ -148,6 +152,7 @@ if (!patchResponse.ok) {
       console.error(await retry.text());
       process.exit(1);
     }
+
     console.log('Retry succeeded — alerting field is unsupported via API (manual setup required)');
   } else {
     process.exit(1);
@@ -163,7 +168,7 @@ const getResponse = await fetch(`https://api.elevenlabs.io/v1/convai/agents/${AG
 const verified = await getResponse.json();
 writeFileSync(POST_SNAPSHOT_PATH, JSON.stringify(verified, null, 2));
 
-console.log(`\nVerification:`);
+console.log('\nVerification:');
 console.log(`  turn.interruption_ignore_terms count: ${verified.conversation_config.turn.interruption_ignore_terms?.length}`);
 console.log(`  conversation.monitoring_enabled: ${verified.conversation_config.conversation.monitoring_enabled}`);
 console.log(`  tts.suggested_audio_tags count: ${verified.conversation_config.tts.suggested_audio_tags?.length}`);
