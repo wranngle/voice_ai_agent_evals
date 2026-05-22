@@ -15,12 +15,12 @@ import {existsSync, readFileSync} from 'node:fs';
 import {designAssertions} from '../../ingestion/designer';
 import {proposeTestCases} from '../../ingestion/llm-data-layer';
 import type {LlmCompleteCallback, ProposedTestCase} from '../../ingestion/types';
-import {loadConfig} from './config-loader';
 import {createTracer} from '../../internal/jsonl-trace';
+import {loadConfig} from './config-loader';
 
 const trace = createTracer('cli.ingest');
 // JSONL tracing — emit start/end events from dispatch entry points.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 void trace;
 
 export type IngestOptions = {

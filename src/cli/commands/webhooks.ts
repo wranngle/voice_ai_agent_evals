@@ -30,7 +30,9 @@
 
 import {execFile as execFileCb} from 'node:child_process';
 import {promisify} from 'node:util';
-import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
+import {
+  existsSync, mkdirSync, readFileSync, writeFileSync,
+} from 'node:fs';
 import {join} from 'node:path';
 import {createTracer} from '../../internal/jsonl-trace';
 
@@ -82,18 +84,27 @@ type EnvCheck = {
   n8nApiKey: string;
 };
 
-function requireEnv(out: (line: string) => void): EnvCheck | null {
+function requireEnv(out: (line: string) => void): EnvCheck | undefined {
   const elevenLabsApiKey = process.env.ELEVENLABS_API_KEY ?? '';
   const n8nApiUrl = (process.env.N8N_API_URL ?? '').replace(/\/$/, '');
   const n8nApiKey = process.env.N8N_API_KEY ?? '';
   const missing: string[] = [];
-  if (!elevenLabsApiKey) missing.push('ELEVENLABS_API_KEY');
-  if (!n8nApiUrl) missing.push('N8N_API_URL');
-  if (!n8nApiKey) missing.push('N8N_API_KEY');
+  if (!elevenLabsApiKey) {
+    missing.push('ELEVENLABS_API_KEY');
+  }
+
+  if (!n8nApiUrl) {
+    missing.push('N8N_API_URL');
+  }
+
+  if (!n8nApiKey) {
+    missing.push('N8N_API_KEY');
+  }
+
   if (missing.length > 0) {
     out(`Missing required env vars: ${missing.join(', ')}`);
     out('Set these (e.g. in ~/.agents/.env) and retry.');
-    return null;
+    return undefined;
   }
 
   return {elevenLabsApiKey, n8nApiUrl, n8nApiKey};
@@ -113,7 +124,7 @@ async function n8nFetch(env: EnvCheck, path: string, init: RequestInit = {}): Pr
     headers: {
       'X-N8N-API-KEY': env.n8nApiKey,
       'content-type': 'application/json',
-      ...(init.headers ?? {}),
+      ...init.headers,
     },
   });
 }
@@ -124,21 +135,26 @@ async function elevenLabsFetch(env: EnvCheck, path: string, init: RequestInit = 
     headers: {
       'xi-api-key': env.elevenLabsApiKey,
       'content-type': 'application/json',
-      ...(init.headers ?? {}),
+      ...init.headers,
     },
   });
 }
 
 function readArg(argv: string[], flag: string): string | undefined {
   const i = argv.indexOf(flag);
-  if (i === -1 || i + 1 >= argv.length) return undefined;
+  if (i === -1 || i + 1 >= argv.length) {
+    return undefined;
+  }
+
   return argv[i + 1];
 }
 
 function readAllArgs(argv: string[], flag: string): string[] {
   const out: string[] = [];
   for (let i = 0; i < argv.length; i++) {
-    if (argv[i] === flag && i + 1 < argv.length) out.push(argv[i + 1]);
+    if (argv[i] === flag && i + 1 < argv.length) {
+      out.push(argv[i + 1]);
+    }
   }
 
   return out;
@@ -155,28 +171,40 @@ async function runDeployScript(out: (line: string) => void): Promise<number> {
 
   try {
     const {stdout, stderr} = await execFile('node', [script], {env: process.env, maxBuffer: 5 * 1024 * 1024});
-    if (stdout) out(stdout.trimEnd());
-    if (stderr) out(stderr.trimEnd());
+    if (stdout) {
+      out(stdout.trimEnd());
+    }
+
+    if (stderr) {
+      out(stderr.trimEnd());
+    }
+
     return 0;
-  } catch (err: unknown) {
-    out(`Deploy failed: ${String(err)}`);
+  } catch (error: unknown) {
+    out(`Deploy failed: ${String(error)}`);
     return 1;
   }
 }
 
-async function findWorkspaceWebhookByUrl(env: EnvCheck, url: string): Promise<{webhook_id: string; name: string} | null> {
+async function findWorkspaceWebhookByUrl(env: EnvCheck, url: string): Promise<{webhook_id: string; name: string} | undefined> {
   const r = await elevenLabsFetch(env, '/v1/workspace/webhooks');
-  if (!r.ok) return null;
+  if (!r.ok) {
+    return undefined;
+  }
+
   const j = await r.json() as {webhooks?: Array<{webhook_id: string; webhook_url: string; name: string}>};
-  return j.webhooks?.find(w => w.webhook_url === url) ?? null;
+  return j.webhooks?.find(w => w.webhook_url === url);
 }
 
-async function registerWorkspaceWebhook(env: EnvCheck, name: string, url: string): Promise<{webhook_id: string; webhook_secret: string} | null> {
+async function registerWorkspaceWebhook(env: EnvCheck, name: string, url: string): Promise<{webhook_id: string; webhook_secret: string} | undefined> {
   const r = await elevenLabsFetch(env, '/v1/workspace/webhooks', {
     method: 'POST',
     body: JSON.stringify({settings: {name, webhook_url: url, auth_type: 'hmac'}}),
   });
-  if (!r.ok) return null;
+  if (!r.ok) {
+    return undefined;
+  }
+
   return r.json() as Promise<{webhook_id: string; webhook_secret: string}>;
 }
 
@@ -185,9 +213,12 @@ async function deleteWorkspaceWebhook(env: EnvCheck, webhookId: string): Promise
   return r.ok;
 }
 
-async function getAgentPlatform(env: EnvCheck, agentId: string): Promise<Record<string, unknown> | null> {
+async function getAgentPlatform(env: EnvCheck, agentId: string): Promise<Record<string, unknown> | undefined> {
   const r = await elevenLabsFetch(env, `/v1/convai/agents/${agentId}`);
-  if (!r.ok) return null;
+  if (!r.ok) {
+    return undefined;
+  }
+
   const j = await r.json() as {platform_settings: Record<string, unknown>};
   return j.platform_settings;
 }
@@ -202,7 +233,10 @@ async function patchAgentPlatform(env: EnvCheck, agentId: string, platform: Reco
 
 function persistSecretToAgentsEnv(secret: string): {path: string; ok: boolean} {
   const home = process.env.HOME ?? '';
-  if (!home) return {path: '(no $HOME)', ok: false};
+  if (!home) {
+    return {path: '(no $HOME)', ok: false};
+  }
+
   const envPath = join(home, '.agents', '.env');
   if (!existsSync(join(home, '.agents'))) {
     mkdirSync(join(home, '.agents'), {recursive: true});
@@ -242,15 +276,15 @@ async function runStatus(env: EnvCheck, out: (line: string) => void, agentFilter
   out('');
   out('=== ElevenLabs workspace webhooks ===');
   const wsR = await elevenLabsFetch(env, '/v1/workspace/webhooks');
-  if (!wsR.ok) {
-    out(`Failed to list workspace webhooks: HTTP ${wsR.status}`);
-  } else {
+  if (wsR.ok) {
     const wsJ = await wsR.json() as {webhooks?: Array<{webhook_id: string; webhook_url: string; name: string; is_disabled: boolean; auth_type: string}>};
     for (const w of wsJ.webhooks ?? []) {
       const stale = w.is_disabled ? ' [DISABLED]' : '';
       out(`  ${w.name}: id=${w.webhook_id} auth=${w.auth_type}${stale}`);
       out(`    URL: ${w.webhook_url}`);
     }
+  } else {
+    out(`Failed to list workspace webhooks: HTTP ${wsR.status}`);
   }
 
   out('');
@@ -263,7 +297,9 @@ async function runStatus(env: EnvCheck, out: (line: string) => void, agentFilter
     if (lr.ok) {
       const lj = await lr.json() as {agents?: Array<{agent_id: string; name: string}>};
       for (const a of lj.agents ?? []) {
-        if (/TEMPLATE/i.test(a.name)) agentIds.push(a.agent_id);
+        if (/template/i.test(a.name)) {
+          agentIds.push(a.agent_id);
+        }
       }
     }
   }
@@ -276,8 +312,8 @@ async function runStatus(env: EnvCheck, out: (line: string) => void, agentFilter
     }
 
     const wo = (p.workspace_overrides ?? {}) as Record<string, unknown>;
-    const cw = (wo.conversation_initiation_client_data_webhook ?? null) as null | {url?: string};
-    const wh = (wo.webhooks ?? {}) as {post_call_webhook_id?: string | null};
+    const cw = wo.conversation_initiation_client_data_webhook as {url?: string} | undefined;
+    const wh = (wo.webhooks ?? {}) as {post_call_webhook_id?: string | undefined};
     out(`  ${id}:`);
     out(`    client_init_webhook: ${cw?.url ?? '(none)'}`);
     out(`    post_call_webhook_id: ${wh.post_call_webhook_id ?? '(none)'}`);
@@ -319,12 +355,12 @@ async function runProvision(env: EnvCheck, out: (line: string) => void, agentIds
     const persisted = persistSecretToAgentsEnv(secret);
     out(`  webhook_id=${webhookId}`);
     out(`  secret persisted to ${persisted.path}`);
-  } else if (!secret) {
+  } else if (secret) {
+    out(`Workspace webhook already present: id=${webhookId}`);
+  } else {
     out(`Workspace webhook already exists (id=${webhookId}) but secret is not in env.`);
     out('Run `voice-evals webhooks rotate` to cycle and persist a fresh secret.');
     return 1;
-  } else {
-    out(`Workspace webhook already present: id=${webhookId}`);
   }
 
   // Step 2: deploy n8n workflows with the secret.
@@ -332,7 +368,9 @@ async function runProvision(env: EnvCheck, out: (line: string) => void, agentIds
   out('');
   out('Deploying n8n workflows ...');
   const deployRc = await runDeployScript(out);
-  if (deployRc !== 0) return deployRc;
+  if (deployRc !== 0) {
+    return deployRc;
+  }
 
   // Step 3: wire each agent.
   const clientInitUrl = `${publicBase}/webhook/elevenlabs/initiation`;
@@ -345,7 +383,7 @@ async function runProvision(env: EnvCheck, out: (line: string) => void, agentIds
       continue;
     }
 
-    platform.workspace_overrides = (platform.workspace_overrides ?? {}) as Record<string, unknown>;
+    platform.workspace_overrides = (platform.workspace_overrides ?? {});
     const wo = platform.workspace_overrides as Record<string, unknown>;
     wo.conversation_initiation_client_data_webhook = {url: clientInitUrl, request_headers: {}};
     wo.webhooks = {
@@ -376,8 +414,10 @@ async function runRotate(env: EnvCheck, out: (line: string) => void): Promise<nu
   const wired: string[] = [];
   for (const a of lj.agents ?? []) {
     const p = await getAgentPlatform(env, a.agent_id);
-    const wh = ((p?.workspace_overrides as Record<string, unknown> | undefined)?.webhooks ?? {}) as {post_call_webhook_id?: string | null};
-    if (wh.post_call_webhook_id === existing.webhook_id) wired.push(a.agent_id);
+    const wh = ((p?.workspace_overrides as Record<string, unknown> | undefined)?.webhooks ?? {}) as {post_call_webhook_id?: string | undefined};
+    if (wh.post_call_webhook_id === existing.webhook_id) {
+      wired.push(a.agent_id);
+    }
   }
 
   out(`  found ${wired.length} consumer(s)`);
@@ -385,7 +425,10 @@ async function runRotate(env: EnvCheck, out: (line: string) => void): Promise<nu
   // Unwire each
   for (const id of wired) {
     const p = await getAgentPlatform(env, id);
-    if (!p) continue;
+    if (!p) {
+      continue;
+    }
+
     const wo = (p.workspace_overrides ?? {}) as Record<string, unknown>;
     wo.webhooks = {...((wo.webhooks ?? {}) as Record<string, unknown>), post_call_webhook_id: null};
     await patchAgentPlatform(env, id, p);
@@ -402,7 +445,10 @@ async function runRotate(env: EnvCheck, out: (line: string) => void): Promise<nu
 
   out('Registering fresh webhook ...');
   const created = await registerWorkspaceWebhook(env, 'elevenlabs_post_call_webhook_template_2026', postCallUrl);
-  if (!created) return 1;
+  if (!created) {
+    return 1;
+  }
+
   const newId = created.webhook_id;
   const newSecret = created.webhook_secret;
   out(`  new webhook_id=${newId}`);
@@ -414,13 +460,18 @@ async function runRotate(env: EnvCheck, out: (line: string) => void): Promise<nu
   // Redeploy workflows so the new secret is embedded in HMAC node
   out('Redeploying n8n workflows with new secret ...');
   const deployRc = await runDeployScript(out);
-  if (deployRc !== 0) return deployRc;
+  if (deployRc !== 0) {
+    return deployRc;
+  }
 
   // Rewire all previous consumers
   out('Rewiring consumers ...');
   for (const id of wired) {
     const p = await getAgentPlatform(env, id);
-    if (!p) continue;
+    if (!p) {
+      continue;
+    }
+
     const wo = (p.workspace_overrides ?? {}) as Record<string, unknown>;
     wo.webhooks = {...((wo.webhooks ?? {}) as Record<string, unknown>), post_call_webhook_id: newId};
     const ok = await patchAgentPlatform(env, id, p);
@@ -442,7 +493,9 @@ export async function dispatchWebhooks(options: WebhooksOptions): Promise<number
   }
 
   const env = requireEnv(out);
-  if (!env) return 2;
+  if (!env) {
+    return 2;
+  }
 
   const trace = createTracer(`webhooks.${sub}`);
   trace.info('start', {argv: rest});

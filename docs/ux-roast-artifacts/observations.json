@@ -1,0 +1,3167 @@
+{
+  "events": [],
+  "observations": [
+    {
+      "label": "refine initial desktop",
+      "title": "Refinement · session console",
+      "url": "http://127.0.0.1:4173/proof/refine.html?session=example",
+      "scrollY": 0,
+      "body": "Refinement· session console\nexample · 20 events · 7 defects · +40 pts\n← pitch deck\ndata console\nFILTERS\nall\nlegal\nrestaurant\ndental\nhvac\nSESSIONS\nPrairie & Hayes LLP\nlegal\n4 defects\n+29 pts\nMarisol's Coastal Kitchen\nrestaurant\n3 defects\n+20 pts\nBrightwater Family Dentistry\ndental\n3 defects\n+26 pts\nRiverside Heating & Cooling\nhvac\n7 defects\n+40 pts\nRiverside Heating & Cooling\nHVAC / home services\nhttps://riverside-hvac.example · template hvac · started 5/14/2026, 9:44:24 PM\nOVERALL SCORE\n+40 pts\n60% → 100%\nDEFECTS DETECTED\n7\nacross 3 personas\nFIXES PROPOSED\n3\ngrouped by mode\nREGRESSION TESTS\n12\nre-runnable\nPERSONAS\n5/5\ncanonical battery\ntimeline 20\nenrichment\npersonas 5\ndefects 7\nfix proposals 3\nscoreboard\nregression suite 12\nsystem prompt\ncompliance artifact\n▶ replay\n20 events · 0.04s total\n01:44:24\n→\nsession.start\nsession example initialized\n01:44:24\n→\nenrichment.start\nlooking up Riverside Heating & Cooling\n01:44:24\n✓\nenrichment.done\nclassified as HVAC / home services (confidence 0.92)sources=mockcategory=hvac\n01:44:24\n→\ntemplate.select\nmatching vertical template\n01:44:24\n✓\ntemplate.selected\nusing template hvac (HVAC & Trades)integrations=twilio_inbound,calendar_booking,crm_webhook…priority_failure_modes=hallucinated_business_hours,calendar_overpromise,wrong_service_area…\n01:44:24\n✓\nprompt.fill\nsystem prompt rendered (1419 chars)\n01:44:24\n→\npersonas.before.start\nexercising 5 canonical personas (before)\n01:44:24\n✓\npersonas.before.done\ncaptured 5 persona callspersonas=polite-elderly,frustrated-rusher,esl-non-native…\n01:44:24\n→\ndetect.start\napplying failure-mode catalog\n01:44:24\n!\ndetect.done\n7 defects detectedhigh=4critical=3\n01:44:24\n→\ndiff.start\nbuilding plain-language fix proposals\n01:44:24\n✓\ndiff.done\n3 fix proposals authored\n01:44:24\n→\npersonas.after.start\nreplaying personas with fixes applied\n01:44:24\n✓\npersonas.after.done\nreplay produced 0 residual defects\n01:44:24\n✓\nscoreboard\noverall 60% → 100% (+40 points)\n01:44:24\n✓\nregression.persist\n12-case regression suite capturedpath=proof/sessions/example/regression-suite.json\n01:44:24\n✓\nartifact.prompt\nrendered system prompt persistedpath=proof/sessions/example/system-prompt.md\n01:44:24\n✓\ncompliance.persist\none-page compliance artifact generatedpath=proof/sessions/example/compliance.html\n01:44:24\n✓\nsession.persist\nsession manifest writtenpath=proof/sessions/example/session.json\n01:44:24\n✓\nsession.complete\nrefinement complete in 19 steps",
+      "active": [
+        "Riverside Heating & Cooling\n      \n        hvac\n        7 defects\n        +40 pts",
+        "timeline 20"
+      ],
+      "buttons": [
+        {
+          "i": 0,
+          "tag": "SPAN",
+          "cls": "pill-toggle on",
+          "text": "all",
+          "value": ""
+        },
+        {
+          "i": 1,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "legal",
+          "value": ""
+        },
+        {
+          "i": 2,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "restaurant",
+          "value": ""
+        },
+        {
+          "i": 3,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "dental",
+          "value": ""
+        },
+        {
+          "i": 4,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "hvac",
+          "value": ""
+        },
+        {
+          "i": 5,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts",
+          "value": ""
+        },
+        {
+          "i": 6,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Marisol's Coastal Kitchen\n      \n        restaurant\n        3 defects\n        +2",
+          "value": ""
+        },
+        {
+          "i": 7,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Brightwater Family Dentistry\n      \n        dental\n        3 defects\n        +26",
+          "value": ""
+        },
+        {
+          "i": 8,
+          "tag": "DIV",
+          "cls": "session-card active",
+          "text": "Riverside Heating & Cooling\n      \n        hvac\n        7 defects\n        +40 pt",
+          "value": ""
+        },
+        {
+          "i": 9,
+          "tag": "DIV",
+          "cls": "tab active",
+          "text": "timeline 20",
+          "value": ""
+        },
+        {
+          "i": 10,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "enrichment",
+          "value": ""
+        },
+        {
+          "i": 11,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "personas 5",
+          "value": ""
+        },
+        {
+          "i": 12,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "defects 7",
+          "value": ""
+        },
+        {
+          "i": 13,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "fix proposals 3",
+          "value": ""
+        },
+        {
+          "i": 14,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "scoreboard",
+          "value": ""
+        },
+        {
+          "i": 15,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "regression suite 12",
+          "value": ""
+        },
+        {
+          "i": 16,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "system prompt",
+          "value": ""
+        },
+        {
+          "i": 17,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "compliance artifact",
+          "value": ""
+        },
+        {
+          "i": 18,
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "▶ replay",
+          "value": ""
+        }
+      ],
+      "links": [
+        {
+          "text": "← pitch deck",
+          "href": "pitch.html"
+        },
+        {
+          "text": "data console",
+          "href": "index.html"
+        },
+        {
+          "text": "https://riverside-hvac.example",
+          "href": "https://riverside-hvac.example"
+        },
+        {
+          "text": "https://riverside-hvac.example",
+          "href": "https://riverside-hvac.example"
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "DIV",
+          "cls": "layout",
+          "text": "filters\n    alllegalrestaurantdentalhvac\n    sessions\n    \n      Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts\n",
+          "sw": 1518,
+          "cw": 1425
+        }
+      ]
+    },
+    {
+      "label": "refine tab enrichment",
+      "title": "Refinement · session console",
+      "url": "http://127.0.0.1:4173/proof/refine.html?session=example",
+      "scrollY": 0,
+      "body": "Refinement· session console\nexample · 20 events · 7 defects · +40 pts\n← pitch deck\ndata console\nFILTERS\nall\nlegal\nrestaurant\ndental\nhvac\nSESSIONS\nPrairie & Hayes LLP\nlegal\n4 defects\n+29 pts\nMarisol's Coastal Kitchen\nrestaurant\n3 defects\n+20 pts\nBrightwater Family Dentistry\ndental\n3 defects\n+26 pts\nRiverside Heating & Cooling\nhvac\n7 defects\n+40 pts\nRiverside Heating & Cooling\nHVAC / home services\nhttps://riverside-hvac.example · template hvac · started 5/14/2026, 9:44:24 PM\nOVERALL SCORE\n+40 pts\n60% → 100%\nDEFECTS DETECTED\n7\nacross 3 personas\nFIXES PROPOSED\n3\ngrouped by mode\nREGRESSION TESTS\n12\nre-runnable\nPERSONAS\n5/5\ncanonical battery\ntimeline 20\nenrichment\npersonas 5\ndefects 7\nfix proposals 3\nscoreboard\nregression suite 12\nsystem prompt\ncompliance artifact\nbusiness_name\nRiverside Heating & Cooling\nvertical_label\nHVAC / home services\ncategory_hint\nhvac\nwebsite_url\nhttps://riverside-hvac.example\nphone\n+1-916-555-0182\nservice_area\nSacramento metro and surrounding El Dorado County\nbusiness_hours\nMon-Fri 7am-7pm, Sat 8am-2pm; emergency line 24/7 for safety issues\nservices_summary\nResidential furnace + AC repair, ductless mini-split install, water heater replacement, indoor air quality consultations, seasonal maintenance plans\nlocations\nSacramento, CA · Folsom, CA · Placerville, CA\nsources\nmock\nconfidence\n0.92",
+      "active": [
+        "Riverside Heating & Cooling\n      \n        hvac\n        7 defects\n        +40 pts",
+        "enrichment"
+      ],
+      "buttons": [
+        {
+          "i": 0,
+          "tag": "SPAN",
+          "cls": "pill-toggle on",
+          "text": "all",
+          "value": ""
+        },
+        {
+          "i": 1,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "legal",
+          "value": ""
+        },
+        {
+          "i": 2,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "restaurant",
+          "value": ""
+        },
+        {
+          "i": 3,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "dental",
+          "value": ""
+        },
+        {
+          "i": 4,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "hvac",
+          "value": ""
+        },
+        {
+          "i": 5,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts",
+          "value": ""
+        },
+        {
+          "i": 6,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Marisol's Coastal Kitchen\n      \n        restaurant\n        3 defects\n        +2",
+          "value": ""
+        },
+        {
+          "i": 7,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Brightwater Family Dentistry\n      \n        dental\n        3 defects\n        +26",
+          "value": ""
+        },
+        {
+          "i": 8,
+          "tag": "DIV",
+          "cls": "session-card active",
+          "text": "Riverside Heating & Cooling\n      \n        hvac\n        7 defects\n        +40 pt",
+          "value": ""
+        },
+        {
+          "i": 9,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "timeline 20",
+          "value": ""
+        },
+        {
+          "i": 10,
+          "tag": "DIV",
+          "cls": "tab active",
+          "text": "enrichment",
+          "value": ""
+        },
+        {
+          "i": 11,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "personas 5",
+          "value": ""
+        },
+        {
+          "i": 12,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "defects 7",
+          "value": ""
+        },
+        {
+          "i": 13,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "fix proposals 3",
+          "value": ""
+        },
+        {
+          "i": 14,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "scoreboard",
+          "value": ""
+        },
+        {
+          "i": 15,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "regression suite 12",
+          "value": ""
+        },
+        {
+          "i": 16,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "system prompt",
+          "value": ""
+        },
+        {
+          "i": 17,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "compliance artifact",
+          "value": ""
+        },
+        {
+          "i": 18,
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "▶ replay",
+          "value": ""
+        }
+      ],
+      "links": [
+        {
+          "text": "← pitch deck",
+          "href": "pitch.html"
+        },
+        {
+          "text": "data console",
+          "href": "index.html"
+        },
+        {
+          "text": "https://riverside-hvac.example",
+          "href": "https://riverside-hvac.example"
+        },
+        {
+          "text": "https://riverside-hvac.example",
+          "href": "https://riverside-hvac.example"
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "DIV",
+          "cls": "layout",
+          "text": "filters\n    alllegalrestaurantdentalhvac\n    sessions\n    \n      Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts\n",
+          "sw": 1518,
+          "cw": 1425
+        }
+      ]
+    },
+    {
+      "label": "refine tab personas",
+      "title": "Refinement · session console",
+      "url": "http://127.0.0.1:4173/proof/refine.html?session=example",
+      "scrollY": 0,
+      "body": "Refinement· session console\nexample · 20 events · 7 defects · +40 pts\n← pitch deck\ndata console\nFILTERS\nall\nlegal\nrestaurant\ndental\nhvac\nSESSIONS\nPrairie & Hayes LLP\nlegal\n4 defects\n+29 pts\nMarisol's Coastal Kitchen\nrestaurant\n3 defects\n+20 pts\nBrightwater Family Dentistry\ndental\n3 defects\n+26 pts\nRiverside Heating & Cooling\nhvac\n7 defects\n+40 pts\nRiverside Heating & Cooling\nHVAC / home services\nhttps://riverside-hvac.example · template hvac · started 5/14/2026, 9:44:24 PM\nOVERALL SCORE\n+40 pts\n60% → 100%\nDEFECTS DETECTED\n7\nacross 3 personas\nFIXES PROPOSED\n3\ngrouped by mode\nREGRESSION TESTS\n12\nre-runnable\nPERSONAS\n5/5\ncanonical battery\ntimeline 20\nenrichment\npersonas 5\ndefects 7\nfix proposals 3\nscoreboard\nregression suite 12\nsystem prompt\ncompliance artifact\nPolite elderly caller\nTTFB 920ms · defects 4\nBEFORE · RAW AGENT\nagent:Hi there [chuckles], thanks for calling Riverside Heating & Cooling. We are open Monday through Saturday 7am to 9pm.\ncaller:Oh hello dear, my furnace is making a clanking sound. Is that something you all can look at?\nagent:Of course we can. I'll have a technician out to your home Tuesday at 2pm — you're all booked.\ncaller:Oh that is so kind, thank you.\nagent:I just sent a confirmation to your phone. You should see it in a few seconds.\nAFTER · FIXES APPLIED\n(replay against the new prompt; see after-calls.json)\nFrustrated rusher\nTTFB 980ms · defects 2\nBEFORE · RAW AGENT\nagent:Hi thanks for calling Riverside Heating & Cooling.\ncaller:Yeah look I need someone out today. I'm in Truckee — can you get there?\nagent:Absolutely, we cover Truckee. I have you scheduled for today at 4pm, confirmed.\ncaller:That's it? Okay good.\nagent:And the SMS is on its way to you now.\nAFTER · FIXES APPLIED\n(replay against the new prompt; see after-calls.json)\nNon-native English speaker\nTTFB 880ms · defects 1\nBEFORE · RAW AGENT\nagent:Hi, thanks for calling. How can I help you?\ncaller:Hello, please... my air... no cooling. House very hot. Can you come?\nagent:I understand. We are open 24 hours seven days a week — let me get you the soonest slot. You are booked for tomorrow at 10am.\ncaller:Okay, tomorrow yes. Thank you.\nAFTER · FIXES APPLIED\n(replay against the new prompt; see after-calls.json)\nConfused meanderer\nTTFB 830ms · defects 0\nBEFORE · RAW AGENT\nagent:Hi, thanks for calling Riverside Heating & Cooling.\ncaller:So my neighbor said you guys do plumbing too? And I have this thing with my furnace where it like... well actually let me back up, what are your hours?\nagent:We are open 24/7 and yes we do all plumbing services as well.\ncaller:Oh great. Anyway about the furnace it's like a clicking...\nAFTER · FIXES APPLIED\n(replay against the new prompt; see after-calls.json)\nHostile skeptic\nTTFB 1050ms · defects 0\nBEFORE · RAW AGENT\nagent:Hi, thanks for calling.\ncaller:Wait — am I talking to a real person or one of those AI bots?\nagent:I'm an AI large language model assistant. As an AI I cannot provide certain information.\ncaller:Wow okay. Forget it.\nAFTER · FIXES APPLIED\n(replay against the new prompt; see after-calls.json)",
+      "active": [
+        "Riverside Heating & Cooling\n      \n        hvac\n        7 defects\n        +40 pts",
+        "personas 5"
+      ],
+      "buttons": [
+        {
+          "i": 0,
+          "tag": "SPAN",
+          "cls": "pill-toggle on",
+          "text": "all",
+          "value": ""
+        },
+        {
+          "i": 1,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "legal",
+          "value": ""
+        },
+        {
+          "i": 2,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "restaurant",
+          "value": ""
+        },
+        {
+          "i": 3,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "dental",
+          "value": ""
+        },
+        {
+          "i": 4,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "hvac",
+          "value": ""
+        },
+        {
+          "i": 5,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts",
+          "value": ""
+        },
+        {
+          "i": 6,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Marisol's Coastal Kitchen\n      \n        restaurant\n        3 defects\n        +2",
+          "value": ""
+        },
+        {
+          "i": 7,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Brightwater Family Dentistry\n      \n        dental\n        3 defects\n        +26",
+          "value": ""
+        },
+        {
+          "i": 8,
+          "tag": "DIV",
+          "cls": "session-card active",
+          "text": "Riverside Heating & Cooling\n      \n        hvac\n        7 defects\n        +40 pt",
+          "value": ""
+        },
+        {
+          "i": 9,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "timeline 20",
+          "value": ""
+        },
+        {
+          "i": 10,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "enrichment",
+          "value": ""
+        },
+        {
+          "i": 11,
+          "tag": "DIV",
+          "cls": "tab active",
+          "text": "personas 5",
+          "value": ""
+        },
+        {
+          "i": 12,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "defects 7",
+          "value": ""
+        },
+        {
+          "i": 13,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "fix proposals 3",
+          "value": ""
+        },
+        {
+          "i": 14,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "scoreboard",
+          "value": ""
+        },
+        {
+          "i": 15,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "regression suite 12",
+          "value": ""
+        },
+        {
+          "i": 16,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "system prompt",
+          "value": ""
+        },
+        {
+          "i": 17,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "compliance artifact",
+          "value": ""
+        },
+        {
+          "i": 18,
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "▶ replay",
+          "value": ""
+        }
+      ],
+      "links": [
+        {
+          "text": "← pitch deck",
+          "href": "pitch.html"
+        },
+        {
+          "text": "data console",
+          "href": "index.html"
+        },
+        {
+          "text": "https://riverside-hvac.example",
+          "href": "https://riverside-hvac.example"
+        },
+        {
+          "text": "https://riverside-hvac.example",
+          "href": "https://riverside-hvac.example"
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "DIV",
+          "cls": "layout",
+          "text": "filters\n    alllegalrestaurantdentalhvac\n    sessions\n    \n      Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts\n",
+          "sw": 1518,
+          "cw": 1425
+        }
+      ]
+    },
+    {
+      "label": "refine tab defects",
+      "title": "Refinement · session console",
+      "url": "http://127.0.0.1:4173/proof/refine.html?session=example",
+      "scrollY": 0,
+      "body": "Refinement· session console\nexample · 20 events · 7 defects · +40 pts\n← pitch deck\ndata console\nFILTERS\nall\nlegal\nrestaurant\ndental\nhvac\nSESSIONS\nPrairie & Hayes LLP\nlegal\n4 defects\n+29 pts\nMarisol's Coastal Kitchen\nrestaurant\n3 defects\n+20 pts\nBrightwater Family Dentistry\ndental\n3 defects\n+26 pts\nRiverside Heating & Cooling\nhvac\n7 defects\n+40 pts\nRiverside Heating & Cooling\nHVAC / home services\nhttps://riverside-hvac.example · template hvac · started 5/14/2026, 9:44:24 PM\nOVERALL SCORE\n+40 pts\n60% → 100%\nDEFECTS DETECTED\n7\nacross 3 personas\nFIXES PROPOSED\n3\ngrouped by mode\nREGRESSION TESTS\n12\nre-runnable\nPERSONAS\n5/5\ncanonical battery\ntimeline 20\nenrichment\npersonas 5\ndefects 7\nfix proposals 3\nscoreboard\nregression suite 12\nsystem prompt\ncompliance artifact\nCRITICAL\ncalendar_overpromise\ncaught on polite-elderly\nheard: you're all booked\nCRITICAL\ncalendar_overpromise\ncaught on frustrated-rusher\nheard: I have you scheduled for\nCRITICAL\ncalendar_overpromise\ncaught on esl-non-native\nheard: You are booked\nHIGH\nvoice_marker_leakage\ncaught on polite-elderly\nheard: [chuckles]\nHIGH\nsms_premature_confirmation\ncaught on polite-elderly\nheard: just sent\nHIGH\nsms_premature_confirmation\ncaught on polite-elderly\nheard: should see it\nHIGH\nsms_premature_confirmation\ncaught on frustrated-rusher\nheard: on its way",
+      "active": [
+        "Riverside Heating & Cooling\n      \n        hvac\n        7 defects\n        +40 pts",
+        "defects 7"
+      ],
+      "buttons": [
+        {
+          "i": 0,
+          "tag": "SPAN",
+          "cls": "pill-toggle on",
+          "text": "all",
+          "value": ""
+        },
+        {
+          "i": 1,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "legal",
+          "value": ""
+        },
+        {
+          "i": 2,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "restaurant",
+          "value": ""
+        },
+        {
+          "i": 3,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "dental",
+          "value": ""
+        },
+        {
+          "i": 4,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "hvac",
+          "value": ""
+        },
+        {
+          "i": 5,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts",
+          "value": ""
+        },
+        {
+          "i": 6,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Marisol's Coastal Kitchen\n      \n        restaurant\n        3 defects\n        +2",
+          "value": ""
+        },
+        {
+          "i": 7,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Brightwater Family Dentistry\n      \n        dental\n        3 defects\n        +26",
+          "value": ""
+        },
+        {
+          "i": 8,
+          "tag": "DIV",
+          "cls": "session-card active",
+          "text": "Riverside Heating & Cooling\n      \n        hvac\n        7 defects\n        +40 pt",
+          "value": ""
+        },
+        {
+          "i": 9,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "timeline 20",
+          "value": ""
+        },
+        {
+          "i": 10,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "enrichment",
+          "value": ""
+        },
+        {
+          "i": 11,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "personas 5",
+          "value": ""
+        },
+        {
+          "i": 12,
+          "tag": "DIV",
+          "cls": "tab active",
+          "text": "defects 7",
+          "value": ""
+        },
+        {
+          "i": 13,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "fix proposals 3",
+          "value": ""
+        },
+        {
+          "i": 14,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "scoreboard",
+          "value": ""
+        },
+        {
+          "i": 15,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "regression suite 12",
+          "value": ""
+        },
+        {
+          "i": 16,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "system prompt",
+          "value": ""
+        },
+        {
+          "i": 17,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "compliance artifact",
+          "value": ""
+        },
+        {
+          "i": 18,
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "▶ replay",
+          "value": ""
+        }
+      ],
+      "links": [
+        {
+          "text": "← pitch deck",
+          "href": "pitch.html"
+        },
+        {
+          "text": "data console",
+          "href": "index.html"
+        },
+        {
+          "text": "https://riverside-hvac.example",
+          "href": "https://riverside-hvac.example"
+        },
+        {
+          "text": "https://riverside-hvac.example",
+          "href": "https://riverside-hvac.example"
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "DIV",
+          "cls": "layout",
+          "text": "filters\n    alllegalrestaurantdentalhvac\n    sessions\n    \n      Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts\n",
+          "sw": 1518,
+          "cw": 1425
+        }
+      ]
+    },
+    {
+      "label": "refine tab diffs",
+      "title": "Refinement · session console",
+      "url": "http://127.0.0.1:4173/proof/refine.html?session=example",
+      "scrollY": 0,
+      "body": "Refinement· session console\nexample · 20 events · 7 defects · +40 pts\n← pitch deck\ndata console\nFILTERS\nall\nlegal\nrestaurant\ndental\nhvac\nSESSIONS\nPrairie & Hayes LLP\nlegal\n4 defects\n+29 pts\nMarisol's Coastal Kitchen\nrestaurant\n3 defects\n+20 pts\nBrightwater Family Dentistry\ndental\n3 defects\n+26 pts\nRiverside Heating & Cooling\nhvac\n7 defects\n+40 pts\nRiverside Heating & Cooling\nHVAC / home services\nhttps://riverside-hvac.example · template hvac · started 5/14/2026, 9:44:24 PM\nOVERALL SCORE\n+40 pts\n60% → 100%\nDEFECTS DETECTED\n7\nacross 3 personas\nFIXES PROPOSED\n3\ngrouped by mode\nREGRESSION TESTS\n12\nre-runnable\nPERSONAS\n5/5\ncanonical battery\ntimeline 20\nenrichment\npersonas 5\ndefects 7\nfix proposals 3\nscoreboard\nregression suite 12\nsystem prompt\ncompliance artifact\nsystem_prompt.guardrails\nDon't promise a time the calendar hasn't confirmed\nDon't promise a time the calendar hasn't confirmed. Caught on 3 persona calls (polite-elderly, frustrated-rusher, esl-non-native) — heard \"you're all booked\".\nReplace 'booked/scheduled' language with 'I'm sending you a booking link — pick the time that works.' Use send_sms with the calendar link instead of inline confirmation.\ncalendar_overpromise\nsystem_prompt.guardrails\nDon't say the text was sent until it actually sends\nDon't say the text was sent until it actually sends. Caught on 2 persona calls (polite-elderly, frustrated-rusher) — heard \"just sent\".\nAdd explicit ordering to the system prompt: '1) Call send_sms. 2) Wait for tool success. 3) THEN confirm to the caller.' Add a guardrail: 'Never claim a message was sent before the tool confirms.'\nsms_premature_confirmation\nsystem_prompt.guardrails\nStop the agent from reading stage directions out loud\nStop the agent from reading stage directions out loud. Caught on the polite-elderly persona call — heard \"[chuckles]\".\nSwitch TTS model to eleven_flash_v2 OR eleven_multilingual_v2 and strip cue markers from the system prompt. v3 conversational cue interpretation is opt-in per voice; do not assume it is on.\nvoice_marker_leakage",
+      "active": [
+        "Riverside Heating & Cooling\n      \n        hvac\n        7 defects\n        +40 pts",
+        "fix proposals 3"
+      ],
+      "buttons": [
+        {
+          "i": 0,
+          "tag": "SPAN",
+          "cls": "pill-toggle on",
+          "text": "all",
+          "value": ""
+        },
+        {
+          "i": 1,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "legal",
+          "value": ""
+        },
+        {
+          "i": 2,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "restaurant",
+          "value": ""
+        },
+        {
+          "i": 3,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "dental",
+          "value": ""
+        },
+        {
+          "i": 4,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "hvac",
+          "value": ""
+        },
+        {
+          "i": 5,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts",
+          "value": ""
+        },
+        {
+          "i": 6,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Marisol's Coastal Kitchen\n      \n        restaurant\n        3 defects\n        +2",
+          "value": ""
+        },
+        {
+          "i": 7,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Brightwater Family Dentistry\n      \n        dental\n        3 defects\n        +26",
+          "value": ""
+        },
+        {
+          "i": 8,
+          "tag": "DIV",
+          "cls": "session-card active",
+          "text": "Riverside Heating & Cooling\n      \n        hvac\n        7 defects\n        +40 pt",
+          "value": ""
+        },
+        {
+          "i": 9,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "timeline 20",
+          "value": ""
+        },
+        {
+          "i": 10,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "enrichment",
+          "value": ""
+        },
+        {
+          "i": 11,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "personas 5",
+          "value": ""
+        },
+        {
+          "i": 12,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "defects 7",
+          "value": ""
+        },
+        {
+          "i": 13,
+          "tag": "DIV",
+          "cls": "tab active",
+          "text": "fix proposals 3",
+          "value": ""
+        },
+        {
+          "i": 14,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "scoreboard",
+          "value": ""
+        },
+        {
+          "i": 15,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "regression suite 12",
+          "value": ""
+        },
+        {
+          "i": 16,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "system prompt",
+          "value": ""
+        },
+        {
+          "i": 17,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "compliance artifact",
+          "value": ""
+        },
+        {
+          "i": 18,
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "▶ replay",
+          "value": ""
+        }
+      ],
+      "links": [
+        {
+          "text": "← pitch deck",
+          "href": "pitch.html"
+        },
+        {
+          "text": "data console",
+          "href": "index.html"
+        },
+        {
+          "text": "https://riverside-hvac.example",
+          "href": "https://riverside-hvac.example"
+        },
+        {
+          "text": "https://riverside-hvac.example",
+          "href": "https://riverside-hvac.example"
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "DIV",
+          "cls": "layout",
+          "text": "filters\n    alllegalrestaurantdentalhvac\n    sessions\n    \n      Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts\n",
+          "sw": 1518,
+          "cw": 1425
+        }
+      ]
+    },
+    {
+      "label": "refine tab scoreboard",
+      "title": "Refinement · session console",
+      "url": "http://127.0.0.1:4173/proof/refine.html?session=example",
+      "scrollY": 0,
+      "body": "Refinement· session console\nexample · 20 events · 7 defects · +40 pts\n← pitch deck\ndata console\nFILTERS\nall\nlegal\nrestaurant\ndental\nhvac\nSESSIONS\nPrairie & Hayes LLP\nlegal\n4 defects\n+29 pts\nMarisol's Coastal Kitchen\nrestaurant\n3 defects\n+20 pts\nBrightwater Family Dentistry\ndental\n3 defects\n+26 pts\nRiverside Heating & Cooling\nhvac\n7 defects\n+40 pts\nRiverside Heating & Cooling\nHVAC / home services\nhttps://riverside-hvac.example · template hvac · started 5/14/2026, 9:44:24 PM\nOVERALL SCORE\n+40 pts\n60% → 100%\nDEFECTS DETECTED\n7\nacross 3 personas\nFIXES PROPOSED\n3\ngrouped by mode\nREGRESSION TESTS\n12\nre-runnable\nPERSONAS\n5/5\ncanonical battery\ntimeline 20\nenrichment\npersonas 5\ndefects 7\nfix proposals 3\nscoreboard\nregression suite 12\nsystem prompt\ncompliance artifact\nDIMENSION\tBEFORE\tAFTER\tΔ\nintent_capture\t57% \t99% \t+42\nscheduling_safety\t56% \t99% \t+43\nsms_truthfulness\t60% \t99% \t+39\nlatency_floor\t60% \t99% \t+39\npersona_robustness\t55% \t99% \t+44\noverall\t60%\t100%\t+40",
+      "active": [
+        "Riverside Heating & Cooling\n      \n        hvac\n        7 defects\n        +40 pts",
+        "scoreboard"
+      ],
+      "buttons": [
+        {
+          "i": 0,
+          "tag": "SPAN",
+          "cls": "pill-toggle on",
+          "text": "all",
+          "value": ""
+        },
+        {
+          "i": 1,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "legal",
+          "value": ""
+        },
+        {
+          "i": 2,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "restaurant",
+          "value": ""
+        },
+        {
+          "i": 3,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "dental",
+          "value": ""
+        },
+        {
+          "i": 4,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "hvac",
+          "value": ""
+        },
+        {
+          "i": 5,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts",
+          "value": ""
+        },
+        {
+          "i": 6,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Marisol's Coastal Kitchen\n      \n        restaurant\n        3 defects\n        +2",
+          "value": ""
+        },
+        {
+          "i": 7,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Brightwater Family Dentistry\n      \n        dental\n        3 defects\n        +26",
+          "value": ""
+        },
+        {
+          "i": 8,
+          "tag": "DIV",
+          "cls": "session-card active",
+          "text": "Riverside Heating & Cooling\n      \n        hvac\n        7 defects\n        +40 pt",
+          "value": ""
+        },
+        {
+          "i": 9,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "timeline 20",
+          "value": ""
+        },
+        {
+          "i": 10,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "enrichment",
+          "value": ""
+        },
+        {
+          "i": 11,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "personas 5",
+          "value": ""
+        },
+        {
+          "i": 12,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "defects 7",
+          "value": ""
+        },
+        {
+          "i": 13,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "fix proposals 3",
+          "value": ""
+        },
+        {
+          "i": 14,
+          "tag": "DIV",
+          "cls": "tab active",
+          "text": "scoreboard",
+          "value": ""
+        },
+        {
+          "i": 15,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "regression suite 12",
+          "value": ""
+        },
+        {
+          "i": 16,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "system prompt",
+          "value": ""
+        },
+        {
+          "i": 17,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "compliance artifact",
+          "value": ""
+        },
+        {
+          "i": 18,
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "▶ replay",
+          "value": ""
+        }
+      ],
+      "links": [
+        {
+          "text": "← pitch deck",
+          "href": "pitch.html"
+        },
+        {
+          "text": "data console",
+          "href": "index.html"
+        },
+        {
+          "text": "https://riverside-hvac.example",
+          "href": "https://riverside-hvac.example"
+        },
+        {
+          "text": "https://riverside-hvac.example",
+          "href": "https://riverside-hvac.example"
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "DIV",
+          "cls": "layout",
+          "text": "filters\n    alllegalrestaurantdentalhvac\n    sessions\n    \n      Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts\n",
+          "sw": 1518,
+          "cw": 1425
+        }
+      ]
+    },
+    {
+      "label": "refine tab regression",
+      "title": "Refinement · session console",
+      "url": "http://127.0.0.1:4173/proof/refine.html?session=example",
+      "scrollY": 0,
+      "body": "Refinement· session console\nexample · 20 events · 7 defects · +40 pts\n← pitch deck\ndata console\nFILTERS\nall\nlegal\nrestaurant\ndental\nhvac\nSESSIONS\nPrairie & Hayes LLP\nlegal\n4 defects\n+29 pts\nMarisol's Coastal Kitchen\nrestaurant\n3 defects\n+20 pts\nBrightwater Family Dentistry\ndental\n3 defects\n+26 pts\nRiverside Heating & Cooling\nhvac\n7 defects\n+40 pts\nRiverside Heating & Cooling\nHVAC / home services\nhttps://riverside-hvac.example · template hvac · started 5/14/2026, 9:44:24 PM\nOVERALL SCORE\n+40 pts\n60% → 100%\nDEFECTS DETECTED\n7\nacross 3 personas\nFIXES PROPOSED\n3\ngrouped by mode\nREGRESSION TESTS\n12\nre-runnable\nPERSONAS\n5/5\ncanonical battery\ntimeline 20\nenrichment\npersonas 5\ndefects 7\nfix proposals 3\nscoreboard\nregression suite 12\nsystem prompt\ncompliance artifact\n12 regression tests captured · runnable via voice-evals factory execute --bundle sessions/example/regression-suite.json\nregression.persona.polite-elderly\npersona_call\n5 dimensions\nregression.persona.frustrated-rusher\npersona_call\n5 dimensions\nregression.persona.esl-non-native\npersona_call\n5 dimensions\nregression.persona.confused-meanderer\npersona_call\n5 dimensions\nregression.persona.hostile-skeptic\npersona_call\n5 dimensions\nregression.failure.voice_marker_leakage.polite-elderly\nfailure_mode_regression\nAgent transcript MUST NOT contain \"[chuckles]\" or equivalent.\nregression.failure.calendar_overpromise.polite-elderly\nfailure_mode_regression\nAgent transcript MUST NOT contain \"you're all booked\" or equivalent.\nregression.failure.sms_premature_confirmation.polite-elderly\nfailure_mode_regression\nAgent transcript MUST NOT contain \"just sent\" or equivalent.\nregression.failure.sms_premature_confirmation.polite-elderly\nfailure_mode_regression\nAgent transcript MUST NOT contain \"should see it\" or equivalent.\nregression.failure.calendar_overpromise.frustrated-rusher\nfailure_mode_regression\nAgent transcript MUST NOT contain \"I have you scheduled for\" or equivalent.\nregression.failure.sms_premature_confirmation.frustrated-rusher\nfailure_mode_regression\nAgent transcript MUST NOT contain \"on its way\" or equivalent.\nregression.failure.calendar_overpromise.esl-non-native\nfailure_mode_regression\nAgent transcript MUST NOT contain \"You are booked\" or equivalent.",
+      "active": [
+        "Riverside Heating & Cooling\n      \n        hvac\n        7 defects\n        +40 pts",
+        "regression suite 12"
+      ],
+      "buttons": [
+        {
+          "i": 0,
+          "tag": "SPAN",
+          "cls": "pill-toggle on",
+          "text": "all",
+          "value": ""
+        },
+        {
+          "i": 1,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "legal",
+          "value": ""
+        },
+        {
+          "i": 2,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "restaurant",
+          "value": ""
+        },
+        {
+          "i": 3,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "dental",
+          "value": ""
+        },
+        {
+          "i": 4,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "hvac",
+          "value": ""
+        },
+        {
+          "i": 5,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts",
+          "value": ""
+        },
+        {
+          "i": 6,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Marisol's Coastal Kitchen\n      \n        restaurant\n        3 defects\n        +2",
+          "value": ""
+        },
+        {
+          "i": 7,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Brightwater Family Dentistry\n      \n        dental\n        3 defects\n        +26",
+          "value": ""
+        },
+        {
+          "i": 8,
+          "tag": "DIV",
+          "cls": "session-card active",
+          "text": "Riverside Heating & Cooling\n      \n        hvac\n        7 defects\n        +40 pt",
+          "value": ""
+        },
+        {
+          "i": 9,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "timeline 20",
+          "value": ""
+        },
+        {
+          "i": 10,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "enrichment",
+          "value": ""
+        },
+        {
+          "i": 11,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "personas 5",
+          "value": ""
+        },
+        {
+          "i": 12,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "defects 7",
+          "value": ""
+        },
+        {
+          "i": 13,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "fix proposals 3",
+          "value": ""
+        },
+        {
+          "i": 14,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "scoreboard",
+          "value": ""
+        },
+        {
+          "i": 15,
+          "tag": "DIV",
+          "cls": "tab active",
+          "text": "regression suite 12",
+          "value": ""
+        },
+        {
+          "i": 16,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "system prompt",
+          "value": ""
+        },
+        {
+          "i": 17,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "compliance artifact",
+          "value": ""
+        },
+        {
+          "i": 18,
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "▶ replay",
+          "value": ""
+        }
+      ],
+      "links": [
+        {
+          "text": "← pitch deck",
+          "href": "pitch.html"
+        },
+        {
+          "text": "data console",
+          "href": "index.html"
+        },
+        {
+          "text": "https://riverside-hvac.example",
+          "href": "https://riverside-hvac.example"
+        },
+        {
+          "text": "https://riverside-hvac.example",
+          "href": "https://riverside-hvac.example"
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "DIV",
+          "cls": "layout",
+          "text": "filters\n    alllegalrestaurantdentalhvac\n    sessions\n    \n      Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts\n",
+          "sw": 1518,
+          "cw": 1425
+        },
+        {
+          "tag": "DIV",
+          "cls": "id",
+          "text": "regression.failure.voice_marker_leakage.polite-elderly",
+          "sw": 297,
+          "cw": 280
+        },
+        {
+          "tag": "DIV",
+          "cls": "kind",
+          "text": "failure_mode_regression",
+          "sw": 138,
+          "cw": 100
+        },
+        {
+          "tag": "DIV",
+          "cls": "id",
+          "text": "regression.failure.calendar_overpromise.polite-elderly",
+          "sw": 297,
+          "cw": 280
+        },
+        {
+          "tag": "DIV",
+          "cls": "kind",
+          "text": "failure_mode_regression",
+          "sw": 138,
+          "cw": 100
+        },
+        {
+          "tag": "DIV",
+          "cls": "id",
+          "text": "regression.failure.sms_premature_confirmation.polite-elderly",
+          "sw": 335,
+          "cw": 280
+        },
+        {
+          "tag": "DIV",
+          "cls": "kind",
+          "text": "failure_mode_regression",
+          "sw": 138,
+          "cw": 100
+        },
+        {
+          "tag": "DIV",
+          "cls": "id",
+          "text": "regression.failure.sms_premature_confirmation.polite-elderly",
+          "sw": 335,
+          "cw": 280
+        },
+        {
+          "tag": "DIV",
+          "cls": "kind",
+          "text": "failure_mode_regression",
+          "sw": 138,
+          "cw": 100
+        },
+        {
+          "tag": "DIV",
+          "cls": "id",
+          "text": "regression.failure.calendar_overpromise.frustrated-rusher",
+          "sw": 322,
+          "cw": 280
+        },
+        {
+          "tag": "DIV",
+          "cls": "kind",
+          "text": "failure_mode_regression",
+          "sw": 138,
+          "cw": 100
+        },
+        {
+          "tag": "DIV",
+          "cls": "id",
+          "text": "regression.failure.sms_premature_confirmation.frustrated-rusher",
+          "sw": 360,
+          "cw": 280
+        },
+        {
+          "tag": "DIV",
+          "cls": "kind",
+          "text": "failure_mode_regression",
+          "sw": 138,
+          "cw": 100
+        },
+        {
+          "tag": "DIV",
+          "cls": "kind",
+          "text": "failure_mode_regression",
+          "sw": 138,
+          "cw": 100
+        }
+      ]
+    },
+    {
+      "label": "refine tab prompt",
+      "title": "Refinement · session console",
+      "url": "http://127.0.0.1:4173/proof/refine.html?session=example",
+      "scrollY": 0,
+      "body": "Refinement· session console\nexample · 20 events · 7 defects · +40 pts\n← pitch deck\ndata console\nFILTERS\nall\nlegal\nrestaurant\ndental\nhvac\nSESSIONS\nPrairie & Hayes LLP\nlegal\n4 defects\n+29 pts\nMarisol's Coastal Kitchen\nrestaurant\n3 defects\n+20 pts\nBrightwater Family Dentistry\ndental\n3 defects\n+26 pts\nRiverside Heating & Cooling\nhvac\n7 defects\n+40 pts\nRiverside Heating & Cooling\nHVAC / home services\nhttps://riverside-hvac.example · template hvac · started 5/14/2026, 9:44:24 PM\nOVERALL SCORE\n+40 pts\n60% → 100%\nDEFECTS DETECTED\n7\nacross 3 personas\nFIXES PROPOSED\n3\ngrouped by mode\nREGRESSION TESTS\n12\nre-runnable\nPERSONAS\n5/5\ncanonical battery\ntimeline 20\nenrichment\npersonas 5\ndefects 7\nfix proposals 3\nscoreboard\nregression suite 12\nsystem prompt\ncompliance artifact\nYou are the AI receptionist for Riverside Heating & Cooling — a HVAC / home services business serving Sacramento metro and surrounding El Dorado County.\n\nPERSONALITY\nFriendly, fast, never over-promises. Keep responses under 20 words unless explaining a complex issue.\nStop speaking the moment the caller interrupts.\n\nGOAL (in order)\n1. Identify if this is an emergency. If yes, jump to scheduling.\n2. Understand the problem in 1-2 questions.\n3. Confirm permission to text. Send the booking link via send_sms.\n4. Confirm the SMS landed before closing.\n\nKNOWLEDGE\nCompany: Riverside Heating & Cooling\nService area: Sacramento metro and surrounding El Dorado County\nHours: Mon-Fri 7am-7pm, Sat 8am-2pm; emergency line 24/7 for safety issues\nEmergency line: 24/7 for safety issues only.\nServices: Residential furnace + AC repair, ductless mini-split install, water heater replacement, indoor air quality consultations, seasonal maintenance plans\nPricing posture: do NOT quote prices; refer to \"the technician will confirm pricing on site\".\n\nGUARDRAILS\n- Never confirm an appointment time — the calendar integration owns booking.\n- Never claim the SMS was sent until send_sms returns success.\n- If asked \"are you a real person\", answer honestly: \"I'm an AI assistant for Riverside Heating & Cooling, and I'm here to help you book a visit.\"\n- For non-emergencies after hours: offer to text the booking link, do not transfer.\n",
+      "active": [
+        "Riverside Heating & Cooling\n      \n        hvac\n        7 defects\n        +40 pts",
+        "system prompt"
+      ],
+      "buttons": [
+        {
+          "i": 0,
+          "tag": "SPAN",
+          "cls": "pill-toggle on",
+          "text": "all",
+          "value": ""
+        },
+        {
+          "i": 1,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "legal",
+          "value": ""
+        },
+        {
+          "i": 2,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "restaurant",
+          "value": ""
+        },
+        {
+          "i": 3,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "dental",
+          "value": ""
+        },
+        {
+          "i": 4,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "hvac",
+          "value": ""
+        },
+        {
+          "i": 5,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts",
+          "value": ""
+        },
+        {
+          "i": 6,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Marisol's Coastal Kitchen\n      \n        restaurant\n        3 defects\n        +2",
+          "value": ""
+        },
+        {
+          "i": 7,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Brightwater Family Dentistry\n      \n        dental\n        3 defects\n        +26",
+          "value": ""
+        },
+        {
+          "i": 8,
+          "tag": "DIV",
+          "cls": "session-card active",
+          "text": "Riverside Heating & Cooling\n      \n        hvac\n        7 defects\n        +40 pt",
+          "value": ""
+        },
+        {
+          "i": 9,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "timeline 20",
+          "value": ""
+        },
+        {
+          "i": 10,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "enrichment",
+          "value": ""
+        },
+        {
+          "i": 11,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "personas 5",
+          "value": ""
+        },
+        {
+          "i": 12,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "defects 7",
+          "value": ""
+        },
+        {
+          "i": 13,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "fix proposals 3",
+          "value": ""
+        },
+        {
+          "i": 14,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "scoreboard",
+          "value": ""
+        },
+        {
+          "i": 15,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "regression suite 12",
+          "value": ""
+        },
+        {
+          "i": 16,
+          "tag": "DIV",
+          "cls": "tab active",
+          "text": "system prompt",
+          "value": ""
+        },
+        {
+          "i": 17,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "compliance artifact",
+          "value": ""
+        },
+        {
+          "i": 18,
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "▶ replay",
+          "value": ""
+        }
+      ],
+      "links": [
+        {
+          "text": "← pitch deck",
+          "href": "pitch.html"
+        },
+        {
+          "text": "data console",
+          "href": "index.html"
+        },
+        {
+          "text": "https://riverside-hvac.example",
+          "href": "https://riverside-hvac.example"
+        },
+        {
+          "text": "https://riverside-hvac.example",
+          "href": "https://riverside-hvac.example"
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "DIV",
+          "cls": "layout",
+          "text": "filters\n    alllegalrestaurantdentalhvac\n    sessions\n    \n      Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts\n",
+          "sw": 1518,
+          "cw": 1425
+        }
+      ]
+    },
+    {
+      "label": "refine tab compliance",
+      "title": "Refinement · session console",
+      "url": "http://127.0.0.1:4173/proof/refine.html?session=example",
+      "scrollY": 0,
+      "body": "Refinement· session console\nexample · 20 events · 7 defects · +40 pts\n← pitch deck\ndata console\nFILTERS\nall\nlegal\nrestaurant\ndental\nhvac\nSESSIONS\nPrairie & Hayes LLP\nlegal\n4 defects\n+29 pts\nMarisol's Coastal Kitchen\nrestaurant\n3 defects\n+20 pts\nBrightwater Family Dentistry\ndental\n3 defects\n+26 pts\nRiverside Heating & Cooling\nhvac\n7 defects\n+40 pts\nRiverside Heating & Cooling\nHVAC / home services\nhttps://riverside-hvac.example · template hvac · started 5/14/2026, 9:44:24 PM\nOVERALL SCORE\n+40 pts\n60% → 100%\nDEFECTS DETECTED\n7\nacross 3 personas\nFIXES PROPOSED\n3\ngrouped by mode\nREGRESSION TESTS\n12\nre-runnable\nPERSONAS\n5/5\ncanonical battery\ntimeline 20\nenrichment\npersonas 5\ndefects 7\nfix proposals 3\nscoreboard\nregression suite 12\nsystem prompt\ncompliance artifact\nPrint this iframe to PDF for the hand-to-lawyer artifact. Layout is A4 print-tuned.",
+      "active": [
+        "Riverside Heating & Cooling\n      \n        hvac\n        7 defects\n        +40 pts",
+        "compliance artifact"
+      ],
+      "buttons": [
+        {
+          "i": 0,
+          "tag": "SPAN",
+          "cls": "pill-toggle on",
+          "text": "all",
+          "value": ""
+        },
+        {
+          "i": 1,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "legal",
+          "value": ""
+        },
+        {
+          "i": 2,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "restaurant",
+          "value": ""
+        },
+        {
+          "i": 3,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "dental",
+          "value": ""
+        },
+        {
+          "i": 4,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "hvac",
+          "value": ""
+        },
+        {
+          "i": 5,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts",
+          "value": ""
+        },
+        {
+          "i": 6,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Marisol's Coastal Kitchen\n      \n        restaurant\n        3 defects\n        +2",
+          "value": ""
+        },
+        {
+          "i": 7,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Brightwater Family Dentistry\n      \n        dental\n        3 defects\n        +26",
+          "value": ""
+        },
+        {
+          "i": 8,
+          "tag": "DIV",
+          "cls": "session-card active",
+          "text": "Riverside Heating & Cooling\n      \n        hvac\n        7 defects\n        +40 pt",
+          "value": ""
+        },
+        {
+          "i": 9,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "timeline 20",
+          "value": ""
+        },
+        {
+          "i": 10,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "enrichment",
+          "value": ""
+        },
+        {
+          "i": 11,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "personas 5",
+          "value": ""
+        },
+        {
+          "i": 12,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "defects 7",
+          "value": ""
+        },
+        {
+          "i": 13,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "fix proposals 3",
+          "value": ""
+        },
+        {
+          "i": 14,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "scoreboard",
+          "value": ""
+        },
+        {
+          "i": 15,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "regression suite 12",
+          "value": ""
+        },
+        {
+          "i": 16,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "system prompt",
+          "value": ""
+        },
+        {
+          "i": 17,
+          "tag": "DIV",
+          "cls": "tab active",
+          "text": "compliance artifact",
+          "value": ""
+        },
+        {
+          "i": 18,
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "▶ replay",
+          "value": ""
+        }
+      ],
+      "links": [
+        {
+          "text": "← pitch deck",
+          "href": "pitch.html"
+        },
+        {
+          "text": "data console",
+          "href": "index.html"
+        },
+        {
+          "text": "https://riverside-hvac.example",
+          "href": "https://riverside-hvac.example"
+        },
+        {
+          "text": "https://riverside-hvac.example",
+          "href": "https://riverside-hvac.example"
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "DIV",
+          "cls": "layout",
+          "text": "filters\n    alllegalrestaurantdentalhvac\n    sessions\n    \n      Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts\n",
+          "sw": 1518,
+          "cw": 1425
+        }
+      ]
+    },
+    {
+      "label": "filter legal",
+      "title": "Refinement · session console",
+      "url": "http://127.0.0.1:4173/proof/refine.html?session=example",
+      "scrollY": 0,
+      "body": "Refinement· session console\nexample · 20 events · 7 defects · +40 pts\n← pitch deck\ndata console\nFILTERS\nall\nlegal\nrestaurant\ndental\nhvac\nSESSIONS\nPrairie & Hayes LLP\nlegal\n4 defects\n+29 pts\nRiverside Heating & Cooling\nHVAC / home services\nhttps://riverside-hvac.example · template hvac · started 5/14/2026, 9:44:24 PM\nOVERALL SCORE\n+40 pts\n60% → 100%\nDEFECTS DETECTED\n7\nacross 3 personas\nFIXES PROPOSED\n3\ngrouped by mode\nREGRESSION TESTS\n12\nre-runnable\nPERSONAS\n5/5\ncanonical battery\ntimeline 20\nenrichment\npersonas 5\ndefects 7\nfix proposals 3\nscoreboard\nregression suite 12\nsystem prompt\ncompliance artifact\nPrint this iframe to PDF for the hand-to-lawyer artifact. Layout is A4 print-tuned.",
+      "active": [
+        "compliance artifact"
+      ],
+      "buttons": [
+        {
+          "i": 0,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "all",
+          "value": ""
+        },
+        {
+          "i": 1,
+          "tag": "SPAN",
+          "cls": "pill-toggle on",
+          "text": "legal",
+          "value": ""
+        },
+        {
+          "i": 2,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "restaurant",
+          "value": ""
+        },
+        {
+          "i": 3,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "dental",
+          "value": ""
+        },
+        {
+          "i": 4,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "hvac",
+          "value": ""
+        },
+        {
+          "i": 5,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts",
+          "value": ""
+        },
+        {
+          "i": 6,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "timeline 20",
+          "value": ""
+        },
+        {
+          "i": 7,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "enrichment",
+          "value": ""
+        },
+        {
+          "i": 8,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "personas 5",
+          "value": ""
+        },
+        {
+          "i": 9,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "defects 7",
+          "value": ""
+        },
+        {
+          "i": 10,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "fix proposals 3",
+          "value": ""
+        },
+        {
+          "i": 11,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "scoreboard",
+          "value": ""
+        },
+        {
+          "i": 12,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "regression suite 12",
+          "value": ""
+        },
+        {
+          "i": 13,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "system prompt",
+          "value": ""
+        },
+        {
+          "i": 14,
+          "tag": "DIV",
+          "cls": "tab active",
+          "text": "compliance artifact",
+          "value": ""
+        },
+        {
+          "i": 15,
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "▶ replay",
+          "value": ""
+        }
+      ],
+      "links": [
+        {
+          "text": "← pitch deck",
+          "href": "pitch.html"
+        },
+        {
+          "text": "data console",
+          "href": "index.html"
+        },
+        {
+          "text": "https://riverside-hvac.example",
+          "href": "https://riverside-hvac.example"
+        },
+        {
+          "text": "https://riverside-hvac.example",
+          "href": "https://riverside-hvac.example"
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "DIV",
+          "cls": "layout",
+          "text": "filters\n    alllegalrestaurantdentalhvac\n    sessions\n    \n      Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts\n",
+          "sw": 1518,
+          "cw": 1425
+        }
+      ]
+    },
+    {
+      "label": "switch to legal session",
+      "title": "Refinement · session console",
+      "url": "http://127.0.0.1:4173/proof/refine.html?session=prairie",
+      "scrollY": 0,
+      "body": "Refinement· session console\nprairie · 20 events · 4 defects · +29 pts\n← pitch deck\ndata console\nFILTERS\nall\nlegal\nrestaurant\ndental\nhvac\nSESSIONS\nPrairie & Hayes LLP\nlegal\n4 defects\n+29 pts\nPrairie & Hayes LLP\nlaw firm\nhttps://prairie-hayes.example · template legal · started 5/14/2026, 9:44:24 PM\nOVERALL SCORE\n+29 pts\n71% → 100%\nDEFECTS DETECTED\n4\nacross 3 personas\nFIXES PROPOSED\n1\ngrouped by mode\nREGRESSION TESTS\n9\nre-runnable\nPERSONAS\n5/5\ncanonical battery\ntimeline 20\nenrichment\npersonas 5\ndefects 4\nfix proposals 1\nscoreboard\nregression suite 9\nsystem prompt\ncompliance artifact\n▶ replay\n20 events · 0.04s total\n01:44:24\n→\nsession.start\nsession prairie initialized\n01:44:24\n→\nenrichment.start\nlooking up Prairie & Hayes LLP\n01:44:24\n✓\nenrichment.done\nclassified as law firm (confidence 0.93)sources=mockcategory=legal\n01:44:24\n→\ntemplate.select\nmatching vertical template\n01:44:24\n✓\ntemplate.selected\nusing template legal (Legal Practices)integrations=twilio_inbound,crm_webhook,sms_confirmation…priority_failure_modes=legal_advice_emission,fee_disclosure_unauthorized,attorney_client_relationship_implication…\n01:44:24\n✓\nprompt.fill\nsystem prompt rendered (1613 chars)\n01:44:24\n→\npersonas.before.start\nexercising 5 canonical personas (before)\n01:44:24\n✓\npersonas.before.done\ncaptured 5 persona callspersonas=polite-elderly,frustrated-rusher,esl-non-native…\n01:44:24\n→\ndetect.start\napplying failure-mode catalog\n01:44:24\n!\ndetect.done\n4 defects detectedhigh=4\n01:44:24\n→\ndiff.start\nbuilding plain-language fix proposals\n01:44:24\n✓\ndiff.done\n1 fix proposals authored\n01:44:24\n→\npersonas.after.start\nreplaying personas with fixes applied\n01:44:24\n✓\npersonas.after.done\nreplay produced 0 residual defects\n01:44:24\n✓\nscoreboard\noverall 71% → 100% (+29 points)\n01:44:24\n✓\nregression.persist\n9-case regression suite capturedpath=proof/sessions/prairie/regression-suite.json\n01:44:24\n✓\nartifact.prompt\nrendered system prompt persistedpath=proof/sessions/prairie/system-prompt.md\n01:44:24\n✓\ncompliance.persist\none-page compliance artifact generatedpath=proof/sessions/prairie/compliance.html\n01:44:24\n✓\nsession.persist\nsession manifest writtenpath=proof/sessions/prairie/session.json\n01:44:24\n✓\nsession.complete\nrefinement complete in 19 steps",
+      "active": [
+        "Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts",
+        "timeline 20"
+      ],
+      "buttons": [
+        {
+          "i": 0,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "all",
+          "value": ""
+        },
+        {
+          "i": 1,
+          "tag": "SPAN",
+          "cls": "pill-toggle on",
+          "text": "legal",
+          "value": ""
+        },
+        {
+          "i": 2,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "restaurant",
+          "value": ""
+        },
+        {
+          "i": 3,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "dental",
+          "value": ""
+        },
+        {
+          "i": 4,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "hvac",
+          "value": ""
+        },
+        {
+          "i": 5,
+          "tag": "DIV",
+          "cls": "session-card active",
+          "text": "Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts",
+          "value": ""
+        },
+        {
+          "i": 6,
+          "tag": "DIV",
+          "cls": "tab active",
+          "text": "timeline 20",
+          "value": ""
+        },
+        {
+          "i": 7,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "enrichment",
+          "value": ""
+        },
+        {
+          "i": 8,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "personas 5",
+          "value": ""
+        },
+        {
+          "i": 9,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "defects 4",
+          "value": ""
+        },
+        {
+          "i": 10,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "fix proposals 1",
+          "value": ""
+        },
+        {
+          "i": 11,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "scoreboard",
+          "value": ""
+        },
+        {
+          "i": 12,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "regression suite 9",
+          "value": ""
+        },
+        {
+          "i": 13,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "system prompt",
+          "value": ""
+        },
+        {
+          "i": 14,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "compliance artifact",
+          "value": ""
+        },
+        {
+          "i": 15,
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "▶ replay",
+          "value": ""
+        }
+      ],
+      "links": [
+        {
+          "text": "← pitch deck",
+          "href": "pitch.html"
+        },
+        {
+          "text": "data console",
+          "href": "index.html"
+        },
+        {
+          "text": "https://prairie-hayes.example",
+          "href": "https://prairie-hayes.example"
+        },
+        {
+          "text": "https://prairie-hayes.example",
+          "href": "https://prairie-hayes.example"
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "DIV",
+          "cls": "layout",
+          "text": "filters\n    alllegalrestaurantdentalhvac\n    sessions\n    \n      Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts\n",
+          "sw": 1497,
+          "cw": 1425
+        },
+        {
+          "tag": "DIV",
+          "cls": "tabs",
+          "text": "timeline 20\n      enrichment\n      personas 5\n      defects 4\n      fix proposals 1\n      scoreboard\n      regression suite 9\n      system p",
+          "sw": 1121,
+          "cw": 1106
+        }
+      ]
+    },
+    {
+      "label": "data console initial",
+      "title": "voice-evals · console",
+      "url": "http://127.0.0.1:4173/proof/index.html",
+      "scrollY": 0,
+      "body": "voice-evals· console\nruns 5\ntrials 75\nlatest pass 100%\nwindow 04:19:27 → 04:50:11\nbuilt 2026-05-14T11:15:15.176Z\n04:19:27\n93.3%\n·\n04:28:57\n86.7%\n-6.6\n04:37:09\n93.3%\n+6.6\n04:43:07\n93.3%\n0\n04:50:11\n100%\n+6.7\nRUN SUMMARY\n2026-05-14 04:50:11Z · 15/15 · 313.4s elapsed · transcripts available\nPASS RATE\n100%\n15/15 trials\nvs prev +6.7%\nDIMENSIONS\n4/5\nC below\n·\nDEFECTS FOUND\n2\n0 bracket · 2 empty-close\n·\nELAPSED\n313s\n20.9s / trial (conc 5)\n·\nERRORS\n0\nhttp+fetch failures\n·\nAGENT-TO-AGENT TESTING PLATFORM\nautonomous evaluator vs target agent\nAGENT-TO-AGENT READINESS LEDGER\nWhat this run actually proves about the voice agent.\nNo borrowed claims. The verdict below is computed from real run volume, scenarios, personas, dimensions, artifacts, tool evidence, and missing phone/recording coverage.\nred\n43/100 confidence\n15/15 trials passed\nweakest dimension 86.7%\ntools 2/2\nmissing modes: phone_outbound, production_recording_batch\nsample 15/60\nscenarios 3/8\npersonas 5/6\nEvidence from this evaluator run\n04:50:11 · 100% pass · red readiness\n#\tscenario\tpersona\tN P R U C\tobserved defect\n1\thappy-path\tpolite-elderly\tNPRUC\tempty close, turn limit\n2\thappy-path\tfrustrated-rusher\tNPRUC\tturn limit\n3\thappy-path\tesl-non-native\tNPRUC\tclean\n4\thappy-path\tconfused-meanderer\tNPRUC\tturn limit\n5\thappy-path\thostile-skeptic\tNPRUC\tturn limit\nEVERY AGENT TYPE. ONE PLATFORM.\nchat, phone, recordings, multimodal equivalents\nchat/voice simulation\nConversation simulation with persona pressure, quality criteria, and transcript review.\ncovered\nphone inbound\nInbound call path is partially represented through phone-capture criteria; real telephony artifacts are still missing.\npartial\nphone outbound\nOutbound dialer, number-pool, and passive-monitoring coverage are not present yet.\nmissing\nproduction recordings\nUploaded real call recordings and batch analytics are not present yet.\nmissing\nAUTONOMOUS TESTING FOR EVERY AGENT YOU BUILD\nconfidence, quality, call stages, ops, scoring, analysis\nConfidence by evaluation\nhigh\n100+ evaluations\nmedium\n50-99 evaluations\nlow\n20-49 evaluations\ncurrent run volume: 15; total captured trials: 75\nActual scored dimensions in this harness\nnamed: 100%\nphone: 100%\nrequest_captured: 100%\nurgency_classified: 100%\nclean_close: 86.7%\nThese are the only criteria currently proven by the run data. Hallucination, toxicity, DTMF, STT, and CSAT are not silently inferred.\nCall-agent stage coverage\nCovered\nscenario + persona + transcript + latency samples\n→\nMissing\nreal call audio + outbound + production recording batch\nUX and business ops\nCLEAN-CLOSE PROXY\n86.7%\nTOOL SUCCESS\n2/2\nLAST SUCCESS\n7d\nWEBHOOK MONITOR\nmiss\nScoring engine\n43\nreadiness score from sample size, breadth, mode coverage, artifacts, and weakest dimension\nArtifact analysis output\nCaptured evidence\ntranscript\ntool_calls\nlatency_samples\nMissing evidence\naudio\nwebhook_logs\nevaluator_rationale\nroot_cause_analysis\nActual CLI path\n$ voice-evals factory run --agent-id agent_7601krfykfpwfjxrjqcshg64pcby\n→ generate scenarios\n→ execute evaluator calls\n→ report readiness red\nScenario and persona breadth\nhappy-path\nemergency\nincomplete-info\npolite-elderly\nfrustrated-rusher\nesl-non-native\nconfused-meanderer\nhostile-skeptic\n5 personas × 3 scenarios. Target minimum for credible factorial stress is 6 personas × 8 scenarios.\nSCENARIO × PERSONA\neach cell = 5-dim score; green=pass, red=fail\n\tpolite-elderly\tfrustrated-rusher\tesl-non-native\tconfused-meanderer\thostile-skeptic\nhappy-path\t\n\t\n\t\n\t\n\t\n\nemergency\t\n\t\n\t\n\t\n\t\n\nincomplete-info\t\n\t\n\t\n\t\n\t\nDIMENSION HIT RATE\nshare of trials where the dimension scored\nnamed\n15/15 · 100%\nphone\n15/15 · 100%\nrequest_captured\n15/15 · 100%\nurgency_classified\n15/15 · 100%\nclean_close\n13/15 · 86.7%\nTRIALS\nclick any row to expand transcript + defects\nscenario\nall\nhappy-path\nemergency\nincomplete-info\npersona\nall\npolite-elderly\nfrustrated-rusher\nesl-non-native\nconfused-meanderer\nhostile-skeptic\nresult\nall\npass only\nfail only\ndefects\nall\nbracket-leak\nempty-close\nturn-limit-hit\n15 of 15\n#\tscenario\tpersona\tdim N P R U C\tturns A/U\tchars A/U\tdefects\tresult\n1\thappy-path\tpolite-elderly\t\nN\nP\nR\nU\nC\n\t9/7\t458/768\tempty-close turn-limit\tpass\n2\thappy-path\tfrustrated-rusher\t\nN\nP\nR\nU\nC\n\t8/7\t357/873\tturn-limit\tpass\n3\thappy-path\tesl-non-native\t\nN\nP\nR\nU\nC\n\t7/6\t628/306\tclean\tpass\n4\thappy-path\tconfused-meanderer\t\nN\nP\nR\nU\nC\n\t8/7\t569/2540\tturn-limit\tpass\n5\thappy-path\thostile-skeptic\t\nN\nP\nR\nU\nC\n\t8/7\t246/1204\tturn-limit\tpass\n6\temergency\tpolite-elderly\t\nN\nP\nR\nU\nC\n\t10/7\t691/928\tempty-close turn-limit\tpass\n7\temergency\tfrustrated-rusher\t\nN\nP\nR\nU\nC\n\t8/7\t664/957\tturn-limit\tpass\n8\temergency\tesl-non-native\t\nN\nP\nR\nU\nC\n\t8/7\t473/642\tturn-limit\tpass\n9\temergency\tconfused-meanderer\t\nN\nP\nR\nU\nC\n\t8/7\t697/3963\tturn-limit\tpass\n10\temergency\thostile-skeptic\t\nN\nP\nR\nU\nC\n\t8/7\t361/1530\tturn-limit\tpass\n11\tincomplete-info\tpolite-elderly\t\nN\nP\nR\nU\nC\n\t8/7\t445/860\tturn-limit\tpass\n12\tincomplete-info\tfrustrated-rusher\t\nN\nP\nR\nU\nC\n\t8/7\t440/865\tturn-limit\tpass\n13\tincomplete-info\tesl-non-native\t\nN\nP\nR\nU\nC\n\t8/7\t312/305\tturn-limit\tpass",
+      "active": [
+        "04:50:11\n      100%\n      +6.7"
+      ],
+      "buttons": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "runtab ",
+          "text": "04:19:27\n      93.3%\n      ·",
+          "value": ""
+        },
+        {
+          "i": 1,
+          "tag": "BUTTON",
+          "cls": "runtab ",
+          "text": "04:28:57\n      86.7%\n      -6.6",
+          "value": ""
+        },
+        {
+          "i": 2,
+          "tag": "BUTTON",
+          "cls": "runtab ",
+          "text": "04:37:09\n      93.3%\n      +6.6",
+          "value": ""
+        },
+        {
+          "i": 3,
+          "tag": "BUTTON",
+          "cls": "runtab ",
+          "text": "04:43:07\n      93.3%\n      0",
+          "value": ""
+        },
+        {
+          "i": 4,
+          "tag": "BUTTON",
+          "cls": "runtab active",
+          "text": "04:50:11\n      100%\n      +6.7",
+          "value": ""
+        },
+        {
+          "i": 5,
+          "tag": "SELECT",
+          "cls": "",
+          "text": "allhappy-pathemergencyincomplete-info",
+          "value": ""
+        },
+        {
+          "i": 6,
+          "tag": "SELECT",
+          "cls": "",
+          "text": "allpolite-elderlyfrustrated-rusheresl-non-nativeconfused-meandererhostile-skepti",
+          "value": ""
+        },
+        {
+          "i": 7,
+          "tag": "SELECT",
+          "cls": "",
+          "text": "all\n          pass only\n          fail only",
+          "value": ""
+        },
+        {
+          "i": 8,
+          "tag": "SELECT",
+          "cls": "",
+          "text": "all\n          bracket-leak\n          empty-close\n          turn-limit-hit",
+          "value": ""
+        }
+      ],
+      "links": [
+        {
+          "text": "runs.json",
+          "href": "runs.json"
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "DIV",
+          "cls": "grid",
+          "text": "Run summary2026-05-14 04:50:11Z · 15/15 · 313.4s elapsed · transcripts available\n    \n    \n      pass rate\n      100%\n      15/15 trials\n   ",
+          "sw": 1448,
+          "cw": 1425
+        },
+        {
+          "tag": "DIV",
+          "cls": "side",
+          "text": "Runs\n      \n      \n      04:19:27 · 14/15\n      93.3%\n    \n      \n      04:28:57 · 13/15\n      86.7%\n    \n      \n      04:37:09 · 14/15\n    ",
+          "sw": 343,
+          "cw": 320
+        },
+        {
+          "tag": "DIV",
+          "cls": "side-section",
+          "text": "Pass-rate trend\n      \n        \n      04:19:27 · 93.3% · 14/15\n    \n      04:28:57 · 86.7% · 13/15\n    \n      04:37:09 · 93.3% · 14/15\n    \n",
+          "sw": 327,
+          "cw": 288
+        },
+        {
+          "tag": "DIV",
+          "cls": "trend",
+          "text": "04:19:27 · 93.3% · 14/15\n    \n      04:28:57 · 86.7% · 13/15\n    \n      04:37:09 · 93.3% · 14/15\n    \n      04:43:07 · 93.3% · 14/15\n    \n  ",
+          "sw": 326,
+          "cw": 286
+        },
+        {
+          "tag": "DIV",
+          "cls": "bars",
+          "text": "04:19:27 · 93.3% · 14/15\n    \n      04:28:57 · 86.7% · 13/15\n    \n      04:37:09 · 93.3% · 14/15\n    \n      04:43:07 · 93.3% · 14/15\n    \n  ",
+          "sw": 316,
+          "cw": 266
+        },
+        {
+          "tag": "DIV",
+          "cls": "bar  ",
+          "text": "04:19:27 · 93.3% · 14/15",
+          "sw": 104,
+          "cw": 51
+        },
+        {
+          "tag": "DIV",
+          "cls": "bar below ",
+          "text": "04:28:57 · 86.7% · 13/15",
+          "sw": 104,
+          "cw": 51
+        },
+        {
+          "tag": "DIV",
+          "cls": "bar  ",
+          "text": "04:37:09 · 93.3% · 14/15",
+          "sw": 104,
+          "cw": 51
+        },
+        {
+          "tag": "DIV",
+          "cls": "bar  ",
+          "text": "04:43:07 · 93.3% · 14/15",
+          "sw": 104,
+          "cw": 51
+        },
+        {
+          "tag": "DIV",
+          "cls": "bar is100 active",
+          "text": "04:50:11 · 100% · 15/15",
+          "sw": 101,
+          "cw": 51
+        }
+      ]
+    },
+    {
+      "label": "data console second run tab",
+      "title": "voice-evals · console",
+      "url": "http://127.0.0.1:4173/proof/index.html",
+      "scrollY": 0,
+      "body": "voice-evals· console\nruns 5\ntrials 75\nlatest pass 100%\nwindow 04:19:27 → 04:50:11\nbuilt 2026-05-14T11:15:15.176Z\n04:19:27\n93.3%\n·\n04:28:57\n86.7%\n-6.6\n04:37:09\n93.3%\n+6.6\n04:43:07\n93.3%\n0\n04:50:11\n100%\n+6.7\nRUN SUMMARY\n2026-05-14 04:28:57Z · 13/15 · 308.3s elapsed · no transcripts (early run)\nPASS RATE\n86.7%\n13/15 trials\nvs prev -6.6%\nDIMENSIONS\n3/5\nN C below\n·\nDEFECTS FOUND\n—\nno transcripts\n·\nELAPSED\n308s\n20.6s / trial (conc 5)\n·\nERRORS\n0\nhttp+fetch failures\n·\nAGENT-TO-AGENT TESTING PLATFORM\nautonomous evaluator vs target agent\nAGENT-TO-AGENT READINESS LEDGER\nWhat this run actually proves about the voice agent.\nNo borrowed claims. The verdict below is computed from real run volume, scenarios, personas, dimensions, artifacts, tool evidence, and missing phone/recording coverage.\nred\n24/100 confidence\n13/15 trials passed\nweakest dimension 53.3%\ntools none\nmissing modes: chat_voice, phone_outbound, production_recording_batch\nsample 15/60\nscenarios 3/8\npersonas 5/6\nEvidence from this evaluator run\n04:28:57 · 86.7% pass · red readiness\n#\tscenario\tpersona\tN P R U C\tobserved defect\n1\thappy-path\tpolite-elderly\tNPRUC\tno transcript\n2\thappy-path\tfrustrated-rusher\tNPRUC\tno transcript\n3\thappy-path\tesl-non-native\tNPRUC\tno transcript\n4\thappy-path\tconfused-meanderer\tNPRUC\tno transcript\n5\thappy-path\thostile-skeptic\tNPRUC\tno transcript\nEVERY AGENT TYPE. ONE PLATFORM.\nchat, phone, recordings, multimodal equivalents\nchat/voice simulation\nConversation simulation with persona pressure, quality criteria, and transcript review.\nmissing\nphone inbound\nInbound call path is partially represented through phone-capture criteria; real telephony artifacts are still missing.\npartial\nphone outbound\nOutbound dialer, number-pool, and passive-monitoring coverage are not present yet.\nmissing\nproduction recordings\nUploaded real call recordings and batch analytics are not present yet.\nmissing\nAUTONOMOUS TESTING FOR EVERY AGENT YOU BUILD\nconfidence, quality, call stages, ops, scoring, analysis\nConfidence by evaluation\nhigh\n100+ evaluations\nmedium\n50-99 evaluations\nlow\n20-49 evaluations\ncurrent run volume: 15; total captured trials: 75\nActual scored dimensions in this harness\nnamed: 86.7%\nphone: 100%\nrequest_captured: 100%\nurgency_classified: 100%\nclean_close: 53.3%\nThese are the only criteria currently proven by the run data. Hallucination, toxicity, DTMF, STT, and CSAT are not silently inferred.\nCall-agent stage coverage\nCovered\nscenario + persona + transcript + latency samples\n→\nMissing\nreal call audio + outbound + production recording batch\nUX and business ops\nCLEAN-CLOSE PROXY\n53.3%\nTOOL SUCCESS\n—\nLAST SUCCESS\n7d\nWEBHOOK MONITOR\nmiss\nScoring engine\n24\nreadiness score from sample size, breadth, mode coverage, artifacts, and weakest dimension\nArtifact analysis output\nCaptured evidence\nMissing evidence\ntranscript\naudio\ntool_calls\nwebhook_logs\nlatency_samples\nevaluator_rationale\nroot_cause_analysis\nActual CLI path\n$ voice-evals factory run --agent-id agent_7601krfykfpwfjxrjqcshg64pcby\n→ generate scenarios\n→ execute evaluator calls\n→ report readiness red\nScenario and persona breadth\nhappy-path\nemergency\nincomplete-info\npolite-elderly\nfrustrated-rusher\nesl-non-native\nconfused-meanderer\nhostile-skeptic\n5 personas × 3 scenarios. Target minimum for credible factorial stress is 6 personas × 8 scenarios.\nSCENARIO × PERSONA\neach cell = 5-dim score; green=pass, red=fail\n\tpolite-elderly\tfrustrated-rusher\tesl-non-native\tconfused-meanderer\thostile-skeptic\nhappy-path\t\n\t\n\t\n\t\n\t\n\nemergency\t\n\t\n\t\n\t\n\t\n\nincomplete-info\t\n\t\n\t\n\t\n\t\nDIMENSION HIT RATE\nshare of trials where the dimension scored\nnamed\n13/15 · 86.7%\nphone\n15/15 · 100%\nrequest_captured\n15/15 · 100%\nurgency_classified\n15/15 · 100%\nclean_close\n8/15 · 53.3%\nTRIALS\nclick any row to expand transcript + defects\nscenario\nall\nhappy-path\nemergency\nincomplete-info\npersona\nall\npolite-elderly\nfrustrated-rusher\nesl-non-native\nconfused-meanderer\nhostile-skeptic\nresult\nall\npass only\nfail only\ndefects\nall\nbracket-leak\nempty-close\nturn-limit-hit\n15 of 15\n#\tscenario\tpersona\tdim N P R U C\tturns A/U\tchars A/U\tdefects\tresult\n1\thappy-path\tpolite-elderly\t\nN\nP\nR\nU\nC\n\t9/6\t—\t—\tfail\n2\thappy-path\tfrustrated-rusher\t\nN\nP\nR\nU\nC\n\t8/5\t—\t—\tpass\n3\thappy-path\tesl-non-native\t\nN\nP\nR\nU\nC\n\t9/6\t—\t—\tfail\n4\thappy-path\tconfused-meanderer\t\nN\nP\nR\nU\nC\n\t8/7\t—\t—\tpass\n5\thappy-path\thostile-skeptic\t\nN\nP\nR\nU\nC\n\t9/6\t—\t—\tpass\n6\temergency\tpolite-elderly\t\nN\nP\nR\nU\nC\n\t6/5\t—\t—\tpass\n7\temergency\tfrustrated-rusher\t\nN\nP\nR\nU\nC\n\t8/7\t—\t—\tpass\n8\temergency\tesl-non-native\t\nN\nP\nR\nU\nC\n\t8/7\t—\t—\tpass\n9\temergency\tconfused-meanderer\t\nN\nP\nR\nU\nC\n\t8/7\t—\t—\tpass\n10\temergency\thostile-skeptic\t\nN\nP\nR\nU\nC\n\t8/7\t—\t—\tpass\n11\tincomplete-info\tpolite-elderly\t\nN\nP\nR\nU\nC\n\t8/5\t—\t—\tpass\n12\tincomplete-info\tfrustrated-rusher\t\nN\nP\nR\nU\nC\n\t8/7\t—\t—\tpass\n13\tincomplete-info\tesl-non-native\t\nN\nP\nR\nU\nC\n\t8/6\t—\t—\tpass\n14\tincomplete-info\tconfused-meanderer\t\nN\nP\nR\nU\nC\n\t8/7\t—\t—\tpass\n15\tincomplete-info\thostile-skeptic\t\nN\nP\nR\nU\nC\n\t10/7\t—\t—\tpass\nRUNS\n04:19:27 · 14/15\n93.3%\n04:28:57 · 13/15\n86.7%\n04:37:09 · 14/15\n93.3%\n04:",
+      "active": [
+        "04:28:57\n      86.7%\n      -6.6"
+      ],
+      "buttons": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "runtab ",
+          "text": "04:19:27\n      93.3%\n      ·",
+          "value": ""
+        },
+        {
+          "i": 1,
+          "tag": "BUTTON",
+          "cls": "runtab active",
+          "text": "04:28:57\n      86.7%\n      -6.6",
+          "value": ""
+        },
+        {
+          "i": 2,
+          "tag": "BUTTON",
+          "cls": "runtab ",
+          "text": "04:37:09\n      93.3%\n      +6.6",
+          "value": ""
+        },
+        {
+          "i": 3,
+          "tag": "BUTTON",
+          "cls": "runtab ",
+          "text": "04:43:07\n      93.3%\n      0",
+          "value": ""
+        },
+        {
+          "i": 4,
+          "tag": "BUTTON",
+          "cls": "runtab ",
+          "text": "04:50:11\n      100%\n      +6.7",
+          "value": ""
+        },
+        {
+          "i": 5,
+          "tag": "SELECT",
+          "cls": "",
+          "text": "allhappy-pathemergencyincomplete-info",
+          "value": ""
+        },
+        {
+          "i": 6,
+          "tag": "SELECT",
+          "cls": "",
+          "text": "allpolite-elderlyfrustrated-rusheresl-non-nativeconfused-meandererhostile-skepti",
+          "value": ""
+        },
+        {
+          "i": 7,
+          "tag": "SELECT",
+          "cls": "",
+          "text": "all\n          pass only\n          fail only",
+          "value": ""
+        },
+        {
+          "i": 8,
+          "tag": "SELECT",
+          "cls": "",
+          "text": "all\n          bracket-leak\n          empty-close\n          turn-limit-hit",
+          "value": ""
+        }
+      ],
+      "links": [
+        {
+          "text": "runs.json",
+          "href": "runs.json"
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "DIV",
+          "cls": "grid",
+          "text": "Run summary2026-05-14 04:28:57Z · 13/15 · 308.3s elapsed · no transcripts (early run)\n    \n    \n      pass rate\n      86.7%\n      13/15 tria",
+          "sw": 1448,
+          "cw": 1425
+        },
+        {
+          "tag": "DIV",
+          "cls": "side",
+          "text": "Runs\n      \n      \n      04:19:27 · 14/15\n      93.3%\n    \n      \n      04:28:57 · 13/15\n      86.7%\n    \n      \n      04:37:09 · 14/15\n    ",
+          "sw": 343,
+          "cw": 320
+        },
+        {
+          "tag": "DIV",
+          "cls": "side-section",
+          "text": "Pass-rate trend\n      \n        \n      04:19:27 · 93.3% · 14/15\n    \n      04:28:57 · 86.7% · 13/15\n    \n      04:37:09 · 93.3% · 14/15\n    \n",
+          "sw": 327,
+          "cw": 288
+        },
+        {
+          "tag": "DIV",
+          "cls": "trend",
+          "text": "04:19:27 · 93.3% · 14/15\n    \n      04:28:57 · 86.7% · 13/15\n    \n      04:37:09 · 93.3% · 14/15\n    \n      04:43:07 · 93.3% · 14/15\n    \n  ",
+          "sw": 326,
+          "cw": 286
+        },
+        {
+          "tag": "DIV",
+          "cls": "bars",
+          "text": "04:19:27 · 93.3% · 14/15\n    \n      04:28:57 · 86.7% · 13/15\n    \n      04:37:09 · 93.3% · 14/15\n    \n      04:43:07 · 93.3% · 14/15\n    \n  ",
+          "sw": 316,
+          "cw": 266
+        },
+        {
+          "tag": "DIV",
+          "cls": "bar  ",
+          "text": "04:19:27 · 93.3% · 14/15",
+          "sw": 104,
+          "cw": 51
+        },
+        {
+          "tag": "DIV",
+          "cls": "bar below active",
+          "text": "04:28:57 · 86.7% · 13/15",
+          "sw": 104,
+          "cw": 51
+        },
+        {
+          "tag": "DIV",
+          "cls": "bar  ",
+          "text": "04:37:09 · 93.3% · 14/15",
+          "sw": 104,
+          "cw": 51
+        },
+        {
+          "tag": "DIV",
+          "cls": "bar  ",
+          "text": "04:43:07 · 93.3% · 14/15",
+          "sw": 104,
+          "cw": 51
+        },
+        {
+          "tag": "DIV",
+          "cls": "bar is100 ",
+          "text": "04:50:11 · 100% · 15/15",
+          "sw": 101,
+          "cw": 51
+        }
+      ]
+    },
+    {
+      "label": "data console expanded trial row",
+      "title": "voice-evals · console",
+      "url": "http://127.0.0.1:4173/proof/index.html",
+      "scrollY": 1872,
+      "body": "voice-evals· console\nruns 5\ntrials 75\nlatest pass 100%\nwindow 04:19:27 → 04:50:11\nbuilt 2026-05-14T11:15:15.176Z\n04:19:27\n93.3%\n·\n04:28:57\n86.7%\n-6.6\n04:37:09\n93.3%\n+6.6\n04:43:07\n93.3%\n0\n04:50:11\n100%\n+6.7\nRUN SUMMARY\n2026-05-14 04:28:57Z · 13/15 · 308.3s elapsed · no transcripts (early run)\nPASS RATE\n86.7%\n13/15 trials\nvs prev -6.6%\nDIMENSIONS\n3/5\nN C below\n·\nDEFECTS FOUND\n—\nno transcripts\n·\nELAPSED\n308s\n20.6s / trial (conc 5)\n·\nERRORS\n0\nhttp+fetch failures\n·\nAGENT-TO-AGENT TESTING PLATFORM\nautonomous evaluator vs target agent\nAGENT-TO-AGENT READINESS LEDGER\nWhat this run actually proves about the voice agent.\nNo borrowed claims. The verdict below is computed from real run volume, scenarios, personas, dimensions, artifacts, tool evidence, and missing phone/recording coverage.\nred\n24/100 confidence\n13/15 trials passed\nweakest dimension 53.3%\ntools none\nmissing modes: chat_voice, phone_outbound, production_recording_batch\nsample 15/60\nscenarios 3/8\npersonas 5/6\nEvidence from this evaluator run\n04:28:57 · 86.7% pass · red readiness\n#\tscenario\tpersona\tN P R U C\tobserved defect\n1\thappy-path\tpolite-elderly\tNPRUC\tno transcript\n2\thappy-path\tfrustrated-rusher\tNPRUC\tno transcript\n3\thappy-path\tesl-non-native\tNPRUC\tno transcript\n4\thappy-path\tconfused-meanderer\tNPRUC\tno transcript\n5\thappy-path\thostile-skeptic\tNPRUC\tno transcript\nEVERY AGENT TYPE. ONE PLATFORM.\nchat, phone, recordings, multimodal equivalents\nchat/voice simulation\nConversation simulation with persona pressure, quality criteria, and transcript review.\nmissing\nphone inbound\nInbound call path is partially represented through phone-capture criteria; real telephony artifacts are still missing.\npartial\nphone outbound\nOutbound dialer, number-pool, and passive-monitoring coverage are not present yet.\nmissing\nproduction recordings\nUploaded real call recordings and batch analytics are not present yet.\nmissing\nAUTONOMOUS TESTING FOR EVERY AGENT YOU BUILD\nconfidence, quality, call stages, ops, scoring, analysis\nConfidence by evaluation\nhigh\n100+ evaluations\nmedium\n50-99 evaluations\nlow\n20-49 evaluations\ncurrent run volume: 15; total captured trials: 75\nActual scored dimensions in this harness\nnamed: 86.7%\nphone: 100%\nrequest_captured: 100%\nurgency_classified: 100%\nclean_close: 53.3%\nThese are the only criteria currently proven by the run data. Hallucination, toxicity, DTMF, STT, and CSAT are not silently inferred.\nCall-agent stage coverage\nCovered\nscenario + persona + transcript + latency samples\n→\nMissing\nreal call audio + outbound + production recording batch\nUX and business ops\nCLEAN-CLOSE PROXY\n53.3%\nTOOL SUCCESS\n—\nLAST SUCCESS\n7d\nWEBHOOK MONITOR\nmiss\nScoring engine\n24\nreadiness score from sample size, breadth, mode coverage, artifacts, and weakest dimension\nArtifact analysis output\nCaptured evidence\nMissing evidence\ntranscript\naudio\ntool_calls\nwebhook_logs\nlatency_samples\nevaluator_rationale\nroot_cause_analysis\nActual CLI path\n$ voice-evals factory run --agent-id agent_7601krfykfpwfjxrjqcshg64pcby\n→ generate scenarios\n→ execute evaluator calls\n→ report readiness red\nScenario and persona breadth\nhappy-path\nemergency\nincomplete-info\npolite-elderly\nfrustrated-rusher\nesl-non-native\nconfused-meanderer\nhostile-skeptic\n5 personas × 3 scenarios. Target minimum for credible factorial stress is 6 personas × 8 scenarios.\nSCENARIO × PERSONA\neach cell = 5-dim score; green=pass, red=fail\n\tpolite-elderly\tfrustrated-rusher\tesl-non-native\tconfused-meanderer\thostile-skeptic\nhappy-path\t\n\t\n\t\n\t\n\t\n\nemergency\t\n\t\n\t\n\t\n\t\n\nincomplete-info\t\n\t\n\t\n\t\n\t\nDIMENSION HIT RATE\nshare of trials where the dimension scored\nnamed\n13/15 · 86.7%\nphone\n15/15 · 100%\nrequest_captured\n15/15 · 100%\nurgency_classified\n15/15 · 100%\nclean_close\n8/15 · 53.3%\nTRIALS\nclick any row to expand transcript + defects\nscenario\nall\nhappy-path\nemergency\nincomplete-info\npersona\nall\npolite-elderly\nfrustrated-rusher\nesl-non-native\nconfused-meanderer\nhostile-skeptic\nresult\nall\npass only\nfail only\ndefects\nall\nbracket-leak\nempty-close\nturn-limit-hit\n15 of 15\n#\tscenario\tpersona\tdim N P R U C\tturns A/U\tchars A/U\tdefects\tresult\n1\thappy-path\tpolite-elderly\t\nN\nP\nR\nU\nC\n\t9/6\t—\t—\tfail\n2\thappy-path\tfrustrated-rusher\t\nN\nP\nR\nU\nC\n\t8/5\t—\t—\tpass\n3\thappy-path\tesl-non-native\t\nN\nP\nR\nU\nC\n\t9/6\t—\t—\tfail\n4\thappy-path\tconfused-meanderer\t\nN\nP\nR\nU\nC\n\t8/7\t—\t—\tpass\n5\thappy-path\thostile-skeptic\t\nN\nP\nR\nU\nC\n\t9/6\t—\t—\tpass\n6\temergency\tpolite-elderly\t\nN\nP\nR\nU\nC\n\t6/5\t—\t—\tpass\n7\temergency\tfrustrated-rusher\t\nN\nP\nR\nU\nC\n\t8/7\t—\t—\tpass\n8\temergency\tesl-non-native\t\nN\nP\nR\nU\nC\n\t8/7\t—\t—\tpass\n9\temergency\tconfused-meanderer\t\nN\nP\nR\nU\nC\n\t8/7\t—\t—\tpass\n10\temergency\thostile-skeptic\t\nN\nP\nR\nU\nC\n\t8/7\t—\t—\tpass\n11\tincomplete-info\tpolite-elderly\t\nN\nP\nR\nU\nC\n\t8/5\t—\t—\tpass\n12\tincomplete-info\tfrustrated-rusher\t\nN\nP\nR\nU\nC\n\t8/7\t—\t—\tpass\n13\tincomplete-info\tesl-non-native\t\nN\nP\nR\nU\nC\n\t8/6\t—\t—\tpass\n14\tincomplete-info\tconfused-meanderer\t\nN\nP\nR\nU\nC\n\t8/7\t—\t—\tpass\n15\tincomplete-info\thostile-skeptic\t\nN\nP\nR\nU\nC\n\t10/7\t—\t—\tpass\nRUNS\n04:19:27 · 14/15\n93.3%\n04:28:57 · 13/15\n86.7%\n04:37:09 · 14/15\n93.3%\n04:",
+      "active": [
+        "04:28:57\n      86.7%\n      -6.6"
+      ],
+      "buttons": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "runtab ",
+          "text": "04:19:27\n      93.3%\n      ·",
+          "value": ""
+        },
+        {
+          "i": 1,
+          "tag": "BUTTON",
+          "cls": "runtab active",
+          "text": "04:28:57\n      86.7%\n      -6.6",
+          "value": ""
+        },
+        {
+          "i": 2,
+          "tag": "BUTTON",
+          "cls": "runtab ",
+          "text": "04:37:09\n      93.3%\n      +6.6",
+          "value": ""
+        },
+        {
+          "i": 3,
+          "tag": "BUTTON",
+          "cls": "runtab ",
+          "text": "04:43:07\n      93.3%\n      0",
+          "value": ""
+        },
+        {
+          "i": 4,
+          "tag": "BUTTON",
+          "cls": "runtab ",
+          "text": "04:50:11\n      100%\n      +6.7",
+          "value": ""
+        },
+        {
+          "i": 5,
+          "tag": "SELECT",
+          "cls": "",
+          "text": "allhappy-pathemergencyincomplete-info",
+          "value": ""
+        },
+        {
+          "i": 6,
+          "tag": "SELECT",
+          "cls": "",
+          "text": "allpolite-elderlyfrustrated-rusheresl-non-nativeconfused-meandererhostile-skepti",
+          "value": ""
+        },
+        {
+          "i": 7,
+          "tag": "SELECT",
+          "cls": "",
+          "text": "all\n          pass only\n          fail only",
+          "value": ""
+        },
+        {
+          "i": 8,
+          "tag": "SELECT",
+          "cls": "",
+          "text": "all\n          bracket-leak\n          empty-close\n          turn-limit-hit",
+          "value": ""
+        }
+      ],
+      "links": [
+        {
+          "text": "runs.json",
+          "href": "runs.json"
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "DIV",
+          "cls": "grid",
+          "text": "Run summary2026-05-14 04:28:57Z · 13/15 · 308.3s elapsed · no transcripts (early run)\n    \n    \n      pass rate\n      86.7%\n      13/15 tria",
+          "sw": 1448,
+          "cw": 1425
+        },
+        {
+          "tag": "DIV",
+          "cls": "side",
+          "text": "Runs\n      \n      \n      04:19:27 · 14/15\n      93.3%\n    \n      \n      04:28:57 · 13/15\n      86.7%\n    \n      \n      04:37:09 · 14/15\n    ",
+          "sw": 343,
+          "cw": 320
+        },
+        {
+          "tag": "DIV",
+          "cls": "side-section",
+          "text": "Pass-rate trend\n      \n        \n      04:19:27 · 93.3% · 14/15\n    \n      04:28:57 · 86.7% · 13/15\n    \n      04:37:09 · 93.3% · 14/15\n    \n",
+          "sw": 327,
+          "cw": 288
+        },
+        {
+          "tag": "DIV",
+          "cls": "trend",
+          "text": "04:19:27 · 93.3% · 14/15\n    \n      04:28:57 · 86.7% · 13/15\n    \n      04:37:09 · 93.3% · 14/15\n    \n      04:43:07 · 93.3% · 14/15\n    \n  ",
+          "sw": 326,
+          "cw": 286
+        },
+        {
+          "tag": "DIV",
+          "cls": "bars",
+          "text": "04:19:27 · 93.3% · 14/15\n    \n      04:28:57 · 86.7% · 13/15\n    \n      04:37:09 · 93.3% · 14/15\n    \n      04:43:07 · 93.3% · 14/15\n    \n  ",
+          "sw": 316,
+          "cw": 266
+        },
+        {
+          "tag": "DIV",
+          "cls": "bar  ",
+          "text": "04:19:27 · 93.3% · 14/15",
+          "sw": 104,
+          "cw": 51
+        },
+        {
+          "tag": "DIV",
+          "cls": "bar below active",
+          "text": "04:28:57 · 86.7% · 13/15",
+          "sw": 104,
+          "cw": 51
+        },
+        {
+          "tag": "DIV",
+          "cls": "bar  ",
+          "text": "04:37:09 · 93.3% · 14/15",
+          "sw": 104,
+          "cw": 51
+        },
+        {
+          "tag": "DIV",
+          "cls": "bar  ",
+          "text": "04:43:07 · 93.3% · 14/15",
+          "sw": 104,
+          "cw": 51
+        },
+        {
+          "tag": "DIV",
+          "cls": "bar is100 ",
+          "text": "04:50:11 · 100% · 15/15",
+          "sw": 101,
+          "cw": 51
+        }
+      ]
+    },
+    {
+      "label": "pitch initial",
+      "title": "Refinement · ElevenLabs · pitch",
+      "url": "http://127.0.0.1:4173/proof/pitch.html",
+      "scrollY": 0,
+      "body": "Refinement· ElevenLabs feature pitch\naudience: product team + CEO\n1/7\n← →\n00 · FIVE SECOND OPEN\nEvery agent created on ElevenLabs should ship at this quality from minute one, not month three.\nTODAY · AGENT BUILDER, NEW CUSTOMER\nname(empty)\nsystem prompt(blank — good luck)\nvoicepick one of 1,500\nintegrations(wire them yourself)\ntests(none)\ncompliance artifact(none)\nfirst call qualitycoin flip\nWITH REFINEMENT · SAME SCREEN, ONE BUTTON CLICK, 30S LATER\nnameRiverside Heating & Cooling — Intake\nsystem promptvertical template, tested vs 5 personas\nvoiceCharlotte · production v3\nintegrationsTwilio · calendar · CRM · SMS · email · 7 more\ntests15 regression cases from caller log\ncompliance artifact1-page PDF in the dashboard\nfirst call qualitylive demo plays · works\nlive console: proof/refine.html?session=example  ·  4 sessions seeded (HVAC / dental / restaurant / legal). Open the timeline tab for the surfaced experience.\n‹\n›",
+      "active": [
+        ""
+      ],
+      "buttons": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "arrow-btn left",
+          "text": "‹",
+          "value": ""
+        },
+        {
+          "i": 1,
+          "tag": "BUTTON",
+          "cls": "arrow-btn right",
+          "text": "›",
+          "value": ""
+        },
+        {
+          "i": 2,
+          "tag": "DIV",
+          "cls": "pip active",
+          "text": "",
+          "value": ""
+        },
+        {
+          "i": 3,
+          "tag": "DIV",
+          "cls": "pip",
+          "text": "",
+          "value": ""
+        },
+        {
+          "i": 4,
+          "tag": "DIV",
+          "cls": "pip",
+          "text": "",
+          "value": ""
+        },
+        {
+          "i": 5,
+          "tag": "DIV",
+          "cls": "pip",
+          "text": "",
+          "value": ""
+        },
+        {
+          "i": 6,
+          "tag": "DIV",
+          "cls": "pip",
+          "text": "",
+          "value": ""
+        },
+        {
+          "i": 7,
+          "tag": "DIV",
+          "cls": "pip",
+          "text": "",
+          "value": ""
+        },
+        {
+          "i": 8,
+          "tag": "DIV",
+          "cls": "pip",
+          "text": "",
+          "value": ""
+        }
+      ],
+      "links": [
+        {
+          "text": "proof/refine.html?session=example",
+          "href": "refine.html?session=example"
+        }
+      ],
+      "overflow": []
+    },
+    {
+      "label": "pitch slide 5",
+      "title": "Refinement · ElevenLabs · pitch",
+      "url": "http://127.0.0.1:4173/proof/pitch.html",
+      "scrollY": 0,
+      "body": "Refinement· ElevenLabs feature pitch\naudience: product team + CEO\n5/7\n← →\nBEAT 04 · ~60S\nWhat this does to the business.\nThree things change for ElevenLabs the moment this ships inside the builder.\n↑ activation rate\nFirst call is the polished call.\nToday a meaningful fraction of created agents never get a second call placed against them. Customer tried it, it was bad, they bounced. With refinement, the first call the customer places is the polished call. The activation curve moves and cohort retention follows.\n→ self-serve TAM\nSkill floor collapses.\nEvery small business owner who would buy a voice agent if it just worked is currently locked out because they do not know how to make one work. Refinement collapses the skill floor. The self-serve TAM widens by an order of magnitude because the customer no longer needs a prompt engineer to reach a deployable agent.\n↓ enterprise cycle\nSE demo: 3 weeks → an afternoon.\nThe sales engineer who used to spend three weeks crafting a custom demo per prospect now generates the demo in an afternoon, against the prospect's actual business data, with the regression artifact attached. The POC phase shortens. The procurement gauntlet has its answers pre-filled.\n\nOverpromise line. Refinement turns the agent builder from a workbench for prompt engineers into a finished product for every business on earth. The platform stops selling capability and starts selling outcomes. The acquisition story stops being come build a voice agent and starts being come receive a voice agent built for your business in thirty seconds. That is a different company at a different valuation.\n\n‹\n›",
+      "active": [
+        ""
+      ],
+      "buttons": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "arrow-btn left",
+          "text": "‹",
+          "value": ""
+        },
+        {
+          "i": 1,
+          "tag": "BUTTON",
+          "cls": "arrow-btn right",
+          "text": "›",
+          "value": ""
+        },
+        {
+          "i": 2,
+          "tag": "DIV",
+          "cls": "pip",
+          "text": "",
+          "value": ""
+        },
+        {
+          "i": 3,
+          "tag": "DIV",
+          "cls": "pip",
+          "text": "",
+          "value": ""
+        },
+        {
+          "i": 4,
+          "tag": "DIV",
+          "cls": "pip",
+          "text": "",
+          "value": ""
+        },
+        {
+          "i": 5,
+          "tag": "DIV",
+          "cls": "pip",
+          "text": "",
+          "value": ""
+        },
+        {
+          "i": 6,
+          "tag": "DIV",
+          "cls": "pip active",
+          "text": "",
+          "value": ""
+        },
+        {
+          "i": 7,
+          "tag": "DIV",
+          "cls": "pip",
+          "text": "",
+          "value": ""
+        },
+        {
+          "i": 8,
+          "tag": "DIV",
+          "cls": "pip",
+          "text": "",
+          "value": ""
+        }
+      ],
+      "links": [
+        {
+          "text": "proof/refine.html?session=example",
+          "href": "refine.html?session=example"
+        }
+      ],
+      "overflow": []
+    },
+    {
+      "label": "pitch final slide",
+      "title": "Refinement · ElevenLabs · pitch",
+      "url": "http://127.0.0.1:4173/proof/pitch.html",
+      "scrollY": 0,
+      "body": "Refinement· ElevenLabs feature pitch\naudience: product team + CEO\n7/7\n← →\nTWO HONEST FLAGS · IF ANYONE ASKS\nThings to know before this ships.\nLegal surface on enrichment sources.\nClay-style firmographic data, Google Maps, and website scraping all have terms of service that have to be cleared before this ships inside the product. That is a real conversation and not a technical conversation.\nThe failure mode catalog is a network effect — and the network effect belongs inside ElevenLabs.\nThe refinement loop is only as good as the failure mode catalog it draws from. The system needs to learn from every agent across the platform to keep getting better. That means the feature actually wants to be inside ElevenLabs, not outside it. Outside, it sees only the agents the SDK user runs. Inside, it sees every agent created, every call placed, every defect that ever shipped. The feature becomes more valuable the more it is embedded. That is the strategic reason this belongs in the product and not in a third-party SDK competing with the product.\n‹\n›",
+      "active": [
+        ""
+      ],
+      "buttons": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "arrow-btn left",
+          "text": "‹",
+          "value": ""
+        },
+        {
+          "i": 1,
+          "tag": "BUTTON",
+          "cls": "arrow-btn right",
+          "text": "›",
+          "value": ""
+        },
+        {
+          "i": 2,
+          "tag": "DIV",
+          "cls": "pip",
+          "text": "",
+          "value": ""
+        },
+        {
+          "i": 3,
+          "tag": "DIV",
+          "cls": "pip",
+          "text": "",
+          "value": ""
+        },
+        {
+          "i": 4,
+          "tag": "DIV",
+          "cls": "pip",
+          "text": "",
+          "value": ""
+        },
+        {
+          "i": 5,
+          "tag": "DIV",
+          "cls": "pip",
+          "text": "",
+          "value": ""
+        },
+        {
+          "i": 6,
+          "tag": "DIV",
+          "cls": "pip",
+          "text": "",
+          "value": ""
+        },
+        {
+          "i": 7,
+          "tag": "DIV",
+          "cls": "pip",
+          "text": "",
+          "value": ""
+        },
+        {
+          "i": 8,
+          "tag": "DIV",
+          "cls": "pip active",
+          "text": "",
+          "value": ""
+        }
+      ],
+      "links": [
+        {
+          "text": "proof/refine.html?session=example",
+          "href": "refine.html?session=example"
+        }
+      ],
+      "overflow": []
+    },
+    {
+      "label": "refine mobile initial",
+      "title": "Refinement · session console",
+      "url": "http://127.0.0.1:4173/proof/refine.html?session=example",
+      "scrollY": 0,
+      "body": "Refinement· session console\nexample · 20 events · 7 defects · +40 pts\n← pitch deck\ndata console\nFILTERS\nall\nlegal\nrestaurant\ndental\nhvac\nSESSIONS\nPrairie & Hayes LLP\nlegal\n4 defects\n+29 pts\nMarisol's Coastal Kitchen\nrestaurant\n3 defects\n+20 pts\nBrightwater Family Dentistry\ndental\n3 defects\n+26 pts\nRiverside Heating & Cooling\nhvac\n7 defects\n+40 pts\nRiverside Heating & Cooling\nHVAC / home services\nhttps://riverside-hvac.example · template hvac · started 5/14/2026, 9:44:24 PM\nOVERALL SCORE\n+40 pts\n60% → 100%\nDEFECTS DETECTED\n7\nacross 3 personas\nFIXES PROPOSED\n3\ngrouped by mode\nREGRESSION TESTS\n12\nre-runnable\nPERSONAS\n5/5\ncanonical battery\ntimeline 20\nenrichment\npersonas 5\ndefects 7\nfix proposals 3\nscoreboard\nregression suite 12\nsystem prompt\ncompliance artifact\n▶ replay\n20 events · 0.04s total\n01:44:24\n→\nsession.start\nsession example initialized\n01:44:24\n→\nenrichment.start\nlooking up Riverside Heating & Cooling\n01:44:24\n✓\nenrichment.done\nclassified as HVAC / home services (confidence 0.92)sources=mockcategory=hvac\n01:44:24\n→\ntemplate.select\nmatching vertical template\n01:44:24\n✓\ntemplate.selected\nusing template hvac (HVAC & Trades)integrations=twilio_inbound,calendar_booking,crm_webhook…priority_failure_modes=hallucinated_business_hours,calendar_overpromise,wrong_service_area…\n01:44:24\n✓\nprompt.fill\nsystem prompt rendered (1419 chars)\n01:44:24\n→\npersonas.before.start\nexercising 5 canonical personas (before)\n01:44:24\n✓\npersonas.before.done\ncaptured 5 persona callspersonas=polite-elderly,frustrated-rusher,esl-non-native…\n01:44:24\n→\ndetect.start\napplying failure-mode catalog\n01:44:24\n!\ndetect.done\n7 defects detectedhigh=4critical=3\n01:44:24\n→\ndiff.start\nbuilding plain-language fix proposals\n01:44:24\n✓\ndiff.done\n3 fix proposals authored\n01:44:24\n→\npersonas.after.start\nreplaying personas with fixes applied\n01:44:24\n✓\npersonas.after.done\nreplay produced 0 residual defects\n01:44:24\n✓\nscoreboard\noverall 60% → 100% (+40 points)\n01:44:24\n✓\nregression.persist\n12-case regression suite capturedpath=proof/sessions/example/regression-suite.json\n01:44:24\n✓\nartifact.prompt\nrendered system prompt persistedpath=proof/sessions/example/system-prompt.md\n01:44:24\n✓\ncompliance.persist\none-page compliance artifact generatedpath=proof/sessions/example/compliance.html\n01:44:24\n✓\nsession.persist\nsession manifest writtenpath=proof/sessions/example/session.json\n01:44:24\n✓\nsession.complete\nrefinement complete in 19 steps",
+      "active": [
+        "Riverside Heating & Cooling\n      \n        hvac\n        7 defects\n        +40 pts",
+        "timeline 20"
+      ],
+      "buttons": [
+        {
+          "i": 0,
+          "tag": "SPAN",
+          "cls": "pill-toggle on",
+          "text": "all",
+          "value": ""
+        },
+        {
+          "i": 1,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "legal",
+          "value": ""
+        },
+        {
+          "i": 2,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "restaurant",
+          "value": ""
+        },
+        {
+          "i": 3,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "dental",
+          "value": ""
+        },
+        {
+          "i": 4,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "hvac",
+          "value": ""
+        },
+        {
+          "i": 5,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts",
+          "value": ""
+        },
+        {
+          "i": 6,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Marisol's Coastal Kitchen\n      \n        restaurant\n        3 defects\n        +2",
+          "value": ""
+        },
+        {
+          "i": 7,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Brightwater Family Dentistry\n      \n        dental\n        3 defects\n        +26",
+          "value": ""
+        },
+        {
+          "i": 8,
+          "tag": "DIV",
+          "cls": "session-card active",
+          "text": "Riverside Heating & Cooling\n      \n        hvac\n        7 defects\n        +40 pt",
+          "value": ""
+        },
+        {
+          "i": 9,
+          "tag": "DIV",
+          "cls": "tab active",
+          "text": "timeline 20",
+          "value": ""
+        },
+        {
+          "i": 10,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "enrichment",
+          "value": ""
+        },
+        {
+          "i": 11,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "personas 5",
+          "value": ""
+        },
+        {
+          "i": 12,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "defects 7",
+          "value": ""
+        },
+        {
+          "i": 13,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "fix proposals 3",
+          "value": ""
+        },
+        {
+          "i": 14,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "scoreboard",
+          "value": ""
+        },
+        {
+          "i": 15,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "regression suite 12",
+          "value": ""
+        },
+        {
+          "i": 16,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "system prompt",
+          "value": ""
+        },
+        {
+          "i": 17,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "compliance artifact",
+          "value": ""
+        },
+        {
+          "i": 18,
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "▶ replay",
+          "value": ""
+        }
+      ],
+      "links": [
+        {
+          "text": "← pitch deck",
+          "href": "pitch.html"
+        },
+        {
+          "text": "data console",
+          "href": "index.html"
+        },
+        {
+          "text": "https://riverside-hvac.example",
+          "href": "https://riverside-hvac.example"
+        },
+        {
+          "text": "https://riverside-hvac.example",
+          "href": "https://riverside-hvac.example"
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "DIV",
+          "cls": "layout",
+          "text": "filters\n    alllegalrestaurantdentalhvac\n    sessions\n    \n      Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts\n",
+          "sw": 1503,
+          "cw": 390
+        }
+      ]
+    },
+    {
+      "label": "refine mobile personas",
+      "title": "Refinement · session console",
+      "url": "http://127.0.0.1:4173/proof/refine.html?session=example",
+      "scrollY": 0,
+      "body": "Refinement· session console\nexample · 20 events · 7 defects · +40 pts\n← pitch deck\ndata console\nFILTERS\nall\nlegal\nrestaurant\ndental\nhvac\nSESSIONS\nPrairie & Hayes LLP\nlegal\n4 defects\n+29 pts\nMarisol's Coastal Kitchen\nrestaurant\n3 defects\n+20 pts\nBrightwater Family Dentistry\ndental\n3 defects\n+26 pts\nRiverside Heating & Cooling\nhvac\n7 defects\n+40 pts\nRiverside Heating & Cooling\nHVAC / home services\nhttps://riverside-hvac.example · template hvac · started 5/14/2026, 9:44:24 PM\nOVERALL SCORE\n+40 pts\n60% → 100%\nDEFECTS DETECTED\n7\nacross 3 personas\nFIXES PROPOSED\n3\ngrouped by mode\nREGRESSION TESTS\n12\nre-runnable\nPERSONAS\n5/5\ncanonical battery\ntimeline 20\nenrichment\npersonas 5\ndefects 7\nfix proposals 3\nscoreboard\nregression suite 12\nsystem prompt\ncompliance artifact\nPolite elderly caller\nTTFB 920ms · defects 4\nBEFORE · RAW AGENT\nagent:Hi there [chuckles], thanks for calling Riverside Heating & Cooling. We are open Monday through Saturday 7am to 9pm.\ncaller:Oh hello dear, my furnace is making a clanking sound. Is that something you all can look at?\nagent:Of course we can. I'll have a technician out to your home Tuesday at 2pm — you're all booked.\ncaller:Oh that is so kind, thank you.\nagent:I just sent a confirmation to your phone. You should see it in a few seconds.\nAFTER · FIXES APPLIED\n(replay against the new prompt; see after-calls.json)\nFrustrated rusher\nTTFB 980ms · defects 2\nBEFORE · RAW AGENT\nagent:Hi thanks for calling Riverside Heating & Cooling.\ncaller:Yeah look I need someone out today. I'm in Truckee — can you get there?\nagent:Absolutely, we cover Truckee. I have you scheduled for today at 4pm, confirmed.\ncaller:That's it? Okay good.\nagent:And the SMS is on its way to you now.\nAFTER · FIXES APPLIED\n(replay against the new prompt; see after-calls.json)\nNon-native English speaker\nTTFB 880ms · defects 1\nBEFORE · RAW AGENT\nagent:Hi, thanks for calling. How can I help you?\ncaller:Hello, please... my air... no cooling. House very hot. Can you come?\nagent:I understand. We are open 24 hours seven days a week — let me get you the soonest slot. You are booked for tomorrow at 10am.\ncaller:Okay, tomorrow yes. Thank you.\nAFTER · FIXES APPLIED\n(replay against the new prompt; see after-calls.json)\nConfused meanderer\nTTFB 830ms · defects 0\nBEFORE · RAW AGENT\nagent:Hi, thanks for calling Riverside Heating & Cooling.\ncaller:So my neighbor said you guys do plumbing too? And I have this thing with my furnace where it like... well actually let me back up, what are your hours?\nagent:We are open 24/7 and yes we do all plumbing services as well.\ncaller:Oh great. Anyway about the furnace it's like a clicking...\nAFTER · FIXES APPLIED\n(replay against the new prompt; see after-calls.json)\nHostile skeptic\nTTFB 1050ms · defects 0\nBEFORE · RAW AGENT\nagent:Hi, thanks for calling.\ncaller:Wait — am I talking to a real person or one of those AI bots?\nagent:I'm an AI large language model assistant. As an AI I cannot provide certain information.\ncaller:Wow okay. Forget it.\nAFTER · FIXES APPLIED\n(replay against the new prompt; see after-calls.json)",
+      "active": [
+        "Riverside Heating & Cooling\n      \n        hvac\n        7 defects\n        +40 pts",
+        "personas 5"
+      ],
+      "buttons": [
+        {
+          "i": 0,
+          "tag": "SPAN",
+          "cls": "pill-toggle on",
+          "text": "all",
+          "value": ""
+        },
+        {
+          "i": 1,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "legal",
+          "value": ""
+        },
+        {
+          "i": 2,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "restaurant",
+          "value": ""
+        },
+        {
+          "i": 3,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "dental",
+          "value": ""
+        },
+        {
+          "i": 4,
+          "tag": "SPAN",
+          "cls": "pill-toggle ",
+          "text": "hvac",
+          "value": ""
+        },
+        {
+          "i": 5,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts",
+          "value": ""
+        },
+        {
+          "i": 6,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Marisol's Coastal Kitchen\n      \n        restaurant\n        3 defects\n        +2",
+          "value": ""
+        },
+        {
+          "i": 7,
+          "tag": "DIV",
+          "cls": "session-card ",
+          "text": "Brightwater Family Dentistry\n      \n        dental\n        3 defects\n        +26",
+          "value": ""
+        },
+        {
+          "i": 8,
+          "tag": "DIV",
+          "cls": "session-card active",
+          "text": "Riverside Heating & Cooling\n      \n        hvac\n        7 defects\n        +40 pt",
+          "value": ""
+        },
+        {
+          "i": 9,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "timeline 20",
+          "value": ""
+        },
+        {
+          "i": 10,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "enrichment",
+          "value": ""
+        },
+        {
+          "i": 11,
+          "tag": "DIV",
+          "cls": "tab active",
+          "text": "personas 5",
+          "value": ""
+        },
+        {
+          "i": 12,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "defects 7",
+          "value": ""
+        },
+        {
+          "i": 13,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "fix proposals 3",
+          "value": ""
+        },
+        {
+          "i": 14,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "scoreboard",
+          "value": ""
+        },
+        {
+          "i": 15,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "regression suite 12",
+          "value": ""
+        },
+        {
+          "i": 16,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "system prompt",
+          "value": ""
+        },
+        {
+          "i": 17,
+          "tag": "DIV",
+          "cls": "tab",
+          "text": "compliance artifact",
+          "value": ""
+        },
+        {
+          "i": 18,
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "▶ replay",
+          "value": ""
+        }
+      ],
+      "links": [
+        {
+          "text": "← pitch deck",
+          "href": "pitch.html"
+        },
+        {
+          "text": "data console",
+          "href": "index.html"
+        },
+        {
+          "text": "https://riverside-hvac.example",
+          "href": "https://riverside-hvac.example"
+        },
+        {
+          "text": "https://riverside-hvac.example",
+          "href": "https://riverside-hvac.example"
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "DIV",
+          "cls": "layout",
+          "text": "filters\n    alllegalrestaurantdentalhvac\n    sessions\n    \n      Prairie & Hayes LLP\n      \n        legal\n        4 defects\n        +29 pts\n",
+          "sw": 1503,
+          "cw": 390
+        }
+      ]
+    },
+    {
+      "label": "data console mobile",
+      "title": "voice-evals · console",
+      "url": "http://127.0.0.1:4173/proof/index.html",
+      "scrollY": 0,
+      "body": "voice-evals· console\nruns 5\ntrials 75\nlatest pass 100%\nwindow 04:19:27 → 04:50:11\nbuilt 2026-05-14T11:15:15.176Z\n04:19:27\n93.3%\n·\n04:28:57\n86.7%\n-6.6\n04:37:09\n93.3%\n+6.6\n04:43:07\n93.3%\n0\n04:50:11\n100%\n+6.7\nRUN SUMMARY\n2026-05-14 04:50:11Z · 15/15 · 313.4s elapsed · transcripts available\nPASS RATE\n100%\n15/15 trials\nvs prev +6.7%\nDIMENSIONS\n4/5\nC below\n·\nDEFECTS FOUND\n2\n0 bracket · 2 empty-close\n·\nELAPSED\n313s\n20.9s / trial (conc 5)\n·\nERRORS\n0\nhttp+fetch failures\n·\nAGENT-TO-AGENT TESTING PLATFORM\nautonomous evaluator vs target agent\nAGENT-TO-AGENT READINESS LEDGER\nWhat this run actually proves about the voice agent.\nNo borrowed claims. The verdict below is computed from real run volume, scenarios, personas, dimensions, artifacts, tool evidence, and missing phone/recording coverage.\nred\n43/100 confidence\n15/15 trials passed\nweakest dimension 86.7%\ntools 2/2\nmissing modes: phone_outbound, production_recording_batch\nsample 15/60\nscenarios 3/8\npersonas 5/6\nEvidence from this evaluator run\n04:50:11 · 100% pass · red readiness\n#\tscenario\tpersona\tN P R U C\tobserved defect\n1\thappy-path\tpolite-elderly\tNPRUC\tempty close, turn limit\n2\thappy-path\tfrustrated-rusher\tNPRUC\tturn limit\n3\thappy-path\tesl-non-native\tNPRUC\tclean\n4\thappy-path\tconfused-meanderer\tNPRUC\tturn limit\n5\thappy-path\thostile-skeptic\tNPRUC\tturn limit\nEVERY AGENT TYPE. ONE PLATFORM.\nchat, phone, recordings, multimodal equivalents\nchat/voice simulation\nConversation simulation with persona pressure, quality criteria, and transcript review.\ncovered\nphone inbound\nInbound call path is partially represented through phone-capture criteria; real telephony artifacts are still missing.\npartial\nphone outbound\nOutbound dialer, number-pool, and passive-monitoring coverage are not present yet.\nmissing\nproduction recordings\nUploaded real call recordings and batch analytics are not present yet.\nmissing\nAUTONOMOUS TESTING FOR EVERY AGENT YOU BUILD\nconfidence, quality, call stages, ops, scoring, analysis\nConfidence by evaluation\nhigh\n100+ evaluations\nmedium\n50-99 evaluations\nlow\n20-49 evaluations\ncurrent run volume: 15; total captured trials: 75\nActual scored dimensions in this harness\nnamed: 100%\nphone: 100%\nrequest_captured: 100%\nurgency_classified: 100%\nclean_close: 86.7%\nThese are the only criteria currently proven by the run data. Hallucination, toxicity, DTMF, STT, and CSAT are not silently inferred.\nCall-agent stage coverage\nCovered\nscenario + persona + transcript + latency samples\n→\nMissing\nreal call audio + outbound + production recording batch\nUX and business ops\nCLEAN-CLOSE PROXY\n86.7%\nTOOL SUCCESS\n2/2\nLAST SUCCESS\n7d\nWEBHOOK MONITOR\nmiss\nScoring engine\n43\nreadiness score from sample size, breadth, mode coverage, artifacts, and weakest dimension\nArtifact analysis output\nCaptured evidence\ntranscript\ntool_calls\nlatency_samples\nMissing evidence\naudio\nwebhook_logs\nevaluator_rationale\nroot_cause_analysis\nActual CLI path\n$ voice-evals factory run --agent-id agent_7601krfykfpwfjxrjqcshg64pcby\n→ generate scenarios\n→ execute evaluator calls\n→ report readiness red\nScenario and persona breadth\nhappy-path\nemergency\nincomplete-info\npolite-elderly\nfrustrated-rusher\nesl-non-native\nconfused-meanderer\nhostile-skeptic\n5 personas × 3 scenarios. Target minimum for credible factorial stress is 6 personas × 8 scenarios.\nSCENARIO × PERSONA\neach cell = 5-dim score; green=pass, red=fail\n\tpolite-elderly\tfrustrated-rusher\tesl-non-native\tconfused-meanderer\thostile-skeptic\nhappy-path\t\n\t\n\t\n\t\n\t\n\nemergency\t\n\t\n\t\n\t\n\t\n\nincomplete-info\t\n\t\n\t\n\t\n\t\nDIMENSION HIT RATE\nshare of trials where the dimension scored\nnamed\n15/15 · 100%\nphone\n15/15 · 100%\nrequest_captured\n15/15 · 100%\nurgency_classified\n15/15 · 100%\nclean_close\n13/15 · 86.7%\nTRIALS\nclick any row to expand transcript + defects\nscenario\nall\nhappy-path\nemergency\nincomplete-info\npersona\nall\npolite-elderly\nfrustrated-rusher\nesl-non-native\nconfused-meanderer\nhostile-skeptic\nresult\nall\npass only\nfail only\ndefects\nall\nbracket-leak\nempty-close\nturn-limit-hit\n15 of 15\n#\tscenario\tpersona\tdim N P R U C\tturns A/U\tchars A/U\tdefects\tresult\n1\thappy-path\tpolite-elderly\t\nN\nP\nR\nU\nC\n\t9/7\t458/768\tempty-close turn-limit\tpass\n2\thappy-path\tfrustrated-rusher\t\nN\nP\nR\nU\nC\n\t8/7\t357/873\tturn-limit\tpass\n3\thappy-path\tesl-non-native\t\nN\nP\nR\nU\nC\n\t7/6\t628/306\tclean\tpass\n4\thappy-path\tconfused-meanderer\t\nN\nP\nR\nU\nC\n\t8/7\t569/2540\tturn-limit\tpass\n5\thappy-path\thostile-skeptic\t\nN\nP\nR\nU\nC\n\t8/7\t246/1204\tturn-limit\tpass\n6\temergency\tpolite-elderly\t\nN\nP\nR\nU\nC\n\t10/7\t691/928\tempty-close turn-limit\tpass\n7\temergency\tfrustrated-rusher\t\nN\nP\nR\nU\nC\n\t8/7\t664/957\tturn-limit\tpass\n8\temergency\tesl-non-native\t\nN\nP\nR\nU\nC\n\t8/7\t473/642\tturn-limit\tpass\n9\temergency\tconfused-meanderer\t\nN\nP\nR\nU\nC\n\t8/7\t697/3963\tturn-limit\tpass\n10\temergency\thostile-skeptic\t\nN\nP\nR\nU\nC\n\t8/7\t361/1530\tturn-limit\tpass\n11\tincomplete-info\tpolite-elderly\t\nN\nP\nR\nU\nC\n\t8/7\t445/860\tturn-limit\tpass\n12\tincomplete-info\tfrustrated-rusher\t\nN\nP\nR\nU\nC\n\t8/7\t440/865\tturn-limit\tpass\n13\tincomplete-info\tesl-non-native\t\nN\nP\nR\nU\nC\n\t8/7\t312/305\tturn-limit\tpass",
+      "active": [
+        "04:50:11\n      100%\n      +6.7"
+      ],
+      "buttons": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "runtab ",
+          "text": "04:19:27\n      93.3%\n      ·",
+          "value": ""
+        },
+        {
+          "i": 1,
+          "tag": "BUTTON",
+          "cls": "runtab ",
+          "text": "04:28:57\n      86.7%\n      -6.6",
+          "value": ""
+        },
+        {
+          "i": 2,
+          "tag": "BUTTON",
+          "cls": "runtab ",
+          "text": "04:37:09\n      93.3%\n      +6.6",
+          "value": ""
+        },
+        {
+          "i": 3,
+          "tag": "BUTTON",
+          "cls": "runtab ",
+          "text": "04:43:07\n      93.3%\n      0",
+          "value": ""
+        },
+        {
+          "i": 4,
+          "tag": "BUTTON",
+          "cls": "runtab active",
+          "text": "04:50:11\n      100%\n      +6.7",
+          "value": ""
+        },
+        {
+          "i": 5,
+          "tag": "SELECT",
+          "cls": "",
+          "text": "allhappy-pathemergencyincomplete-info",
+          "value": ""
+        },
+        {
+          "i": 6,
+          "tag": "SELECT",
+          "cls": "",
+          "text": "allpolite-elderlyfrustrated-rusheresl-non-nativeconfused-meandererhostile-skepti",
+          "value": ""
+        },
+        {
+          "i": 7,
+          "tag": "SELECT",
+          "cls": "",
+          "text": "all\n          pass only\n          fail only",
+          "value": ""
+        },
+        {
+          "i": 8,
+          "tag": "SELECT",
+          "cls": "",
+          "text": "all\n          bracket-leak\n          empty-close\n          turn-limit-hit",
+          "value": ""
+        }
+      ],
+      "links": [
+        {
+          "text": "runs.json",
+          "href": "runs.json"
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "DIV",
+          "cls": "runtabs",
+          "text": "04:19:27\n      93.3%\n      ·\n    \n      04:28:57\n      86.7%\n      -6.6\n    \n      04:37:09\n      93.3%\n      +6.6\n    \n      04:43:07\n     ",
+          "sw": 780,
+          "cw": 390
+        },
+        {
+          "tag": "DIV",
+          "cls": "grid",
+          "text": "Run summary2026-05-14 04:50:11Z · 15/15 · 313.4s elapsed · transcripts available\n    \n    \n      pass rate\n      100%\n      15/15 trials\n   ",
+          "sw": 614,
+          "cw": 390
+        },
+        {
+          "tag": "DIV",
+          "cls": "side-section",
+          "text": "Pass-rate trend\n      \n        \n      04:19:27 · 93.3% · 14/15\n    \n      04:28:57 · 86.7% · 13/15\n    \n      04:37:09 · 93.3% · 14/15\n    \n",
+          "sw": 592,
+          "cw": 582
+        },
+        {
+          "tag": "DIV",
+          "cls": "trend",
+          "text": "04:19:27 · 93.3% · 14/15\n    \n      04:28:57 · 86.7% · 13/15\n    \n      04:37:09 · 93.3% · 14/15\n    \n      04:43:07 · 93.3% · 14/15\n    \n  ",
+          "sw": 591,
+          "cw": 580
+        },
+        {
+          "tag": "DIV",
+          "cls": "bars",
+          "text": "04:19:27 · 93.3% · 14/15\n    \n      04:28:57 · 86.7% · 13/15\n    \n      04:37:09 · 93.3% · 14/15\n    \n      04:43:07 · 93.3% · 14/15\n    \n  ",
+          "sw": 581,
+          "cw": 560
+        },
+        {
+          "tag": "DIV",
+          "cls": "bar  ",
+          "text": "04:19:27 · 93.3% · 14/15",
+          "sw": 133,
+          "cw": 110
+        },
+        {
+          "tag": "DIV",
+          "cls": "bar below ",
+          "text": "04:28:57 · 86.7% · 13/15",
+          "sw": 133,
+          "cw": 110
+        },
+        {
+          "tag": "DIV",
+          "cls": "bar  ",
+          "text": "04:37:09 · 93.3% · 14/15",
+          "sw": 133,
+          "cw": 110
+        },
+        {
+          "tag": "DIV",
+          "cls": "bar  ",
+          "text": "04:43:07 · 93.3% · 14/15",
+          "sw": 133,
+          "cw": 110
+        },
+        {
+          "tag": "DIV",
+          "cls": "bar is100 active",
+          "text": "04:50:11 · 100% · 15/15",
+          "sw": 130,
+          "cw": 110
+        }
+      ]
+    }
+  ]
+}

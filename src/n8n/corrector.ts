@@ -202,7 +202,13 @@ export function applyOperation(workflow: N8nWorkflow, op: NodeOperation): void {
     }
 
     case 'addConnection': {
-      addConnection(workflow, op.source, op.target, op.sourceOutput ?? 0, op.targetInput ?? 0);
+      addConnection({
+        workflow,
+        source: op.source,
+        target: op.target,
+        sourceOutput: op.sourceOutput ?? 0,
+        targetInput: op.targetInput ?? 0,
+      });
       return;
     }
 
@@ -270,7 +276,16 @@ function setNestedValue(obj: Record<string, unknown>, path: string, value: unkno
   }
 }
 
-function addConnection(workflow: N8nWorkflow, source: string, target: string, sourceOutput: number, targetInput: number): void {
+function addConnection(input: {
+  workflow: N8nWorkflow;
+  source: string;
+  target: string;
+  sourceOutput: number;
+  targetInput: number;
+}): void {
+  const {
+    workflow, source, target, sourceOutput, targetInput,
+  } = input;
   workflow.connections[source] ??= {main: [[]]};
   while (workflow.connections[source].main.length <= sourceOutput) {
     workflow.connections[source].main.push([]);

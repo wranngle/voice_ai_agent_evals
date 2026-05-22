@@ -39,7 +39,9 @@ import type {
   ModelRankings,
   Phase,
 } from './types';
-import {GovernanceError, assertModelAllowed, enforceMutation, parseAgentName} from './governance';
+import {
+  GovernanceError, assertModelAllowed, enforceMutation, parseAgentName,
+} from './governance';
 
 type AgentsApiDeps = {
   raw: ElevenLabsClient;

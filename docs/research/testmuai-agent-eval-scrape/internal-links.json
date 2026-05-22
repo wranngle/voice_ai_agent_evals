@@ -1,0 +1,390 @@
+[
+  {
+    "text": "KaneAI - GenAI-Native Testing Agent World's first end-to-end software testing agent",
+    "url": "https://www.testmuai.com/kane-ai/"
+  },
+  {
+    "text": "Agent to Agent Testing Test AI agents such as chatbots, voicebots or both",
+    "url": "https://www.testmuai.com/agent-to-agent-testing/"
+  },
+  {
+    "text": "SmartUI - Visual Testing Agent AI-native automated visual UI testing on cloud",
+    "url": "https://www.testmuai.com/visual-testing-tool/"
+  },
+  {
+    "text": "Test Insights AI-native test intelligence insights",
+    "url": "https://www.testmuai.com/test-intelligence/"
+  },
+  {
+    "text": "Accessibility Testing Agent Test the accessibility of websites and web apps",
+    "url": "https://www.testmuai.com/accessibility-testing-tools/"
+  },
+  {
+    "text": "Agentic Testing Cloud Platform AI-powered, autonomous end-to-end testing at scale",
+    "url": "https://www.testmuai.com/agentic-cloud/"
+  },
+  {
+    "text": "HyperExecute Blazing fast AI-native automation testing cloud",
+    "url": "https://www.testmuai.com/hyperexecute/"
+  },
+  {
+    "text": "Browser Cloud Scalable browser infrastructure for AI agents",
+    "url": "https://www.testmuai.com/browser-cloud/"
+  },
+  {
+    "text": "TestMu AI MCP Server Connect AI to test data, no manual transfers",
+    "url": "https://www.testmuai.com/mcp/"
+  },
+  {
+    "text": "Kane CLI Automate end to end flows on local browser with natural language",
+    "url": "https://www.testmuai.com/kane-cli/"
+  },
+  {
+    "text": "Performance Testing",
+    "url": "https://www.testmuai.com/performance-testing/"
+  },
+  {
+    "text": "AI Agents",
+    "url": "https://www.testmuai.com/agents/"
+  },
+  {
+    "text": "Test Creation Agent Automate test creation using AI-native intelligence",
+    "url": "https://www.testmuai.com/test-management/"
+  },
+  {
+    "text": "Test Authoring Agent Create and manage test cases with natural language input",
+    "url": "https://www.testmuai.com/ai-agent-for-test-authoring/"
+  },
+  {
+    "text": "Test Orchestration Agent Orchestrate and optimize testing workflows with AI agents",
+    "url": "https://www.testmuai.com/ai-based-test-orchestration/"
+  },
+  {
+    "text": "Auto Healing Agent Overcome flaky tests and unexpected test failures",
+    "url": "https://www.testmuai.com/auto-healing-agent/"
+  },
+  {
+    "text": "Visual Testing Agent Detect visual bugs with AI-native image comparison",
+    "url": "https://www.testmuai.com/visual-ai-testing/"
+  },
+  {
+    "text": "Root Cause Analysis Agent AI-native error classification and streamlined RCA for optimized bug fixes",
+    "url": "https://www.testmuai.com/test-intelligence/failure-analysis/"
+  },
+  {
+    "text": "Test Insights AI Copilot Analyze test data and uncover actionable AI insights",
+    "url": "https://www.testmuai.com/test-analytics/#ai-copilot-dashboard"
+  },
+  {
+    "text": "",
+    "url": "https://www.testmuai.com/ai-agents/"
+  },
+  {
+    "text": "Test Analytics",
+    "url": "https://www.testmuai.com/test-analytics/"
+  },
+  {
+    "text": "documentation",
+    "url": "https://www.testmuai.com/support/docs/kane-cli-introduction/"
+  },
+  {
+    "text": "Contact Sales",
+    "url": "https://www.testmuai.com/contact-us/?product=Kane-CLI"
+  },
+  {
+    "text": "Read the blog",
+    "url": "https://www.testmuai.com/blog/introducing-kane-cli/"
+  },
+  {
+    "text": "View Docs",
+    "url": "https://www.testmuai.com/support/docs/testmu-mcp-server/"
+  },
+  {
+    "text": "",
+    "url": "https://www.testmuai.com/support/docs/hyperexecute-mcp-server/"
+  },
+  {
+    "text": "",
+    "url": "https://www.testmuai.com/support/docs/automation-mcp-server/"
+  },
+  {
+    "text": "",
+    "url": "https://www.testmuai.com/support/docs/accessibility-mcp-server/"
+  },
+  {
+    "text": "",
+    "url": "https://www.testmuai.com/support/docs/smartui-mcp-server/"
+  },
+  {
+    "text": "Try Test Insights",
+    "url": "https://www.testmuai.com/register/"
+  },
+  {
+    "text": "HyperExecute",
+    "url": "https://www.testmuai.com/hyperexecute"
+  },
+  {
+    "text": "Getting Started",
+    "url": "https://www.testmuai.com/support/docs/getting-started-with-hyperexecute/"
+  },
+  {
+    "text": "HyperExecute YAML",
+    "url": "https://www.testmuai.com/support/docs/hyperexecute-yaml-parameters/"
+  },
+  {
+    "text": "HyperExecute CLI",
+    "url": "https://www.testmuai.com/support/docs/hyperexecute-cli-run-tests-on-hyperexecute-grid/"
+  },
+  {
+    "text": "HyperExecute GUI BETA",
+    "url": "https://www.testmuai.com/support/docs/hyperexecute-cli-gui/"
+  },
+  {
+    "text": "Features",
+    "url": "https://www.testmuai.com/support/docs/key-features-of-hyperexecute/"
+  },
+  {
+    "text": "Integrations",
+    "url": "https://www.testmuai.com/support/docs/integration-with-hyperexecute/"
+  },
+  {
+    "text": "Private Cloud",
+    "url": "https://www.testmuai.com/support/docs/hyperexecute-private-cloud-setup/"
+  },
+  {
+    "text": "Pre-built Dashboards",
+    "url": "https://www.testmuai.com/support/docs/analytics-dashboard-templates/"
+  },
+  {
+    "text": "Custom Dashboards",
+    "url": "https://www.testmuai.com/support/docs/analytics-create-dashboard/"
+  },
+  {
+    "text": "Widgets",
+    "url": "https://www.testmuai.com/support/docs/analytics-widgets/"
+  },
+  {
+    "text": "Dashboard CoPilot AI",
+    "url": "https://www.testmuai.com/support/docs/analytics-dashboard-copilot/"
+  },
+  {
+    "text": "Test Case Insights",
+    "url": "https://www.testmuai.com/support/docs/analytics-test-case-insights/"
+  },
+  {
+    "text": "Build Insights",
+    "url": "https://www.testmuai.com/support/docs/analytics-build-comparison/"
+  },
+  {
+    "text": "Flaky Test Insights",
+    "url": "https://www.testmuai.com/support/docs/analytics-modules-test-intelligence-flaky-test-analytics/"
+  },
+  {
+    "text": "Command Logs Insights",
+    "url": "https://www.testmuai.com/support/docs/analytics-modules-test-intelligence-command-logs-analytics/"
+  },
+  {
+    "text": "Launch Session With Agent Skills",
+    "url": "https://www.testmuai.com/support/docs/browser-cloud-skills/"
+  },
+  {
+    "text": "CLI",
+    "url": "https://www.testmuai.com/support/docs/smartui-cli/"
+  },
+  {
+    "text": "Upload Screenshots",
+    "url": "https://www.testmuai.com/support/docs/smartui-upload-api-v2/"
+  },
+  {
+    "text": "Getting Started",
+    "url": "https://www.testmuai.com/support/docs/getting-started-with-agent-to-agent-testing"
+  },
+  {
+    "text": "Test Your First AI Agent",
+    "url": "https://www.testmuai.com/support/docs/testing-your-first-ai-agent/"
+  },
+  {
+    "text": "FAQs",
+    "url": "https://www.testmuai.com/support/docs/agent-to-agent-faqs/"
+  },
+  {
+    "text": "Insights Dashboard",
+    "url": "https://www.testmuai.com/support/docs/insights-dashboard/"
+  },
+  {
+    "text": "Setting up TestMu AI MCP Server",
+    "url": "https://www.testmuai.com/support/docs/lambdatest-mcp-server/"
+  },
+  {
+    "text": "Testing Locally Hosted Pages",
+    "url": "https://www.testmuai.com/support/docs/testing-locally-hosted-pages/"
+  },
+  {
+    "text": "agentic AI testing",
+    "url": "https://www.testmuai.com/blog/agentic-ai-testing/"
+  },
+  {
+    "text": "Salman Khan Blogs: 122 Salman is a Test Automation Evangelist and Community Contributor at TestMu AI, with over 6 years ",
+    "url": "https://www.testmuai.com/learning-hub/author/salman-khan/"
+  },
+  {
+    "text": "Agentic AI",
+    "url": "https://www.testmuai.com/agentic-ai/"
+  },
+  {
+    "text": "TestMu AI Blogs: 203 TestMu AI is World's First Full Stack AI Agentic Quality Engineering platform that empowers teams t",
+    "url": "https://www.testmuai.com/learning-hub/author/testmu/"
+  },
+  {
+    "text": "AI QA agents",
+    "url": "https://www.testmuai.com/ai-qa-agent/"
+  },
+  {
+    "text": "AI chatbots",
+    "url": "https://www.testmuai.com/learning-hub/ai-chatbot/"
+  },
+  {
+    "text": "Installation",
+    "url": "https://www.testmuai.com/support/docs/kane-cli-installation/"
+  },
+  {
+    "text": "Quick Start",
+    "url": "https://www.testmuai.com/support/docs/kane-cli-quickstart/"
+  },
+  {
+    "text": "Authentication",
+    "url": "https://www.testmuai.com/support/docs/kane-cli-authentication/"
+  },
+  {
+    "text": "Core Concepts",
+    "url": "https://www.testmuai.com/support/docs/kane-cli-modes/"
+  },
+  {
+    "text": "Agent Mode",
+    "url": "https://www.testmuai.com/support/docs/kane-cli-agent-mode/"
+  },
+  {
+    "text": "Parallel Execution",
+    "url": "https://www.testmuai.com/support/docs/kane-cli-parallel-execution/"
+  },
+  {
+    "text": "CI/CD & Skills",
+    "url": "https://www.testmuai.com/support/docs/kane-cli-cicd/"
+  },
+  {
+    "text": "Reference",
+    "url": "https://www.testmuai.com/support/docs/kane-cli-cli-reference/"
+  },
+  {
+    "text": "Error Codes",
+    "url": "https://www.testmuai.com/support/docs/kane-cli-error-codes/"
+  },
+  {
+    "text": "Skills",
+    "url": "https://www.testmuai.com/support/docs/kane-cli-skills/"
+  },
+  {
+    "text": "Previous Article Test.md",
+    "url": "https://www.testmuai.com/support/docs/kane-cli-testmd/"
+  },
+  {
+    "text": "Writing Objectives",
+    "url": "https://www.testmuai.com/support/docs/kane-cli-writing-objectives/"
+  },
+  {
+    "text": "Variables & Context",
+    "url": "https://www.testmuai.com/support/docs/kane-cli-variables-and-context/"
+  },
+  {
+    "text": "Configuration",
+    "url": "https://www.testmuai.com/support/docs/kane-cli-configuration/"
+  },
+  {
+    "text": "Test Manager Integration",
+    "url": "https://www.testmuai.com/support/docs/kane-cli-tms-integration/"
+  },
+  {
+    "text": "Troubleshooting",
+    "url": "https://www.testmuai.com/support/docs/kane-cli-troubleshooting/"
+  },
+  {
+    "text": "GET Get test execution data with AI insights.",
+    "url": "https://www.testmuai.com/support/api-doc/analytics/test-data/get-test-execution-data-with-ai-insights/"
+  },
+  {
+    "text": "GET Get AI-powered Root Cause Analysis for test failures.",
+    "url": "https://www.testmuai.com/support/api-doc/analytics/root-cause-analysis/get-ai-powered-root-cause-analysis-for-test-failures/"
+  },
+  {
+    "text": "POST Trigger AI-powered RCA generation for failed tests in a scope.",
+    "url": "https://www.testmuai.com/support/api-doc/analytics/root-cause-analysis/trigger-ai-powered-rca-generation-for-failed-tests-in-a-scope/"
+  },
+  {
+    "text": "GET Get RCA generation progress and completed results for a scope.",
+    "url": "https://www.testmuai.com/support/api-doc/analytics/root-cause-analysis/get-rca-generation-progress-and-completed-results-for-a-scope/"
+  },
+  {
+    "text": "GET Check the status of a Job and its associated Tasks.",
+    "url": "https://www.testmuai.com/support/api-doc/hyperexecute/jobs/check-the-status-of-a-job-and-its-associated-tasks/"
+  },
+  {
+    "text": "GET Fetch Scenario details associated with your Job ID",
+    "url": "https://www.testmuai.com/support/api-doc/hyperexecute/jobs/fetch-scenario-details-associated-with-your-job-id/"
+  },
+  {
+    "text": "GET Fetch Session-Level details associated with your Job ID.",
+    "url": "https://www.testmuai.com/support/api-doc/hyperexecute/jobs/fetch-session-level-details-associated-with-your-job-id/"
+  },
+  {
+    "text": "GET View all stages executed within a specific task",
+    "url": "https://www.testmuai.com/support/api-doc/hyperexecute/jobs/view-all-stages-executed-within-a-specific-task/"
+  },
+  {
+    "text": "GET Get detailed test results within a specific stage.",
+    "url": "https://www.testmuai.com/support/api-doc/hyperexecute/jobs/get-detailed-test-results-within-a-specific-stage/"
+  },
+  {
+    "text": "GET Get logs for a specific stage of a job.",
+    "url": "https://www.testmuai.com/support/api-doc/hyperexecute/jobs/get-logs-for-a-specific-stage-of-a-job/"
+  },
+  {
+    "text": "PUT Abort an ongoing job execution immediately.",
+    "url": "https://www.testmuai.com/support/api-doc/hyperexecute/jobs/abort-an-ongoing-job-execution-immediately/"
+  },
+  {
+    "text": "GET List all the Jobs of your organization.",
+    "url": "https://www.testmuai.com/support/api-doc/hyperexecute/jobs/list-all-the-jobs-of-your-organization/"
+  },
+  {
+    "text": "GET Retrieve the metadata of all artifacts generated by a job.",
+    "url": "https://www.testmuai.com/support/api-doc/hyperexecute/artifacts/retrieve-the-metadata-of-all-artifacts-generated-by-a-job/"
+  },
+  {
+    "text": "GET Download artifacts from a specific Job",
+    "url": "https://www.testmuai.com/support/api-doc/hyperexecute/artifacts/download-artifacts-from-a-specific-job/"
+  },
+  {
+    "text": "GET Retrieve a summary of performance testing results for a specific job.",
+    "url": "https://www.testmuai.com/support/api-doc/performance-testing/performance-testing/retrieve-a-summary-of-performance-testing-results-for-a-specific-job/"
+  },
+  {
+    "text": "GET Fetch detailed request statistics for a performance test within a specific job.",
+    "url": "https://www.testmuai.com/support/api-doc/performance-testing/performance-testing/fetch-detailed-request-statistics-for-a-performance-test-within-a-specific-job/"
+  },
+  {
+    "text": "GET Fetch detailed error statistics for a performance test within a specific job.",
+    "url": "https://www.testmuai.com/support/api-doc/performance-testing/performance-testing/fetch-detailed-error-statistics-for-a-performance-test-within-a-specific-job/"
+  },
+  {
+    "text": "POST Upload terminal logs to our lambda storage",
+    "url": "https://www.testmuai.com/support/api-doc/selenium-automation-api/session/upload-terminal-logs-to-our-lambda-storage/"
+  },
+  {
+    "text": "POST Upload assertion logs to our lambda storage",
+    "url": "https://www.testmuai.com/support/api-doc/selenium-automation-api/session/upload-assertion-logs-to-our-lambda-storage/"
+  },
+  {
+    "text": "POST Upload any locally captured images to SmartUI for visual regression testing.Maximum Upload Size:100MB",
+    "url": "https://www.testmuai.com/support/api-doc/smart-ui/upload-screenshots/upload-any-locally-captured-images-to-smartui-for-visual-regression-testing-maximum-upload-size-100mb/"
+  }
+]

@@ -45,17 +45,17 @@ A five-second video of a phone call where the agent does the job — captures th
 
 ### Spiritual shortcomings — status
 
-Status of each contract after the 2026-05-13 cleanup pass. **All 10 closed** (7 fully, 2 partially with an honest audio caveat, 1 promoted previously).
+Status of each contract after the 2026-05-13 cleanup pass, with the 2026-05-20 live-test honesty correction.
 
 | ID | Contract | Status | Where the proof lives |
 |----|---------|--------|------------------------|
 | **E1** | An end-to-end test exercises the live agent and verifies its response. | ✅ PARTIAL | `tests/integration/elevenlabs-simulate-live.test.ts` — uses ElevenLabs's simulate-conversation API as a text proxy. The true audio path (TTS + WebRTC) is still a separate forcing function. |
 | **E2** | Post-call webhook payloads reach a persistent sink within 30s. | ✅ DONE | `src/ingestion/post-call-receiver.ts` + `tests/integration/post-call-receiver.test.ts` — HMAC-verifying NDJSON receiver with replay protection. |
 | **E3** | A live integration test posts to the client-init webhook and a real agent uses the response. | ✅ DONE | `tests/integration/client-initiation-live.test.ts` — POSTs to the live n8n endpoint and asserts the response shape + latency. |
-| **E4** | Governance rejects `[PROD]` mutation against the real API. | ✅ DONE | `tests/integration/governance-live.test.ts` — clones the template, manually marks it `[PROD]`, asserts wrapper rejects via `GovernanceError`, then archives. |
+| **E4** | Governance rejects `[PROD]` mutation against the real API. | ✅ DONE | `tests/integration/governance-live.test.ts` — requires `VOICE_EVALS_TEST_PROD_AGENT_ID` and asserts wrapper rejection without synthesizing/promoting a cloud PROD agent. |
 | **E5** | Scoring has labeled ground-truth ≥20 conversations. | ✅ DONE | `tests/fixtures/labeled-conversations.json` — 21 entries spanning happy path, edge cases, and guardrail violations. |
 | **E6** | `polishLoop` is exercised on a known-bad config and produces measurable improvement. | ✅ DONE | Pre-existing: `tests/_meta_audit/polish-loop-outcomes.test.ts`. |
-| **E7** | A webhook-delivered `first_message` override appears as the first agent utterance. | ✅ PARTIAL | `tests/integration/elevenlabs-simulate-live.test.ts` — override appears in simulated transcript. Audio gap remains. |
+| **E7** | A webhook-delivered `first_message` override appears as the first agent utterance. | ⚠️ OPT-IN GAP | `tests/integration/elevenlabs-simulate-live.test.ts` keeps an explicit `VOICE_EVALS_SIMULATE_OVERRIDE_CHECK=1` probe, but current public simulate-conversation docs do not list `conversation_config_override`; this is not default proof. |
 | **E8** | Signature verification rejects a replay of a fresh, valid digest. | ✅ DONE | `src/security/elevenlabs-signature.ts` — `createReplayCache()` factory + module-default in-memory cache, integrated into the verifier. |
 | **E9** | `data_collection` extraction is benchmarked against a labeled fixture set. | ✅ DONE | `tests/fixtures/data-collection-benchmark.json` — 6 labeled transcripts covering complete intake, emergency, estimate routing, different-contact-than-requestor, incomplete intake, and transfer cases. |
 | **E10** | Every public CLI verb emits structured JSONL traces. | ✅ DONE | `src/internal/jsonl-trace.ts` + `scripts/lib/jsonl-trace.mjs`. All 12 top-level verbs and 8 factory subcommands import `createTracer`. |

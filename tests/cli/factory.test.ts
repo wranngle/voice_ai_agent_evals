@@ -279,7 +279,9 @@ describe('runFactoryList + runFactoryCleanup', () => {
     const del = vi.fn().mockResolvedValue(undefined);
     const client = makeClient({list, delete: del});
     const out = vi.fn();
-    const code = await runFactoryCleanup({all: true, yes: true, client, out});
+    const code = await runFactoryCleanup({
+      all: true, yes: true, client, out,
+    });
     expect(code).toBe(0);
     expect(del).toHaveBeenCalledTimes(2);
     expect(out.mock.calls.map(c => c[0]).join('\n')).toContain('Deleted 2/2');

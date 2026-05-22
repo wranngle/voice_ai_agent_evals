@@ -12,7 +12,8 @@
 import {getPattern} from './patterns';
 import type {FixProposal, ProposeFixOptions} from './types';
 
-const SYSTEM_PROMPT = `You are a voice AI agent debugging expert. Given an agent's current configuration and a list of failing eval dimensions, propose targeted edits that would address the failures without regressing what already passes.
+const SYSTEM_PROMPT = `You are a voice AI agent debugging expert.
+Given an agent's current configuration and a list of failing eval dimensions, propose targeted edits that would address the failures without regressing what already passes.
 
 Output a JSON array of fix objects. Each object MUST have:
   target: one of "system_prompt" | "tool_description" | "first_message" | "voice_stability" | "voice_similarity_boost" | "voice_speed" | "temperature" | "turn_eagerness"

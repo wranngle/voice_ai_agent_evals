@@ -57,32 +57,32 @@ export type FailureModeId = string;
 
 export type FailureDetectorSpec =
   | {
-      type: 'regex_transcript';
-      channel: 'agent' | 'caller';
-      patterns: string[];
-      case_insensitive?: boolean;
-    }
+    type: 'regex_transcript';
+    channel: 'agent' | 'caller';
+    patterns: string[];
+    case_insensitive?: boolean;
+  }
   | {
-      type: 'rubric_judge';
-      rubric: string;
-    }
+    type: 'rubric_judge';
+    rubric: string;
+  }
   | {
-      type: 'transcript_tool_coherence';
-      rule: string;
-      patterns?: string[];
-    }
+    type: 'transcript_tool_coherence';
+    rule: string;
+    patterns?: string[];
+  }
   | {
-      type: 'transcript_repetition_count';
-      rule: string;
-    }
+    type: 'transcript_repetition_count';
+    rule: string;
+  }
   | {
-      type: 'audio_metric';
-      metric: string;
-      threshold_max?: number;
-      threshold_min?: number;
-      secondary_metric?: string;
-      secondary_threshold_max?: number;
-    };
+    type: 'audio_metric';
+    metric: string;
+    threshold_max?: number;
+    threshold_min?: number;
+    secondary_metric?: string;
+    secondary_threshold_max?: number;
+  };
 
 export type FailureModeEntry = {
   id: FailureModeId;

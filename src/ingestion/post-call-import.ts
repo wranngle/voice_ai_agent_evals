@@ -125,15 +125,21 @@ const LEG_KEY_PATTERNS: Array<{pattern: RegExp; leg: LatencyLegName}> = [
   {pattern: /(^|_)tts(_|$)/i, leg: 'tts'},
 ];
 
-function classifyMetricKey(key: string): LatencyLegName | null {
+function classifyMetricKey(key: string): LatencyLegName | undefined {
   for (const {pattern, leg} of LEG_KEY_PATTERNS) {
-    if (pattern.test(key)) return leg;
+    if (pattern.test(key)) {
+      return leg;
+    }
   }
-  return null;
+
+  return undefined;
 }
 
-function toIntegerMs(raw: unknown): number | null {
-  if (typeof raw !== 'number' || !Number.isFinite(raw) || raw < 0) return null;
+function toIntegerMs(raw: unknown): number | undefined {
+  if (typeof raw !== 'number' || !Number.isFinite(raw) || raw < 0) {
+    return undefined;
+  }
+
   // ElevenLabs reports turn metrics in seconds; coerce to ms.
   // Heuristic: a positive value under 60 is seconds (a single turn rarely exceeds 60s
   // for any one leg); values >= 60 are already ms.
@@ -141,17 +147,22 @@ function toIntegerMs(raw: unknown): number | null {
   return Math.round(ms);
 }
 
-function summarizeTurnMetrics(
-  metrics: Record<string, unknown>,
-): Map<LatencyLegName, number> {
+function summarizeTurnMetrics(metrics: Record<string, unknown>): Map<LatencyLegName, number> {
   const sums = new Map<LatencyLegName, number>();
   for (const [key, value] of Object.entries(metrics)) {
     const leg = classifyMetricKey(key);
-    if (!leg) continue;
+    if (!leg) {
+      continue;
+    }
+
     const ms = toIntegerMs(value);
-    if (ms === null) continue;
+    if (ms === undefined) {
+      continue;
+    }
+
     sums.set(leg, (sums.get(leg) ?? 0) + ms);
   }
+
   return sums;
 }
 
@@ -162,12 +173,12 @@ function buildLegs(sums: Map<LatencyLegName, number>): LatencyLeg[] {
   }));
 }
 
-function extractLatencyWaterfalls(
-  transcript: ElevenLabsPostCallPayload['data'] extends infer D
-    ? D extends {transcript?: infer T} ? T : undefined
-    : undefined,
-): {turns: LatencyWaterfall[]; conversation: LatencyWaterfall} | undefined {
-  if (!Array.isArray(transcript) || transcript.length === 0) return undefined;
+function extractLatencyWaterfalls(transcript: ElevenLabsPostCallPayload['data'] extends infer D
+  ? D extends {transcript?: infer T} ? T : undefined
+  : undefined): {turns: LatencyWaterfall[]; conversation: LatencyWaterfall} | undefined {
+  if (!Array.isArray(transcript) || transcript.length === 0) {
+    return undefined;
+  }
 
   const turns: LatencyWaterfall[] = [];
   const totals = new Map<LatencyLegName, number>();
@@ -176,22 +187,31 @@ function extractLatencyWaterfalls(
   for (const [index, turn] of transcript.entries()) {
     const metrics = (turn as {conversation_turn_metrics?: Record<string, unknown>})
       .conversation_turn_metrics;
-    if (!metrics || typeof metrics !== 'object') continue;
+    if (!metrics || typeof metrics !== 'object') {
+      continue;
+    }
+
     sawMetrics = true;
 
     const sums = summarizeTurnMetrics(metrics);
-    if (sums.size === 0) continue;
+    if (sums.size === 0) {
+      continue;
+    }
 
     const legs = buildLegs(sums);
     const totalMs = legs.reduce((acc, leg) => acc + leg.duration_ms, 0);
-    turns.push({scope: 'turn', turn_index: index, legs, total_ms: totalMs});
+    turns.push({
+      scope: 'turn', turn_index: index, legs, total_ms: totalMs,
+    });
 
     for (const [leg, ms] of sums.entries()) {
       totals.set(leg, (totals.get(leg) ?? 0) + ms);
     }
   }
 
-  if (!sawMetrics) return undefined;
+  if (!sawMetrics) {
+    return undefined;
+  }
 
   const conversationLegs = buildLegs(totals);
   const conversationTotal = conversationLegs.reduce(

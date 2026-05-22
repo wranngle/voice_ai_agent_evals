@@ -21,7 +21,8 @@
 import type {LlmCompleteCallback} from '../../ingestion/types';
 import type {LlmJudgeCallback} from '../assertions';
 
-const LYNX_SYSTEM = `You are Lynx, an LLM-based hallucination detector. Given a context (the rubric — describing what the output should remain faithful to) and an output (the claim under test), you decide whether the claim is faithful to the context.
+const LYNX_SYSTEM = `You are Lynx, an LLM-based hallucination detector.
+Given a context (the rubric — describing what the output should remain faithful to) and an output (the claim under test), decide whether the claim is faithful to the context.
 
 Reason step-by-step:
   1. What does the context establish or constrain?

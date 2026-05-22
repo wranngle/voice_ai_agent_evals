@@ -26,16 +26,16 @@ function buildPayload(): ElevenLabsPostCallPayload {
           message: 'I need a callback after 5pm',
           conversation_turn_metrics: {
             convai_asr_service_ttfb: 0.215,
-            convai_llm_service_ttfb: 0.420,
-            convai_tool_call_total_ms: 0.090,
-            convai_tts_service_ttfb: 0.310,
+            convai_llm_service_ttfb: 0.42,
+            convai_tool_call_total_ms: 0.09,
+            convai_tts_service_ttfb: 0.31,
           },
         },
         {
           role: 'agent',
           message: 'I will schedule that for you.',
           conversation_turn_metrics: {
-            convai_asr_service_ttfb: 0.180,
+            convai_asr_service_ttfb: 0.18,
             convai_llm_service_ttfb: 0.512,
             convai_tts_service_ttfb: 0.295,
             // No tool call this turn.
@@ -109,9 +109,7 @@ describe('importPostCallWebhook — latency waterfall extraction', () => {
     const stt = conv.legs.find(l => l.name === 'stt')!;
     expect(stt.duration_ms).toBe(215 + 180);
 
-    expect(conv.total_ms).toBe(
-      conv.legs.reduce((acc, l) => acc + l.duration_ms, 0),
-    );
+    expect(conv.total_ms).toBe(conv.legs.reduce((acc, l) => acc + l.duration_ms, 0));
   });
 
   it('returns undefined waterfalls when no turn carries metrics', () => {
@@ -173,7 +171,7 @@ describe('renderLatencyWaterfallSvg', () => {
     };
     const svg = renderLatencyWaterfallSvg(waterfall);
     // No raw `<` or `>` inside the aria-label attribute value.
-    const ariaMatch = svg.match(/aria-label="([^"]*)"/);
+    const ariaMatch = /aria-label="([^"]*)"/.exec(svg);
     expect(ariaMatch).not.toBeNull();
     expect(ariaMatch![1]).not.toContain('<');
     expect(ariaMatch![1]).not.toContain('>');

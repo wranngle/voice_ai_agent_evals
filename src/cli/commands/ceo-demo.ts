@@ -37,12 +37,16 @@ const SCENARIOS: readonly Scenario[] = Object.freeze([
   },
   {
     id: 'emergency',
-    intent: 'Your air conditioning stopped working last night and the house is uncomfortably hot. This is urgent but no one is in physical danger. You want a same-day visit. You will give your callback number when asked.',
+    intent: 'Your air conditioning stopped working last night and the house is uncomfortably hot. '
+      + 'This is urgent but no one is in physical danger. You want a same-day visit. '
+      + 'You will give your callback number when asked.',
     first_message: 'My AC stopped working last night and I need someone to come look at it today.',
   },
   {
     id: 'incomplete-info',
-    intent: 'You start the call without giving complete information. When asked for a callback number, you give only part of it the first time, then correct yourself. Your name is Jamie. Your full number is +15553346666.',
+    intent: 'You start the call without giving complete information. When asked for a callback number, '
+      + 'you give only part of it the first time, then correct yourself. Your name is Jamie. '
+      + 'Your full number is +15553346666.',
     first_message: 'Hi, I have a problem with my heating, can someone help?',
   },
 ]);
@@ -67,6 +71,14 @@ type RunResult = {
   passed: boolean;
   transcript_preview: string;
   transcript?: Array<{role: string; message: string}>;
+};
+
+type EmptyResultInput = {
+  scenarioId: string;
+  personaId: string;
+  status: RunResult['status'];
+  httpStatus?: number;
+  error?: string;
 };
 
 type SimulateResponse = {
@@ -112,7 +124,7 @@ export async function runCeoDemo(options: CeoDemoOptions = {}): Promise<number> 
     agentId, trial_count: trials.length, scenarios: scenarios.map(s => s.id), personas: personas.map(p => p.id),
   });
 
-  out(`voice-evals ceo-demo`);
+  out('voice-evals ceo-demo');
   out(`  agent:       ${agentId}`);
   out(`  scenarios:   ${scenarios.map(s => s.id).join(', ')}`);
   out(`  personas:    ${personas.map(p => p.id).join(', ')}`);
@@ -128,12 +140,16 @@ export async function runCeoDemo(options: CeoDemoOptions = {}): Promise<number> 
     });
     const mark = result.passed ? '✓' : '✗';
     out(`  ${mark} ${trialId}  (${result.agent_turns} agent / ${result.user_turns} user turns)`);
-    trace.info('trial', {trial_id: trialId, passed: result.passed, status: result.status, score: result.score});
+    trace.info('trial', {
+      trial_id: trialId, passed: result.passed, status: result.status, score: result.score,
+    });
     return result;
   });
 
   const elapsedMs = Date.now() - startedAt;
-  const summary = summarise(results, personas, scenarios, agentId, elapsedMs);
+  const summary = summarise({
+    results, personas, scenarios, agentId, elapsedMs,
+  });
 
   // Persist report.
   const reportDir = options.outputDir ?? join(process.cwd(), 'reports');
@@ -199,18 +215,33 @@ async function runOneTrial(parameters: {
       body: JSON.stringify(body),
     });
   } catch (error) {
-    return emptyResult(scenario.id, persona.id, 'fetch_error', undefined, (error as Error).message);
+    return emptyResult({
+      scenarioId: scenario.id,
+      personaId: persona.id,
+      status: 'fetch_error',
+      error: (error as Error).message,
+    });
   }
 
   if (!response.ok) {
     const text = await response.text().catch(() => '<unreadable>');
-    return emptyResult(scenario.id, persona.id, 'http_error', response.status, text.slice(0, 400));
+    return emptyResult({
+      scenarioId: scenario.id,
+      personaId: persona.id,
+      status: 'http_error',
+      httpStatus: response.status,
+      error: text.slice(0, 400),
+    });
   }
 
   const json = await response.json().catch(() => ({})) as SimulateResponse;
   const transcript = json.simulated_conversation ?? json.transcript ?? [];
   if (transcript.length === 0) {
-    return emptyResult(scenario.id, persona.id, 'no_transcript');
+    return emptyResult({
+      scenarioId: scenario.id,
+      personaId: persona.id,
+      status: 'no_transcript',
+    });
   }
 
   const agentTurns = transcript.filter(t => t.role === 'agent');
@@ -234,13 +265,13 @@ async function runOneTrial(parameters: {
   };
 }
 
-function emptyResult(scenarioId: string, personaId: string, status: RunResult['status'], httpStatus?: number, error?: string): RunResult {
+function emptyResult(input: EmptyResultInput): RunResult {
   return {
-    scenario_id: scenarioId,
-    persona_id: personaId,
-    status,
-    http_status: httpStatus,
-    error,
+    scenario_id: input.scenarioId,
+    persona_id: input.personaId,
+    status: input.status,
+    http_status: input.httpStatus,
+    error: input.error,
     agent_turns: 0,
     user_turns: 0,
     score: {
@@ -254,23 +285,23 @@ function emptyResult(scenarioId: string, personaId: string, status: RunResult['s
 function scoreTranscript(transcript: Array<{role: string; message: string}>, scenario: Scenario): ScoreRecord {
   // Normalize whitespace — simulate-conversation transcripts contain double-spaces,
   // \n\n artifacts, and "5 5 5 - 1 2 3" digit-spacing that defeat naked regexes.
-  const normalize = (s: string): string => s.replace(/\s+/g, ' ').trim();
+  const normalize = (s: string): string => s.replaceAll(/\s+/g, ' ').trim();
   const agentRaw = transcript.filter(t => t.role === 'agent').map(t => t.message).join(' ');
   const userRaw = transcript.filter(t => t.role === 'user').map(t => t.message).join(' ');
   const agentText = normalize(agentRaw);
   const userText = normalize(userRaw);
   const agentLower = agentText.toLowerCase();
   const allLower = (agentText + ' ' + userText).toLowerCase();
-  const closingTurn = normalize(transcript.filter(t => t.role === 'agent').at(-1)?.message ?? '');
+  const closingTurn = normalize(transcript.findLast(t => t.role === 'agent')?.message ?? '');
 
   // 1. named: agent asked for a name OR the user provided one (any form).
   const askedForName = /\b(your name|may i (have|get) your name|who am i (speaking|talking) (to|with)|what'?s your name|can i (get|have) your name)\b/i.test(agentText);
-  const namedInUser = /\b(?:i'm|i am|my name is|this is|it'?s|name's|call me|name is)\s+[A-Z][a-z]{1,15}\b/i.test(userText);
+  const namedInUser = /\b(?:i'm|i am|my name is|this is|it'?s|name's|call me|name is)\s+[a-z]{2,16}\b/i.test(userText);
   const named = askedForName || namedInUser;
 
   // 2. phone: agent acknowledged a callback number (asked or confirmed), OR caller said one.
   const askedForPhone = /\b(callback|call.back|callback number|phone number|number to (reach|call)|best number|your number|number to call you)\b/i.test(agentText);
-  const phoneDigitsInUser = /(?:\b\d[\s\-]?){7,}/.test(userText) || /\bfive\s+five\s+five\b/i.test(userText);
+  const phoneDigitsInUser = /(?:\b\d[\s-]?){7,}/.test(userText) || /\b(?:five\s+){2}five\b/i.test(userText);
   const phone = askedForPhone || phoneDigitsInUser;
 
   // 3. request_captured: agent paraphrased or named the service type from the scenario.
@@ -285,8 +316,8 @@ function scoreTranscript(transcript: Array<{role: string; message: string}>, sce
   // 5. clean_close: agent had at least 2 turns, no `{{var}}` template-leak,
   //    no `[directive]` bracket-leak (e.g. `[kindred]`, `[calm]` v3 TTS cues
   //    that aren't supposed to be in spoken text).
-  const hasMustacheLeak = /\{\{[\w.]+\}\}|\$\{[\w.]+\}/.test(agentRaw);
-  const hasBracketLeak = /\[[a-z][a-z0-9_-]+\]/i.test(agentRaw);
+  const hasMustacheLeak = /{{[\w.]+}}|\${[\w.]+}/.test(agentRaw);
+  const hasBracketLeak = /\[[a-z][\w-]+]/i.test(agentRaw);
   const conversedAtAll = transcript.filter(t => t.role === 'agent').length >= 2;
   const closingNonEmpty = closingTurn.length > 0;
   const cleanClose = conversedAtAll && closingNonEmpty && !hasMustacheLeak && !hasBracketLeak;
@@ -316,13 +347,18 @@ type Summary = {
   errors: Array<{trial: string; status: RunResult['status']; http_status?: number; error?: string}>;
 };
 
-function summarise(
-  results: RunResult[],
-  personas: readonly typeof CANONICAL_PERSONAS[number][],
-  scenarios: readonly Scenario[],
-  agentId: string,
-  elapsedMs: number,
-): Summary {
+type SummaryInput = {
+  results: RunResult[];
+  personas: ReadonlyArray<typeof CANONICAL_PERSONAS[number]>;
+  scenarios: readonly Scenario[];
+  agentId: string;
+  elapsedMs: number;
+};
+
+function summarise(input: SummaryInput): Summary {
+  const {
+    results, personas, scenarios, agentId, elapsedMs,
+  } = input;
   const total = results.length;
   const passed = results.filter(r => r.passed).length;
   const pct = (n: number, d: number): number => d === 0 ? 0 : Math.round((n / d) * 1000) / 10;
@@ -330,7 +366,9 @@ function summarise(
   const perPersona = personas.map(p => {
     const rows = results.filter(r => r.persona_id === p.id);
     const ok = rows.filter(r => r.passed).length;
-    return {persona_id: p.id, total: rows.length, passed: ok, pass_rate_pct: pct(ok, rows.length)};
+    return {
+      persona_id: p.id, total: rows.length, passed: ok, pass_rate_pct: pct(ok, rows.length),
+    };
   });
 
   const dimensions: Array<keyof ScoreRecord> = ['named', 'phone', 'request_captured', 'urgency_classified', 'clean_close'];
@@ -342,7 +380,9 @@ function summarise(
   const perScenario = scenarios.map(s => {
     const rows = results.filter(r => r.scenario_id === s.id);
     const ok = rows.filter(r => r.passed).length;
-    return {scenario_id: s.id, total: rows.length, passed: ok, pass_rate_pct: pct(ok, rows.length)};
+    return {
+      scenario_id: s.id, total: rows.length, passed: ok, pass_rate_pct: pct(ok, rows.length),
+    };
   });
 
   const errors = results.filter(r => r.status !== 'ok').map(r => ({
@@ -368,20 +408,22 @@ async function runWithConcurrency<T, R>(
   concurrency: number,
   worker: (item: T) => Promise<R>,
 ): Promise<R[]> {
-  const results: R[] = new Array(items.length);
+  const results: R[] = Array.from({length: items.length});
   let next = 0;
   const runners: Array<Promise<void>> = [];
-  for (let i = 0; i < concurrency; i++) {
-    runners.push((async () => {
-      while (true) {
-        const idx = next++;
-        if (idx >= items.length) {
-          return;
-        }
-
-        results[idx] = await worker(items[idx]);
+  async function runNext(): Promise<void> {
+    while (true) {
+      const idx = next++;
+      if (idx >= items.length) {
+        return;
       }
-    })());
+
+      results[idx] = await worker(items[idx]);
+    }
+  }
+
+  for (let i = 0; i < concurrency; i++) {
+    runners.push(runNext());
   }
 
   await Promise.all(runners);

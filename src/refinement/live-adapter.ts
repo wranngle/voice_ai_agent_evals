@@ -14,20 +14,20 @@ import type {VoiceEvalsClient} from '../wrapper/types';
 import type {PersonaCall, TranscriptTurn} from './types';
 
 const PERSONA_OPENERS: Record<string, string> = {
-  'polite-elderly': "Oh hello dear, I'm hoping you can help me with something.",
-  'frustrated-rusher': "Yeah look I don't have a lot of time — can you help me or not?",
-  'esl-non-native': "Hello, please, I need help. My English not so good.",
-  'confused-meanderer': "So I was thinking, and my neighbor said something, and I'm not sure where to start…",
-  'hostile-skeptic': "Wait — am I talking to a real person or one of those AI bots?",
+  'polite-elderly': 'Oh hello dear, I\'m hoping you can help me with something.',
+  'frustrated-rusher': 'Yeah look I don\'t have a lot of time — can you help me or not?',
+  'esl-non-native': 'Hello, please, I need help. My English not so good.',
+  'confused-meanderer': 'So I was thinking, and my neighbor said something, and I\'m not sure where to start…',
+  'hostile-skeptic': 'Wait — am I talking to a real person or one of those AI bots?',
 };
 
 function buildSimulatedUserPrompt(persona: Persona, businessContext: string): string {
   return [
-    `You are a SIMULATED CALLER to a small business voice agent. You are NOT the agent.`,
+    'You are a SIMULATED CALLER to a small business voice agent. You are NOT the agent.',
     `You are: ${persona.name} — ${persona.traits.description}`,
     `Pace: ~${persona.traits.pace_wpm} wpm. Interruption tendency: ${persona.traits.interruption_tendency}. Frustration slope: ${persona.traits.frustration_slope}.`,
     `Business context the agent will be serving: ${businessContext}`,
-    `Stay in character. Do not break the fourth wall. End the call naturally after your need is addressed or you give up.`,
+    'Stay in character. Do not break the fourth wall. End the call naturally after your need is addressed or you give up.',
   ].join(' ');
 }
 
@@ -65,9 +65,9 @@ function toPersonaCall(
       const matchingResult = (item.toolResults ?? []).find(r => r.toolName === tc.toolName);
       const status: 'success' | 'error' | 'pending' = matchingResult?.status === 'failure' || matchingResult?.status === 'error'
         ? 'error'
-        : matchingResult
+        : (matchingResult
           ? 'success'
-          : 'pending';
+          : 'pending');
       return {
         tool: tc.toolName ?? 'unknown',
         status,
@@ -106,8 +106,10 @@ export async function runLivePersonaCalls(options: LiveAdapterOptions): Promise<
   } = options;
 
   const personas = (personaIds ?? CANONICAL_PERSONAS.map(p => p.id))
-    .map(id => getPersona(id))
-    .filter((p): p is Persona => Boolean(p));
+    .flatMap(id => {
+      const persona = getPersona(id);
+      return persona ? [persona] : [];
+    });
 
   const results: PersonaCall[] = [];
 
@@ -120,9 +122,9 @@ export async function runLivePersonaCalls(options: LiveAdapterOptions): Promise<
         simulatedUserConfig: {
           firstMessage,
           language: 'en',
-          prompt: {prompt: userPrompt} as unknown as never,
+          prompt: {prompt: userPrompt},
         },
-        ...(dynamicVariables ? {dynamicVariables: dynamicVariables as never} : {}),
+        ...(dynamicVariables ? {dynamicVariables} : {}),
       },
       newTurnsLimit,
     });
@@ -140,7 +142,7 @@ export async function inferBusinessContextFromAgent(
 ): Promise<{name: string; systemPrompt: string; rawConfig: unknown}> {
   const response = await client.raw.conversationalAi.agents.get(agentId);
   const raw = response as unknown as Record<string, unknown>;
-  const name = typeof raw.name === 'string' ? raw.name.replace(/^\[(?:DEV|ALPHA|BETA|PROD|ARCHIVED)]\s*/i, '') : `agent ${agentId}`;
+  const name = typeof raw.name === 'string' ? raw.name.replace(/^\[(?:dev|alpha|beta|prod|archived)]\s*/i, '') : `agent ${agentId}`;
   const config = raw.conversationConfig ?? raw.conversation_config;
   const agentBlock = (config as Record<string, unknown> | undefined)?.agent as Record<string, unknown> | undefined;
   const promptBlock = agentBlock?.prompt as Record<string, unknown> | undefined;

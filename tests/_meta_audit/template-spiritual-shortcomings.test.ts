@@ -22,23 +22,34 @@
  * The repo-wide README at tests/_meta_audit/README.md explains the philosophy.
  */
 
-import {describe, expect, it} from 'vitest';
-import {readFileSync, readdirSync, statSync, existsSync} from 'node:fs';
-import {join} from 'node:path';
 import {createHmac} from 'node:crypto';
+import {
+  existsSync, readFileSync, readdirSync, statSync,
+} from 'node:fs';
+import {join} from 'node:path';
+import {
+  describe, expect, it,
+} from 'vitest';
 import {verifyElevenLabsSignature, createReplayCache} from '../../src/security/elevenlabs-signature';
 
 const ROOT = process.cwd();
 const TESTS_DIR = join(ROOT, 'tests');
 
 function walkFiles(dir: string, predicate: (path: string) => boolean): string[] {
-  if (!existsSync(dir)) return [];
+  if (!existsSync(dir)) {
+    return [];
+  }
+
   const out: string[] = [];
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry);
-    if (statSync(full).isDirectory()) out.push(...walkFiles(full, predicate));
-    else if (predicate(full)) out.push(full);
+    if (statSync(full).isDirectory()) {
+      out.push(...walkFiles(full, predicate));
+    } else if (predicate(full)) {
+      out.push(full);
+    }
   }
+
   return out;
 }
 
@@ -47,6 +58,10 @@ function grepFiles(dir: string, pattern: RegExp, fileFilter = (p: string) => p.e
   return walkFiles(dir, fileFilter)
     .filter(p => !p.endsWith(SELF_FILE)) // exclude self — the contract file itself contains the search patterns
     .filter(p => pattern.test(readFileSync(p, 'utf8')));
+}
+
+function hasElevenLabsApiReference(source: string): boolean {
+  return /(?:https:\/\/)?api\.elevenlabs\.io\/v1\/convai/.test(source);
 }
 
 describe('META-AUDIT: SPIRITUAL — aspirational contracts that should hold but do not', () => {
@@ -60,7 +75,7 @@ describe('META-AUDIT: SPIRITUAL — aspirational contracts that should hold but 
    */
   it('E1 [PROMOTED-PARTIAL]: live ElevenLabs simulate-conversation test exists', () => {
     const candidates = grepFiles(TESTS_DIR, /simulate-conversation/)
-      .filter(p => /api\.elevenlabs\.io\/v1\/convai\/agents/.test(readFileSync(p, 'utf8')));
+      .filter(p => readFileSync(p, 'utf8').includes('api.elevenlabs.io/v1/convai/agents'));
     expect(candidates.length, 'no live simulate-conversation test found').toBeGreaterThan(0);
   });
 
@@ -78,7 +93,7 @@ describe('META-AUDIT: SPIRITUAL — aspirational contracts that should hold but 
    */
   it('E2 [PROMOTED]: a post-call sink handler exists that combines HMAC-verify with a persistent write', () => {
     const handlerCandidates = grepFiles(join(ROOT, 'src'), /verifyElevenLabsSignature/)
-      .filter(p => /writeFileSync|appendFileSync|insert\s*\(|db\.|prisma\.|pg\.|notion\./i.test(readFileSync(p, 'utf8')));
+      .filter(p => /writefilesync|appendfilesync|insert\s*\(|db\.|prisma\.|pg\.|notion\./i.test(readFileSync(p, 'utf8')));
     expect(handlerCandidates.length, 'no post-call → sink handler found').toBeGreaterThan(0);
   });
 
@@ -106,9 +121,12 @@ describe('META-AUDIT: SPIRITUAL — aspirational contracts that should hold but 
    * GovernanceError. Below detects that.
    */
   it('E4 [PROMOTED]: live governance test exists targeting [PROD] mutation rejection', () => {
-    const candidates = grepFiles(TESTS_DIR, /\[PROD\]/)
-      .filter(p => /GovernanceError/.test(readFileSync(p, 'utf8')))
-      .filter(p => /createVoiceEvalsClient|api\.elevenlabs\.io/.test(readFileSync(p, 'utf8')));
+    const candidates = grepFiles(TESTS_DIR, /\[PROD]/)
+      .filter(p => readFileSync(p, 'utf8').includes('GovernanceError'))
+      .filter(p => {
+        const source = readFileSync(p, 'utf8');
+        return source.includes('createVoiceEvalsClient') || hasElevenLabsApiReference(source);
+      });
     expect(candidates.length, 'live governance test missing').toBeGreaterThan(0);
   });
 
@@ -122,7 +140,7 @@ describe('META-AUDIT: SPIRITUAL — aspirational contracts that should hold but 
   it('E5 [PROMOTED]: labeled ground-truth scoring dataset is present with ≥20 conversations', () => {
     const fixturePath = join(ROOT, 'tests', 'fixtures', 'labeled-conversations.json');
     expect(existsSync(fixturePath), 'fixture file missing').toBe(true);
-    const data = JSON.parse(readFileSync(fixturePath, 'utf8')) as Array<unknown>;
+    const data = JSON.parse(readFileSync(fixturePath, 'utf8')) as unknown[];
     expect(data.length).toBeGreaterThanOrEqual(20);
   });
 
@@ -136,23 +154,23 @@ describe('META-AUDIT: SPIRITUAL — aspirational contracts that should hold but 
    */
   it('E6 [PROMOTED]: polishLoop has at least one test that asserts improvedDimensions/netImprovement', () => {
     const candidates = grepFiles(join(ROOT, 'tests'), /polishLoop|PolishLoopResult/)
-      .filter(p => /improvedDimensions|netImprovement|regressed/i.test(readFileSync(p, 'utf8')));
+      .filter(p => /improveddimensions|netimprovement|regressed/i.test(readFileSync(p, 'utf8')));
     expect(candidates.length, 'polishLoop effectiveness assertions found in tests/').toBeGreaterThan(0);
   });
 
   /**
-   * E7 PARTIALLY PROMOTED — the second `it` in
-   * `tests/integration/elevenlabs-simulate-live.test.ts` injects a uniquely-
-   * tagged `first_message` via `conversation_config_override` on a live
-   * simulate-conversation request, then asserts the override appears in the
-   * agent's transcript. Closes the "override never verified end-to-end" gap.
-   * The audio path remains the same separate forcing function as E1.
+   * E7 TRACKED-OPT-IN — `simulate-conversation` is still useful as a live text
+   * proxy, but the current public API reference does not list
+   * `conversation_config_override` on that endpoint. Keep an opt-in live check
+   * available for explicitly configured agents/API versions; do not count it
+   * as default proof of webhook-delivered first-message override behavior.
    */
-  it('E7 [PROMOTED-PARTIAL]: override verification test exists with live simulate-conversation', () => {
+  it('E7 [TRACKED-OPT-IN]: first-message override check is explicitly gated', () => {
     const candidates = grepFiles(TESTS_DIR, /conversation_config_override/)
-      .filter(p => /simulate-conversation/.test(readFileSync(p, 'utf8')))
-      .filter(p => /first_message/.test(readFileSync(p, 'utf8')));
-    expect(candidates.length, 'override verification via live simulate-conversation missing').toBeGreaterThan(0);
+      .filter(p => readFileSync(p, 'utf8').includes('simulate-conversation'))
+      .filter(p => readFileSync(p, 'utf8').includes('VOICE_EVALS_SIMULATE_OVERRIDE_CHECK'))
+      .filter(p => readFileSync(p, 'utf8').includes('first_message'));
+    expect(candidates.length, 'opt-in override verification via live simulate-conversation missing').toBeGreaterThan(0);
   });
 
   /**
@@ -190,7 +208,7 @@ describe('META-AUDIT: SPIRITUAL — aspirational contracts that should hold but 
   it('E9 [PROMOTED]: labeled data_collection benchmark fixture is present', () => {
     const fixturePath = join(ROOT, 'tests', 'fixtures', 'data-collection-benchmark.json');
     expect(existsSync(fixturePath), 'fixture file missing').toBe(true);
-    const data = JSON.parse(readFileSync(fixturePath, 'utf8')) as Array<unknown>;
+    const data = JSON.parse(readFileSync(fixturePath, 'utf8')) as unknown[];
     expect(data.length).toBeGreaterThanOrEqual(5);
   });
 
@@ -203,7 +221,7 @@ describe('META-AUDIT: SPIRITUAL — aspirational contracts that should hold but 
    */
   it('E10: every public CLI verb file imports a JSONL tracer', () => {
     const commandFiles = walkFiles(join(ROOT, 'src', 'cli', 'commands'), p => p.endsWith('.ts') && !p.endsWith('.test.ts') && !p.includes('config-loader'));
-    const untraced = commandFiles.filter(p => !/createTracer\(|jsonl-trace/i.test(readFileSync(p, 'utf8')));
+    const untraced = commandFiles.filter(p => !/createtracer\(|jsonl-trace/i.test(readFileSync(p, 'utf8')));
     expect(untraced, `CLI verbs without JSONL tracing: ${untraced.map(p => p.split('/').pop()).join(', ')}`).toEqual([]);
   });
 });

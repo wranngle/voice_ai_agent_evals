@@ -18,13 +18,13 @@
 
 import {existsSync, readFileSync} from 'node:fs';
 import type {VoiceEvalsClient} from '../../../wrapper/types';
+import {createTracer} from '../../../internal/jsonl-trace';
 import type {UploadManifestEntry} from './upload';
 import {buildClientFromEnv} from './client-builder';
-import {createTracer} from '../../../internal/jsonl-trace';
 
 const trace = createTracer('cli.factory.cleanup');
 // JSONL tracing — emit start/end events from dispatch entry points.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 void trace;
 
 export type FactoryCleanupOptions = {
@@ -86,7 +86,7 @@ export async function runFactoryCleanup(options: FactoryCleanupOptions): Promise
   } else {
     const visible = await client.tests.list();
     targetIds = visible.map(t => t.id);
-    scopeLabel = `--all (every test visible to the API key)`;
+    scopeLabel = '--all (every test visible to the API key)';
   }
 
   out(`Found ${targetIds.length} test(s) to delete via ${scopeLabel}…`);

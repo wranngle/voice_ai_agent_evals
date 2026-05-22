@@ -6,17 +6,19 @@
  * transcripts so the console doesn't have to recompute them client-side.
  */
 
-import {readdirSync, readFileSync, writeFileSync, existsSync} from 'node:fs';
-import {join, dirname} from 'node:path';
+import {
+  readdirSync, readFileSync, writeFileSync,
+} from 'node:fs';
+import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
-const HERE = dirname(fileURLToPath(import.meta.url));
-const REPORTS = join(HERE, '..', 'reports');
-const OUT = join(HERE, 'runs.json');
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const REPORTS = path.join(HERE, '..', 'reports');
+const OUT = path.join(HERE, 'runs.json');
 
-const BRACKET_RE = /\[[a-z][a-z0-9_-]+\]/gi;
-const MUSTACHE_RE = /\{\{[\w.]+\}\}/g;
-const PHONE_DIGITS_RE = /(?:\b\d[\s\-]?){7,}/;
+const BRACKET_RE = /\[[a-z][\w-]+]/gi;
+const MUSTACHE_RE = /{{[\w.]+}}/g;
+const PHONE_DIGITS_RE = /(?:\b\d[\s-]?){7,}/;
 
 function deriveTrialMetrics(trial) {
   const transcript = trial.transcript ?? [];
@@ -29,7 +31,7 @@ function deriveTrialMetrics(trial) {
   const bracketUnique = [...new Set(bracketMatches.map(s => s.toLowerCase()))];
   const mustacheMatches = [...agentText.matchAll(MUSTACHE_RE)].map(m => m[0]);
 
-  const closingTurn = (agentTurns.at(-1)?.message ?? '').replace(/\s+/g, ' ').trim();
+  const closingTurn = (agentTurns.at(-1)?.message ?? '').replaceAll(/\s+/g, ' ').trim();
   const emptyClose = closingTurn.length === 0;
   const truncatedByLimit = transcript.length >= 14; // new_turns_limit was 14
 
@@ -38,7 +40,7 @@ function deriveTrialMetrics(trial) {
   const avgAgentTurnChars = agentTurns.length === 0 ? 0 : Math.round(agentChars / agentTurns.length);
   const avgUserTurnChars = userTurns.length === 0 ? 0 : Math.round(userChars / userTurns.length);
 
-  const phoneInUser = PHONE_DIGITS_RE.test(userText.replace(/\s+/g, ' '));
+  const phoneInUser = PHONE_DIGITS_RE.test(userText.replaceAll(/\s+/g, ' '));
 
   return {
     derived: {
@@ -73,13 +75,30 @@ function loadRun(path) {
     has_transcripts: false,
   };
   for (const r of enrichedResults) {
-    if (!r.derived) continue;
+    if (!r.derived) {
+      continue;
+    }
+
     defects.has_transcripts = true;
-    if (r.derived.bracket_leak_count > 0) defects.bracket_leak_trials++;
-    for (const b of r.derived.bracket_leaks) defects.bracket_leaks_seen[b] = (defects.bracket_leaks_seen[b] ?? 0) + 1;
-    if (r.derived.mustache_leak_count > 0) defects.mustache_leak_trials++;
-    if (r.derived.empty_close) defects.empty_close_trials++;
-    if (r.derived.truncated_by_turn_limit) defects.truncated_trials++;
+    if (r.derived.bracket_leak_count > 0) {
+      defects.bracket_leak_trials++;
+    }
+
+    for (const b of r.derived.bracket_leaks) {
+      defects.bracket_leaks_seen[b] = (defects.bracket_leaks_seen[b] ?? 0) + 1;
+    }
+
+    if (r.derived.mustache_leak_count > 0) {
+      defects.mustache_leak_trials++;
+    }
+
+    if (r.derived.empty_close) {
+      defects.empty_close_trials++;
+    }
+
+    if (r.derived.truncated_by_turn_limit) {
+      defects.truncated_trials++;
+    }
   }
 
   return {
@@ -94,14 +113,14 @@ const files = readdirSync(REPORTS)
   .filter(f => f.startsWith('ceo-demo-') && f.endsWith('.json'))
   .sort();
 
-const runs = files.map(f => loadRun(join(REPORTS, f)));
+const runs = files.map(f => loadRun(path.join(REPORTS, f)));
 
 // Run-over-run trend: previous pass-rate, delta, defect deltas.
 for (let i = 0; i < runs.length; i++) {
   const prev = i > 0 ? runs[i - 1] : null;
   runs[i].trend = {
     prev_pass_pct: prev?.summary.pass_rate_pct ?? null,
-    pass_delta_pct: prev ? +(runs[i].summary.pass_rate_pct - prev.summary.pass_rate_pct).toFixed(1) : null,
+    pass_delta_pct: prev ? Number((runs[i].summary.pass_rate_pct - prev.summary.pass_rate_pct).toFixed(1)) : null,
     is_first: prev === null,
   };
 }

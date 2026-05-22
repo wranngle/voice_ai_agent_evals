@@ -32,7 +32,7 @@ describe('META-AUDIT: [TEMPLATE] agent snapshot has production-grade shape', () 
   it('agent.prompt.llm is not a banned model', () => {
     const snap = JSON.parse(readFileSync(SNAPSHOT_PATH, 'utf8'));
     const rankings = JSON.parse(readFileSync(MODEL_RANKINGS_PATH, 'utf8'));
-    const llm = snap.conversation_config.agent.prompt.llm;
+    const {llm} = snap.conversation_config.agent.prompt;
     expect(llm).toBeTypeOf('string');
     const banned: string[] = rankings.banned ?? [];
     expect(banned).not.toContain(llm);
@@ -51,7 +51,7 @@ describe('META-AUDIT: [TEMPLATE] agent snapshot has production-grade shape', () 
 
   it('guardrails are enabled for sexual, violence, harassment, self_harm', () => {
     const snap = JSON.parse(readFileSync(SNAPSHOT_PATH, 'utf8'));
-    const config = snap.platform_settings.guardrails.content.config;
+    const {config} = snap.platform_settings.guardrails.content;
     for (const category of ['sexual', 'violence', 'harassment', 'self_harm']) {
       expect(config[category]?.is_enabled, `${category} guardrail must be enabled`).toBe(true);
     }
@@ -89,6 +89,7 @@ describe('META-AUDIT: v1 system prompt has the five canonical sections in order'
     for (const [name, idx] of [['Personality', idxPersonality], ['Goal', idxGoal], ['Guardrails', idxGuardrails], ['Tone', idxTone], ['Tools', idxTools]] as const) {
       expect(idx, `# ${name} section missing`).toBeGreaterThan(-1);
     }
+
     expect(idxPersonality).toBeLessThan(idxGoal);
     expect(idxGoal).toBeLessThan(idxGuardrails);
     expect(idxGuardrails).toBeLessThan(idxTone);
@@ -114,7 +115,7 @@ describe('META-AUDIT: v1 system prompt has the five canonical sections in order'
     // interprets bracketed tokens as emotion / non-verbal cues; if the prompt
     // doesn't explicitly forbid them, the model hallucinates them.
     const text = readFileSync(PROMPT_V1_PATH, 'utf8');
-    expect(text).toMatch(/bracket(ed)?\s+(style\s+)?directive|TTS\s+markup|\[calm\]|\[laughs\]/i);
+    expect(text).toMatch(/bracket(ed)?\s+(style\s+)?directive|tts\s+markup|\[calm]|\[laughs]/i);
   });
 });
 
@@ -129,12 +130,15 @@ describe('META-AUDIT: first_message has no bracketed-directive prefix', () => {
   const SNAPSHOT_FILES = [
     'snapshots/dev-inbound-template-2026-05-14-post-kindred-fix.json',
   ];
-  const BRACKET_PREFIX = /^\[[a-zA-Z][a-zA-Z0-9_-]*\][ \t \s]+/;
+  const BRACKET_PREFIX = /^\[[a-zA-Z][\w-]*][ \t\u00A0\s]+/;
 
   for (const file of SNAPSHOT_FILES) {
     it(`${file}: agent.first_message has no [directive] prefix`, () => {
       const path = join(ROOT, file);
-      if (!existsSync(path)) return;
+      if (!existsSync(path)) {
+        return;
+      }
+
       const snap = JSON.parse(readFileSync(path, 'utf8'));
       const fm: string | undefined = snap.conversation_config?.agent?.first_message;
       if (typeof fm === 'string') {
@@ -144,10 +148,15 @@ describe('META-AUDIT: first_message has no bracketed-directive prefix', () => {
 
     it(`${file}: every language_preset override.first_message has no [directive] prefix`, () => {
       const path = join(ROOT, file);
-      if (!existsSync(path)) return;
+      if (!existsSync(path)) {
+        return;
+      }
+
       const snap = JSON.parse(readFileSync(path, 'utf8'));
-      const presets = snap.conversation_config?.language_presets ?? {};
-      for (const [lang, preset] of Object.entries(presets) as Array<[string, {overrides?: {agent?: {first_message?: string}}}]>) {
+      const presets = (snap.conversation_config?.language_presets ?? {}) as Record<string, {
+        overrides?: {agent?: {first_message?: string}};
+      }>;
+      for (const [lang, preset] of Object.entries(presets)) {
         const fm = preset.overrides?.agent?.first_message;
         if (typeof fm === 'string') {
           expect(fm, `${lang}.overrides.agent.first_message starts with bracket-directive: "${fm.slice(0, 40)}..."`).not.toMatch(BRACKET_PREFIX);
@@ -157,10 +166,13 @@ describe('META-AUDIT: first_message has no bracketed-directive prefix', () => {
 
     it(`${file}: system prompt forbids v3 bracket-directive emissions`, () => {
       const path = join(ROOT, file);
-      if (!existsSync(path)) return;
+      if (!existsSync(path)) {
+        return;
+      }
+
       const snap = JSON.parse(readFileSync(path, 'utf8'));
       const prompt: string = snap.conversation_config?.agent?.prompt?.prompt ?? '';
-      expect(prompt).toMatch(/bracket(ed)?\s+(style\s+)?directive|TTS\s+markup|\[calm\]|\[laughs\]/i);
+      expect(prompt).toMatch(/bracket(ed)?\s+(style\s+)?directive|tts\s+markup|\[calm]|\[laughs]/i);
     });
   }
 });
@@ -195,10 +207,14 @@ describe('META-AUDIT: data_collection template matches ElevenLabs shape', () => 
     const collisions: string[] = [];
     for (const fields of Object.values(json)) {
       for (const id of Object.keys(fields)) {
-        if (seen.has(id)) collisions.push(id);
+        if (seen.has(id)) {
+          collisions.push(id);
+        }
+
         seen.add(id);
       }
     }
+
     expect(collisions).toEqual([]);
   });
 });

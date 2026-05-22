@@ -13,9 +13,11 @@
  *   8. Generate compliance artifact + regression suite + write session JSON
  */
 
-import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
+import {
+  existsSync, mkdirSync, readFileSync, writeFileSync,
+} from 'node:fs';
 import {join} from 'node:path';
-
+import type {VoiceEvalsClient} from '../wrapper/types';
 import {renderComplianceArtifact} from './compliance';
 import {enrich, enrichFromAgentPrompt} from './enrich';
 import {detectFailures, loadCatalog} from './failure-detector';
@@ -27,7 +29,6 @@ import {fillSystemPrompt, selectTemplate} from './template-selector';
 import type {
   PersonaCall, RefineOptions, RefinementSession, VerticalTemplate,
 } from './types';
-import type {VoiceEvalsClient} from '../wrapper/types';
 
 function newSessionId(): string {
   const ts = new Date().toISOString().replaceAll(/[:.]/g, '-');
@@ -47,10 +48,12 @@ function aggregateScore(
   if (calls.length === 0) {
     return 0;
   }
+
   let total = 0;
   for (const call of calls) {
     total += scoreCall(call, failuresByPersona.get(call.persona_id) ?? 0);
   }
+
   return total / calls.length;
 }
 
@@ -59,6 +62,7 @@ function countFailuresByPersona(failures: ReturnType<typeof detectFailures>): Ma
   for (const failure of failures) {
     map.set(failure.persona_id, (map.get(failure.persona_id) ?? 0) + 1);
   }
+
   return map;
 }
 
@@ -120,9 +124,7 @@ export async function runRefinement(
     log.emit('enrichment.start', 'start', `fetching agent ${options.agent_id} from ElevenLabs`);
     const ctx = await inferBusinessContextFromAgent(liveClient, options.agent_id);
     enrichment = await enrichFromAgentPrompt({agentName: ctx.name, systemPrompt: ctx.systemPrompt});
-    log.emit('enrichment.done', 'ok',
-      `inferred ${enrichment.vertical_label} from agent system prompt`,
-      {sources: enrichment.sources, agent_id: options.agent_id});
+    log.emit('enrichment.done', 'ok', `inferred ${enrichment.vertical_label} from agent system prompt`, {sources: enrichment.sources, agent_id: options.agent_id});
   } else {
     log.emit('enrichment.start', 'start', `looking up ${options.business_name ?? '(no name)'}`);
     enrichment = await enrich({
@@ -148,8 +150,7 @@ export async function runRefinement(
   const filledPrompt = fillSystemPrompt(template, enrichment);
   log.emit('prompt.fill', 'ok', `system prompt rendered (${filledPrompt.length} chars)`);
 
-  log.emit('personas.before.start', 'start',
-    isLive ? 'simulating 5 canonical personas against live agent' : 'exercising 5 canonical personas (before)');
+  log.emit('personas.before.start', 'start', isLive ? 'simulating 5 canonical personas against live agent' : 'exercising 5 canonical personas (before)');
   const personaIds = options.persona_ids ?? CANONICAL_PERSONA_IDS;
   const beforeCalls: PersonaCall[] = isLive && liveClient && options.agent_id
     ? await runLivePersonaCalls({
@@ -167,12 +168,12 @@ export async function runRefinement(
   log.emit('detect.start', 'start', 'applying failure-mode catalog');
   const catalog = loadCatalog();
   const beforeFailures = detectFailures(beforeCalls, catalog, template.priority_failure_modes);
-  const severityCounts = beforeFailures.reduce<Record<string, number>>((acc, f) => {
-    acc[f.severity] = (acc[f.severity] ?? 0) + 1;
-    return acc;
-  }, {});
-  log.emit('detect.done', beforeFailures.length > 0 ? 'warn' : 'ok',
-    `${beforeFailures.length} defects detected`, severityCounts);
+  const severityCounts: Record<string, number> = {};
+  for (const failure of beforeFailures) {
+    severityCounts[failure.severity] = (severityCounts[failure.severity] ?? 0) + 1;
+  }
+
+  log.emit('detect.done', beforeFailures.length > 0 ? 'warn' : 'ok', `${beforeFailures.length} defects detected`, severityCounts);
 
   log.emit('diff.start', 'start', 'building plain-language fix proposals');
   const promptDiffs = buildPromptDiffs(beforeFailures);
@@ -183,11 +184,13 @@ export async function runRefinement(
     ? beforeCalls.map(c => ({...c, ttfb_ms: Math.max(400, Math.round((c.ttfb_ms ?? 800) * 0.65))}))
     : getPersonaCalls(template.id, 'after', [...personaIds]);
   const afterFailures = isLive ? [] : detectFailures(afterCalls, catalog, template.priority_failure_modes);
-  log.emit('personas.after.done',
+  log.emit(
+    'personas.after.done',
     afterFailures.length === 0 ? 'ok' : 'warn',
     isLive
       ? 'live replay deferred to phase 2 (current run scores from one pass + proposed fixes)'
-      : `replay produced ${afterFailures.length} residual defects`);
+      : `replay produced ${afterFailures.length} residual defects`,
+  );
 
   const beforeByPersona = countFailuresByPersona(beforeFailures);
   const afterByPersona = countFailuresByPersona(afterFailures);
@@ -200,17 +203,14 @@ export async function runRefinement(
     after: Math.min(0.99, after + 0.02 + Math.random() * 0.03),
   }));
 
-  log.emit('scoreboard', 'ok',
-    `overall ${(before * 100).toFixed(0)}% → ${(after * 100).toFixed(0)}% (+${((after - before) * 100).toFixed(0)} points)`);
+  log.emit('scoreboard', 'ok', `overall ${(before * 100).toFixed(0)}% → ${(after * 100).toFixed(0)}% (+${((after - before) * 100).toFixed(0)} points)`);
 
   const regressionSuite = buildRegressionSuite(template, beforeCalls, beforeFailures);
   writeFileSync(join(sessionDir, 'regression-suite.json'), JSON.stringify(regressionSuite, null, 2));
-  log.emit('regression.persist', 'ok', `${regressionSuite.length}-case regression suite captured`,
-    {path: `proof/sessions/${sessionId}/regression-suite.json`});
+  log.emit('regression.persist', 'ok', `${regressionSuite.length}-case regression suite captured`, {path: `proof/sessions/${sessionId}/regression-suite.json`});
 
   writeFileSync(join(sessionDir, 'system-prompt.md'), filledPrompt);
-  log.emit('artifact.prompt', 'ok', 'rendered system prompt persisted',
-    {path: `proof/sessions/${sessionId}/system-prompt.md`});
+  log.emit('artifact.prompt', 'ok', 'rendered system prompt persisted', {path: `proof/sessions/${sessionId}/system-prompt.md`});
 
   const session: RefinementSession = {
     session_id: sessionId,
@@ -231,13 +231,11 @@ export async function runRefinement(
   const compliancePath = join(sessionDir, 'compliance.html');
   writeFileSync(compliancePath, compliance);
   session.compliance_artifact_path = `proof/sessions/${sessionId}/compliance.html`;
-  log.emit('compliance.persist', 'ok', 'one-page compliance artifact generated',
-    {path: session.compliance_artifact_path});
+  log.emit('compliance.persist', 'ok', 'one-page compliance artifact generated', {path: session.compliance_artifact_path});
 
   writeFileSync(join(sessionDir, 'after-calls.json'), JSON.stringify(afterCalls, null, 2));
   writeFileSync(join(sessionDir, 'session.json'), JSON.stringify({...session, events: log.snapshot()}, null, 2));
-  log.emit('session.persist', 'ok', 'session manifest written',
-    {path: `proof/sessions/${sessionId}/session.json`});
+  log.emit('session.persist', 'ok', 'session manifest written', {path: `proof/sessions/${sessionId}/session.json`});
 
   log.emit('session.complete', 'ok', `refinement complete in ${log.snapshot().length} steps`);
   session.events = log.snapshot();

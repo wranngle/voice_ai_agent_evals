@@ -14,12 +14,12 @@
 import {polishLoop} from '../../remediation/polish-loop';
 import type {PolishLoopOptions, PolishLoopResult} from '../../remediation/types';
 import type {VoiceEvalsClient} from '../../wrapper/types';
-import {loadConfig} from './config-loader';
 import {createTracer} from '../../internal/jsonl-trace';
+import {loadConfig} from './config-loader';
 
 const trace = createTracer('cli.polish');
 // JSONL tracing — emit start/end events from dispatch entry points.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 void trace;
 
 export type PolishCliOptions = {

@@ -8,7 +8,6 @@
 
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
-
 import type {
   DetectedFailure, FailureModeCatalog, FailureModeEntry, PersonaCall, TranscriptTurn,
 } from './types';
@@ -27,6 +26,7 @@ export function loadCatalog(): FailureModeCatalog {
       // Try next path.
     }
   }
+
   throw new Error('config/failure-mode-catalog.json not found');
 }
 
@@ -43,14 +43,16 @@ function detectRegex(
     return [];
   }
 
-  const flags = entry.detector.case_insensitive ? 'gi' : 'g';
-  const patterns = entry.detector.patterns.map(p => new RegExp(p, flags));
+  const {detector} = entry;
+  const flags = detector.case_insensitive ? 'gi' : 'g';
+  const patterns = detector.patterns.map(p => new RegExp(p, flags));
   const findings: DetectedFailure[] = [];
 
-  call.turns.forEach((turn, idx) => {
-    if (turn.role !== entry.detector.channel) {
-      return;
+  for (const [idx, turn] of call.turns.entries()) {
+    if (turn.role !== detector.channel) {
+      continue;
     }
+
     for (const pattern of patterns) {
       const match = pattern.exec(turn.text);
       if (match) {
@@ -68,7 +70,7 @@ function detectRegex(
         });
       }
     }
-  });
+  }
 
   return findings;
 }
@@ -84,10 +86,11 @@ function detectToolCoherence(
   const patterns = entry.detector.patterns.map(p => new RegExp(p, 'gi'));
   const findings: DetectedFailure[] = [];
 
-  call.turns.forEach((turn, idx) => {
+  for (const [idx, turn] of call.turns.entries()) {
     if (turn.role !== 'agent') {
-      return;
+      continue;
     }
+
     for (const pattern of patterns) {
       pattern.lastIndex = 0;
       const match = pattern.exec(turn.text);
@@ -113,7 +116,7 @@ function detectToolCoherence(
         });
       }
     }
-  });
+  }
 
   return findings;
 }
@@ -139,23 +142,25 @@ function detectRepetition(
 
   let restateCount = 0;
   let firstIdx = -1;
-  call.turns.forEach((turn, idx) => {
+  for (const [idx, turn] of call.turns.entries()) {
     if (turn.role !== 'agent') {
-      return;
+      continue;
     }
+
     let hits = 0;
     for (const token of sensitiveTokens) {
       if (turn.text.includes(token)) {
         hits += 1;
       }
     }
+
     if (hits >= 2) {
       restateCount += 1;
       if (firstIdx < 0) {
         firstIdx = idx;
       }
     }
-  });
+  }
 
   if (restateCount > 2 && firstIdx >= 0) {
     return [{
@@ -171,6 +176,7 @@ function detectRepetition(
       fix_proposal: entry.fix_proposal,
     }];
   }
+
   return [];
 }
 
@@ -181,6 +187,7 @@ function detectAudio(
   if (entry.detector.type !== 'audio_metric') {
     return [];
   }
+
   if (entry.detector.metric === 'ttfb_ms_p95' && typeof call.ttfb_ms === 'number') {
     const threshold = entry.detector.threshold_max ?? Number.POSITIVE_INFINITY;
     if (call.ttfb_ms > threshold) {
@@ -198,6 +205,7 @@ function detectAudio(
       }];
     }
   }
+
   return [];
 }
 
@@ -218,23 +226,29 @@ export function detectFailures(
           findings.push(...detectRegex(call, mode));
           break;
         }
+
         case 'transcript_tool_coherence': {
           findings.push(...detectToolCoherence(call, mode));
           break;
         }
+
         case 'transcript_repetition_count': {
           findings.push(...detectRepetition(call, mode));
           break;
         }
+
         case 'audio_metric': {
           findings.push(...detectAudio(call, mode));
           break;
         }
-        default: {
-          // rubric_judge — needs an LLM judge; skipped in deterministic mode.
+
+        case 'rubric_judge': {
+          // Needs an LLM judge; skipped in deterministic mode.
+          break;
         }
       }
     }
   }
+
   return findings;
 }

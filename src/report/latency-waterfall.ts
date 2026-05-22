@@ -52,10 +52,11 @@ export function renderLatencyWaterfallSvg(
   const height = rows * (barHeight + rowGap) - rowGap;
   const trackWidth = Math.max(1, width - labelGutter - durationGutter);
 
-  const maxDuration = waterfall.legs.reduce(
-    (acc, leg) => Math.max(acc, leg.duration_ms),
-    0,
-  );
+  let maxDuration = 0;
+  for (const leg of waterfall.legs) {
+    maxDuration = Math.max(maxDuration, leg.duration_ms);
+  }
+
   const denominator = maxDuration > 0 ? maxDuration : 1;
 
   const bars = waterfall.legs.map((leg, index) => {
@@ -98,5 +99,5 @@ function escapeXml(value: string): string {
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
-    .replaceAll("'", '&apos;');
+    .replaceAll('\'', '&apos;');
 }

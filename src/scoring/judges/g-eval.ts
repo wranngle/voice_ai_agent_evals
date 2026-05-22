@@ -22,7 +22,9 @@ const G_EVAL_SYSTEM = `You are an expert evaluator. Given a rubric and an output
 4 = mostly satisfies
 5 = completely satisfies
 
-Reason step-by-step about what the rubric asks and how the output performs against it. Then, on a NEW line, emit ONLY the score in <score>N</score> tags. Use an integer 1-5 or a decimal (e.g. <score>3.5</score>).`;
+Reason step-by-step about what the rubric asks and how the output performs against it.
+Then, on a NEW line, emit ONLY the score in <score>N</score> tags.
+Use an integer 1-5 or a decimal (e.g. <score>3.5</score>).`;
 
 export type GEvalOptions = {
   /** Override the default G-Eval system prompt. */

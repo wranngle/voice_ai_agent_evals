@@ -97,7 +97,7 @@ describe('META-AUDIT: respondFast — survives worst-case upstreams', () => {
     const r = await respondFast({
       input: {caller_id: '+15551234567', agent_id: 'a1', called_number: '+15559999999'},
       specs: SPECS,
-      enrich: () => new Promise(() => { /* hang */ }),
+      enrich: async () => new Promise(() => {/* hang */}),
       enrichmentTimeoutMs: 150,
     });
     const elapsed = Date.now() - t0;
@@ -112,7 +112,9 @@ describe('META-AUDIT: respondFast — survives worst-case upstreams', () => {
     const r = await respondFast({
       input: {caller_id: '+15551234567'},
       specs: SPECS,
-      enrich: async () => { throw new Error('crm_500'); },
+      async enrich() {
+        throw new Error('crm_500');
+      },
     });
     expect(r.type).toBe('conversation_initiation_client_data');
     expect(r.dynamic_variables.agent_name).toBe('the assistant');
@@ -122,7 +124,7 @@ describe('META-AUDIT: respondFast — survives worst-case upstreams', () => {
     const r = await respondFast({
       input: {caller_id: '+15551234567'},
       specs: SPECS,
-      enrich: async () => ({agent_name: 'Sarah', /* company_name missing */}),
+      enrich: async () => ({agent_name: 'Sarah' /* company_name missing */}),
     });
     expect(r.dynamic_variables.agent_name).toBe('Sarah');
     expect(r.dynamic_variables.company_name).toBe('this business');
@@ -144,6 +146,7 @@ describe('META-AUDIT: respondFast — survives worst-case upstreams', () => {
     for (const k of Object.keys(r.dynamic_variables)) {
       expect(declared.has(k), `unexpected key in response: ${k}`).toBe(true);
     }
+
     for (const id of declared) {
       expect(r.dynamic_variables).toHaveProperty(id);
     }

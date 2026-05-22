@@ -18,7 +18,7 @@ import {createTracer} from '../../../internal/jsonl-trace';
 
 const trace = createTracer('cli.factory.generate');
 // JSONL tracing — emit start/end events from dispatch entry points.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 void trace;
 
 export type FactoryGenerateOptions = {
@@ -66,9 +66,9 @@ export async function runFactoryGenerate(options: FactoryGenerateOptions): Promi
   // union deterministically and slice to N.
   const targetCount = options.count;
   const perTemplateBudget = strategy === 'sample'
-    ? targetCount === undefined
+    ? (targetCount === undefined
       ? 100
-      : Math.max(targetCount, 10)
+      : Math.max(targetCount, 10))
     : undefined;
 
   let tests: GeneratedTest[];
@@ -97,16 +97,18 @@ export async function runFactoryGenerate(options: FactoryGenerateOptions): Promi
   return 0;
 }
 
+/* eslint-disable no-bitwise -- mulberry32 is a hash function; bitwise is canonical. */
 function mulberry32(seed: number): () => number {
   let state = seed >>> 0;
   return () => {
-    state = (state + 0x6d_2b_79_f5) >>> 0;
+    state = (state + 0x6D_2B_79_F5) >>> 0;
     let t = state;
     t = Math.imul(t ^ (t >>> 15), t | 1);
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4_294_967_296;
   };
 }
+/* eslint-enable no-bitwise */
 
 function sampleGlobally<T>(items: readonly T[], n: number, seed: number): T[] {
   if (n >= items.length) {
