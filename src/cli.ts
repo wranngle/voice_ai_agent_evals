@@ -86,10 +86,11 @@ async function dispatch(): Promise<number | undefined> {
       const outDir = readStringFlag('--out-dir');
       const agentId = readStringFlag('--agent-id');
       const mock = process.argv.includes('--mock');
+      const noLlm = process.argv.includes('--no-llm');
       const personaCsv = readStringFlag('--personas');
       const personaIds = personaCsv ? personaCsv.split(',').map(s => s.trim()).filter(Boolean) : undefined;
       return runRefine({
-        businessName, websiteUrl, vertical, sessionId, outDir, mock, personaIds, agentId,
+        businessName, websiteUrl, vertical, sessionId, outDir, mock, personaIds, agentId, noLlm,
       });
     }
 

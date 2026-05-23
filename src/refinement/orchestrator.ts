@@ -18,9 +18,10 @@ import {
 } from 'node:fs';
 import {join} from 'node:path';
 import type {VoiceEvalsClient} from '../wrapper/types';
+import type {LlmCompleteCallback} from '../ingestion/types';
 import {renderComplianceArtifact} from './compliance';
 import {enrich, enrichFromAgentPrompt} from './enrich';
-import {detectFailures, loadCatalog} from './failure-detector';
+import {detectFailures, detectRubricFailures, loadCatalog} from './failure-detector';
 import {inferBusinessContextFromAgent, runLivePersonaCalls} from './live-adapter';
 import {CANONICAL_PERSONA_IDS, getPersonaCalls} from './persona-fixtures';
 import {buildPromptDiffs} from './prompt-diff';
@@ -168,6 +169,15 @@ export async function runRefinement(
   log.emit('detect.start', 'start', 'applying failure-mode catalog');
   const catalog = loadCatalog();
   const beforeFailures = detectFailures(beforeCalls, catalog, template.priority_failure_modes);
+
+  const judgeLlm = options.llm as LlmCompleteCallback | undefined;
+  if (judgeLlm) {
+    log.emit('detect.rubric', 'start', 'routing rubric_judge modes through LLM judge');
+    const rubricFailures = await detectRubricFailures(beforeCalls, catalog, judgeLlm, template.priority_failure_modes);
+    beforeFailures.push(...rubricFailures);
+    log.emit('detect.rubric.done', rubricFailures.length > 0 ? 'warn' : 'ok', `LLM judge flagged ${rubricFailures.length} additional defect(s)`);
+  }
+
   const severityCounts: Record<string, number> = {};
   for (const failure of beforeFailures) {
     severityCounts[failure.severity] = (severityCounts[failure.severity] ?? 0) + 1;

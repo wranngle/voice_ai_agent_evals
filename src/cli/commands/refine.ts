@@ -26,6 +26,7 @@ export type RefineCliOptions = {
   outDir?: string;
   personaIds?: string[];
   agentId?: string;
+  noLlm?: boolean;
   out?: (line: string) => void;
 };
 
@@ -52,9 +53,13 @@ export async function runRefine(options: RefineCliOptions): Promise<number> {
     client = createVoiceEvalsClient({apiKey: process.env.ELEVENLABS_API_KEY});
   }
 
+  const {resolveDefaultJudgeLlm} = await import('../../refinement/llm-provider');
+  const judgeLlm = options.noLlm ? undefined : resolveDefaultJudgeLlm();
+
   out('');
   out(`  refining: ${options.agentId ? `agent ${options.agentId}` : options.businessName ?? options.websiteUrl}`);
   out(`  mode:     ${isLive ? 'live (ElevenLabs simulateConversation)' : (options.mock ? 'mock (deterministic fixtures)' : 'mock (no agent id given)')}`);
+  out(`  judge:    ${judgeLlm ? 'LLM rubric judging on (GEMINI_API_KEY)' : 'deterministic only (no LLM key / --no-llm)'}`);
   if (options.vertical) {
     out(`  vertical: ${options.vertical} (override)`);
   }
@@ -71,6 +76,7 @@ export async function runRefine(options: RefineCliOptions): Promise<number> {
     persona_ids: options.personaIds,
     agent_id: options.agentId,
     client,
+    llm: judgeLlm,
   };
 
   const session = await runRefinement(refineOpts, event => {
