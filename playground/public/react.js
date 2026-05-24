@@ -88,7 +88,7 @@ function Controls({ agentId, settings }) {
     </div>
 
     <div className="row" style=${sx("margin-top:10px")}>
-      <input type="text" value=${msg} onInput=${(e) => setMsg(e.target.value)} style=${sx("flex:1;min-width:200px")}/>
+      <input type="text" aria-label="Message to send" value=${msg} onInput=${(e) => setMsg(e.target.value)} style=${sx("flex:1;min-width:200px")}/>
       <button disabled=${!connected} onClick=${() => { c.sendUserMessage(msg); emit("sendUserMessage", msg); }}>send</button>
       <button className="sm" disabled=${!connected} onClick=${() => { c.sendContextualUpdate("User is viewing the controls panel."); emit("sendContextualUpdate", "ctx"); }}>contextual update</button>
       <button className="sm" disabled=${!connected} onClick=${() => { c.sendUserActivity(); emit("sendUserActivity", "ping"); }}>user activity</button>
@@ -96,23 +96,23 @@ function Controls({ agentId, settings }) {
 
     <div className="row" style=${sx("margin-top:10px")}>
       <span className="kv">volume</span>
-      <input type="range" min="0" max="1" step="0.05" value=${vol} onInput=${(e) => { const v = +e.target.value; setVol(v); c.setVolume({ volume: v }); }}/>
+      <input type="range" aria-label="Conversation output volume" min="0" max="1" step="0.05" value=${vol} onInput=${(e) => { const v = +e.target.value; setVol(v); c.setVolume({ volume: v }); }}/>
       <button className="sm" onClick=${() => emit("volumes", { in: c.getInputVolume?.(), out: c.getOutputVolume?.() })}>read in/out volume</button>
       <button className="sm" onClick=${() => emit("getId", c.getId?.())}>getId</button>
     </div>
 
     <div className="row" style=${sx("margin-top:10px")}>
       <button className="sm" onClick=${loadDevices}>enumerate devices</button>
-      <select onChange=${(e) => { c.changeInputDevice?.({ sampleRate: 16000, format: "pcm", inputDeviceId: e.target.value }); emit("changeInputDevice", e.target.value); }}>
+      <select aria-label="Input audio device" onChange=${(e) => { c.changeInputDevice?.({ sampleRate: 16000, format: "pcm", inputDeviceId: e.target.value }); emit("changeInputDevice", e.target.value); }}>
         <option>input device…</option>${devices.inputs.map((d) => html`<option value=${d.deviceId}>${d.label || d.deviceId.slice(0, 8)}</option>`)}
       </select>
-      <select onChange=${(e) => { c.changeOutputDevice?.({ sampleRate: 16000, format: "pcm", outputDeviceId: e.target.value }); emit("changeOutputDevice", e.target.value); }}>
+      <select aria-label="Output audio device" onChange=${(e) => { c.changeOutputDevice?.({ sampleRate: 16000, format: "pcm", outputDeviceId: e.target.value }); emit("changeOutputDevice", e.target.value); }}>
         <option>output device…</option>${devices.outputs.map((d) => html`<option value=${d.deviceId}>${d.label || d.deviceId.slice(0, 8)}</option>`)}
       </select>
     </div>
     <div className="row" style=${sx("margin-top:10px")}>
       <span className="kv">MCP approval</span>
-      <input type="text" id="mcpId" placeholder="tool_call_id" style=${sx("min-width:160px")}/>
+      <input type="text" id="mcpId" aria-label="MCP tool_call_id to approve or reject" placeholder="tool_call_id" style=${sx("min-width:160px")}/>
       <button className="sm" disabled=${!connected} onClick=${() => { const id = document.getElementById("mcpId").value; c.sendMCPToolApprovalResult?.(id, true); emit("sendMCPToolApprovalResult", { id, approve: true }); }}>approve</button>
       <button className="sm" disabled=${!connected} onClick=${() => { const id = document.getElementById("mcpId").value; c.sendMCPToolApprovalResult?.(id, false); emit("sendMCPToolApprovalResult", { id, approve: false }); }}>reject</button>
     </div>
@@ -291,16 +291,16 @@ function App() {
         <div className="ctrl"><label>Mode</label>
           <label className="toggle"><input type="checkbox" checked=${settings.textOnly} onChange=${(e) => set("textOnly", e.target.checked)}/> text-only (chat)</label></div>
         <div className="ctrl"><label>Connection</label>
-          <select value=${settings.conn} onChange=${(e) => set("conn", e.target.value)}>
+          <select aria-label="Connection mode" value=${settings.conn} onChange=${(e) => set("conn", e.target.value)}>
             <option value="agent-id">agent-id (public)</option>
             <option value="signed-url">signed-url (WebSocket auth)</option>
             <option value="token">conversation-token (WebRTC)</option>
           </select></div>
         <div className="ctrl"><label>Server location</label>
-          <select value=${settings.serverLocation} onChange=${(e) => set("serverLocation", e.target.value)}>
+          <select aria-label="ElevenLabs server region" value=${settings.serverLocation} onChange=${(e) => set("serverLocation", e.target.value)}>
             ${["us", "global", "eu-residency", "in-residency"].map((o) => html`<option value=${o}>${o}</option>`)}
           </select></div>
-        <div className="ctrl"><label>End-user ID</label><input type="text" value=${settings.userId} onInput=${(e) => set("userId", e.target.value)}/></div>
+        <div className="ctrl"><label>End-user ID</label><input type="text" aria-label="End user ID" value=${settings.userId} onInput=${(e) => set("userId", e.target.value)}/></div>
       </div>
     <//>
     ${html`<${ConversationProvider} ...${providerProps} key=${ver}><${Inner} agentId=${agentId} settings=${settings}/><//>`}`;

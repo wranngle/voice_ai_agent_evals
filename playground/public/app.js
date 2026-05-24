@@ -188,28 +188,29 @@ function controlFor(spec) {
   const idline = el("label", {}, [spec.label, el("span", { class: "attr" }, ` ${spec.key}`)]);
   wrap.append(idline);
   let input;
+  const ariaLabel = `${spec.label} (${spec.key})`;
   if (spec.type === "bool") {
     const lab = el("label", { class: "toggle" });
-    input = el("input", { type: "checkbox" });
+    input = el("input", { type: "checkbox", "aria-label": ariaLabel });
     input.checked = !!state[spec.key];
     input.addEventListener("change", () => { state[spec.key] = input.checked; applyAttr(spec); });
     lab.append(input, spec.note ? el("span", { class: "mid" }, spec.note) : "");
     wrap.append(lab);
   } else if (spec.type === "select") {
-    input = el("select", {}, spec.options.map((o) => el("option", { value: o }, o || "(default)")));
+    input = el("select", { "aria-label": ariaLabel }, spec.options.map((o) => el("option", { value: o }, o || "(default)")));
     input.value = state[spec.key] ?? "";
     input.addEventListener("change", () => { state[spec.key] = input.value; applyAttr(spec); });
     wrap.append(input);
   } else if (spec.type === "color") {
     const rowc = el("div", { class: "colrow" });
-    const picker = el("input", { type: "color", value: state[spec.key] || spec.def || "#000000" });
-    const txt = el("input", { type: "text", value: state[spec.key] ?? "" });
+    const picker = el("input", { type: "color", value: state[spec.key] || spec.def || "#000000", "aria-label": `${ariaLabel} — color picker` });
+    const txt = el("input", { type: "text", value: state[spec.key] ?? "", "aria-label": `${ariaLabel} — hex value` });
     const sync = (v) => { state[spec.key] = v; picker.value = /^#[0-9a-f]{6}$/i.test(v) ? v : picker.value; txt.value = v; applyAttr(spec); };
     picker.addEventListener("input", () => sync(picker.value));
     txt.addEventListener("input", () => sync(txt.value));
     rowc.append(picker, txt); wrap.append(rowc);
   } else { // text | json | number
-    input = el(spec.type === "json" ? "textarea" : "input", spec.type === "json" ? {} : { type: "text" });
+    input = el(spec.type === "json" ? "textarea" : "input", spec.type === "json" ? { "aria-label": ariaLabel } : { type: "text", "aria-label": ariaLabel });
     input.value = state[spec.key] ?? "";
     input.addEventListener("input", () => { state[spec.key] = input.value; applyAttr(spec); });
     wrap.append(input);
@@ -245,7 +246,7 @@ function textCard() {
     const tbl = el("div", { class: "texttable" });
     for (const [k, d] of Object.entries(keys)) {
       tbl.append(el("div", { class: "k" }, k));
-      const inp = el("input", { type: "text", placeholder: d });
+      const inp = el("input", { type: "text", placeholder: d, "aria-label": `text-contents key: ${k}` });
       inp.value = textState[k] ?? "";
       inp.addEventListener("input", () => { textState[k] = inp.value; applyText(); updateUrl(); });
       tbl.append(inp);
@@ -327,13 +328,13 @@ function apiCard() {
     w.append(el("label", {}, [s.k, el("span", { class: "attr" }, ` --el-${s.k.replace(/_/g, "-")}`)]));
     if (s.t === "color") {
       const rowc = el("div", { class: "colrow" });
-      const pick = el("input", { type: "color", value: s.d });
-      const txt = el("input", { type: "text", value: s.d });
+      const pick = el("input", { type: "color", value: s.d, "aria-label": `--el-${s.k} color` });
+      const txt = el("input", { type: "text", value: s.d, "aria-label": `--el-${s.k} hex value` });
       const sync = (v) => { styleState[s.k] = v; txt.value = v; if (/^#[0-9a-f]{6}$/i.test(v)) pick.value = v; };
       pick.addEventListener("input", () => sync(pick.value)); txt.addEventListener("input", () => sync(txt.value));
       rowc.append(pick, txt); w.append(rowc);
     } else {
-      const inp = el("input", { type: s.t === "num" ? "number" : "text", value: s.d });
+      const inp = el("input", { type: s.t === "num" ? "number" : "text", value: s.d, "aria-label": `--el-${s.k}` });
       inp.addEventListener("input", () => { styleState[s.k] = s.t === "num" ? Number(inp.value) : inp.value; });
       w.append(inp);
     }
@@ -347,7 +348,7 @@ function apiCard() {
   });
 
   // generic config field PATCH (feedback_mode, terms, shareable, file_input, etc.)
-  const cfgArea = el("textarea", { style: "min-height:120px;width:100%", html: "" });
+  const cfgArea = el("textarea", { style: "min-height:120px;width:100%", html: "", "aria-label": "Arbitrary platform_settings.widget JSON to PATCH" });
   cfgArea.value = JSON.stringify({ feedback_mode: "during", show_conversation_id: true, conversation_mode_toggle_enabled: true, file_input_config: { enabled: true, max_files_per_conversation: 10 }, terms_text: "## Demo terms\\nBy continuing you agree to the showcase.", terms_key: "showcase_terms", shareable_page_text: "Talk to the showcase agent." }, null, 2);
   const btnPatchCfg = el("button", { class: "primary" }, "PATCH widget config → remount");
   btnPatchCfg.addEventListener("click", async () => {
@@ -362,7 +363,7 @@ function apiCard() {
   });
 
   // avatar upload
-  const file = el("input", { type: "file", accept: "image/*" });
+  const file = el("input", { type: "file", accept: "image/*", "aria-label": "Avatar image file to upload" });
   const btnUpload = el("button", {}, "POST avatar (multipart)");
   btnUpload.addEventListener("click", async () => {
     if (!file.files[0]) return log("pick an image first");
@@ -442,7 +443,7 @@ function introCard() {
 }
 
 function urlCard() {
-  const out = el("input", { type: "text", readonly: "true", style: "width:100%" });
+  const out = el("input", { type: "text", readonly: "true", style: "width:100%", "aria-label": "Shareable URL with current widget configuration" });
   const refresh = () => { out.value = location.href; };
   const presets = [["full / bottom-right", { variant: "full", placement: "bottom-right" }], ["compact / bottom-left", { variant: "compact", placement: "bottom-left" }], ["expandable / top-right", { variant: "expandable", placement: "top-right", "always-expanded": false, "default-expanded": true }], ["text-only chat", { "override-text-only": true, "text-input": true }]];
   const presetRow = el("div", { class: "row" });
@@ -460,7 +461,7 @@ function urlCard() {
 }
 
 function embedCard() {
-  const tagInput = el("input", { type: "text", value: widgetTag });
+  const tagInput = el("input", { type: "text", value: widgetTag, "aria-label": "Custom web-component tag name" });
   tagInput.addEventListener("input", () => { widgetTag = tagInput.value || "elevenlabs-convai"; });
   const btnApply = el("button", {}, "Re-register tag + remount");
   btnApply.addEventListener("click", () => { mountWidget(); updateUrl(); toast("remounted as <" + widgetTag + ">"); });
