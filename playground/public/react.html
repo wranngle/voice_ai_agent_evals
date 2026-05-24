@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ElevenLabs Native UI Components (React)</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "react": "https://esm.sh/react@18.3.1",
+      "react-dom": "https://esm.sh/react-dom@18.3.1",
+      "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
+      "htm": "https://esm.sh/htm@3.1.1",
+      "@elevenlabs/react": "https://esm.sh/@elevenlabs/react@1.6.3?external=react,react-dom"
+    }
+  }
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="dot"></span> ElevenLabs <strong>Native UI Components</strong>
+      <span class="agent-chip" id="agentChip">agent: …</span></div>
+    <nav class="topnav">
+      <a href="/">← Widget showcase</a>
+      <a href="#session">Session</a>
+      <a href="#controls">Controls</a>
+      <a href="#viz">Visualizer</a>
+      <a href="#tools">Client tools</a>
+      <a href="#events">Events</a>
+    </nav>
+  </header>
+  <div id="root" style="padding:16px 20px 120px"></div>
+  <script type="module" src="/react.js"></script>
+</body>
+</html>

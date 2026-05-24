@@ -154,6 +154,7 @@
     "leaderboard": "bun run src/leaderboard/cli.ts",
     "typecheck": "tsc --noEmit",
     "lint": "xo",
-    "lint:fix": "xo --fix"
+    "lint:fix": "xo --fix",
+    "playground": "bun run playground/server.ts"
   }
 }

@@ -1,0 +1,138 @@
+/**
+ * ElevenLabs Widget & UI Showcase — dev server.
+ *
+ * Static host for `public/` + a thin proxy to api.elevenlabs.io so the real
+ * API key never reaches the browser. PATCH is governance-guarded: only agents
+ * with a `[DEV]` (or prefix-less = implicit DEV) name may be mutated.
+ *
+ * Run: `bun run playground/server.ts`  (or `bun playground`)
+ */
+import { readFileSync, existsSync } from "node:fs";
+import { homedir } from "node:os";
+import { join, extname } from "node:path";
+
+const EL = "https://api.elevenlabs.io";
+const PORT = Number(process.env.PLAYGROUND_PORT ?? 4321);
+const PUBLIC_DIR = join(import.meta.dir, "public");
+const AGENT_JSON = join(import.meta.dir, "agent.json");
+
+function loadApiKey(): string {
+  if (process.env.ELEVENLABS_API_KEY) return process.env.ELEVENLABS_API_KEY;
+  for (const p of [join(process.cwd(), ".env"), join(homedir(), ".agents/.env")]) {
+    if (!existsSync(p)) continue;
+    const m = readFileSync(p, "utf8").match(/^ELEVENLABS_API_KEY=(.+)$/m);
+    if (m) return m[1].trim().replace(/^['"]|['"]$/g, "");
+  }
+  throw new Error("ELEVENLABS_API_KEY not found in env, ./.env, or ~/.agents/.env");
+}
+const API_KEY = loadApiKey();
+const showcaseAgentId = existsSync(AGENT_JSON)
+  ? JSON.parse(readFileSync(AGENT_JSON, "utf8")).showcaseAgentId
+  : "";
+
+const GOVERNED = /^\[(ALPHA|BETA|PROD|ARCHIVED)\]/i;
+
+const elFetch = (path: string, init: RequestInit = {}) =>
+  fetch(`${EL}${path}`, { ...init, headers: { "xi-api-key": API_KEY, ...(init.headers ?? {}) } });
+
+const json = (data: unknown, status = 200) =>
+  new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json" } });
+
+async function agentIsMutable(agentId: string): Promise<{ ok: boolean; name?: string; reason?: string }> {
+  const r = await elFetch(`/v1/convai/agents/${agentId}`);
+  if (!r.ok) return { ok: false, reason: `agent fetch ${r.status}` };
+  const name: string = ((await r.json()) as any).name ?? "";
+  if (GOVERNED.test(name)) return { ok: false, name, reason: `governed phase ${name.match(GOVERNED)![0]} — needs explicit approval` };
+  return { ok: true, name }; // [DEV] or prefix-less (implicit DEV)
+}
+
+const CT: Record<string, string> = {
+  ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript",
+  ".css": "text/css", ".json": "application/json", ".svg": "image/svg+xml", ".map": "application/json",
+};
+
+const server = Bun.serve({
+  port: PORT,
+  idleTimeout: 120,
+  async fetch(req) {
+    const url = new URL(req.url);
+    const { pathname } = url;
+
+    // ---- API proxy ----
+    if (pathname === "/api/config") {
+      return json({ showcaseAgentId, embedScript: "https://unpkg.com/@elevenlabs/convai-widget-embed" });
+    }
+
+    if (pathname === "/api/agents") {
+      const r = await elFetch(`/v1/convai/agents?page_size=100`);
+      const d = (await r.json()) as any;
+      const phaseOf = (n: string) => (n.match(/^\[(\w+)\]/)?.[1] ?? "DEV").toUpperCase();
+      return json((d.agents ?? []).map((a: any) => ({
+        agent_id: a.agent_id, name: a.name, phase: phaseOf(a.name ?? ""),
+        mutable: !GOVERNED.test(a.name ?? ""),
+      })));
+    }
+
+    const widgetMatch = pathname.match(/^\/api\/widget\/(agent_[\w]+)$/);
+    if (widgetMatch) {
+      const id = widgetMatch[1];
+      if (req.method === "GET") {
+        const r = await elFetch(`/v1/convai/agents/${id}/widget`);
+        return json(await r.json(), r.status);
+      }
+      if (req.method === "PATCH") {
+        const guard = await agentIsMutable(id);
+        if (!guard.ok) return json({ error: guard.reason, name: guard.name }, 403);
+        const widget = await req.json(); // partial platform_settings.widget
+        const r = await elFetch(`/v1/convai/agents/${id}`, {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ platform_settings: { widget } }),
+        });
+        const body = await r.text();
+        return new Response(body, { status: r.status, headers: { "content-type": "application/json" } });
+      }
+    }
+
+    const fullMatch = pathname.match(/^\/api\/agent\/(agent_[\w]+)$/);
+    if (fullMatch && req.method === "GET") {
+      const r = await elFetch(`/v1/convai/agents/${fullMatch[1]}`);
+      const d = (await r.json()) as any;
+      return json({ agent_id: d.agent_id, name: d.name, platform_settings: d.platform_settings, conversation_config: d.conversation_config }, r.status);
+    }
+
+    const signedMatch = pathname.match(/^\/api\/signed-url\/(agent_[\w]+)$/);
+    if (signedMatch) {
+      const r = await elFetch(`/v1/convai/conversation/get-signed-url?agent_id=${signedMatch[1]}`);
+      return json(await r.json(), r.status);
+    }
+
+    const tokenMatch = pathname.match(/^\/api\/conversation-token\/(agent_[\w]+)$/);
+    if (tokenMatch) {
+      const r = await elFetch(`/v1/convai/conversation/token?agent_id=${tokenMatch[1]}`);
+      return json(await r.json(), r.status);
+    }
+
+    const avatarMatch = pathname.match(/^\/api\/avatar\/(agent_[\w]+)$/);
+    if (avatarMatch && req.method === "POST") {
+      const guard = await agentIsMutable(avatarMatch[1]);
+      if (!guard.ok) return json({ error: guard.reason, name: guard.name }, 403);
+      const r = await elFetch(`/v1/convai/agents/${avatarMatch[1]}/avatar`, { method: "POST", body: req.body, headers: req.headers.get("content-type") ? { "content-type": req.headers.get("content-type")! } : {} });
+      return new Response(await r.text(), { status: r.status, headers: { "content-type": "application/json" } });
+    }
+
+    if (pathname.startsWith("/api/")) return json({ error: "unknown endpoint" }, 404);
+
+    // ---- static ----
+    let rel = pathname === "/" ? "/index.html" : pathname;
+    const file = Bun.file(join(PUBLIC_DIR, rel));
+    if (await file.exists()) {
+      return new Response(file, { headers: { "content-type": CT[extname(rel)] ?? "application/octet-stream" } });
+    }
+    return new Response("Not found", { status: 404 });
+  },
+});
+
+console.log(`\n  ElevenLabs UI Showcase → http://localhost:${server.port}`);
+console.log(`  Showcase agent: ${showcaseAgentId || "(run playground/setup to create)"}`);
+console.log(`  API key: loaded (${API_KEY.slice(0, 6)}…, never sent to browser)\n`);

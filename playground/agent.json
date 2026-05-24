@@ -1,0 +1,7 @@
+{
+  "showcaseAgentId": "agent_7701ksbwcdzcfe0sj8nhtrxem9h1",
+  "sourceTemplate": "agent_7601krfykfpwfjxrjqcshg64pcby",
+  "createdUtc": "2026-05-24T02:17:51Z",
+  "phase": "DEV",
+  "note": "Public widget-showcase agent, cloned from inbound template. Safe to modify (DEV)."
+}

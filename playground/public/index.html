@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ElevenLabs Widget & UI Showcase</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot"></span> ElevenLabs <strong>Widget &amp; UI Showcase</strong>
+      <span class="agent-chip" id="agentChip">agent: …</span>
+    </div>
+    <nav class="topnav">
+      <a href="#embed">Embed</a>
+      <a href="#attributes">Attributes</a>
+      <a href="#appearance">Appearance</a>
+      <a href="#text">Text</a>
+      <a href="#avatar">Avatar</a>
+      <a href="#modality">Modality</a>
+      <a href="#runtime">Runtime</a>
+      <a href="#combos">Combos</a>
+      <a href="#api">API / Server</a>
+      <a href="#url">URL</a>
+      <a href="/react.html">Native&nbsp;(React)→</a>
+    </nav>
+  </header>
+
+  <div class="layout">
+    <main id="panels"><!-- populated by app.js --></main>
+
+    <aside class="preview">
+      <div class="preview-head">
+        <span>Live widget</span>
+        <div class="preview-actions">
+          <button id="btnRemount" title="Rebuild the element (reloads config)">⟳ remount</button>
+          <button id="btnReset" title="Reset all knobs to defaults">reset</button>
+        </div>
+      </div>
+      <div class="preview-stage" id="stage"><!-- <elevenlabs-convai> mounts here --></div>
+      <div class="inspector">
+        <div class="inspector-head">
+          <span>Merged config (live)</span>
+          <button id="btnCopyCfg">copy</button>
+        </div>
+        <pre id="cfgInspector">{}</pre>
+      </div>
+    </aside>
+  </div>
+
+  <script src="/app.js" type="module"></script>
+</body>
+</html>
