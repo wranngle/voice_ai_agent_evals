@@ -1,6 +1,6 @@
 :root {
   --bg: #0b0e14; --panel: #11151f; --panel-2: #161b27; --line: #232a3a;
-  --text: #d6dcea; --muted: #8b93a7; --accent: #6db035; --accent-2: #2792dc;
+  --text: #d6dcea; --muted: #adb6cd; --accent: #6db035; --accent-2: #2792dc;
   --warn: #e0a33e; --err: #e0564e; --ok: #57b96a; --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 * { box-sizing: border-box; }
