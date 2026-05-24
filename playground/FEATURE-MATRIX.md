@@ -4,6 +4,8 @@ Every knob the ElevenLabs agent UI exposes, mapped to a live control in the show
 
 Legend: `[ ]` planned · `[x]` wired into showcase & demoable · `[~]` partial/host-gated.
 
+**Browser-verified:** `playground/verify.mjs` (Playwright/Chromium) passes 9/9, 0 console errors — render, exhaustive control sweep (21/21 attrs reflect), real API round-trip, widget open, React island mount, **live conversation round-trip** against the agent, URL-param load. Screenshots in `verify/`.
+
 Demo surface key: **W**=widget control panel · **U**=URL param · **A**=API-override panel (server PATCH/POST) · **R**=React native-component island · **E**=event log.
 
 ---
