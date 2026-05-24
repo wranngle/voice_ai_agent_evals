@@ -101,7 +101,18 @@
     "registry": "https://registry.npmjs.org"
   },
   "dependencies": {
+    "@react-three/drei": "^9",
+    "@react-three/fiber": "^8",
+    "@types/three": "0.184.1",
     "arktype": "2.2.0",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "lucide-react": "1.16.0",
+    "motion": "12.40.0",
+    "react": "18",
+    "react-dom": "18",
+    "tailwind-merge": "3.6.0",
+    "three": "0.184.0",
     "yaml": "2.8.4"
   },
   "peerDependencies": {
@@ -113,6 +124,8 @@
     }
   },
   "devDependencies": {
+    "@types/react": "19.2.15",
+    "@types/react-dom": "19.2.3",
     "@vitest/coverage-v8": "4.1.5",
     "@vitest/ui": "4.1.5",
     "bun-types": "1.3.13",
