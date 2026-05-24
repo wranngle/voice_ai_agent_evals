@@ -189,7 +189,7 @@ function ScribePanel() {
   const [token, setToken] = useState("");
   useEffect(() => { fetch("/api/scribe-token").then((r) => r.json()).then((d) => setToken(d.token)).catch((e) => emit("scribe:tokenFetch", e.message)); }, []);
   const s = useScribe({
-    token, modelId: "scribe_v1", languageCode: "en", autoConnect: false, includeTimestamps: false,
+    token, modelId: "scribe_v2_realtime", languageCode: "en", autoConnect: false, includeTimestamps: false,
     audioFormat: AudioFormat?.PCM_16000 ?? "pcm_16000", sampleRate: 16000,
     onSessionStarted: () => emit("scribe:sessionStarted", {}),
     onPartialTranscript: (d) => emit("scribe:partial", d.text?.slice(0, 80) || ""),

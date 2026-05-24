@@ -113,11 +113,11 @@ const server = Bun.serve({
       return json(await r.json(), r.status);
     }
 
-    // useScribe (STT) needs a key. ElevenLabs doesn't currently publish a
-    // short-lived Scribe token endpoint; this LOCAL playground hands the key
-    // to the browser so the demo can connect. Production should switch to a
-    // minted ephemeral token once available.
-    if (pathname === "/api/scribe-token") return json({ token: API_KEY, note: "local-demo only — mint ephemeral tokens in production" });
+    // Scribe (STT) single-use token — per ElevenLabs docs, mint via the real endpoint.
+    if (pathname === "/api/scribe-token") {
+      const r = await elFetch(`/v1/single-use-token/realtime_scribe`, { method: "POST" });
+      return json(await r.json(), r.status);
+    }
 
     const avatarMatch = pathname.match(/^\/api\/avatar\/(agent_[\w]+)$/);
     if (avatarMatch && req.method === "POST") {

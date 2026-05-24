@@ -11,7 +11,7 @@ Verdict legend:
 
 ## Summary
 
-The showcase is **real, not cosmetic**: controls drive the actual web component and the real ElevenLabs API, and the capabilities are confirmed end-to-end against the live showcase agent. After the account upgrade, a second live-probe pass closed the previously-gated items — multi-turn conversation, runtime-override *effects* (the agent's reply is forced to a sentinel string), and WebRTC via `conversation-token` are now visibly proven. The only remaining boundary is `useScribe` (standalone STT), which integrates and connects but errors at session-start with an opaque WebSocket error — likely a Scribe-specific token/model config the SDK doesn't surface clearly.
+The showcase is **real, not cosmetic**: controls drive the actual web component and the real ElevenLabs API, and the capabilities are confirmed end-to-end against the live showcase agent. After the account upgrade, the live-probe suite reaches **7/7 ✅** — multi-turn conversation, runtime-override *effects* (agent reply forced to a sentinel), WebRTC via `conversation-token`, voice visualizer, in-call chrome, signed-url auth, and `useScribe` realtime STT (single-use token + `scribe_v2_realtime` model, `status: connected` + `sessionStarted`).
 
 | # | Visually confirmed | Evidence |
 |---|---|---|
@@ -32,7 +32,7 @@ The showcase is **real, not cosmetic**: controls drive the actual web component 
 | `conversation-token` → WebRTC connected (React voice) | ✅ | `audit/I` |
 | Voice visualizer canvas active in live voice session | ✅ | `audit/J` |
 | Multi-turn text conversation (3 messages, 3 agent replies) | ✅ | `audit/K` |
-| `useScribe` integrated (connect fires; live session errors on opaque WS event) | ◑ | `audit/L` |
+| `useScribe` live STT — connected + sessionStarted (single-use token, scribe_v2_realtime) | ✅ | `audit/L` |
 
 ## By capability area
 
@@ -65,7 +65,7 @@ The showcase is **real, not cosmetic**: controls drive the actual web component 
 
 ### K. Native React components — ConversationProvider + all 8 granular hooks + `useConversationClientTool` mount with zero invalid-hook errors (✅ `verify/05`). Controls, mute, feedback, contextual update, user activity, device enumeration, MCP-approval input — ✅ present and callable. `sendUserMessage` round-trip ✅ (`verify/07`); multi-turn ✅ (`audit/K`). **Audio visualizer (K14)** — canvas active during live voice session (`audit/J`); bars draw when output frequency data is non-zero (microphone audio in headless = silent sine, so bars are sparse).
 
-### K-bonus. Scribe (`useScribe`) — ◑ integrated and exercised: token fetched from `/api/scribe-token`, hook configured with `modelId: "scribe_v1"`, `audioFormat: PCM_16000`. The `scribe:connect` event fires (WebSocket handshake succeeds), then a generic `Error` event closes the session — none of the specific Scribe error callbacks (auth/quota/terms/rate/input/transcriber/resource) fire, leaving the cause opaque. Likely a Scribe-specific token format or model entitlement not exposed by the SDK's generic `onError`. The hook, panel, and event wiring are correct (`audit/L`).
+### K-bonus. Scribe (`useScribe`) — ✅ **live STT session established**: server proxy mints a real single-use token via `POST /v1/single-use-token/realtime_scribe`, hook configured with `modelId: "scribe_v2_realtime"` + `audioFormat: PCM_16000`. The session reaches `status: connected` and fires `onSessionStarted` (`audit/L`). The transcripts panel is empty because the headless probe doesn't push audio; calling `sendAudio()` with real PCM samples would populate `partialTranscript` / `committedTranscripts`. Panel renders connect/disconnect/mute/commit/clear, the 7 specific error callbacks, and the status badge.
 
 ### L. Event protocol — onConnect/onStatusChange/onMessage/onModeChange/onAgentChatResponsePart all observed in the live event log (✅ `verify/07`). VAD/audio-alignment/tool-call/MCP events fire only in their scenarios → ◑.
 
@@ -73,9 +73,8 @@ The showcase is **real, not cosmetic**: controls drive the actual web component 
 
 1. **Prompt-injection guardrail.** The showcase agent rejects messages that look like instruction-overrides ("Reply with the word ALPHA"). Multi-turn probes use normal questions; this is correct agent behavior, not a bug.
 2. **Voice visualizer bars**: canvas is active in the live voice session, but headless fake-mic produces near-silence so bars are sparse. With a real microphone they draw.
-3. **`useScribe`** integrates and connects, but the live STT session ends in an opaque `Error` event with none of the specific Scribe error callbacks firing. Likely needs a Scribe-specific ephemeral token (not the standard API key) and/or a different model name — the SDK's generic `onError` doesn't surface enough to be sure.
-4. **Custom tag re-registration** is illustrative (snippet), not live — the CDN bundle registers only the default tag.
-5. **Enterprise/host-gated** knobs (`worklet-path-*`, multimodal file input) are settable but their effect needs infrastructure not present here.
+3. **Custom tag re-registration** is illustrative (snippet), not live — the CDN bundle registers only the default tag.
+4. **Enterprise/host-gated** knobs (`worklet-path-*`, multimodal file input) are settable but their effect needs infrastructure not present here.
 
 ## Reproduce
 
