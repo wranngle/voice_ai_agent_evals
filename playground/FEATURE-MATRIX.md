@@ -227,8 +227,8 @@ Each one mounts the upstream `elevenlabs/ui/registry/elevenlabs-ui/examples/<dem
 - [~] Q7 Speaker 01 — source present; uses `next/link`
 - [x] Q8 Realtime Transcriber 01 — wired via client shim → `/api/scribe-token` proxy (`audit/U`)
 - [x] Q9 Transcriber 01 — wired via client shim → `/api/stt` proxy (`audit/V`)
-- [~] Q10 Voice Form 01 — server action
-- [~] Q11 Voice Nav 01 — server action
+- [x] Q10 Voice Form 01 — STT + `llm.sh` structured extract via `/api/extract-form` (`audit/W`)
+- [x] Q11 Voice Nav 01 — STT + sitemap fetch + `llm.sh` URL match via `/api/voice-nav` (`audit/X`)
 
 ## N. Polish / proof
 - [x] N1 single-page nav across all sections — W

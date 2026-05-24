@@ -119,6 +119,53 @@ const server = Bun.serve({
       return json(await r.json(), r.status);
     }
 
+    // Audio → URL match (STT + sitemap fetch + llm.sh) — used by voice-nav-01.
+    if (pathname === "/api/voice-nav" && req.method === "POST") {
+      const form = await req.formData();
+      const file = form.get("audio") as File | null;
+      if (!file) return json({ data: {}, error: "no audio" }, 400);
+      const sttFd = new FormData();
+      sttFd.append("file", file, (file as any).name ?? "audio.webm");
+      sttFd.append("model_id", "scribe_v1");
+      sttFd.append("language_code", "en");
+      const sttRes = await elFetch(`/v1/speech-to-text`, { method: "POST", body: sttFd });
+      if (!sttRes.ok) return json({ data: {}, error: `STT ${sttRes.status}` }, 500);
+      const transcript = (((await sttRes.json()) as any).text || "").trim();
+      if (!transcript) return json({ data: {}, error: "empty transcript" });
+      const sm = await (await fetch("https://elevenlabs.io/docs/sitemap.xml")).text();
+      const urls = [...new Set((sm.match(/<loc>(.*?)<\/loc>/g) || []).map((m) => m.replace(/<\/?loc>/g, "")))].slice(0, 200);
+      const sys = `Match the user's intent to ONE URL from this list and respond ONLY with JSON like {"url":"https://..."} — no fences, no prose.\n\nURLs:\n${urls.join("\n")}`;
+      const proc = Bun.spawn(["llm.sh"], { stdin: "pipe", stdout: "pipe", stderr: "ignore", env: { ...process.env, LLM_SYSTEM: sys } });
+      proc.stdin.write(`User intent: ${transcript}`);
+      proc.stdin.end();
+      const out = (await new Response(proc.stdout).text()).trim();
+      try { return json({ data: JSON.parse(out), transcript }); }
+      catch { return json({ data: {}, transcript, error: "LLM did not return JSON: " + out.slice(0, 160) }); }
+    }
+
+    // Audio → JSON extraction (STT + llm.sh) — used by voice-form-01 block.
+    // Replaces its upstream "use server" `voiceToFormAction`.
+    if (pathname === "/api/extract-form" && req.method === "POST") {
+      const form = await req.formData();
+      const file = form.get("audio") as File | null;
+      if (!file) return json({ data: {}, error: "no audio" }, 400);
+      const sttFd = new FormData();
+      sttFd.append("file", file, (file as any).name ?? "audio.webm");
+      sttFd.append("model_id", "scribe_v1");
+      sttFd.append("language_code", "en");
+      const sttRes = await elFetch(`/v1/speech-to-text`, { method: "POST", body: sttFd });
+      if (!sttRes.ok) return json({ data: {}, error: `STT ${sttRes.status}` }, 500);
+      const transcript = (((await sttRes.json()) as any).text || "").trim();
+      if (!transcript) return json({ data: {}, error: "empty transcript" });
+      const sys = 'Extract firstName and lastName from this voice transcript. Respond ONLY with valid JSON like {"firstName":"...","lastName":"..."} — no fences, no prose. Omit fields that are missing.';
+      const proc = Bun.spawn(["llm.sh"], { stdin: "pipe", stdout: "pipe", stderr: "ignore", env: { ...process.env, LLM_SYSTEM: sys } });
+      proc.stdin.write(`Transcript: ${transcript}`);
+      proc.stdin.end();
+      const out = (await new Response(proc.stdout).text()).trim();
+      try { return json({ data: JSON.parse(out), transcript }); }
+      catch { return json({ data: {}, transcript, error: "LLM did not return JSON: " + out.slice(0, 160) }); }
+    }
+
     // Batch STT — proxies an audio file upload to ElevenLabs speech-to-text.
     // Used by the transcriber-01 reference block (its server action lives in
     // the upstream repo; we expose the same surface client-side via /api).
