@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ElevenLabs UI — reference apps (blocks)</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root, .dark { --background:240 10% 4%; --foreground:0 0% 98%; --card:240 10% 6%; --card-foreground:0 0% 98%;
+      --popover:240 10% 6%; --popover-foreground:0 0% 98%; --primary:0 0% 98%; --primary-foreground:240 6% 10%;
+      --secondary:240 4% 16%; --secondary-foreground:0 0% 98%; --muted:240 4% 16%; --muted-foreground:240 5% 65%;
+      --accent:240 4% 16%; --accent-foreground:0 0% 98%; --destructive:0 63% 31%; --destructive-foreground:0 0% 98%;
+      --border:240 4% 16%; --input:240 4% 16%; --ring:240 5% 84%; --radius:0.5rem; }
+    html, body { background: hsl(var(--background)); color: hsl(var(--foreground)); }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="dot"></span> ElevenLabs <strong>UI Blocks</strong>
+      <span class="agent-chip">5 reference apps</span></div>
+    <nav class="topnav">
+      <a href="/">← Widget showcase</a>
+      <a href="/react.html">React hooks</a>
+      <a href="/ui-library.html">Components</a>
+      <a href="/examples.html">Examples</a>
+    </nav>
+  </header>
+  <div id="root"></div>
+  <script type="module" src="/ui-library/blocks-main.js"></script>
+</body>
+</html>

@@ -12,7 +12,7 @@ import {
   type CharacterAlignmentResponseModel,
 } from "@/components/ui/transcript-viewer"
 
-import { Skeleton } from "../ui/skeleton"
+import { Skeleton } from "@/components/ui/skeleton"
 
 const TranscriptViewerDemo = () => {
   const audioSrc = "/sounds/transcript-viewer/transcript-viewer-audio.mp3"
