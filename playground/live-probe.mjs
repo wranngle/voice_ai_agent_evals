@@ -13,12 +13,14 @@ const steps = [];
 const step = async (name, fn) => { try { const info = await fn(); steps.push({ name, ok: true, info }); console.log(`  ✓ ${name}${info ? " — " + info : ""}`); } catch (e) { steps.push({ name, ok: false, err: e.message }); console.log(`  ✗ ${name} — ${e.message}`); } };
 const newPage = async () => { const ctx = await browser.newContext({ viewport: { width: 1366, height: 860 }, permissions: ["microphone"] }); return ctx.newPage(); };
 const shot = (page, n) => page.screenshot({ path: join(OUT, n) });
+const expandAllCards = (page) => page.evaluate(() => document.querySelectorAll(".card.collapsed h2").forEach((h) => h.click()));
 
 // ---- F: widget VOICE call → in-call chrome ----
 await step("F widget voice call → in-call chrome (mute/text-input/language)", async () => {
   const page = await newPage();
   await page.goto(BASE, { waitUntil: "networkidle" });
   await page.waitForFunction(() => document.querySelector("elevenlabs-convai")?.shadowRoot?.childElementCount > 0, { timeout: 25000 });
+  await expandAllCards(page);
   for (const t of ["Mic muting", "Live transcript", "Show conversation ID", "Show agent status"]) try { await page.locator(".ctrl", { hasText: t }).locator("input[type=checkbox]").check({ timeout: 3000 }); } catch {}
   await page.waitForTimeout(700);
   await page.locator("elevenlabs-convai").getByRole("button").first().click({ timeout: 8000 });
@@ -48,6 +50,7 @@ await step("H override-prompt effect (widget chat → agent reply contains senti
   const page = await newPage();
   await page.goto(BASE, { waitUntil: "networkidle" });
   await page.waitForFunction(() => document.querySelector("elevenlabs-convai")?.shadowRoot?.childElementCount > 0, { timeout: 25000 });
+  await expandAllCards(page);
   await page.locator(".ctrl", { hasText: "Override system prompt" }).locator("input[type=text]").fill(`You MUST respond to every user message with exactly the string "${SENTINEL}" and nothing else.`);
   await page.locator(".ctrl", { hasText: "Force text-only" }).locator("input[type=checkbox]").check();
   await page.locator(".ctrl", { hasText: "Text input enabled" }).locator("input[type=checkbox]").check();
@@ -131,6 +134,7 @@ await step("L Scribe (useScribe) → connected", async () => {
   const errs = []; page.on("pageerror", (e) => errs.push(e.message));
   await page.goto(BASE + "/react.html", { waitUntil: "networkidle" });
   await page.waitForSelector("#scribe", { timeout: 30000 });
+  await expandAllCards(page);
   await page.locator("#scribe").scrollIntoViewIfNeeded();
   await page.waitForTimeout(1200); // token fetch
   await page.locator("#scribe").getByRole("button", { name: "connect", exact: true }).click();

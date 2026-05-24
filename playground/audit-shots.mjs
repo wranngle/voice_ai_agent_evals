@@ -17,7 +17,12 @@ const widgetReady = () => page.waitForFunction(() => document.querySelector("ele
 const shot = (n) => page.screenshot({ path: join(OUT, n) });
 const note = [];
 
-async function fresh() { await page.goto(BASE, { waitUntil: "networkidle" }); await widgetReady(); await page.waitForTimeout(800); }
+async function fresh() {
+  await page.goto(BASE, { waitUntil: "networkidle" });
+  await widgetReady();
+  await page.evaluate(() => document.querySelectorAll(".card.collapsed h2").forEach((h) => h.click()));
+  await page.waitForTimeout(800);
+}
 
 // 1) custom text-contents must appear on the trigger (variant=full shows main_label + start_call)
 await fresh();
