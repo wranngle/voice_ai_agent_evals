@@ -1,59 +1,26 @@
-"use server"
-
-import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js"
-import { SpeechToTextChunkResponseModel } from "@elevenlabs/elevenlabs-js/api/types/SpeechToTextChunkResponseModel"
-
+// Client-side shim of the upstream server action — uses /api/stt proxy.
 export interface TranscriptionResult {
   text?: string
   error?: string
   transcriptionTime?: number
 }
-export type TranscribeAudioInput = {
-  audio: File
-}
+export type TranscribeAudioInput = { audio: File }
 
-const MODEL_ID = "scribe_v1"
-
-export async function transcribeAudio({
-  audio,
-}: TranscribeAudioInput): Promise<TranscriptionResult> {
+export async function transcribeAudio({ audio }: TranscribeAudioInput): Promise<TranscriptionResult> {
   try {
-    if (!audio) {
-      return { error: "No audio file provided" }
-    }
-
-    const apiKey = process.env.ELEVENLABS_API_KEY
-    if (!process.env.ELEVENLABS_API_KEY) {
-      return { error: "Service not configured" }
-    }
-
-    const client = new ElevenLabsClient({ apiKey })
-    const audioBuffer = await audio.arrayBuffer()
-
-    const file = new File([audioBuffer], audio.name || "audio.webm", {
-      type: audio.type || "audio/webm",
-    })
-
-    const startTime = Date.now()
-    const transcriptionResult = await client.speechToText.convert({
-      file,
-      modelId: MODEL_ID,
-      languageCode: "en",
-    })
-    const transcriptionTime = Date.now() - startTime
-
-    const rawText = (transcriptionResult as SpeechToTextChunkResponseModel).text
-
-    if (!rawText) {
-      return { error: "No transcription available" }
-    }
-
-    return { text: rawText, transcriptionTime }
-  } catch (error) {
-    console.error("Transcription error:", error)
-    return {
-      error:
-        error instanceof Error ? error.message : "Failed to transcribe audio",
-    }
+    if (!audio) return { error: "No audio file provided" }
+    const fd = new FormData()
+    fd.append("audio", audio, audio.name || "audio.webm")
+    fd.append("model_id", "scribe_v1")
+    fd.append("language_code", "en")
+    const t0 = Date.now()
+    const r = await fetch("/api/stt", { method: "POST", body: fd })
+    const d = await r.json()
+    const text = d?.text
+    if (!r.ok) return { error: d?.error || `STT HTTP ${r.status}` }
+    if (!text) return { error: "No transcription available" }
+    return { text, transcriptionTime: Date.now() - t0 }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "transcribe failed" }
   }
 }

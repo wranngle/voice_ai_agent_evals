@@ -119,6 +119,22 @@ const server = Bun.serve({
       return json(await r.json(), r.status);
     }
 
+    // Batch STT — proxies an audio file upload to ElevenLabs speech-to-text.
+    // Used by the transcriber-01 reference block (its server action lives in
+    // the upstream repo; we expose the same surface client-side via /api).
+    if (pathname === "/api/stt" && req.method === "POST") {
+      const form = await req.formData();
+      const file = form.get("audio") as File | null;
+      if (!file) return json({ error: "no audio file" }, 400);
+      const fd = new FormData();
+      fd.append("file", file, (file as any).name ?? "audio.webm");
+      fd.append("model_id", (form.get("model_id") as string) || "scribe_v1");
+      const lang = form.get("language_code") as string | null;
+      if (lang) fd.append("language_code", lang);
+      const r = await elFetch(`/v1/speech-to-text`, { method: "POST", body: fd });
+      return new Response(await r.text(), { status: r.status, headers: { "content-type": r.headers.get("content-type") || "application/json" } });
+    }
+
     const avatarMatch = pathname.match(/^\/api\/avatar\/(agent_[\w]+)$/);
     if (avatarMatch && req.method === "POST") {
       const guard = await agentIsMutable(avatarMatch[1]);

@@ -225,8 +225,8 @@ Each one mounts the upstream `elevenlabs/ui/registry/elevenlabs-ui/examples/<dem
 - [x] Q5 Music Player 02 — UI
 - [~] Q6 Pong 01 — source present; needs Upstash Redis server action for high scores
 - [~] Q7 Speaker 01 — source present; uses `next/link`
-- [~] Q8 Realtime Transcriber 01 — server action (`get-scribe-token`)
-- [~] Q9 Transcriber 01 — server action
+- [x] Q8 Realtime Transcriber 01 — wired via client shim → `/api/scribe-token` proxy (`audit/U`)
+- [x] Q9 Transcriber 01 — wired via client shim → `/api/stt` proxy (`audit/V`)
 - [~] Q10 Voice Form 01 — server action
 - [~] Q11 Voice Nav 01 — server action
 

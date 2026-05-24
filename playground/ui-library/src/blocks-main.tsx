@@ -5,6 +5,8 @@ import VoiceChat02 from "@/blocks/voice-chat-02/page"
 import VoiceChat03 from "@/blocks/voice-chat-03/page"
 import MusicPlayer01 from "@/blocks/music-player-01/page"
 import MusicPlayer02 from "@/blocks/music-player-02/page"
+import RealtimeTranscriber01 from "@/blocks/realtime-transcriber-01/page"
+import Transcriber01 from "@/blocks/transcriber-01/page"
 
 class Boundary extends React.Component<{ children: React.ReactNode; name: string }, { err: string | null }> {
   state = { err: null as string | null }
@@ -22,6 +24,8 @@ const BLOCKS = [
   { id: "voice-chat-03", name: "Voice Chat 03", desc: "Full-page chat with sidebar", Block: VoiceChat03 },
   { id: "music-player-01", name: "Music Player 01", desc: "Card-style player", Block: MusicPlayer01 },
   { id: "music-player-02", name: "Music Player 02", desc: "Compact player", Block: MusicPlayer02 },
+  { id: "realtime-transcriber-01", name: "Realtime Transcriber 01", desc: "Live mic → Scribe partials + committed transcripts (uses /api/scribe-token)", Block: RealtimeTranscriber01 },
+  { id: "transcriber-01", name: "Transcriber 01", desc: "Record audio → batch STT (uses /api/stt)", Block: Transcriber01 },
 ]
 
 function App() {
@@ -32,7 +36,7 @@ function App() {
       <header className="p-6 pb-2">
         <h1 className="text-xl font-semibold">ElevenLabs UI — reference apps (blocks)</h1>
         <p className="text-xs text-neutral-400 mt-1">
-          Full reference apps from <code>elevenlabs/ui/registry/elevenlabs-ui/blocks/</code>, mounted in this SPA. Pick one — the upstream <code>page.tsx</code> renders straight into the viewport. Blocks requiring server actions (voice-form, voice-nav, transcriber) are not embedded (need a Next.js server).
+          Full reference apps from <code>elevenlabs/ui/registry/elevenlabs-ui/blocks/</code>, mounted in this SPA. Pick one — the upstream <code>page.tsx</code> renders straight into the viewport. Transcriber blocks use the playground's <code>/api/scribe-token</code> + <code>/api/stt</code> proxies (replacing the upstream <code>"use server"</code> actions). voice-form and voice-nav stay server-only (need an LLM SDK).
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           {BLOCKS.map((b) => (
