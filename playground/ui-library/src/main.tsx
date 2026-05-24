@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { ConversationProvider } from "@elevenlabs/react"
 import { Orb, type AgentState } from "@/components/ui/orb"
 import { Waveform, ScrollingWaveform } from "@/components/ui/waveform"
 import { BarVisualizer } from "@/components/ui/bar-visualizer"
@@ -11,6 +12,9 @@ import { Response } from "@/components/ui/response"
 import { VoiceButton } from "@/components/ui/voice-button"
 import { Conversation, ConversationContent, ConversationScrollButton } from "@/components/ui/conversation"
 import { MicSelector } from "@/components/ui/mic-selector"
+import { ConversationBar } from "@/components/ui/conversation-bar"
+import { VoicePicker } from "@/components/ui/voice-picker"
+import { AudioPlayerProvider, AudioPlayerButton, AudioPlayerProgress, AudioPlayerTime, AudioPlayerDuration } from "@/components/ui/audio-player"
 
 function Section({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
   return (
@@ -27,9 +31,19 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
 // fake amplitude array for static visualizers
 const fakeBars = Array.from({ length: 48 }, (_, i) => 0.2 + 0.6 * Math.sin(i / 4) * Math.sin(i / 3))
 
+// real ElevenLabs voice IDs (publicly known seeds)
+const demoVoices = [
+  { voiceId: "21m00Tcm4TlvDq8ikWAM", name: "Rachel", labels: { accent: "American" } },
+  { voiceId: "AZnzlk1XvdvUeBnXmlld", name: "Domi", labels: { accent: "American" } },
+  { voiceId: "EXAVITQu4vr4xnSDxMaL", name: "Bella", labels: { accent: "American" } },
+] as any
+
 function App() {
   const [orbState, setOrbState] = useState<AgentState>(null)
   const [vbState, setVbState] = useState<"idle" | "active" | "muted">("idle")
+  const [agentId, setAgentId] = useState("")
+  const [voice, setVoice] = useState("")
+  useEffect(() => { fetch("/api/config").then((r) => r.json()).then((d) => setAgentId(d.showcaseAgentId)) }, [])
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 p-6 font-sans">
@@ -67,11 +81,11 @@ function App() {
       {/* Audio visualization */}
       <h2 className="text-sm font-semibold text-neutral-300 mt-6 mb-2">Audio visualization</h2>
       <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3">
-        <Section title="Waveform (static)" hint="Pre-computed amplitudes">
-          <div className="w-full h-20"><Waveform amplitudes={fakeBars} /></div>
+        <Section title="Waveform (static)" hint="Pre-computed amplitudes (0–1)">
+          <div className="w-full h-20"><Waveform data={fakeBars} barColor="#6db035" /></div>
         </Section>
-        <Section title="ScrollingWaveform" hint="Streaming amplitudes over time">
-          <div className="w-full h-20"><ScrollingWaveform amplitudes={fakeBars} /></div>
+        <Section title="ScrollingWaveform" hint="Live scrolling, generated from mic">
+          <div className="w-full h-20"><ScrollingWaveform speed={2} barCount={48} active /></div>
         </Section>
         <Section title="BarVisualizer" hint="demo mode = fake audio for showcase">
           <div className="w-full h-20"><BarVisualizer demo barCount={20} /></div>
@@ -144,11 +158,34 @@ function App() {
         </Section>
       </div>
 
+      {/* Compound / provider-driven */}
+      <h2 className="text-sm font-semibold text-neutral-300 mt-6 mb-2">Compound / provider-driven</h2>
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-3">
+        <Section title="ConversationBar" hint="Live agent bar — mic toggle, keyboard, end-call">
+          <div className="w-full">
+            {agentId ? <ConversationProvider textOnly><ConversationBar agentId={agentId} /></ConversationProvider> : <span className="text-xs text-neutral-500">loading agent…</span>}
+          </div>
+        </Section>
+        <Section title="AudioPlayer" hint="Play / pause / seek a sample wav">
+          <AudioPlayerProvider>
+            <div className="w-full flex items-center gap-3">
+              <AudioPlayerButton item={{ id: "demo", src: "https://www.kozco.com/tech/piano2.wav" } as any} />
+              <AudioPlayerProgress className="flex-1" />
+              <span className="text-xs tabular-nums text-neutral-400"><AudioPlayerTime /> / <AudioPlayerDuration /></span>
+            </div>
+          </AudioPlayerProvider>
+        </Section>
+        <Section title="VoicePicker" hint="3 sample ElevenLabs voices">
+          <div className="w-full">
+            <VoicePicker voices={demoVoices} value={voice} onValueChange={setVoice} />
+            <p className="text-[11px] text-neutral-500 mt-2">selected: {voice || "—"}</p>
+          </div>
+        </Section>
+      </div>
+
       <p className="text-[11px] text-neutral-500 mt-8">
-        Components not embedded here (need providers / external services): <code>ConversationBar</code> (needs <code>ConversationProvider</code>),{" "}
-        <code>AudioPlayer + ScrubBar</code> (needs <code>AudioPlayerProvider</code> + audio URL),{" "}
-        <code>VoicePicker</code> (fetches voices via <code>@elevenlabs/elevenlabs-js</code>),{" "}
-        <code>SpeechInput</code> (needs Scribe token). All source is in <code>components/ui/</code>; this page can be extended in <code>playground/ui-library/src/main.tsx</code>.
+        Not embedded here (need full Scribe + audio pipeline): <code>SpeechInput</code> (mic → Scribe partials),{" "}
+        <code>TranscriptViewer</code> (compound: Provider + Container + Words + Audio + ScrubBar). Source is in <code>playground/ui-library/src/components/ui/</code>.
       </p>
     </div>
   )
