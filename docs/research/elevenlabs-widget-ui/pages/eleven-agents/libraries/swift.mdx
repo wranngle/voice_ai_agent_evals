@@ -1,0 +1,491 @@
+> This is a page from the ElevenLabs documentation. For a complete page index, fetch https://elevenlabs.io/docs/llms.txt. For the full documentation in a single file, fetch https://elevenlabs.io/docs/llms-full.txt.
+
+# Swift SDK
+
+Check out our [complete Swift quickstart project](https://github.com/elevenlabs/voice-starterkit-swift) to get started quickly with a full working example.
+
+## Installation
+
+Add the ElevenLabs Swift SDK to your project using Swift Package Manager:
+
+```swift
+dependencies: [ .package(url: "https://github.com/elevenlabs/elevenlabs-swift-sdk.git",
+from: "2.0.0") ]
+```
+
+Or using Xcode:
+
+1. Open your project in Xcode
+2. Go to `File` > `Add Package Dependencies...`
+3. Enter the repository URL: `https://github.com/elevenlabs/elevenlabs-swift-sdk.git`
+4. Select version 2.0.0 or later
+
+```swift
+import ElevenLabs
+```
+
+Ensure you add `NSMicrophoneUsageDescription` to your Info.plist to explain microphone access to
+users. The SDK requires iOS 14.0+ / macOS 11.0+ and Swift 5.9+.
+
+## Quick Start
+
+Get started with a simple conversation in just a few lines. Optionally, We recommended passing in your own end user id's to map conversations to your users.
+
+```swift
+import ElevenLabs
+
+// Start a conversation with your agent
+let conversation = try await ElevenLabs.startConversation(
+    agentId: "your-agent-id",
+    userId: "your-end-user-id",
+    config: ConversationConfig()
+)
+
+// Observe conversation state and messages
+conversation.$state
+    .sink { state in
+        print("Connection state: \(state)")
+    }
+    .store(in: &cancellables)
+
+conversation.$messages
+    .sink { messages in
+        for message in messages {
+            print("\(message.role): \(message.content)")
+        }
+    }
+    .store(in: &cancellables)
+
+// Send messages and control the conversation
+try await conversation.sendMessage("Hello!")
+try await conversation.toggleMute()
+await conversation.endConversation()
+```
+
+## Authentication
+
+There are two ways to authenticate and start a conversation:
+
+For public agents, use the agent ID directly:
+
+```swift
+let conversation = try await ElevenLabs.startConversation(
+    agentId: "your-public-agent-id",
+    config: ConversationConfig()
+)
+```
+
+For private agents, use a conversation token obtained from your backend:
+
+```swift
+// Get token from your backend (never store API keys in your app)
+let token = try await fetchConversationToken()
+let conversation = try await ElevenLabs.startConversation(
+    auth: .conversationToken(token),
+    config: ConversationConfig()
+)
+```
+
+Never store your ElevenLabs API key in your mobile app. Always use a backend service to generate conversation tokens.
+
+## Core Features
+
+### Reactive Conversation Management
+
+The SDK provides a modern `Conversation` class with `@Published` properties for reactive UI updates:
+
+```swift
+@MainActor
+class ConversationManager: ObservableObject {
+    @Published var conversation: Conversation?
+    private var cancellables = Set<AnyCancellable>()
+
+    func startConversation(agentId: String) async throws {
+        let config = ConversationConfig(
+            conversationOverrides: ConversationOverrides(textOnly: false)
+        )
+
+        conversation = try await ElevenLabs.startConversation(
+            agentId: agentId,
+            config: config
+        )
+
+        setupObservers()
+    }
+
+    private func setupObservers() {
+        guard let conversation else { return }
+
+        // Monitor connection state
+        conversation.$state
+            .sink { state in print("State: \(state)") }
+            .store(in: &cancellables)
+
+        // Monitor messages
+        conversation.$messages
+            .sink { messages in print("Messages: \(messages.count)") }
+            .store(in: &cancellables)
+    }
+}
+```
+
+### Voice and Text Modes
+
+```swift
+// Voice conversation (default)
+let voiceConfig = ConversationConfig(
+    conversationOverrides: ConversationOverrides(textOnly: false)
+)
+
+// Text-only conversation
+let textConfig = ConversationConfig(
+    conversationOverrides: ConversationOverrides(textOnly: true)
+)
+```
+
+### Audio Controls
+
+```swift
+// Microphone control
+try await conversation.toggleMute()
+try await conversation.setMuted(true)
+
+// Check microphone state
+let isMuted = conversation.isMuted
+
+// Access audio tracks for advanced use cases
+let inputTrack = conversation.inputTrack
+let agentAudioTrack = conversation.agentAudioTrack
+```
+
+### Client Tools
+
+Client Tools allow you to register custom functions that can be called by your AI agent during conversations. The new SDK provides improved parameter handling and error management.
+
+#### Handling Tool Calls
+
+Handle tool calls from your agent with full parameter support:
+
+```swift
+private func handleToolCall(_ toolCall: ClientToolCallEvent) async {
+    do {
+        let parameters = try toolCall.getParameters()
+        let result = await executeClientTool(
+            name: toolCall.toolName,
+            parameters: parameters
+        )
+
+        if toolCall.expectsResponse {
+            try await conversation?.sendToolResult(
+                for: toolCall.toolCallId,
+                result: result
+            )
+        } else {
+            conversation?.markToolCallCompleted(toolCall.toolCallId)
+        }
+    } catch {
+        // Handle tool execution errors
+        if toolCall.expectsResponse {
+            try? await conversation?.sendToolResult(
+                for: toolCall.toolCallId,
+                result: ["error": error.localizedDescription],
+                isError: true
+            )
+        }
+    }
+}
+
+// Example tool implementation
+func executeClientTool(name: String, parameters: [String: Any]) async -> [String: Any] {
+    switch name {
+    case "get_weather":
+        guard let location = parameters["location"] as? String else {
+            return ["error": "Missing location parameter"]
+        }
+        // Fetch weather data
+        return ["temperature": "22°C", "condition": "Sunny"]
+
+    case "send_email":
+        guard let recipient = parameters["recipient"] as? String,
+              let subject = parameters["subject"] as? String else {
+            return ["error": "Missing required parameters"]
+        }
+        // Send email logic
+        return ["status": "sent", "messageId": "12345"]
+
+    default:
+        return ["error": "Unknown tool: \(name)"]
+    }
+}
+```
+
+Remember to setup your agent with the client-tools in the ElevenLabs UI. See the [Client Tools
+documentation](/docs/eleven-agents/customization/tools/client-tools) for setup instructions.
+
+### Connection State Management
+
+Monitor the conversation state to handle different connection phases:
+
+```swift
+conversation.$state
+    .sink { state in
+        switch state {
+        case .idle:
+            // Not connected
+            break
+        case .connecting:
+            // Show connecting indicator
+            break
+        case .active(let callInfo):
+            // Connected to agent: \(callInfo.agentId)
+            break
+        case .ended(let reason):
+            // Handle disconnection: \(reason)
+            break
+        case .error(let error):
+            // Handle error: \(error)
+            break
+        }
+    }
+    .store(in: &cancellables)
+```
+
+### Agent State Monitoring
+
+Track when the agent is listening or speaking:
+
+```swift
+conversation.$agentState
+    .sink { state in
+        switch state {
+        case .listening:
+            // Agent is listening, show listening indicator
+            break
+        case .speaking:
+            // Agent is speaking, show speaking indicator
+            break
+        }
+    }
+    .store(in: &cancellables)
+```
+
+### Message Handling
+
+Send text messages and monitor the conversation:
+
+```swift
+// Send a text message
+try await conversation.sendMessage("Hello, how can you help me today?")
+
+// Monitor all messages in the conversation
+conversation.$messages
+    .sink { messages in
+        for message in messages {
+            switch message.role {
+            case .user:
+                print("User: \(message.content)")
+            case .agent:
+                print("Agent: \(message.content)")
+            }
+        }
+    }
+    .store(in: &cancellables)
+```
+
+### Audio Alignment
+
+Monitor character-level timing data for synchronized text display:
+
+```swift
+// Using the callback
+let config = ConversationConfig(
+    onAudioAlignment: { alignment in
+        // Character-level timing data
+        for (index, char) in alignment.chars.enumerated() {
+            let startMs = alignment.charStartTimesMs[index]
+            let durationMs = alignment.charDurationsMs[index]
+            print("'\(char)' at \(startMs)ms for \(durationMs)ms")
+        }
+    }
+)
+
+// Or observe the published property
+conversation.$latestAudioAlignment
+    .compactMap { $0 }
+    .sink { alignment in
+        // Handle alignment updates
+    }
+    .store(in: &cancellables)
+```
+
+### Session Management
+
+```swift
+// End the conversation
+await conversation.endConversation()
+
+// Check if conversation is active
+let isActive = conversation.state.isActive
+```
+
+## SwiftUI Integration
+
+Here's a comprehensive SwiftUI example using the new SDK:
+
+```swift
+import SwiftUI
+import ElevenLabs
+import Combine
+
+struct ConversationView: View {
+    @StateObject private var viewModel = ConversationViewModel()
+
+    var body: some View {
+        VStack(spacing: 20) {
+            // Connection status
+            Text(viewModel.connectionStatus)
+                .font(.headline)
+                .foregroundColor(viewModel.isConnected ? .green : .red)
+
+            // Chat messages
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 8) {
+                    ForEach(viewModel.messages, id: \.id) { message in
+                        MessageBubble(message: message)
+                    }
+                }
+            }
+            .frame(maxHeight: 400)
+
+            // Controls
+            HStack(spacing: 16) {
+                Button(viewModel.isConnected ? "End" : "Start") {
+                    Task {
+                        if viewModel.isConnected {
+                            await viewModel.endConversation()
+                        } else {
+                            await viewModel.startConversation()
+                        }
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+
+                Button(viewModel.isMuted ? "Unmute" : "Mute") {
+                    Task { await viewModel.toggleMute() }
+                }
+                .buttonStyle(.bordered)
+                .disabled(!viewModel.isConnected)
+
+                Button("Send Message") {
+                    Task { await viewModel.sendTestMessage() }
+                }
+                .buttonStyle(.bordered)
+                .disabled(!viewModel.isConnected)
+            }
+
+            // Agent state indicator
+            if viewModel.isConnected {
+                HStack {
+                    Circle()
+                        .fill(viewModel.agentState == .speaking ? .blue : .gray)
+                        .frame(width: 10, height: 10)
+                    Text(viewModel.agentState == .speaking ? "Agent speaking" : "Agent listening")
+                        .font(.caption)
+                }
+            }
+        }
+        .padding()
+    }
+}
+
+struct MessageBubble: View {
+    let message: Message
+
+    var body: some View {
+        HStack {
+            if message.role == .user { Spacer() }
+
+            VStack(alignment: .leading) {
+                Text(message.role == .user ? "You" : "Agent")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                Text(message.content)
+                    .padding()
+                    .background(message.role == .user ? Color.blue : Color.gray.opacity(0.3))
+                    .foregroundColor(message.role == .user ? .white : .primary)
+                    .cornerRadius(12)
+            }
+
+            if message.role == .agent { Spacer() }
+        }
+    }
+}
+
+@MainActor
+class ConversationViewModel: ObservableObject {
+    @Published var messages: [Message] = []
+    @Published var isConnected = false
+    @Published var isMuted = false
+    @Published var agentState: AgentState = .listening
+    @Published var connectionStatus = "Disconnected"
+
+    private var conversation: Conversation?
+    private var cancellables = Set<AnyCancellable>()
+
+    func startConversation() async {
+        do {
+            conversation = try await ElevenLabs.startConversation(
+                agentId: "your-agent-id",
+                config: ConversationConfig()
+            )
+            setupObservers()
+        } catch {
+            print("Failed to start conversation: \(error)")
+            connectionStatus = "Failed to connect"
+        }
+    }
+
+    func endConversation() async {
+        await conversation?.endConversation()
+        conversation = nil
+        cancellables.removeAll()
+    }
+
+    func toggleMute() async {
+        try? await conversation?.toggleMute()
+    }
+
+    func sendTestMessage() async {
+        try? await conversation?.sendMessage("Hello from the app!")
+    }
+
+    private func setupObservers() {
+        guard let conversation else { return }
+
+        conversation.$messages
+            .assign(to: &$messages)
+
+        conversation.$state
+            .map { state in
+                switch state {
+                case .idle: return "Disconnected"
+                case .connecting: return "Connecting..."
+                case .active: return "Connected"
+                case .ended: return "Ended"
+                case .error: return "Error"
+                }
+            }
+            .assign(to: &$connectionStatus)
+
+        conversation.$state
+            .map { $0.isActive }
+            .assign(to: &$isConnected)
+
+        conversation.$isMuted
+            .assign(to: &$isMuted)
+
+        conversation.$agentState
+            .assign(to: &$agentState)
+    }
+}
+```

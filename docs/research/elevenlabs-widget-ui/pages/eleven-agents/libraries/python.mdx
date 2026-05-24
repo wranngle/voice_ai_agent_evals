@@ -1,0 +1,132 @@
+> This is a page from the ElevenLabs documentation. For a complete page index, fetch https://elevenlabs.io/docs/llms.txt. For the full documentation in a single file, fetch https://elevenlabs.io/docs/llms-full.txt.
+
+# Python SDK
+
+Also see the [ElevenAgents overview](/docs/eleven-agents/overview)
+
+## Installation
+
+Install the `elevenlabs` Python package in your project:
+
+```shell
+pip install elevenlabs
+# or
+poetry add elevenlabs
+```
+
+If you want to use the default implementation of audio input/output you will also need the `pyaudio` extra:
+
+```shell
+pip install "elevenlabs[pyaudio]"
+# or
+poetry add "elevenlabs[pyaudio]"
+```
+
+The `pyaudio` package installation might require additional system dependencies.
+
+See [PyAudio package README](https://pypi.org/project/PyAudio/) for more information.
+
+On Debian-based systems you can install the dependencies with:
+
+```shell
+sudo apt-get update
+sudo apt-get install libportaudio2 libportaudiocpp0 portaudio19-dev libasound-dev libsndfile1-dev -y
+```
+
+On macOS with Homebrew you can install the dependencies with:
+
+```shell
+brew install portaudio
+```
+
+## Usage
+
+In this example we will create a simple script that runs a conversation with the ElevenLabs Agents agent.
+
+First import the necessary dependencies:
+
+```python
+import os
+import signal
+
+from elevenlabs.client import ElevenLabs
+from elevenlabs.conversational_ai.conversation import Conversation
+from elevenlabs.conversational_ai.default_audio_interface import DefaultAudioInterface
+```
+
+Next load the agent ID and API key from environment variables:
+
+```python
+agent_id = os.getenv("AGENT_ID")
+api_key = os.getenv("ELEVENLABS_API_KEY")
+```
+
+The API key is only required for non-public agents that have authentication enabled.
+You don't have to set it for public agents and the code will work fine without it.
+
+Then create the `ElevenLabs` client instance:
+
+```python
+elevenlabs = ElevenLabs(api_key=api_key)
+```
+
+Now we initialize the `Conversation` instance:
+
+```python
+conversation = Conversation(
+    # API client and agent ID.
+    elevenlabs,
+    agent_id,
+
+    # Assume auth is required when API_KEY is set.
+    requires_auth=bool(api_key),
+
+    # Use the default audio interface.
+    audio_interface=DefaultAudioInterface(),
+
+    # Simple callbacks that print the conversation to the console.
+    callback_agent_response=lambda response: print(f"Agent: {response}"),
+    callback_agent_response_correction=lambda original, corrected: print(f"Agent: {original} -> {corrected}"),
+    callback_user_transcript=lambda transcript: print(f"User: {transcript}"),
+
+    # Uncomment if you want to see latency measurements.
+    # callback_latency_measurement=lambda latency: print(f"Latency: {latency}ms"),
+
+    # Uncomment if you want to receive audio alignment data with character-level timing.
+    # callback_audio_alignment=lambda alignment: print(f"Alignment: {alignment.chars}"),
+)
+```
+
+We are using the `DefaultAudioInterface` which uses the default system audio input/output devices for the conversation.
+You can also implement your own audio interface by subclassing `elevenlabs.conversational_ai.conversation.AudioInterface`.
+
+Now we can start the conversation. Optionally, we recommended passing in your own end user IDs to map conversations to your users.
+
+```python
+conversation.start_session(
+    user_id=user_id # optional field
+)
+```
+
+To get a clean shutdown when the user presses `Ctrl+C` we can add a signal handler which will call `end_session()`:
+
+```python
+signal.signal(signal.SIGINT, lambda sig, frame: conversation.end_session())
+```
+
+And lastly we wait for the conversation to end and print out the conversation ID (which can be used for reviewing the conversation history and debugging):
+
+```python
+conversation_id = conversation.wait_for_session_end()
+print(f"Conversation ID: {conversation_id}")
+```
+
+All that is left is to run the script and start talking to the agent:
+
+```shell
+# For public agents:
+AGENT_ID=youragentid python demo.py
+
+# For private agents:
+AGENT_ID=youragentid ELEVENLABS_API_KEY=yourapikey python demo.py
+```
