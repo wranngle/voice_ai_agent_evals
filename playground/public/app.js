@@ -218,10 +218,12 @@ function controlFor(spec) {
   return wrap;
 }
 
-function card(id, title, sec, bodyKids, hint) {
-  const c = el("section", { class: "card", id });
-  const h = el("h2", {}, [title, sec ? el("span", { class: "sec" }, sec) : ""]);
-  h.addEventListener("click", (e) => { if (e.target === h) c.classList.toggle("collapsed"); });
+// sections collapsed by default unless in OPEN_BY_DEFAULT — keeps the page calm
+const OPEN_BY_DEFAULT = new Set(["start", "embed"]);
+function card(id, title, _sec, bodyKids, hint) {
+  const c = el("section", { class: "card" + (OPEN_BY_DEFAULT.has(id) ? "" : " collapsed"), id });
+  const h = el("h2", {}, [title, el("span", { class: "expand-chev" }, "›")]);
+  h.addEventListener("click", () => c.classList.toggle("collapsed"));
   const body = el("div", { class: "card-body" });
   if (hint) body.append(el("p", { class: "hint", html: hint }));
   for (const k of [].concat(bodyKids)) body.append(k);
@@ -401,10 +403,10 @@ function introCard() {
     { label: "📱 Compact bottom-left", desc: "Mobile-style: compact, dismissible", patch: { variant: "compact", placement: "bottom-left", dismissible: true } },
     { label: "↺ Reset", desc: "Defaults", patch: "RESET" },
   ];
-  const row = el("div", { class: "row", style: "gap:6px;flex-wrap:wrap" });
+  const row = el("div", { class: "presets" });
   for (const p of presets) {
-    const b = el("button", { class: p.label.startsWith("↺") ? "" : "primary", style: "flex:1;min-width:180px;text-align:left;padding:8px 10px;line-height:1.3" });
-    b.innerHTML = `<div style="font-weight:600">${p.label}</div><div style="font-size:11px;opacity:0.85;font-weight:400">${p.desc}</div>`;
+    const b = el("button", { class: "preset" + (p.label.startsWith("↺") ? " preset-reset" : "") });
+    b.innerHTML = `<div class="preset-label">${p.label}</div><div class="preset-desc">${p.desc}</div>`;
     b.addEventListener("click", () => {
       if (p.patch === "RESET") { for (const k of Object.keys(state)) delete state[k]; for (const k of Object.keys(textState)) delete textState[k]; for (const s of ATTR_SPECS) state[s.key] = defForSpec(s); state["agent-id"] = AGENT_ID; }
       else for (const [k, v] of Object.entries(p.patch)) state[k] = v;
