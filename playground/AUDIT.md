@@ -99,7 +99,7 @@ After missing it entirely in the first pass, the full ElevenLabs UI library at h
 | O14 | AudioPlayer (Provider + Button + Progress + Time/Duration) | ✅ | plays public WAV |
 | O15 | VoicePicker | ✅ | 3 real voice IDs |
 | O16 | SpeechInput | ◑ | record button renders; live recording needs real mic |
-| O17 | TranscriptViewer | ◑ | mounts; synthetic alignment lacks required fields → boundary message |
+| O17 | TranscriptViewer (Container + Words + PlayPause + ScrubBar) | ✅ | renders "Hello world this is a synthesized transcript" with play/scrub controls (camelCase `characterStartTimesSeconds` fields) |
 
 ### Discoverability overhaul of `/` (the widget control plane)
 The previous Datadog-style dense console was hostile to non-engineers (acknowledged via memory `feedback-showcase-must-be-discoverable`). Now:

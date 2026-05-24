@@ -218,8 +218,8 @@ function App() {
               audioType="audio/wav"
               alignment={{
                 characters: "Hello world this is a synthesized transcript".split(""),
-                character_start_times_seconds: Array.from({ length: 43 }, (_, i) => i * 0.1),
-                character_end_times_seconds: Array.from({ length: 43 }, (_, i) => i * 0.1 + 0.09),
+                characterStartTimesSeconds: Array.from({ length: 43 }, (_, i) => i * 0.1),
+                characterEndTimesSeconds: Array.from({ length: 43 }, (_, i) => i * 0.1 + 0.09),
               } as any}
             >
               <div className="flex items-center gap-2 mb-2">

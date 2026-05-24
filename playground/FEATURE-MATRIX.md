@@ -211,7 +211,7 @@ Built into `/ui-library.html` via Bun bundle from sources fetched at `https://ui
 - [x] O14 `AudioPlayer` (Provider + Button + Progress + Time/Duration with public WAV) — UI
 - [x] O15 `VoicePicker` (Popover + Command with 3 sample voices) — UI
 - [~] O16 `SpeechInput` (compound — Scribe-driven mic + preview + record button) — source present, not embedded
-- [~] O17 `TranscriptViewer` (compound — Provider + Container + Words + Audio + ScrubBar) — source present, not embedded
+- [x] O17 `TranscriptViewer` (Container + Words + PlayPauseButton + ScrubBar) — renders words + audio scrubber with synthetic alignment
 
 ## N. Polish / proof
 - [x] N1 single-page nav across all sections — W
