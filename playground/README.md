@@ -1,6 +1,6 @@
 # ElevenLabs Widget & UI Component Showcase
 
-An interactive playground that demos **every knob** the ElevenLabs agent UI exposes — the embeddable widget *and* the native React components — wired to a **real ElevenLabs agent** via the real API. Built from the capability research in `../docs/research/elevenlabs-widget-ui/`.
+A 5-page interactive playground that demos **every public ElevenLabs UI surface** — the embeddable chat/voice widget, the `@elevenlabs/react` hooks, the full ui.elevenlabs.io component library, the upstream component example demos, and all 11 upstream reference apps — wired to a real `[DEV]` ElevenLabs agent via a key-safe Bun proxy.
 
 ## Run
 
@@ -8,72 +8,94 @@ An interactive playground that demos **every knob** the ElevenLabs agent UI expo
 bun playground          # → http://localhost:4321   (alias for: bun run playground/server.ts)
 ```
 
-The server reads `ELEVENLABS_API_KEY` from `./.env` or `~/.agents/.env`. The key **never reaches the browser** — every authenticated call goes through the proxy.
+The server reads `ELEVENLABS_API_KEY` from `./.env` or `~/.agents/.env`. **The key never reaches the browser** — every authenticated call goes through the proxy.
 
-Two pages:
-- **`/`** — widget control plane (HTML attributes, CSS tokens, text, avatar, modality, runtime overrides, combos, server-config PATCH, URL params).
-- **`/react.html`** — native components island (`@elevenlabs/react` hooks, client tools, audio visualizer, live event log).
+## Pages
+
+| URL | What | Source |
+|---|---|---|
+| `/` | Widget control plane — every `<elevenlabs-convai>` knob live; presets at top; collapsible sections | `public/index.html` + `public/app.js` |
+| `/react.html` | Native `@elevenlabs/react` island — provider, hooks, client tools, live event log, Scribe | `public/react.html` + `public/react.js` (htm + esm.sh) |
+| `/ui-library.html` | Hand-curated component grid (my variants — multiple Orb states, etc.) | `ui-library/src/main.tsx` |
+| `/examples.html` | **17 official upstream component demos** — `ui.elevenlabs.io/registry/examples/` mounted verbatim | `ui-library/src/examples-main.tsx` |
+| `/blocks.html` | **11 full reference apps** with a switcher — Voice Chat × 3, Music Player × 2, Realtime Transcriber, Transcriber, Voice Form, Voice Nav, Speaker, Pong | `ui-library/src/blocks-main.tsx` |
+
+The widget showcase (`/`) has a prominent "Start here" card with 6 named presets: Brand it pink · Text-only chat · Force agent reply (sentinel proof) · Rich agent content (markdown + link + code) · Compact bottom-left · Reset. Click any preset to see it apply instantly to the live widget preview on the right.
 
 ## Showcase agent
 
-`[DEV] Widget Showcase Playground` — `agent_7701ksbwcdzcfe0sj8nhtrxem9h1` (recorded in `agent.json`). Public (auth disabled) so the widget renders unauthenticated; cloned from the inbound template so it has a working voice + prompt, with runtime overrides (voice/prompt/llm/language/text_only) enabled. It is `[DEV]`, so the API panel may mutate it freely.
+`[DEV] Widget Showcase Playground` — `agent_7701ksbwcdzcfe0sj8nhtrxem9h1` (recorded in `agent.json`). Public (auth disabled) so the widget renders unauthenticated; cloned from the inbound template so it has a working voice + prompt; runtime overrides (voice/prompt/llm/language/text_only) enabled. `[DEV]` phase, safe to mutate from the API panel.
 
 ## Architecture
 
 ```
 playground/
-  server.ts            Bun: static host + key-safe proxy to api.elevenlabs.io
-  agent.json           the showcase agent id + provenance
-  FEATURE-MATRIX.md    every feature/knob/combo, checked off as wired
-  public/
-    index.html app.js styles.css   widget control plane (data-driven from spec arrays)
-    react.html react.js            native @elevenlabs/react island (React+htm via esm.sh import map)
+  server.ts                  Bun: static host + key-safe API proxy (see endpoints below)
+  agent.json                 the showcase agent id + provenance
+  FEATURE-MATRIX.md          every feature / knob / combo, [x] / [~] / [ ]
+  AUDIT.md                   honest fidelity audit with screenshot evidence
+  verify.mjs                 Playwright e2e (9 steps, fails on any console error)
+  live-probe.mjs             7 live capability probes (voice/signed-url/override-effect/...)
+  audit-shots.mjs            fidelity capture (text-contents / avatar / styles / etc.)
+  public/                    static (5 .html + the bundled .js files)
+  audit/                     screenshots (verify/01-10, audit/A-Z)
+  ui-library/src/            upstream elevenlabs/ui registry, vendored
+    components/ui/   63      shadcn primitives + EL components (Orb, Conversation, etc.)
+    hooks/            5      useScribe, useTranscriptViewer, etc.
+    lib/              1      cn (tailwind-merge + clsx)
+    examples/        17      one demo per EL component
+    blocks/          11      full reference apps (Voice Chat / Pong / etc.)
+    main.tsx                 entry → bundles /ui-library.html
+    examples-main.tsx        entry → bundles /examples.html
+    blocks-main.tsx          entry → bundles /blocks.html
 ```
 
-### Server proxy endpoints (key-safe)
+### Proxy endpoints (all key-safe via the Bun server)
+
 | Endpoint | Purpose |
 |---|---|
 | `GET /api/config` | showcase agent id |
 | `GET /api/agents` | real roster with phase + `mutable` flag |
 | `GET /api/widget/:id` | live widget config |
-| `PATCH /api/widget/:id` | write `platform_settings.widget` — **governance-guarded** |
+| `PATCH /api/widget/:id` | write `platform_settings.widget` — DEV-guarded |
 | `GET /api/agent/:id` | full agent config |
-| `POST /api/avatar/:id` | upload avatar (multipart) — guarded |
+| `POST /api/avatar/:id` | upload avatar (multipart) — DEV-guarded |
 | `GET /api/signed-url/:id` | mint signed URL (WebSocket auth) |
 | `GET /api/conversation-token/:id` | mint token (WebRTC) |
+| `GET /api/scribe-token` | mint Scribe single-use token (`/v1/single-use-token/realtime_scribe`) |
+| `POST /api/stt` | proxy ElevenLabs batch speech-to-text |
+| `POST /api/extract-form` | STT → `llm.sh` structured extract → JSON (powers `voice-form-01`) |
+| `POST /api/voice-nav` | STT → sitemap fetch → `llm.sh` URL match (powers `voice-nav-01`) |
 
-**Governance guard:** PATCH/avatar succeed only for `[DEV]` or prefix-less (implicit DEV) agents; `[ALPHA|BETA|PROD|ARCHIVED]` return `403`. Mirrors the repo's ElevenLabs governance rule.
+**Governance guard:** PATCH/avatar succeed only for `[DEV]` or prefix-less agents; `[ALPHA|BETA|PROD|ARCHIVED]` return `403`. Mirrors the repo's ElevenLabs governance rule.
 
-## What's covered
+**LLM access:** every LLM call goes through `llm.sh` (Gemini provider chain) per the project's no-direct-REST-keys rule. The two upstream blocks that originally used `generateObject` from the Vercel `ai` SDK are re-wired through `/api/extract-form` and `/api/voice-nav`.
 
-See `FEATURE-MATRIX.md` for the checklist (120+ items). Highlights:
-- **45 HTML attributes** (full source `CustomAttributeList`), each a live control; booleans omit the attribute when off.
-- **20 `--el-` CSS tokens** + legacy flat colors, edited and PATCHed to server config (shadow-DOM styling is server-side, not external CSS).
-- **~50 text-content keys** in a live editor → `text-contents` JSON attribute.
-- **Avatar**: live WebGL2 orb (2 colors), image URL, uploaded image via API.
-- **Modality**: voice / voice+text / text-only chat / file input, with the `text_only` forcing rules annotated.
-- **Runtime**: dynamic variables + all overrides; the `elevenlabs-convai:call` SessionConfig-mutation hook.
-- **URL params**: every knob round-trips through the query string; presets + copy-shareable-URL.
-- **Native React**: `ConversationProvider` + all granular hooks, component-scoped client tools, device switching, audio-reactive FFT visualizer, and a live event log of every callback.
-- **Combos grid**: variant × placement (24 cells) + related-knob truth tables.
+### Upstream provenance
 
-## Verification
+Every file under `playground/ui-library/src/` was fetched verbatim from `github.com/elevenlabs/ui@main` (`apps/www/registry/elevenlabs-ui/`), with one rewrite applied: `@/registry/elevenlabs-ui/{ui,hooks,lib,blocks,examples}/X` → `@/{components/ui,hooks,lib,blocks,examples}/X` so the bundler resolves them in this layout. Server actions (`"use server"`) are swapped per-file for client shims that hit the proxies above. `next/link` is stubbed by `lib/next-link.tsx` (one block uses it).
 
-End-to-end browser verification via Playwright + headless Chromium — `playground/verify.mjs` (the central-promise e2e). With the server running:
+## Verify
 
 ```bash
-bun run playground/verify.mjs    # screenshots → playground/verify/
+bun run playground/verify.mjs         # Playwright 9-step e2e (render → conversation → URL params) → audit/verify/
+bun run playground/live-probe.mjs     # 7 live capability probes → audit/F-L
+bun run playground/audit-shots.mjs    # fidelity capture → audit/A-E
 ```
 
-It fails on any console error / pageerror and asserts, in real Chromium:
-1. Widget page loads and the `<elevenlabs-convai>` **shadow root populates** (43 nodes) — the embed actually registers and renders.
-2. Driving controls reflects onto the element (variant/placement/text-input).
-3. The variant×placement **combo grid** applies.
-4. **Exhaustive control sweep** — every toggle/select/color/safe-text control in the widget cards reflects onto the element (**21/21**).
-5. **API round-trip** — in-browser GET + PATCH `styles` against the real API (DEV-guarded).
-6. The widget **opens** (trigger click pierces the shadow root → terms modal).
-7. The **React island mounts** with all 6 cards and **zero invalid-hook / render errors**.
-8. A **real text-only conversation** against the showcase agent: `startSession` → `connected` → send → the agent replies (`onMessage` `source:ai`), proving the live round-trip end to end.
-9. **URL params** (`?variant=tiny&placement=top-left&…`) drive the widget on load.
+Last green: `verify.mjs` 9/9 steps + 0 console errors, real agent reply confirmed.
 
-Last run: **9/9 steps, 0 console errors.** Screenshots in `playground/verify/` (widget home, controls, combo grid, terms modal on open, React island connected, live conversation). Bugs this caught and fixed: missing embed `<script>`, unmapped `react/jsx-runtime`, string `style` props + `class` (→ `className`) in htm, and controlled-mute throwing in text-only mode.
+## Extend
+
+- **Add a new widget knob** → add a row to `ATTR_SPECS` in `public/app.js` with `{sec, key, label, type, ...}`. The control renders automatically.
+- **Add a new component to the UI library** → drop the TSX in `ui-library/src/components/ui/` (path rewrites handled), import in `main.tsx`. Bun build picks it up.
+- **Add a new block** → drop the upstream `page.tsx` in `ui-library/src/blocks/<name>/`, run the same path-rewrites, register in `blocks-main.tsx`. If it has `"use server"` actions, write a client shim that hits the proxy.
+
+Build: `bun build playground/ui-library/src/{main,examples-main,blocks-main}.tsx --outdir playground/public/ui-library --target browser --format esm --define process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID='"agent_..."'`.
+
+## Honest gaps
+
+- `useScribe` panel in `/react.html` connects via single-use token but transcripts stay empty in headless because no real mic audio is sent. Works with real mic input.
+- Custom-tag re-registration is illustrative only — the CDN bundle registers `elevenlabs-convai` by default.
+- `worklet-path-*` widget attributes are settable but only have effect with a self-hosted worklet (CSP / offline).
+- The Pong block uses an in-memory player-presence map (single-tab); real multiplayer would need the upstream Upstash Redis.
