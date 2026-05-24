@@ -60,7 +60,7 @@ jobs:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
         run: |
           nohup bun run playground/server.ts > /tmp/playground.log 2>&1 &
-          for i in {1..30}; do
+          for _ in {1..30}; do
             if curl -s -o /dev/null -w '%{http_code}' http://localhost:4321/ | grep -q 200; then
               echo "server up"; exit 0
             fi
