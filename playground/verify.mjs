@@ -22,6 +22,7 @@ const page = await ctx.newPage();
 page.on("console", (m) => { if (m.type() === "error") errors.push("console: " + m.text()); });
 page.on("pageerror", (e) => errors.push("pageerror: " + e.message));
 const shot = (n) => page.screenshot({ path: join(OUT, n), fullPage: false });
+const expandAllCards = () => page.evaluate(() => document.querySelectorAll(".card.collapsed h2").forEach((h) => h.click()));
 
 console.log(`\nVerifying ${BASE}\n`);
 
@@ -39,6 +40,7 @@ await step("widget page loads + shadow root populates", async () => {
 });
 
 await step("drive controls (variant/placement/text-input)", async () => {
+  await expandAllCards();
   await page.locator(".ctrl", { hasText: "Variant" }).locator("select").selectOption("compact");
   await page.locator(".ctrl", { hasText: "Placement" }).locator("select").selectOption("top-right");
   await page.locator(".ctrl", { hasText: "Text input enabled" }).locator("input[type=checkbox]").check();
@@ -53,6 +55,7 @@ await step("drive controls (variant/placement/text-input)", async () => {
 });
 
 await step("combo grid applies variant+placement", async () => {
+  await expandAllCards();
   await page.locator('.matrix-grid button[data-v="full"][data-p="bottom-right"]').click();
   await page.waitForTimeout(800);
   const v = await page.evaluate(() => document.querySelector("elevenlabs-convai").getAttribute("variant"));
@@ -61,6 +64,7 @@ await step("combo grid applies variant+placement", async () => {
 });
 
 await step("exhaustive control sweep — every toggle/select/color/safe-text reflects", async () => {
+  await expandAllCards();
   // network/connection-affecting attrs need valid values; exercise everything else.
   const skip = ["agent-id", "signed-url", "override-config", "server-location", "environment", "user-id", "use-rtc",
     "language", "dynamic-variables", "avatar-image-url", "override-prompt", "override-llm", "override-speed",
@@ -92,6 +96,7 @@ await step("exhaustive control sweep — every toggle/select/color/safe-text ref
 await step("API panel: GET + PATCH styles round-trip (DEV-guarded, real API)", async () => {
   await page.goto(BASE, { waitUntil: "networkidle" });
   await page.waitForFunction(() => document.querySelector("elevenlabs-convai")?.shadowRoot?.childElementCount > 0, { timeout: 25000 });
+  await expandAllCards();
   await page.locator("#api").scrollIntoViewIfNeeded();
   await page.getByRole("button", { name: "GET widget config" }).click();
   await page.waitForFunction(() => /widget_config|variant|avatar/.test(document.querySelector("#api pre.out")?.innerText || ""), { timeout: 15000 });
@@ -104,6 +109,7 @@ await step("API panel: GET + PATCH styles round-trip (DEV-guarded, real API)", a
 });
 
 await step("open widget (click trigger in shadow)", async () => {
+  await expandAllCards();
   const trigger = page.locator("elevenlabs-convai").getByRole("button").first();
   await trigger.click({ timeout: 8000 });
   await page.waitForTimeout(2000);
