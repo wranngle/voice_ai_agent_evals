@@ -1,0 +1,73 @@
+name: playground-verify
+
+# Run the playground's full verification gate (Playwright + headless Chromium)
+# on every PR that touches the playground. Requires the repo secret
+# ELEVENLABS_API_KEY (single setting key) — the only auth bit the proxy needs.
+# Does NOT exercise /api/extract-form or /api/voice-nav (those need llm.sh on
+# the runner); the other 9 proxy endpoints + 9/9 verify + 7/7 live probes do
+# run against the live ElevenLabs API.
+
+on:
+  pull_request:
+    paths:
+      - 'playground/**'
+      - '.github/workflows/playground-verify.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: playground-verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@4bc047ad259df6fc24a6c9b0f9a0cb08cf17fbe5  # v2.0.0
+        with:
+          bun-version: latest
+
+      - name: Install deps
+        run: bun install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: bunx playwright@latest install --with-deps chromium
+
+      - name: Start playground server (background)
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+        run: |
+          nohup bun run playground/server.ts > /tmp/playground.log 2>&1 &
+          for i in {1..30}; do
+            if curl -s -o /dev/null -w '%{http_code}' http://localhost:4321/ | grep -q 200; then
+              echo "server up"; exit 0
+            fi
+            sleep 1
+          done
+          echo "server failed to start"
+          cat /tmp/playground.log
+          exit 1
+
+      - name: Run playground:verify (verify.mjs + live-probe.mjs + audit-shots.mjs)
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+        run: bun run playground/verify-all.mjs
+
+      - name: Upload audit + verify screenshots on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playground-evidence-${{ github.run_number }}
+          path: |
+            playground/audit/
+            playground/verify/
+            /tmp/playground.log
+          retention-days: 14
