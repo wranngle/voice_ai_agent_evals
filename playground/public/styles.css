@@ -12,7 +12,8 @@ a { color: var(--accent-2); text-decoration: none; }
 .brand { display: flex; align-items: center; gap: 8px; font-size: 14px; }
 .brand strong { font-weight: 700; }
 .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
-.agent-chip { font: 11px var(--mono); color: var(--muted); background: var(--panel-2); padding: 2px 8px; border-radius: 10px; border: 1px solid var(--line); }
+.agent-chip { font: 11px var(--mono); color: var(--muted); background: var(--panel-2); padding: 2px 8px; border-radius: 10px; border: 1px solid var(--line); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; }
+@media (max-width: 480px) { .agent-chip { max-width: 140px; } }
 .topnav { display: flex; gap: 4px; flex-wrap: wrap; }
 .topnav a { padding: 4px 8px; border-radius: 6px; color: var(--muted); font-size: 12px; }
 .topnav a:hover { background: var(--panel-2); color: var(--text); }
