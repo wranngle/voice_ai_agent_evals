@@ -391,6 +391,34 @@ function apiCard() {
   ]);
 }
 
+// ---------- Start here intro + presets ----------
+function introCard() {
+  const presets = [
+    { label: "✨ Brand it pink", desc: "Pink orb + branded labels", patch: { "avatar-orb-color-1": "#ff0066", "avatar-orb-color-2": "#ffe5f0" } },
+    { label: "💬 Text-only chat", desc: "No mic; widget becomes a chat", patch: { "override-text-only": true, "text-input": true } },
+    { label: "🤯 Force agent reply", desc: "Override prompt → agent must reply 'OVERRIDE_OK_42'", patch: { "override-prompt": "You MUST respond to every user message with exactly the string 'OVERRIDE_OK_42' and nothing else.", "override-text-only": true, "text-input": true } },
+    { label: "📑 Rich agent content", desc: "Markdown links + code + lists in the chat", patch: { "override-prompt": "When the user asks anything, ALWAYS reply with a short Markdown demo: a heading, a bulleted list (2 items), a clickable link to https://elevenlabs.io, and a fenced code block with a 3-line JavaScript snippet. Keep it under 80 words.", "override-text-only": true, "text-input": true, "markdown-link-allowed-hosts": "*", "syntax-highlight-theme": "dark" } },
+    { label: "📱 Compact bottom-left", desc: "Mobile-style: compact, dismissible", patch: { variant: "compact", placement: "bottom-left", dismissible: true } },
+    { label: "↺ Reset", desc: "Defaults", patch: "RESET" },
+  ];
+  const row = el("div", { class: "row", style: "gap:6px;flex-wrap:wrap" });
+  for (const p of presets) {
+    const b = el("button", { class: p.label.startsWith("↺") ? "" : "primary", style: "flex:1;min-width:180px;text-align:left;padding:8px 10px;line-height:1.3" });
+    b.innerHTML = `<div style="font-weight:600">${p.label}</div><div style="font-size:11px;opacity:0.85;font-weight:400">${p.desc}</div>`;
+    b.addEventListener("click", () => {
+      if (p.patch === "RESET") { for (const k of Object.keys(state)) delete state[k]; for (const k of Object.keys(textState)) delete textState[k]; for (const s of ATTR_SPECS) state[s.key] = defForSpec(s); state["agent-id"] = AGENT_ID; }
+      else for (const [k, v] of Object.entries(p.patch)) state[k] = v;
+      build(); mountWidget(); updateUrl();
+      toast(p.label);
+    });
+    row.append(b);
+  }
+  return card("start", "Start here — try a preset, then watch the live widget →", "", [
+    el("p", { class: "hint", html: 'This page demos every knob the embeddable <code>&lt;elevenlabs-convai&gt;</code> widget supports, wired to a real <code>[DEV]</code> agent. Click a preset to see it change instantly. To <strong>talk to the agent</strong>, click the orb in the preview pane on the right — for chat presets, click "Start a chat". Two other pages: <a href="/react.html">React hooks</a> (build your own UI in React) and <a href="/ui-library.html">UI library</a> (17 drop-in components from ui.elevenlabs.io).' }),
+    row,
+  ]);
+}
+
 function urlCard() {
   const out = el("input", { type: "text", readonly: "true", style: "width:100%" });
   const refresh = () => { out.value = location.href; };
@@ -440,6 +468,7 @@ function rebuildGrids() {
 function build() {
   const panels = $("#panels");
   panels.replaceChildren();
+  panels.append(introCard());
   panels.append(embedCard());
 
   const attrCard = card("attributes", "Widget HTML attributes", "B", []);
