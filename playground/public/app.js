@@ -219,7 +219,7 @@ function controlFor(spec) {
 }
 
 // sections collapsed by default unless in OPEN_BY_DEFAULT — keeps the page calm
-const OPEN_BY_DEFAULT = new Set(["start", "embed"]);
+const OPEN_BY_DEFAULT = new Set(["start", "tour", "embed"]);
 function card(id, title, _sec, bodyKids, hint) {
   const c = el("section", { class: "card" + (OPEN_BY_DEFAULT.has(id) ? "" : " collapsed"), id });
   const h = el("h2", {}, [title, el("span", { class: "expand-chev" }, "›")]);
@@ -393,6 +393,26 @@ function apiCard() {
   ]);
 }
 
+// ---------- Tour of the 4 other pages ----------
+function tourCard() {
+  const tiles = [
+    { href: "/react.html", img: "/thumbs/react.png", title: "React hooks island", desc: "Build your own UI with @elevenlabs/react — ConversationProvider + every granular hook, client tools, audio visualizer, Scribe, live event log." },
+    { href: "/examples.html", img: "/thumbs/examples.png", title: "17 official component demos", desc: "Each card mounts the upstream elevenlabs/ui example file verbatim. The clean tour of the UI library." },
+    { href: "/ui-library.html", img: "/thumbs/ui-library.png", title: "Component grid (compositions)", desc: "My hand-curated variants — multiple Orb agent states, manual volumes, audio-reactive props side by side." },
+    { href: "/blocks.html", img: "/thumbs/blocks.png", title: "11 reference apps (blocks)", desc: "Voice Chat × 3 · Music Player × 2 · Realtime Transcriber · Transcriber · Voice Form · Voice Nav · Speaker · Pong. Full upstream page.tsx, mounted." },
+  ];
+  const wrap = el("div", { class: "tour" });
+  for (const t of tiles) {
+    const tile = el("a", { class: "tour-tile", href: t.href });
+    tile.innerHTML = `<img src="${t.img}" loading="lazy" alt="${t.title}"/><div class="tour-meta"><div class="tour-title">${t.title}</div><div class="tour-desc">${t.desc}</div></div>`;
+    wrap.append(tile);
+  }
+  return card("tour", "The other 4 pages — pick where to go next", "", [
+    el("p", { class: "hint", html: "This page is the <strong>widget control plane</strong>. There are four other pages that demo different surfaces of the ElevenLabs UI universe — click a card to open." }),
+    wrap,
+  ]);
+}
+
 // ---------- Start here intro + presets ----------
 function introCard() {
   const presets = [
@@ -471,6 +491,7 @@ function build() {
   const panels = $("#panels");
   panels.replaceChildren();
   panels.append(introCard());
+  panels.append(tourCard());
   panels.append(embedCard());
 
   const attrCard = card("attributes", "Widget appearance & behavior", "B", []);

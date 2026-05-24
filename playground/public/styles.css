@@ -97,3 +97,11 @@ pre.out { background: var(--bg); border: 1px solid var(--line); border-radius: 6
 .toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--panel-2);
   border: 1px solid var(--accent); padding: 8px 16px; border-radius: 8px; z-index: 100; font-size: 12px; opacity: 0; transition: .2s; pointer-events: none; }
 .toast.show { opacity: 1; }
+
+.tour { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.tour-tile { display: block; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; text-decoration: none; color: inherit; transition: .15s; }
+.tour-tile:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.3); }
+.tour-tile img { display: block; width: 100%; height: 160px; object-fit: cover; object-position: top left; border-bottom: 1px solid var(--line); background: #0b0e14; }
+.tour-meta { padding: 10px 12px; }
+.tour-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.tour-desc { font-size: 11.5px; color: var(--muted); line-height: 1.4; margin-top: 3px; }
