@@ -192,6 +192,27 @@ Demo surface key: **W**=widget control panel · **U**=URL param · **A**=API-ove
 - [x] M7 syntax theme × markdown-link allowlist (code+link rendering) — W
 - [x] M8 terms modal × terms-key (returning-user suppression) — W
 
+## O. ElevenLabs UI library (ui.elevenlabs.io — 17 drop-in components)
+Built into `/ui-library.html` via Bun bundle from sources fetched at `https://ui.elevenlabs.io/r/<slug>.json`.
+
+- [x] O1 `Orb` — WebGL2 3D, 2-color gradient, agent state (null/thinking/listening/talking), audio-reactive (auto/manual) — UI
+- [x] O2 `Waveform` (static, `data: number[]`) — UI
+- [x] O3 `ScrollingWaveform` (live scrolling) — UI
+- [x] O4 `BarVisualizer` (demo mode bars) — UI
+- [x] O5 `LiveWaveform` (mic-fed) — UI
+- [x] O6 `Message` + `MessageContent` + `MessageAvatar` (user / assistant) — UI
+- [x] O7 `Response` (Streamdown markdown rendering) — UI
+- [x] O8 `Conversation` + `ConversationContent` + `ConversationScrollButton` — UI
+- [x] O9 `VoiceButton` (idle / active / muted, cycled in demo) — UI
+- [x] O10 `MicSelector` (lists input devices) — UI
+- [x] O11 `ShimmeringText` (motion gradient) — UI
+- [x] O12 `Matrix` (pixel-grid digits, cycled) — UI
+- [x] O13 `ConversationBar` (mic toggle / keyboard / send; wrapped in `ConversationProvider`) — UI
+- [x] O14 `AudioPlayer` (Provider + Button + Progress + Time/Duration with public WAV) — UI
+- [x] O15 `VoicePicker` (Popover + Command with 3 sample voices) — UI
+- [~] O16 `SpeechInput` (compound — Scribe-driven mic + preview + record button) — source present, not embedded
+- [~] O17 `TranscriptViewer` (compound — Provider + Container + Words + Audio + ScrubBar) — source present, not embedded
+
 ## N. Polish / proof
 - [x] N1 single-page nav across all sections — W
 - [x] N2 live config inspector (current merged config JSON) — W

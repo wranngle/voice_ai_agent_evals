@@ -250,8 +250,8 @@ function textCard() {
     }
     wrap.append(tbl);
   }
-  return card("text", "Text contents — ~50 keys", "B16·E", wrap,
-    'Edited keys are assembled into the live <code>text-contents</code> JSON attribute. Placeholders show source defaults.');
+  return card("text", "Every button label & message (~50 keys)", "B16·E", wrap,
+    '<strong>Customize every word the widget shows.</strong> Edit any field — the widget reflects it instantly. Placeholders show the source defaults; leave a field blank to use the default. Assembled into the live <code>text-contents</code> JSON attribute.');
 }
 
 function combosCard() {
@@ -282,8 +282,8 @@ modality forcing (source rule):
   text_only=true  ⇒ mic-muting forced OFF, transcript + text-input forced ON
 connection-type:
   use-rtc=true + agent-id → WebRTC; agent-id → WebSocket; signed-url → WebSocket(auth)`);
-  return card("combos", "Feature combos — the grid", "M", [
-    el("p", { class: "hint" }, "variant × placement (24 cells). Click any cell to apply both at once."),
+  return card("combos", "Try every variant × placement combo", "M", [
+    el("p", { class: "hint" }, "24 cells — each one a unique widget shape × position. Click any cell to apply both. Below: the truth tables for the trickier knob interactions."),
     grid, el("h3", { style: "margin:12px 0 4px;font-size:12px;color:var(--muted)" }, "Related-knob truth tables"), truth,
   ]);
 }
@@ -297,8 +297,8 @@ function runtimeEventCard() {
   const inp = el("input", { type: "checkbox" });
   inp.addEventListener("change", () => { runtimeHookOn = inp.checked; mountWidget(); toast(runtimeHookOn ? "runtime hook armed" : "runtime hook off"); });
   lab.append(inp, el("span", {}, " attach elevenlabs-convai:call listener"));
-  return card("runtime-event", "Runtime SessionConfig mutation", "L10·M", [
-    el("p", { class: "hint", html: "The widget dispatches <code>elevenlabs-convai:call</code> (bubbles, composed, mutable <code>detail.config</code>) right before connecting — the one seam to inject per-session <code>clientTools</code>, dynamic variables, or auth from the embedding page. Highest static precedence." }),
+  return card("runtime-event", "Inject config at call-time (advanced)", "L10·M", [
+    el("p", { class: "hint", html: "<strong>Advanced.</strong> The widget dispatches <code>elevenlabs-convai:call</code> right before connecting — the one seam to inject per-session <code>clientTools</code>, dynamic variables, or auth from your embedding page. Toggle on, then start a call — the listener fires and the log below shows what got injected." }),
     el("div", { class: "row" }, [lab]), out,
   ]);
 }
@@ -378,7 +378,7 @@ function apiCard() {
   const btnToken = el("button", {}, "Mint conversation-token (WebRTC)");
   btnToken.addEventListener("click", async () => { const r = await fetch(`/api/conversation-token/${AGENT_ID}`); log(await r.json()); });
 
-  return card("api", "API / Server config — real round-trip", "C·D·F3·J·N4", [
+  return card("api", "Edit the agent's stored config via real API", "C·D·F3·J·N4", [
     el("div", { style: "background:#161b27;border:1px solid var(--warn);border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:11.5px", html: '🔐 <strong>Governance &amp; safety:</strong> calls the <strong>real ElevenLabs API</strong> through a key-safe proxy — the key never reaches the browser. PATCH/avatar are <strong>guarded</strong>: only <code>[DEV]</code> (or prefix-less) agents accept writes; <code>[ALPHA/BETA/PROD/ARCHIVED]</code> return 403. Server config is the source layer beneath HTML attributes.' }),
     el("div", { class: "row" }, [btnGet, btnLoadCfg, btnSigned, btnToken]),
     el("h3", { style: "margin:14px 0 4px;font-size:12px;color:var(--muted)" }, "CSS --el- token system (styles)"),
@@ -431,8 +431,8 @@ function urlCard() {
   }
   const btnCopy = el("button", { class: "primary" }, "Copy shareable URL");
   btnCopy.addEventListener("click", () => { refresh(); navigator.clipboard?.writeText(location.href); toast("URL copied"); });
-  return card("url", "URL parameters — drive & share", "I·U", [
-    el("p", { class: "hint", html: "Every knob (except <code>agent-id</code>) round-trips through the query string. Open the copied URL → the widget restores exactly. Booleans use <code>?key=1</code>." }),
+  return card("url", "Share this exact configuration via URL", "I·U", [
+    el("p", { class: "hint", html: "Every knob (except <code>agent-id</code>) round-trips through the query string. Copy the URL below → open it anywhere → the widget restores in the exact configuration. Booleans use <code>?key=1</code>. Try a preset, then copy the URL." }),
     presetRow, el("div", { class: "row", style: "margin-top:8px" }, [out, btnCopy]),
   ]);
 }
@@ -449,8 +449,8 @@ function embedCard() {
   };
   const btnSnip = el("button", {}, "Generate embed snippet");
   btnSnip.addEventListener("click", refreshSnippet);
-  return card("embed", "Embed & connection", "A", [
-    el("p", { class: "hint", html: 'CDN web component. The element registers with <code>shadow:open</code> and a custom tag name is allowed via <code>registerWidget(tag)</code>.' }),
+  return card("embed", "1. Connect to your agent", "A", [
+    el("p", { class: "hint", html: '<strong>The widget is a single web component.</strong> Drop one tag + the CDN script and it renders against the agent ID you pass. Below: every connection knob — agent ID, signed URL (for auth), server region, etc. Generate the embed snippet at the bottom for your own site.' }),
     specGrid("embed"),
     el("div", { class: "row", style: "margin-top:10px" }, [el("span", { class: "kv" }, "custom tag:"), tagInput, btnApply, btnSnip]),
     snippet,
@@ -471,28 +471,28 @@ function build() {
   panels.append(introCard());
   panels.append(embedCard());
 
-  const attrCard = card("attributes", "Widget HTML attributes", "B", []);
+  const attrCard = card("attributes", "Widget appearance & behavior", "B", []);
   const attrBody = $(".card-body", attrCard); const attrGrid = el("div"); attrBody.append(attrGrid); GRID_CARDS["attributes"] = attrGrid;
-  attrBody.insertBefore(el("p", { class: "hint", html: `All observed attributes from the source <code>CustomAttributeList</code> (v0.12.8). Booleans omit the attribute when off.` }), attrGrid);
+  attrBody.insertBefore(el("p", { class: "hint", html: `<strong>What to try:</strong> change <em>Variant</em> or <em>Placement</em> and watch the widget jump. Each control here sets an HTML attribute on <code>&lt;elevenlabs-convai&gt;</code>; the widget reacts live. Booleans omit the attribute when off. All <em>observed attributes</em> from source <code>CustomAttributeList@0.12.8</code> are present.` }), attrGrid);
   panels.append(attrCard);
 
-  panels.append(card("appearance", "Appearance note", "D", el("p", { class: "hint", html: "Colors/radii (the <code>--el-</code> token system + legacy flat colors) live in <strong>server config</strong>, not HTML attributes — edit them in the <a href='#api'>API / Server</a> panel (PATCH <code>styles</code> → remount). Orb colors are the exception: live via attributes (see Avatar)." })));
+  panels.append(card("appearance", "Colors & sizes (server-side styling)", "D", el("p", { class: "hint", html: "<strong>Heads-up:</strong> the widget lives in a shadow DOM, so colors and radii (the <code>--el-</code> token system + legacy flat colors) are <strong>server config</strong>, not HTML attributes — edit them in the <a href='#api'>API / Server</a> panel below (PATCH <code>styles</code> → widget remounts pink/dark/branded). Orb colors are the exception: those ARE live attributes (see Avatar)." })));
 
   panels.append(textCard());
 
-  const avCard = card("avatar", "Avatar", "F", []);
+  const avCard = card("avatar", "Avatar — orb or image", "F", []);
   const avBody = $(".card-body", avCard); const avGrid = el("div"); avBody.append(avGrid); GRID_CARDS["avatar"] = avGrid;
-  avBody.insertBefore(el("p", { class: "hint", html: "Orb is a live WebGL2 shader (2 gradient colors). Image URL overrides the orb. Uploaded image → API panel." }), avGrid);
+  avBody.insertBefore(el("p", { class: "hint", html: "<strong>What to try:</strong> change the orb color pickers — preview updates instantly. Set an <em>Avatar image URL</em> to replace the orb with an image. Upload a custom image in the API panel below." }), avGrid);
   panels.append(avCard);
 
-  const modCard = card("modality", "Modality", "G", []);
+  const modCard = card("modality", "Voice / text / chat mode", "G", []);
   const modBody = $(".card-body", modCard); const modGrid = el("div"); modBody.append(modGrid); GRID_CARDS["modality"] = modGrid;
-  modBody.insertBefore(el("p", { class: "hint", html: "Voice-only (default) · voice+text · text-only chat. <code>text_only=true</code> forces mic off and transcript+input on." }), modGrid);
+  modBody.insertBefore(el("p", { class: "hint", html: "<strong>Defaults to voice.</strong> Toggle <em>Force text-only</em> to switch to chat — the trigger flips to 'Start a chat'. <em>Mic muting</em> shows the mute button during a call. <em>Live transcript</em> renders conversation text as you talk. Note: <code>text_only=true</code> forces mic OFF and transcript+input ON automatically." }), modGrid);
   panels.append(modCard);
 
-  const rtCard = card("runtime", "Runtime personalization", "H", []);
+  const rtCard = card("runtime", "Per-session overrides (prompt, voice, language…)", "H", []);
   const rtBody = $(".card-body", rtCard); const rtGrid = el("div"); rtBody.append(rtGrid); GRID_CARDS["runtime"] = rtGrid;
-  rtBody.insertBefore(el("p", { class: "hint", html: "Dynamic variables + overrides (gated per-field in agent Security tab; this showcase agent has voice/prompt/llm/language/text_only enabled)." }), rtGrid);
+  rtBody.insertBefore(el("p", { class: "hint", html: "<strong>Each conversation can override the agent's defaults.</strong> Try setting <em>Override system prompt</em> to <code>Respond with exactly 'TEST_42'</code>, then open a chat — agent obeys. Dynamic variables get injected into prompts/messages/tools. (Each field must be enabled per-agent in the Security tab; this showcase agent has voice/prompt/llm/language/text_only enabled.)" }), rtGrid);
   panels.append(rtCard);
 
   panels.append(combosCard());
