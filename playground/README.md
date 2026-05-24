@@ -69,8 +69,11 @@ It fails on any console error / pageerror and asserts, in real Chromium:
 1. Widget page loads and the `<elevenlabs-convai>` **shadow root populates** (43 nodes) — the embed actually registers and renders.
 2. Driving controls reflects onto the element (variant/placement/text-input).
 3. The variant×placement **combo grid** applies.
-4. The widget **opens** (trigger click pierces the shadow root).
-5. The **React island mounts** with all 6 cards and **zero invalid-hook / render errors**.
-6. A **real text-only conversation** against the showcase agent: `startSession` → `connected` → send → the agent replies (`onMessage` `source:ai`), proving the live round-trip end to end.
+4. **Exhaustive control sweep** — every toggle/select/color/safe-text control in the widget cards reflects onto the element (**21/21**).
+5. **API round-trip** — in-browser GET + PATCH `styles` against the real API (DEV-guarded).
+6. The widget **opens** (trigger click pierces the shadow root → terms modal).
+7. The **React island mounts** with all 6 cards and **zero invalid-hook / render errors**.
+8. A **real text-only conversation** against the showcase agent: `startSession` → `connected` → send → the agent replies (`onMessage` `source:ai`), proving the live round-trip end to end.
+9. **URL params** (`?variant=tiny&placement=top-left&…`) drive the widget on load.
 
-Last run: **6/6 steps, 0 console errors.** Screenshots in `playground/verify/` (widget home, controls, combo grid, terms modal on open, React island connected, live conversation). Bugs this caught and fixed: missing embed `<script>`, unmapped `react/jsx-runtime`, string `style` props + `class` (→ `className`) in htm, and controlled-mute throwing in text-only mode.
+Last run: **9/9 steps, 0 console errors.** Screenshots in `playground/verify/` (widget home, controls, combo grid, terms modal on open, React island connected, live conversation). Bugs this caught and fixed: missing embed `<script>`, unmapped `react/jsx-runtime`, string `style` props + `class` (→ `className`) in htm, and controlled-mute throwing in text-only mode.
