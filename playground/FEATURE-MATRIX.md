@@ -213,6 +213,23 @@ Built into `/ui-library.html` via Bun bundle from sources fetched at `https://ui
 - [~] O16 `SpeechInput` (compound — Scribe-driven mic + preview + record button) — source present, not embedded
 - [x] O17 `TranscriptViewer` (Container + Words + PlayPauseButton + ScrubBar) — renders words + audio scrubber with synthetic alignment
 
+## P. Upstream demos (`/examples.html`) — 17 official component demos
+Each one mounts the upstream `elevenlabs/ui/registry/elevenlabs-ui/examples/<demo>.tsx` verbatim.
+- [x] P1–P17 All 17 demos render: Orb · Waveform · BarVisualizer · LiveWaveform · AudioPlayer · ScrubBar · Message · Conversation · ConversationBar · Response · TranscriptViewer · VoiceButton · VoicePicker · MicSelector · SpeechInput · ShimmeringText · Matrix (`audit/S`)
+
+## Q. Reference apps (`/blocks.html`) — 5 full client apps + 6 server-only
+- [x] Q1 Voice Chat 01 (Customer Support card) — UI
+- [x] Q2 Voice Chat 02 — UI
+- [x] Q3 Voice Chat 03 — UI
+- [x] Q4 Music Player 01 — UI
+- [x] Q5 Music Player 02 — UI
+- [~] Q6 Pong 01 — source present; needs Upstash Redis server action for high scores
+- [~] Q7 Speaker 01 — source present; uses `next/link`
+- [~] Q8 Realtime Transcriber 01 — server action (`get-scribe-token`)
+- [~] Q9 Transcriber 01 — server action
+- [~] Q10 Voice Form 01 — server action
+- [~] Q11 Voice Nav 01 — server action
+
 ## N. Polish / proof
 - [x] N1 single-page nav across all sections — W
 - [x] N2 live config inspector (current merged config JSON) — W
