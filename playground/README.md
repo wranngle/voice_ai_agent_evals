@@ -57,13 +57,20 @@ See `FEATURE-MATRIX.md` for the checklist (120+ items). Highlights:
 - **Native React**: `ConversationProvider` + all granular hooks, component-scoped client tools, device switching, audio-reactive FFT visualizer, and a live event log of every callback.
 - **Combos grid**: variant × placement (24 cells) + related-knob truth tables.
 
-## Verification status
+## Verification
 
-Verified this environment:
-- Server boots; all static routes + proxy endpoints return `200`.
-- `app.js` boots clean under a headless DOM shim (build + mount + URL-param parse, no thrown errors).
-- The **unauthenticated** public widget-config fetch (the exact call the embed makes) returns `200` for the showcase agent → the widget renders in any browser.
-- React island serves and parses; all esm.sh deps resolve with React deduped via import map.
-- Live `PATCH` round-trip succeeds on the DEV agent; governance guard blocks `[BETA/PROD/ARCHIVED]`.
+End-to-end browser verification via Playwright + headless Chromium — `playground/verify.mjs` (the central-promise e2e). With the server running:
 
-Not done here: a rendered browser screenshot — the only browser instance available is Windows-Edge over WSL, which can't reach the WSL-hosted `localhost`. To capture visuals, run `bun playground` on a host with a local browser and open `http://localhost:4321`.
+```bash
+bun run playground/verify.mjs    # screenshots → playground/verify/
+```
+
+It fails on any console error / pageerror and asserts, in real Chromium:
+1. Widget page loads and the `<elevenlabs-convai>` **shadow root populates** (43 nodes) — the embed actually registers and renders.
+2. Driving controls reflects onto the element (variant/placement/text-input).
+3. The variant×placement **combo grid** applies.
+4. The widget **opens** (trigger click pierces the shadow root).
+5. The **React island mounts** with all 6 cards and **zero invalid-hook / render errors**.
+6. A **real text-only conversation** against the showcase agent: `startSession` → `connected` → send → the agent replies (`onMessage` `source:ai`), proving the live round-trip end to end.
+
+Last run: **6/6 steps, 0 console errors.** Screenshots in `playground/verify/` (widget home, controls, combo grid, terms modal on open, React island connected, live conversation). Bugs this caught and fixed: missing embed `<script>`, unmapped `react/jsx-runtime`, string `style` props + `class` (→ `className`) in htm, and controlled-mute throwing in text-only mode.

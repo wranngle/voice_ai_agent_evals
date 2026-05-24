@@ -10,6 +10,11 @@ import {
 } from "@elevenlabs/react";
 
 const html = htm.bind(React.createElement);
+// htm passes style/class through verbatim; React needs a style OBJECT and className.
+const sx = (s) => Object.fromEntries(String(s).split(";").filter(Boolean).map((r) => {
+  const i = r.indexOf(":"); const k = r.slice(0, i).trim().replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+  return [k, r.slice(i + 1).trim()];
+}));
 
 // ---------- shared event log (module-level pub/sub) ----------
 const listeners = new Set();
@@ -24,9 +29,9 @@ const short = (v) => { try { const s = typeof v === "string" ? v : JSON.stringif
 
 // ---------- small UI atoms ----------
 const Card = ({ id, title, sec, children }) => html`
-  <section class="card" id=${id}><h2>${title} ${sec && html`<span class="sec">${sec}</span>`}</h2>
-  <div class="card-body">${children}</div></section>`;
-const Badge = ({ tone, children }) => html`<span class=${"badge " + (tone || "")}>${children}</span>`;
+  <section className="card" id=${id}><h2>${title} ${sec && html`<span className="sec">${sec}</span>`}</h2>
+  <div className="card-body">${children}</div></section>`;
+const Badge = ({ tone, children }) => html`<span className=${"badge " + (tone || "")}>${children}</span>`;
 
 // ---------- controls (uses most of useConversationControls) ----------
 function Controls({ agentId, settings }) {
@@ -70,29 +75,29 @@ function Controls({ agentId, settings }) {
   }, []);
 
   return html`
-    <div class="row">
+    <div className="row">
       ${!connected
-        ? html`<button class="primary" onClick=${start}>▶ startSession (${settings.textOnly ? "text" : settings.conn})</button>`
-        : html`<button class="danger" onClick=${() => { c.endSession(); emit("endSession", {}); }}>■ endSession</button>`}
-      <span class="kv">conv: ${convId || "—"}</span>
+        ? html`<button className="primary" onClick=${start}>▶ startSession (${settings.textOnly ? "text" : settings.conn})</button>`
+        : html`<button className="danger" onClick=${() => { c.endSession(); emit("endSession", {}); }}>■ endSession</button>`}
+      <span className="kv">conv: ${convId || "—"}</span>
     </div>
 
-    <div class="row" style="margin-top:10px">
-      <input type="text" value=${msg} onInput=${(e) => setMsg(e.target.value)} style="flex:1;min-width:200px"/>
+    <div className="row" style=${sx("margin-top:10px")}>
+      <input type="text" value=${msg} onInput=${(e) => setMsg(e.target.value)} style=${sx("flex:1;min-width:200px")}/>
       <button disabled=${!connected} onClick=${() => { c.sendUserMessage(msg); emit("sendUserMessage", msg); }}>send</button>
-      <button class="sm" disabled=${!connected} onClick=${() => { c.sendContextualUpdate("User is viewing the controls panel."); emit("sendContextualUpdate", "ctx"); }}>contextual update</button>
-      <button class="sm" disabled=${!connected} onClick=${() => { c.sendUserActivity(); emit("sendUserActivity", "ping"); }}>user activity</button>
+      <button className="sm" disabled=${!connected} onClick=${() => { c.sendContextualUpdate("User is viewing the controls panel."); emit("sendContextualUpdate", "ctx"); }}>contextual update</button>
+      <button className="sm" disabled=${!connected} onClick=${() => { c.sendUserActivity(); emit("sendUserActivity", "ping"); }}>user activity</button>
     </div>
 
-    <div class="row" style="margin-top:10px">
-      <span class="kv">volume</span>
+    <div className="row" style=${sx("margin-top:10px")}>
+      <span className="kv">volume</span>
       <input type="range" min="0" max="1" step="0.05" value=${vol} onInput=${(e) => { const v = +e.target.value; setVol(v); c.setVolume({ volume: v }); }}/>
-      <button class="sm" onClick=${() => emit("volumes", { in: c.getInputVolume?.(), out: c.getOutputVolume?.() })}>read in/out volume</button>
-      <button class="sm" onClick=${() => emit("getId", c.getId?.())}>getId</button>
+      <button className="sm" onClick=${() => emit("volumes", { in: c.getInputVolume?.(), out: c.getOutputVolume?.() })}>read in/out volume</button>
+      <button className="sm" onClick=${() => emit("getId", c.getId?.())}>getId</button>
     </div>
 
-    <div class="row" style="margin-top:10px">
-      <button class="sm" onClick=${loadDevices}>enumerate devices</button>
+    <div className="row" style=${sx("margin-top:10px")}>
+      <button className="sm" onClick=${loadDevices}>enumerate devices</button>
       <select onChange=${(e) => { c.changeInputDevice?.({ sampleRate: 16000, format: "pcm", inputDeviceId: e.target.value }); emit("changeInputDevice", e.target.value); }}>
         <option>input device…</option>${devices.inputs.map((d) => html`<option value=${d.deviceId}>${d.label || d.deviceId.slice(0, 8)}</option>`)}
       </select>
@@ -100,23 +105,23 @@ function Controls({ agentId, settings }) {
         <option>output device…</option>${devices.outputs.map((d) => html`<option value=${d.deviceId}>${d.label || d.deviceId.slice(0, 8)}</option>`)}
       </select>
     </div>
-    <div class="row" style="margin-top:10px">
-      <span class="kv">MCP approval</span>
-      <input type="text" id="mcpId" placeholder="tool_call_id" style="min-width:160px"/>
-      <button class="sm" disabled=${!connected} onClick=${() => { const id = document.getElementById("mcpId").value; c.sendMCPToolApprovalResult?.(id, true); emit("sendMCPToolApprovalResult", { id, approve: true }); }}>approve</button>
-      <button class="sm" disabled=${!connected} onClick=${() => { const id = document.getElementById("mcpId").value; c.sendMCPToolApprovalResult?.(id, false); emit("sendMCPToolApprovalResult", { id, approve: false }); }}>reject</button>
+    <div className="row" style=${sx("margin-top:10px")}>
+      <span className="kv">MCP approval</span>
+      <input type="text" id="mcpId" placeholder="tool_call_id" style=${sx("min-width:160px")}/>
+      <button className="sm" disabled=${!connected} onClick=${() => { const id = document.getElementById("mcpId").value; c.sendMCPToolApprovalResult?.(id, true); emit("sendMCPToolApprovalResult", { id, approve: true }); }}>approve</button>
+      <button className="sm" disabled=${!connected} onClick=${() => { const id = document.getElementById("mcpId").value; c.sendMCPToolApprovalResult?.(id, false); emit("sendMCPToolApprovalResult", { id, approve: false }); }}>reject</button>
     </div>
-    <p class="hint" style="margin-top:8px">Hooks: <code>useConversationControls</code> — startSession · endSession · sendUserMessage · sendContextualUpdate · sendUserActivity · setVolume · getInput/OutputVolume · getId · changeInput/OutputDevice · sendMCPToolApprovalResult.</p>`;
+    <p className="hint" style=${sx("margin-top:8px")}>Hooks: <code>useConversationControls</code> — startSession · endSession · sendUserMessage · sendContextualUpdate · sendUserActivity · setVolume · getInput/OutputVolume · getId · changeInput/OutputDevice · sendMCPToolApprovalResult.</p>`;
 }
 
 function StatusMode() {
   const { status, message } = useConversationStatus();
   const { mode, isSpeaking, isListening } = useConversationMode();
   const tone = status === "connected" ? "ok" : status === "connecting" ? "warn" : "";
-  return html`<div class="row">
+  return html`<div className="row">
     <${Badge} tone=${tone}>status: ${status}${message ? ` (${message})` : ""}<//>
     <${Badge} tone=${isSpeaking ? "warn" : ""}>mode: ${mode || "—"}<//>
-    <span class="kv">${isSpeaking ? "🔊 speaking" : isListening ? "🎙 listening" : "idle"}</span>
+    <span className="kv">${isSpeaking ? "🔊 speaking" : isListening ? "🎙 listening" : "idle"}</span>
   </div>`;
 }
 
@@ -124,11 +129,11 @@ function MuteFeedback() {
   const { isMuted, setMuted } = useConversationInput();
   const { canSendFeedback, sendFeedback } = useConversationFeedback();
   const raw = useRawConversation();
-  return html`<div class="row" style="margin-top:10px">
+  return html`<div className="row" style=${sx("margin-top:10px")}>
     <button onClick=${() => setMuted(!isMuted)}>${isMuted ? "🔇 unmute" : "🎙 mute"} (useConversationInput)</button>
-    <button class="sm" disabled=${!canSendFeedback} onClick=${() => { sendFeedback(true); emit("sendFeedback", true); }}>👍 like</button>
-    <button class="sm" disabled=${!canSendFeedback} onClick=${() => { sendFeedback(false); emit("sendFeedback", false); }}>👎 dislike</button>
-    <span class="kv">useRawConversation → ${raw ? typeof raw === "object" ? "instance" : typeof raw : "null"}</span>
+    <button className="sm" disabled=${!canSendFeedback} onClick=${() => { sendFeedback(true); emit("sendFeedback", true); }}>👍 like</button>
+    <button className="sm" disabled=${!canSendFeedback} onClick=${() => { sendFeedback(false); emit("sendFeedback", false); }}>👎 dislike</button>
+    <span className="kv">useRawConversation → ${raw ? typeof raw === "object" ? "instance" : typeof raw : "null"}</span>
   </div>`;
 }
 
@@ -139,12 +144,13 @@ function Visualizer() {
   const ref = useRef(null);
   useEffect(() => {
     if (status !== "connected") return;
-    let raf; const ctx = ref.current?.getContext("2d");
+    let raf;
     const draw = () => {
       raf = requestAnimationFrame(draw);
-      if (!ctx) return;
+      const cv = ref.current; if (!cv) return;
+      const ctx = cv.getContext("2d"); if (!ctx) return;
       const out = c.getOutputByteFrequencyData?.(); const inp = c.getInputByteFrequencyData?.();
-      const W = ref.current.width, H = ref.current.height;
+      const W = cv.width, H = cv.height;
       ctx.clearRect(0, 0, W, H);
       const bars = (data, color, base) => {
         if (!data || !data.length) return;
@@ -158,8 +164,8 @@ function Visualizer() {
     draw(); return () => cancelAnimationFrame(raf);
   }, [status, c]);
   return html`<div>
-    <canvas ref=${ref} width="640" height="120" style="width:100%;height:120px;background:#0b0e14;border:1px solid var(--line);border-radius:6px"></canvas>
-    <p class="hint" style="margin-top:6px">Live FFT from <code>getOutputByteFrequencyData</code> (green = agent) / <code>getInputByteFrequencyData</code> (blue = mic). Voice sessions only (WebRTC uses pcm_48000).</p>
+    <canvas ref=${ref} width="640" height="120" style=${sx("width:100%;height:120px;background:#0b0e14;border:1px solid var(--line);border-radius:6px")}></canvas>
+    <p className="hint" style=${sx("margin-top:6px")}>Live FFT from <code>getOutputByteFrequencyData</code> (green = agent) / <code>getInputByteFrequencyData</code> (blue = mic). Voice sessions only (WebRTC uses pcm_48000).</p>
   </div>`;
 }
 
@@ -173,15 +179,15 @@ function ClientToolDemo() {
     setTimeout(() => setFlash("#11151f"), 1200);
     return "panel highlighted " + color;
   });
-  return html`<div style=${`transition:.3s;background:${flash};border:1px solid var(--line);border-radius:8px;padding:12px`}>
-    <p class="hint" style="margin:0">Registered <code>useConversationClientTool("highlight_panel")</code>. Configure a matching client tool on the agent, then ask it to “highlight the panel green”. Last call: <strong>${last}</strong></p>
+  return html`<div style=${sx(`transition:.3s;background:${flash};border:1px solid var(--line);border-radius:8px;padding:12px`)}>
+    <p className="hint" style=${sx("margin:0")}>Registered <code>useConversationClientTool("highlight_panel")</code>. Configure a matching client tool on the agent, then ask it to “highlight the panel green”. Last call: <strong>${last}</strong></p>
   </div>`;
 }
 
 // ---------- event log ----------
 function EventLog() {
   const events = useEventFeed();
-  return html`<pre class="out" style="max-height:340px">${events.length === 0 ? "// callbacks stream here once a session starts" : events.map((e) => `[${e.ts}] ${e.type}  ${short(e.data)}`).join("\n")}</pre>`;
+  return html`<pre className="out" style=${sx("max-height:340px")}>${events.length === 0 ? "// callbacks stream here once a session starts" : events.map((e) => `[${e.ts}] ${e.type}  ${short(e.data)}`).join("\n")}</pre>`;
 }
 
 // ---------- inner app (inside provider) ----------
@@ -214,7 +220,8 @@ function App() {
   const providerProps = useMemo(() => ({
     serverLocation: settings.serverLocation,
     textOnly: settings.textOnly,
-    isMuted: muted, onMutedChange: setMuted,
+    // controlled mute is a voice-only feature; passing it in text mode throws
+    ...(settings.textOnly ? {} : { isMuted: muted, onMutedChange: setMuted }),
     clientTools: {
       // provider-level tool; component-level one added via useConversationClientTool
       open_url: ({ url }) => { emit("clientTool:open_url", url); window.open(url, "_blank", "noopener"); return "opened"; },
@@ -227,26 +234,26 @@ function App() {
     onAudioAlignment: (a) => emit("onAudioAlignment", { chars: a?.chars?.length }), onAgentChatResponsePart: (p) => emit("onAgentChatResponsePart", p?.type ?? p),
   }), [settings.serverLocation, settings.textOnly, muted]);
 
-  if (!agentId) return html`<p class="hint">loading showcase agent…</p>`;
+  if (!agentId) return html`<p className="hint">loading showcase agent…</p>`;
 
   const set = (k, v) => { setSettings((s) => ({ ...s, [k]: v })); setVer((n) => n + 1); };
   return html`
     <${Card} id="settings" title="Provider settings" sec="K1·K17">
-      <p class="hint">All hooks below run inside one <code>ConversationProvider</code>. Changing connection settings remounts the provider.</p>
-      <div class="grid">
-        <div class="ctrl"><label>Mode</label>
-          <label class="toggle"><input type="checkbox" checked=${settings.textOnly} onChange=${(e) => set("textOnly", e.target.checked)}/> text-only (chat)</label></div>
-        <div class="ctrl"><label>Connection</label>
+      <p className="hint">All hooks below run inside one <code>ConversationProvider</code>. Changing connection settings remounts the provider.</p>
+      <div className="grid">
+        <div className="ctrl"><label>Mode</label>
+          <label className="toggle"><input type="checkbox" checked=${settings.textOnly} onChange=${(e) => set("textOnly", e.target.checked)}/> text-only (chat)</label></div>
+        <div className="ctrl"><label>Connection</label>
           <select value=${settings.conn} onChange=${(e) => set("conn", e.target.value)}>
             <option value="agent-id">agent-id (public)</option>
             <option value="signed-url">signed-url (WebSocket auth)</option>
             <option value="token">conversation-token (WebRTC)</option>
           </select></div>
-        <div class="ctrl"><label>Server location</label>
+        <div className="ctrl"><label>Server location</label>
           <select value=${settings.serverLocation} onChange=${(e) => set("serverLocation", e.target.value)}>
             ${["us", "global", "eu-residency", "in-residency"].map((o) => html`<option value=${o}>${o}</option>`)}
           </select></div>
-        <div class="ctrl"><label>End-user ID</label><input type="text" value=${settings.userId} onInput=${(e) => set("userId", e.target.value)}/></div>
+        <div className="ctrl"><label>End-user ID</label><input type="text" value=${settings.userId} onInput=${(e) => set("userId", e.target.value)}/></div>
       </div>
     <//>
     ${html`<${ConversationProvider} ...${providerProps} key=${ver}><${Inner} agentId=${agentId} settings=${settings}/><//>`}`;

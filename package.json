@@ -116,6 +116,7 @@
     "@vitest/coverage-v8": "4.1.5",
     "@vitest/ui": "4.1.5",
     "bun-types": "1.3.13",
+    "playwright": "1.60.0",
     "typescript": "6.0.3",
     "vitest": "4.1.5",
     "xo": "1.2.3"
