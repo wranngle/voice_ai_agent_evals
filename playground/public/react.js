@@ -28,9 +28,14 @@ function useEventFeed() {
 const short = (v) => { try { const s = typeof v === "string" ? v : JSON.stringify(v); return s.length > 160 ? s.slice(0, 160) + "…" : s; } catch { return String(v); } };
 
 // ---------- small UI atoms ----------
-const Card = ({ id, title, sec, children }) => html`
-  <section className="card" id=${id}><h2>${title} ${sec && html`<span className="sec">${sec}</span>`}</h2>
-  <div className="card-body">${children}</div></section>`;
+const OPEN_BY_DEFAULT = new Set(["settings", "session", "controls"]);
+function Card({ id, title, children }) {
+  const [open, setOpen] = useState(OPEN_BY_DEFAULT.has(id));
+  return html`<section className=${"card" + (open ? "" : " collapsed")} id=${id}>
+    <h2 onClick=${() => setOpen(!open)}>${title}<span className="expand-chev">›</span></h2>
+    <div className="card-body">${children}</div>
+  </section>`;
+}
 const Badge = ({ tone, children }) => html`<span className=${"badge " + (tone || "")}>${children}</span>`;
 
 // ---------- controls (uses most of useConversationControls) ----------
@@ -237,17 +242,17 @@ function Inner({ agentId, settings }) {
   const combined = useConversation();
   useEffect(() => { emit("useConversation", { status: combined.status, isSpeaking: combined.isSpeaking }); }, [combined.status, combined.isSpeaking]);
   return html`
-    <${Card} id="session" title="Session status" sec="K2·K4·K6">
+    <${Card} id="session" title="Session status">
       <${StatusMode}/>
       <${MuteFeedback}/>
     <//>
-    <${Card} id="controls" title="Conversation controls" sec="K3·K10-K13·H7·H8">
+    <${Card} id="controls" title="Conversation controls">
       <${Controls} agentId=${agentId} settings=${settings}/>
     <//>
-    <${Card} id="viz" title="Audio-reactive visualizer" sec="K14"><${Visualizer}/><//>
-    <${Card} id="tools" title="Client tools (agent-invoked)" sec="K8·K18"><${ClientToolDemo}/><//>
-    <${Card} id="scribe" title="Scribe — useScribe (live STT)" sec="K-bonus"><${ScribePanel}/><//>
-    <${Card} id="events" title="Live event log (all callbacks)" sec="L1-L9"><${EventLog}/><//>`;
+    <${Card} id="viz" title="Audio-reactive visualizer"><${Visualizer}/><//>
+    <${Card} id="tools" title="Client tools (agent-invoked)"><${ClientToolDemo}/><//>
+    <${Card} id="scribe" title="Scribe — useScribe (live STT)"><${ScribePanel}/><//>
+    <${Card} id="events" title="Live event log (all callbacks)"><${EventLog}/><//>`;
 }
 
 // ---------- app shell + provider ----------
@@ -280,7 +285,7 @@ function App() {
 
   const set = (k, v) => { setSettings((s) => ({ ...s, [k]: v })); setVer((n) => n + 1); };
   return html`
-    <${Card} id="settings" title="Provider settings" sec="K1·K17">
+    <${Card} id="settings" title="Provider settings">
       <p className="hint">All hooks below run inside one <code>ConversationProvider</code>. Changing connection settings remounts the provider.</p>
       <div className="grid">
         <div className="ctrl"><label>Mode</label>
