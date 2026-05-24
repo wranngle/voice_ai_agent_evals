@@ -38,10 +38,24 @@ jobs:
       - name: Install deps
         run: bun install --frozen-lockfile
 
+      - name: Check ELEVENLABS_API_KEY presence
+        id: secret-check
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+        run: |
+          if [ -z "$ELEVENLABS_API_KEY" ]; then
+            echo "::warning::ELEVENLABS_API_KEY not configured as a repo secret — skipping live verify. Set it in repo Settings → Secrets to activate this gate."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Install Playwright Chromium
+        if: steps.secret-check.outputs.skip != 'true'
         run: bunx playwright@latest install --with-deps chromium
 
       - name: Start playground server (background)
+        if: steps.secret-check.outputs.skip != 'true'
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
         run: |
@@ -57,12 +71,13 @@ jobs:
           exit 1
 
       - name: Run playground:verify (verify.mjs + live-probe.mjs + audit-shots.mjs)
+        if: steps.secret-check.outputs.skip != 'true'
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
         run: bun run playground/verify-all.mjs
 
       - name: Upload audit + verify screenshots on failure
-        if: always()
+        if: failure() && steps.secret-check.outputs.skip != 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         with:
           name: playground-evidence-${{ github.run_number }}
