@@ -1,5 +1,5 @@
 import { createRoot } from "react-dom/client"
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { ConversationProvider } from "@elevenlabs/react"
 import { Orb, type AgentState } from "@/components/ui/orb"
 import { Waveform, ScrollingWaveform } from "@/components/ui/waveform"
@@ -15,6 +15,18 @@ import { MicSelector } from "@/components/ui/mic-selector"
 import { ConversationBar } from "@/components/ui/conversation-bar"
 import { VoicePicker } from "@/components/ui/voice-picker"
 import { AudioPlayerProvider, AudioPlayerButton, AudioPlayerProgress, AudioPlayerTime, AudioPlayerDuration } from "@/components/ui/audio-player"
+import { SpeechInput, SpeechInputRecordButton, SpeechInputPreview, SpeechInputCancelButton } from "@/components/ui/speech-input"
+import { TranscriptViewerContainer, TranscriptViewerWords, TranscriptViewerPlayPauseButton, TranscriptViewerScrubBar } from "@/components/ui/transcript-viewer"
+
+class Boundary extends React.Component<{ children: React.ReactNode; name: string }, { err: string | null }> {
+  state = { err: null as string | null }
+  static getDerivedStateFromError(e: Error) { return { err: e?.message || String(e) } }
+  componentDidCatch(e: Error) { console.error(`Boundary[${this.props.name}]`, e) }
+  render() {
+    if (this.state.err) return <div className="text-xs text-red-400 px-2 py-1">⚠ render error: {this.state.err}</div>
+    return this.props.children
+  }
+}
 
 function Section({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
   return (
@@ -23,7 +35,9 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
         <h3 className="text-sm font-semibold text-neutral-100">{title}</h3>
         {hint && <p className="text-[11px] text-neutral-400 mt-0.5">{hint}</p>}
       </div>
-      <div className="min-h-[140px] flex items-center justify-center">{children}</div>
+      <div className="min-h-[140px] flex items-center justify-center">
+        <Boundary name={title}>{children}</Boundary>
+      </div>
     </div>
   )
 }
@@ -183,9 +197,44 @@ function App() {
         </Section>
       </div>
 
+      {/* Scribe + transcript */}
+      <h2 className="text-sm font-semibold text-neutral-300 mt-6 mb-2">Scribe + transcript (live STT)</h2>
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-3">
+        <Section title="SpeechInput" hint="Mic → Scribe partials (token via /api/scribe-token)">
+          <div className="w-full flex flex-col items-center gap-3">
+            <SpeechInput getToken={async () => (await (await fetch("/api/scribe-token")).json()).token}>
+              <div className="flex items-center gap-2">
+                <SpeechInputRecordButton />
+                <SpeechInputCancelButton />
+              </div>
+              <SpeechInputPreview className="text-xs text-neutral-300 max-w-[260px]" />
+            </SpeechInput>
+          </div>
+        </Section>
+        <Section title="TranscriptViewer" hint="Audio + word-level alignment (Streamdown-rendered)">
+          <div className="w-full">
+            <TranscriptViewerContainer
+              audioSrc="https://www.kozco.com/tech/piano2.wav"
+              audioType="audio/wav"
+              alignment={{
+                characters: "Hello world this is a synthesized transcript".split(""),
+                character_start_times_seconds: Array.from({ length: 43 }, (_, i) => i * 0.1),
+                character_end_times_seconds: Array.from({ length: 43 }, (_, i) => i * 0.1 + 0.09),
+              } as any}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <TranscriptViewerPlayPauseButton />
+                <TranscriptViewerScrubBar className="flex-1" />
+              </div>
+              <TranscriptViewerWords className="text-xs leading-relaxed" />
+            </TranscriptViewerContainer>
+          </div>
+        </Section>
+      </div>
+
       <p className="text-[11px] text-neutral-500 mt-8">
-        Not embedded here (need full Scribe + audio pipeline): <code>SpeechInput</code> (mic → Scribe partials),{" "}
-        <code>TranscriptViewer</code> (compound: Provider + Container + Words + Audio + ScrubBar). Source is in <code>playground/ui-library/src/components/ui/</code>.
+        All 17 ui.elevenlabs.io components above are real source pulled via <code>/r/&lt;slug&gt;.json</code>, bundled with Bun. To inspect or copy any component:{" "}
+        <code>playground/ui-library/src/components/ui/&lt;name&gt;.tsx</code>.
       </p>
     </div>
   )
