@@ -76,6 +76,40 @@ The showcase is **real, not cosmetic**: controls drive the actual web component 
 3. **Custom tag re-registration** is illustrative (snippet), not live — the CDN bundle registers only the default tag.
 4. **Enterprise/host-gated** knobs (`worklet-path-*`, multimodal file input) are settable but their effect needs infrastructure not present here.
 
+## Post-upgrade expansion (this branch's latest pass)
+
+### UI library (`/ui-library.html`) — 17/17 sections, 15+ visibly working
+After missing it entirely in the first pass, the full ElevenLabs UI library at https://ui.elevenlabs.io is now integrated. Sources fetched from `/r/<slug>.json` (recursive: shadcn primitives via `ui.shadcn.com`), normalized to `@/components/ui/`, bundled with `Bun.build` to `playground/public/ui-library/main.js` (5.7MB). Per-section error boundary so one bad component can't blank the page (`audit/R-ui-library-full.png`).
+
+| # | Component | Live? | Evidence |
+|---|---|---|---|
+| O1 | Orb (4 variants — colors, agent state, manual volumes) | ✅ | `audit/R` (top row) |
+| O2 | Waveform (static, `data: number[]`) | ✅ | green bars |
+| O3 | ScrollingWaveform | ✅ | renders (active-prop DOM warning, cosmetic) |
+| O4 | BarVisualizer (demo mode) | ✅ | bars |
+| O5 | LiveWaveform | ✅ | line (no mic in headless) |
+| O6 | Message + MessageContent + MessageAvatar | ✅ | user + assistant bubbles |
+| O7 | Response (Streamdown markdown) | ✅ | bullets + bold |
+| O8 | Conversation + scrolling | ✅ | auto-scrolling list |
+| O9 | VoiceButton (idle / active / muted) | ✅ | cycles on click |
+| O10 | MicSelector | ✅ | dropdown |
+| O11 | ShimmeringText | ✅ | gradient |
+| O12 | Matrix (pixel-grid digits) | ✅ | cycles |
+| O13 | ConversationBar | ✅ | mic / keyboard / send (wrapped in `ConversationProvider`) |
+| O14 | AudioPlayer (Provider + Button + Progress + Time/Duration) | ✅ | plays public WAV |
+| O15 | VoicePicker | ✅ | 3 real voice IDs |
+| O16 | SpeechInput | ◑ | record button renders; live recording needs real mic |
+| O17 | TranscriptViewer | ◑ | mounts; synthetic alignment lacks required fields → boundary message |
+
+### Discoverability overhaul of `/` (the widget control plane)
+The previous Datadog-style dense console was hostile to non-engineers (acknowledged via memory `feedback-showcase-must-be-discoverable`). Now:
+- **"Start here" card** at top with 6 named presets that immediately change something visible: *Brand it pink · Text-only chat · Force agent reply (sentinel proof) · Rich agent content (markdown demo) · Compact bottom-left · Reset* (`audit/N`).
+- **Topnav in plain English**: Start here / Connect / Widget knobs / Wording / Avatar / Voice-Chat / Overrides / API panel / Share via URL / React hooks → / UI library →.
+- **Every dense section renamed + "What to try" hint**: "1. Connect to your agent" / "Widget appearance & behavior" / "Colors & sizes (server-side styling)" / "Every button label & message" / "Per-session overrides" / "Try every variant × placement combo" / "Inject config at call-time" / "Edit the agent's stored config via real API" / "Share this exact configuration via URL" (`audit/Q`).
+
+### Rich content in chat — visibly proven
+The "Rich agent content" preset sets an override-prompt that forces the agent to reply with Markdown + a clickable link + a code block, plus enables `markdown-link-allowed-hosts="*"` + `syntax-highlight-theme="dark"`. Probe screenshot `audit/P` shows the widget rendering a **bulleted list, a clickable `elevenlabs.io` link, and a fenced JS code block** in the chat panel — proving the widget's markdown pipeline + link allowlist + syntax highlighting are all real.
+
 ## Reproduce
 
 ```bash
