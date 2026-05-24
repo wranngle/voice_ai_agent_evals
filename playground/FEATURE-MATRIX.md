@@ -6,6 +6,8 @@ Legend: `[ ]` planned · `[x]` wired into showcase & demoable · `[~]` partial/h
 
 **Browser-verified:** `playground/verify.mjs` (Playwright/Chromium) passes 9/9, 0 console errors — render, exhaustive control sweep (21/21 attrs reflect), real API round-trip, widget open, React island mount, **live conversation round-trip** against the agent, URL-param load. Screenshots in `verify/`.
 
+**Live-probed (post-upgrade):** `playground/live-probe.mjs` passes 6/7 — voice call in-call chrome (`audit/F`), signed-url WebSocket auth (`audit/G`), **runtime override-prompt forces agent reply to sentinel** (`audit/H`), **WebRTC via conversation-token** (`audit/I`), voice visualizer canvas active (`audit/J`), multi-turn 3-message round-trip (`audit/K`), `useScribe` connect fires + errors at session-start (`audit/L`, ◑). See `AUDIT.md` for verdicts.
+
 Demo surface key: **W**=widget control panel · **U**=URL param · **A**=API-override panel (server PATCH/POST) · **R**=React native-component island · **E**=event log.
 
 ---
@@ -166,6 +168,7 @@ Demo surface key: **W**=widget control panel · **U**=URL param · **A**=API-ove
 - [x] K16 `sendMCPToolApprovalResult` — R
 - [x] K17 `textOnly` mode hook path — R
 - [x] K18 client tools (agent-invoked: redirect/alert/setState) — R/E
+- [~] K19 `useScribe` (live STT hook) — R (integrated; live session connects then errors with opaque WS event — likely Scribe-specific token/model)
 
 ## L. Event protocol (live log)
 - [x] L1 connection lifecycle (`onConnect`/`onDisconnect`/`onStatusChange`) — E

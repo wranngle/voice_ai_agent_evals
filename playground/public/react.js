@@ -6,7 +6,7 @@ import htm from "htm";
 import {
   ConversationProvider, useConversation, useConversationControls, useConversationStatus,
   useConversationInput, useConversationMode, useConversationFeedback, useRawConversation,
-  useConversationClientTool,
+  useConversationClientTool, useScribe, AudioFormat,
 } from "@elevenlabs/react";
 
 const html = htm.bind(React.createElement);
@@ -184,6 +184,47 @@ function ClientToolDemo() {
   </div>`;
 }
 
+// ---------- Scribe (live STT, useScribe) ----------
+function ScribePanel() {
+  const [token, setToken] = useState("");
+  useEffect(() => { fetch("/api/scribe-token").then((r) => r.json()).then((d) => setToken(d.token)).catch((e) => emit("scribe:tokenFetch", e.message)); }, []);
+  const s = useScribe({
+    token, modelId: "scribe_v1", languageCode: "en", autoConnect: false, includeTimestamps: false,
+    audioFormat: AudioFormat?.PCM_16000 ?? "pcm_16000", sampleRate: 16000,
+    onSessionStarted: () => emit("scribe:sessionStarted", {}),
+    onPartialTranscript: (d) => emit("scribe:partial", d.text?.slice(0, 80) || ""),
+    onCommittedTranscript: (d) => emit("scribe:committed", d.text?.slice(0, 80) || ""),
+    onConnect: () => emit("scribe:connect", {}), onDisconnect: () => emit("scribe:disconnect", {}),
+    onError: (e) => { const detail = { msg: e?.message, type: e?.type, code: e?.code, reason: e?.reason, ctor: e?.constructor?.name, str: String(e).slice(0, 120) }; emit("scribe:error", detail); },
+    onAuthError: (d) => emit("scribe:authError", d), onQuotaExceededError: (d) => emit("scribe:quotaExceeded", d),
+    onUnacceptedTermsError: (d) => emit("scribe:unacceptedTerms", d), onRateLimitedError: (d) => emit("scribe:rateLimited", d),
+    onInputError: (d) => emit("scribe:inputError", d), onTranscriberError: (d) => emit("scribe:transcriberError", d),
+    onResourceExhaustedError: (d) => emit("scribe:resourceExhausted", d),
+  });
+  return html`
+    <p className="hint">Realtime speech-to-text via <code>useScribe</code>. Live mic → server STT → partial + committed transcripts. Token from <code>/api/scribe-token</code> (local proxy; production should mint ephemeral tokens).</p>
+    <div className="row">
+      <button className="primary" disabled=${!token || s.isConnected} onClick=${() => s.connect()}>connect</button>
+      <button className="danger" disabled=${!s.isConnected} onClick=${() => s.disconnect()}>disconnect</button>
+      <button className="sm" disabled=${!s.isConnected} onClick=${() => (s.isMuted ? s.unmute() : s.mute())}>${s.isMuted ? "unmute" : "mute"}</button>
+      <button className="sm" disabled=${!s.isConnected} onClick=${() => s.commit()}>commit</button>
+      <button className="sm" onClick=${() => s.clearTranscripts()}>clear</button>
+      <${Badge} tone=${s.isConnected ? "ok" : s.status === "connecting" ? "warn" : ""}>status: ${s.status}<//>
+      ${s.isTranscribing && html`<${Badge} tone="warn">transcribing<//>`}
+      ${s.error && html`<${Badge} tone="err">${String(s.error).slice(0, 60)}<//>`}
+    </div>
+    <div style=${sx("margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px")}>
+      <div>
+        <div className="kv">partial</div>
+        <pre className="out" style=${sx("min-height:60px;max-height:160px")}>${s.partialTranscript || "—"}</pre>
+      </div>
+      <div>
+        <div className="kv">committed (${s.committedTranscripts.length})</div>
+        <pre className="out" style=${sx("min-height:60px;max-height:160px")}>${s.committedTranscripts.map((t) => t.text).join("\n") || "—"}</pre>
+      </div>
+    </div>`;
+}
+
 // ---------- event log ----------
 function EventLog() {
   const events = useEventFeed();
@@ -205,6 +246,7 @@ function Inner({ agentId, settings }) {
     <//>
     <${Card} id="viz" title="Audio-reactive visualizer" sec="K14"><${Visualizer}/><//>
     <${Card} id="tools" title="Client tools (agent-invoked)" sec="K8·K18"><${ClientToolDemo}/><//>
+    <${Card} id="scribe" title="Scribe — useScribe (live STT)" sec="K-bonus"><${ScribePanel}/><//>
     <${Card} id="events" title="Live event log (all callbacks)" sec="L1-L9"><${EventLog}/><//>`;
 }
 

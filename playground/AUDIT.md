@@ -11,7 +11,7 @@ Verdict legend:
 
 ## Summary
 
-The showcase is **real, not cosmetic**: controls drive the actual web component and the real ElevenLabs API, and the capabilities that can be seen without a billed conversation were all confirmed rendering. A live signed-url conversation and a live voice call both connected during the audit. The honest boundary is that some in-call chrome and all runtime-override *effects* only fully manifest mid-conversation, and repeated test calls hit the account's quota limit.
+The showcase is **real, not cosmetic**: controls drive the actual web component and the real ElevenLabs API, and the capabilities are confirmed end-to-end against the live showcase agent. After the account upgrade, a second live-probe pass closed the previously-gated items — multi-turn conversation, runtime-override *effects* (the agent's reply is forced to a sentinel string), and WebRTC via `conversation-token` are now visibly proven. The only remaining boundary is `useScribe` (standalone STT), which integrates and connects but errors at session-start with an opaque WebSocket error — likely a Scribe-specific token/model config the SDK doesn't surface clearly.
 
 | # | Visually confirmed | Evidence |
 |---|---|---|
@@ -28,13 +28,18 @@ The showcase is **real, not cosmetic**: controls drive the actual web component 
 | React island mounts; all hooks; event log streams callbacks | ✅ | `verify/05–07` |
 | API GET + PATCH round-trip (DEV-guarded; BETA/PROD→403) | ✅ | `verify/09`, server guard test |
 | URL params drive the widget on load | ✅ | `verify/10` |
+| Runtime `override-prompt` forces agent reply to sentinel (`OVERRIDE_OK_42`) | ✅ | `audit/H` |
+| `conversation-token` → WebRTC connected (React voice) | ✅ | `audit/I` |
+| Voice visualizer canvas active in live voice session | ✅ | `audit/J` |
+| Multi-turn text conversation (3 messages, 3 agent replies) | ✅ | `audit/K` |
+| `useScribe` integrated (connect fires; live session errors on opaque WS event) | ◑ | `audit/L` |
 
 ## By capability area
 
 ### A. Embedding & connection
 - CDN web component, `agent-id` (public), shadow:open — ✅ (`verify/01`).
 - `signed-url` (WebSocket auth) — ✅ live connected (`audit/G`).
-- `conversation-token` (WebRTC) — ◑ minted via real API (`verify`); token→WebRTC session not driven to "connected" in-harness (voice/quota). SDK-standard path.
+- `conversation-token` (WebRTC) — ✅ live connected via React island (`audit/I`).
 - `server-location`, `environment`, `user-id` — ◑ reflected onto element / passed to `startSession`; regional/identity effect not separately observable here.
 - Custom tag via `registerWidget(tag)` — ◑ snippet + mechanism shown; the CDN embed bundle only auto-registers `elevenlabs-convai`, so live custom-tag re-registration is illustrative, not wired.
 
@@ -56,20 +61,21 @@ The showcase is **real, not cosmetic**: controls drive the actual web component 
 
 ### G. Modality — voice ✅ (`audit/F`), voice+text ✅ (text input present in call), text-only chat ✅ (`audit/D`); conversation-mode toggle ◑ (config); file input 🔒 (needs multimodal LLM + chat).
 
-### H. Runtime personalization — dynamic-variables + all overrides reflect as attributes (◑). Their **effect** (different first message/voice/prompt/llm) only manifests inside a conversation turn → ⏳ live-gated (quota). The `elevenlabs-convai:call` SessionConfig hook is wired and logs its injection (◑).
+### H. Runtime personalization — ✅ **effect visibly proven**: with `override-prompt` set to "respond only with `OVERRIDE_OK_42`", the live agent's reply was exactly that string (`audit/H`). All other overrides + dynamic-variables reflect as attributes (◑) on the same code path. The `elevenlabs-convai:call` SessionConfig hook is wired and logs its injection (◑).
 
-### K. Native React components — ConversationProvider + all 8 granular hooks + `useConversationClientTool` mount with zero invalid-hook errors (✅ `verify/05`). Controls, mute, feedback, contextual update, user activity, device enumeration, MCP-approval input — ✅ present and callable. `sendUserMessage` round-trip ✅ (`verify/07`). **Audio visualizer (K14)** — canvas renders; draws bars only with live voice audio (blank in text mode, by design) → ◑.
+### K. Native React components — ConversationProvider + all 8 granular hooks + `useConversationClientTool` mount with zero invalid-hook errors (✅ `verify/05`). Controls, mute, feedback, contextual update, user activity, device enumeration, MCP-approval input — ✅ present and callable. `sendUserMessage` round-trip ✅ (`verify/07`); multi-turn ✅ (`audit/K`). **Audio visualizer (K14)** — canvas active during live voice session (`audit/J`); bars draw when output frequency data is non-zero (microphone audio in headless = silent sine, so bars are sparse).
+
+### K-bonus. Scribe (`useScribe`) — ◑ integrated and exercised: token fetched from `/api/scribe-token`, hook configured with `modelId: "scribe_v1"`, `audioFormat: PCM_16000`. The `scribe:connect` event fires (WebSocket handshake succeeds), then a generic `Error` event closes the session — none of the specific Scribe error callbacks (auth/quota/terms/rate/input/transcriber/resource) fire, leaving the cause opaque. Likely a Scribe-specific token format or model entitlement not exposed by the SDK's generic `onError`. The hook, panel, and event wiring are correct (`audit/L`).
 
 ### L. Event protocol — onConnect/onStatusChange/onMessage/onModeChange/onAgentChatResponsePart all observed in the live event log (✅ `verify/07`). VAD/audio-alignment/tool-call/MCP events fire only in their scenarios → ◑.
 
 ## Honest gaps & caveats
 
-1. **Account quota.** Repeated live calls hit `"This request exceeds your quota limit"`. Initial connects + first agent turn work (proven), but sustained multi-turn / many concurrent runs are capped. Runtime-override *effects* (H) and multi-turn transcript are therefore ⏳, not ✅.
-2. **Voice visualizer bars** need a real voice session with audio flowing; the canvas is present and null-safe but shows nothing in text mode.
-3. **`conversation-token` → WebRTC "connected"** wasn't driven to completion in-harness (signed-url WebSocket was). Same SDK entry point.
-4. **`useScribe`** (standalone speech-to-text hook exported by `@elevenlabs/react`) is **❌ not showcased** — it's STT, adjacent to but not part of agent-conversation UI. Deliberate scope boundary, noted here for completeness.
-5. **Custom tag re-registration** is illustrative (snippet), not live — the CDN bundle registers only the default tag.
-6. **Enterprise/host-gated** knobs (`worklet-path-*`, multimodal file input) are settable but their effect needs infrastructure not present here.
+1. **Prompt-injection guardrail.** The showcase agent rejects messages that look like instruction-overrides ("Reply with the word ALPHA"). Multi-turn probes use normal questions; this is correct agent behavior, not a bug.
+2. **Voice visualizer bars**: canvas is active in the live voice session, but headless fake-mic produces near-silence so bars are sparse. With a real microphone they draw.
+3. **`useScribe`** integrates and connects, but the live STT session ends in an opaque `Error` event with none of the specific Scribe error callbacks firing. Likely needs a Scribe-specific ephemeral token (not the standard API key) and/or a different model name — the SDK's generic `onError` doesn't surface enough to be sure.
+4. **Custom tag re-registration** is illustrative (snippet), not live — the CDN bundle registers only the default tag.
+5. **Enterprise/host-gated** knobs (`worklet-path-*`, multimodal file input) are settable but their effect needs infrastructure not present here.
 
 ## Reproduce
 
@@ -77,5 +83,5 @@ The showcase is **real, not cosmetic**: controls drive the actual web component 
 bun playground &                      # server on :4321
 bun run playground/verify.mjs         # 9/9 e2e → verify/
 bun run playground/audit-shots.mjs    # fidelity states → audit/A–E
-bun run playground/live-probe.mjs     # live call + signed-url → audit/F–G
+bun run playground/live-probe.mjs     # live probes F–L (voice, signed-url, override-prompt, WebRTC token, visualizer, multi-turn, Scribe)
 ```
