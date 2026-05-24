@@ -223,8 +223,8 @@ Each one mounts the upstream `elevenlabs/ui/registry/elevenlabs-ui/examples/<dem
 - [x] Q3 Voice Chat 03 — UI
 - [x] Q4 Music Player 01 — UI
 - [x] Q5 Music Player 02 — UI
-- [~] Q6 Pong 01 — source present; needs Upstash Redis server action for high scores
-- [~] Q7 Speaker 01 — source present; uses `next/link`
+- [x] Q6 Pong 01 — Redis presence stubbed in-memory; pixel-grid scoreboard renders (`audit/Z`)
+- [x] Q7 Speaker 01 — `next/link` shimmed; ElevenMusic player + twin orb visuals (`audit/Y`)
 - [x] Q8 Realtime Transcriber 01 — wired via client shim → `/api/scribe-token` proxy (`audit/U`)
 - [x] Q9 Transcriber 01 — wired via client shim → `/api/stt` proxy (`audit/V`)
 - [x] Q10 Voice Form 01 — STT + `llm.sh` structured extract via `/api/extract-form` (`audit/W`)
