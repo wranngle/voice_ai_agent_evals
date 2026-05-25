@@ -9,8 +9,9 @@ import { type AgentState } from "@/components/ui/orb"
 import { logEvent, setAgentKey, useLog, clearEvents, getEvents } from "@/spa/log"
 import { Showcase } from "@/spa/showcase"
 import { ControlPlane, type Preset } from "@/spa/control-plane"
+import { HooksView } from "@/spa/hooks"
 
-type View = "showcase" | "console"
+type View = "showcase" | "console" | "hooks"
 const STATES: AgentState[] = [null, "listening", "thinking", "talking"]
 
 const Icon = ({ d }: { d: string }) => (
@@ -19,6 +20,7 @@ const Icon = ({ d }: { d: string }) => (
 const ICONS = {
   showcase: "M4 5h16M4 12h16M4 19h10",
   console: "M12 2a7 7 0 0 1 7 7c0 3-2 5-2 8H7c0-3-2-5-2-8a7 7 0 0 1 7-7z",
+  hooks: "M6 4l3 8-3 8M18 4l-3 8 3 8M9 12h6",
 }
 
 function useAutoplay() {
@@ -106,6 +108,7 @@ function App() {
         <nav className="nav">
           {nav("showcase", "Showcase", ICONS.showcase)}
           {nav("console", "Control plane", ICONS.console)}
+          {nav("hooks", "Hooks (React)", ICONS.hooks)}
         </nav>
         <div className="spacer" />
         <div className="agent-chip" title={agentId}>agent <b>●</b> {agentId ? agentId.slice(0, 20) + "…" : "connecting…"}</div>
@@ -113,7 +116,7 @@ function App() {
 
       <main className="main">
         <div className="view">
-          {view === "showcase" ? (
+          {view === "showcase" && (
             <>
               <div className="view-head">
                 <span className="eyebrow">Everything at a glance</span>
@@ -126,7 +129,8 @@ function App() {
               </div>
               <Showcase agentState={agentState} tick={tick} playing={playing} onOpen={openLive} />
             </>
-          ) : (
+          )}
+          {view === "console" && (
             <>
               <div className="view-head">
                 <span className="eyebrow">Control plane</span>
@@ -135,6 +139,17 @@ function App() {
                 <div style={{ marginTop: 20 }}><button className="btn" onClick={() => go("showcase")}>← Back to showcase</button></div>
               </div>
               {agentId && <div style={{ marginTop: 26 }}><ControlPlane agentId={agentId} preset={preset} /></div>}
+            </>
+          )}
+          {view === "hooks" && (
+            <>
+              <div className="view-head">
+                <span className="eyebrow">React hooks</span>
+                <h1 className="title">Drive it with hooks. <span className="thin">Not the embed.</span></h1>
+                <p className="lede"><code>@elevenlabs/react</code> in the same bundle: <code>ConversationProvider</code> + <code>useConversationControls</code>, three connection modes (public agent-id · signed-url · WebRTC token), and <code>useScribe</code> for live STT. Pick a connection, hit startSession.</p>
+                <div style={{ marginTop: 20 }}><button className="btn" onClick={() => go("showcase")}>← Back to showcase</button></div>
+              </div>
+              {agentId && <div style={{ marginTop: 26 }}><HooksView agentId={agentId} /></div>}
             </>
           )}
         </div>
