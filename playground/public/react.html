@@ -3,7 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ElevenLabs Native UI Components (React)</title>
+  <title>ElevenLabs React hooks island</title>
+  <link rel="preconnect" href="https://rsms.me/" />
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
   <link rel="stylesheet" href="/styles.css" />
   <script type="importmap">
   {
@@ -20,22 +22,45 @@
   </script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand"><span class="dot"></span> ElevenLabs <strong>Native UI Components</strong>
-      <span class="agent-chip" id="agentChip">agent: …</span></div>
-    <nav class="topnav">
-      <a href="/">← Widget showcase</a>
-      <a href="#session">Session</a>
-      <a href="#controls">Controls</a>
-      <a href="#tools">Client tools</a>
-      <a href="#events">Events</a>
-      <a href="/ui-library.html">UI components →</a>
-      <a href="/examples.html">Examples →</a>
-      <a href="/blocks.html">Blocks →</a>
-    </nav>
-  </header>
   <h1 class="visually-hidden">ElevenLabs React Hooks Island</h1>
-  <main id="root" style="padding:16px 20px 120px" aria-label="Native React hooks"></main>
+  <div class="app" id="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand"><span class="dot"></span><div><div class="title">ElevenLabs</div><div class="subtitle label">UI Showcase</div></div></div>
+      <nav class="nav" id="nav"></nav>
+      <div class="spacer"></div>
+      <div class="agent-chip label" id="agentChip" title="">agent: …</div>
+    </aside>
+    <main class="main" id="main" aria-label="React hooks">
+      <h1 class="h1">React hooks island</h1>
+      <p class="lead">Native UI built on <code>@elevenlabs/react</code> — every granular hook, client tools, live event ledger. Open a conversation on the right; every hook firing logs to the bottom terminal.</p>
+      <div id="root"></div>
+    </main>
+    <aside class="preview" aria-label="Conversation surface">
+      <div class="preview-head">
+        <div class="title"><span class="ind"></span> Conversation</div>
+        <div class="preview-actions"><button id="btnTermToggle2" title="Collapse / expand terminal">▾</button></div>
+      </div>
+      <div class="preview-stage" id="stage" style="padding:14px"></div>
+      <div class="preview-state" id="previewState">
+        <span><span class="k">status:</span> <span id="psStatus">idle</span></span>
+        <span><span class="k">mode:</span> <span id="psMode">react hooks</span></span>
+      </div>
+    </aside>
+    <section class="term" id="term" aria-label="Event terminal">
+      <div class="term-head">
+        <div class="term-tabs" id="termTabs"></div>
+        <span class="term-collapsed-only">terminal</span>
+        <div class="term-spacer"></div>
+        <span class="term-meta" id="termMeta">0 events</span>
+        <div class="term-actions">
+          <button id="btnTermClear">clear</button>
+          <button id="btnTermCopy">copy</button>
+          <button id="btnTermToggle">▾</button>
+        </div>
+      </div>
+      <div class="term-body" id="termBody"><div class="term-empty">events stream here · POST /api/log appends to logs/voice-evals-DATE.jsonl</div></div>
+    </section>
+  </div>
   <script type="module" src="/react.js"></script>
 </body>
 </html>

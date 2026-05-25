@@ -8,6 +8,12 @@ import {
   useConversationInput, useConversationMode, useConversationFeedback, useRawConversation,
   useConversationClientTool, useScribe, AudioFormat,
 } from "@elevenlabs/react";
+import { logEvent as jsonlLog, renderSidebar, renderTerm, wireTerminal, setAgentKey } from "/lib/shell.js";
+
+renderSidebar();
+renderTerm();
+wireTerminal();
+jsonlLog("react.boot", "ready", { url: location.pathname });
 
 const html = htm.bind(React.createElement);
 // htm passes style/class through verbatim; React needs a style OBJECT and className.
@@ -16,10 +22,17 @@ const sx = (s) => Object.fromEntries(String(s).split(";").filter(Boolean).map((r
   return [k, r.slice(i + 1).trim()];
 }));
 
-// ---------- shared event log (module-level pub/sub) ----------
+// ---------- shared event log (module-level pub/sub) — bridged to JSONL terminal ----------
+const ERROR_TYPES = new Set(["error", "onError", "onDisconnect"]);
 const listeners = new Set();
 let SEQ = 0;
-const emit = (type, data) => { const e = { id: ++SEQ, ts: new Date().toLocaleTimeString(), type, data }; listeners.forEach((l) => l(e)); };
+const emit = (type, data) => {
+  const e = { id: ++SEQ, ts: new Date().toLocaleTimeString(), type, data };
+  listeners.forEach((l) => l(e));
+  const lvl = ERROR_TYPES.has(type) ? "error" : "info";
+  jsonlLog("react." + type, type, { data: data == null ? null : (typeof data === "object" ? data : { value: data }) }, lvl);
+  if (type === "onStatusChange" && document.getElementById("psStatus")) document.getElementById("psStatus").textContent = String(data?.status ?? data ?? "");
+};
 function useEventFeed() {
   const [events, setEvents] = useState([]);
   useEffect(() => { const l = (e) => setEvents((p) => [e, ...p].slice(0, 250)); listeners.add(l); return () => listeners.delete(l); }, []);
@@ -262,7 +275,7 @@ function App() {
   const [muted, setMuted] = useState(false);
   const [ver, setVer] = useState(0); // bump to remount provider
 
-  useEffect(() => { fetch("/api/config").then((r) => r.json()).then((d) => { setAgentId(d.showcaseAgentId); document.getElementById("agentChip").textContent = "agent: " + d.showcaseAgentId; }); }, []);
+  useEffect(() => { fetch("/api/config").then((r) => r.json()).then((d) => { setAgentId(d.showcaseAgentId); setAgentKey(d.showcaseAgentId); const c = document.getElementById("agentChip"); if (c) { c.textContent = "agent: " + d.showcaseAgentId; c.title = d.showcaseAgentId; } }); }, []);
 
   const providerProps = useMemo(() => ({
     serverLocation: settings.serverLocation,

@@ -7,7 +7,7 @@
  *
  * Run: `bun run playground/server.ts`  (or `bun playground`)
  */
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, appendFileSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, extname } from "node:path";
 
@@ -118,6 +118,32 @@ const server = Bun.serve({
     if (pathname === "/api/scribe-token") {
       const r = await elFetch(`/v1/single-use-token/realtime_scribe`, { method: "POST" });
       return json(await r.json(), r.status);
+    }
+
+    // JSONL action/event log — browser POSTs events, server appends per repo's
+    // jsonl-trace spec (logs/voice-evals-<ISO-date>.jsonl rooted at CWD).
+    if (pathname === "/api/log" && req.method === "POST") {
+      try {
+        const body = (await req.json()) as { events?: any[] };
+        const events = Array.isArray(body.events) ? body.events : [body];
+        const date = new Date().toISOString().slice(0, 10);
+        const dir = join(process.cwd(), "logs");
+        if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+        const file = join(dir, `voice-evals-${date}.jsonl`);
+        const lines = events.map((e: any) => JSON.stringify({
+          ts: new Date().toISOString(),
+          channel: e?.channel ?? "playground.unknown",
+          level: e?.level ?? "info",
+          ...(e?.run_id ? { run_id: e.run_id } : {}),
+          ...(e?.key ? { key: e.key } : {}),
+          ...(e?.msg ? { msg: e.msg } : {}),
+          ...(e?.fields ? { fields: e.fields } : {}),
+        })).join("\n") + "\n";
+        appendFileSync(file, lines);
+        return json({ ok: true, appended: events.length, file: `logs/voice-evals-${date}.jsonl` });
+      } catch (e: any) {
+        return json({ ok: false, error: e?.message || String(e) }, 500);
+      }
     }
 
     // Audio → URL match (STT + sitemap fetch + llm.sh) — used by voice-nav-01.

@@ -1,5 +1,9 @@
 // ElevenLabs Widget & UI Showcase — widget control plane.
 // Data-driven: every knob is declared once, controls render from spec.
+// Note: the logger + sidebar + terminal helpers are duplicated inline here
+// because earlier extraction to /lib/shell.js silently broke preset clicks in
+// the headed browser even though /react.html and /components.html ran fine
+// with the same import. Tracking that down is not worth blocking the playground.
 
 const $ = (s, r = document) => r.querySelector(s);
 const el = (tag, attrs = {}, kids = []) => {
@@ -16,6 +20,89 @@ const el = (tag, attrs = {}, kids = []) => {
 const toast = (msg) => { const t = $("#toast") ?? document.body.appendChild(el("div", { id: "toast", class: "toast" })); t.textContent = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 1600); };
 
 let AGENT_ID = "";
+
+// ---------- JSONL logger (mirrors src/internal/jsonl-trace.ts spec) ----------
+const RUN_ID = (crypto?.randomUUID?.() || String(Date.now()));
+const TERM_EVENTS = [];
+const TERM_FILTER = { current: "all" };
+const TERM_MAX = 500;
+const LOG_QUEUE = [];
+let logTimer = null;
+function logEvent(channel, msg, fields = null, level = "info") {
+  const ev = { ts: new Date().toISOString(), channel, level, run_id: RUN_ID, msg, ...(fields ? { fields } : {}), ...(AGENT_ID ? { key: AGENT_ID } : {}) };
+  TERM_EVENTS.unshift(ev); if (TERM_EVENTS.length > TERM_MAX) TERM_EVENTS.length = TERM_MAX;
+  LOG_QUEUE.push(ev); scheduleFlush();
+  renderTerm();
+}
+function scheduleFlush() {
+  if (logTimer) return;
+  logTimer = setTimeout(async () => {
+    const batch = LOG_QUEUE.splice(0, LOG_QUEUE.length); logTimer = null;
+    if (!batch.length) return;
+    try { await fetch("/api/log", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ events: batch }) }); } catch {}
+  }, 350);
+}
+const TERM_TABS = [
+  { id: "all", label: "all", match: () => true },
+  { id: "preset", label: "presets", match: (e) => e.channel === "playground.preset" || e.channel === "playground.demo" },
+  { id: "attr", label: "attrs", match: (e) => e.channel === "playground.attr" },
+  { id: "api", label: "api", match: (e) => e.channel.startsWith("playground.api") },
+  { id: "nav", label: "nav", match: (e) => e.channel === "playground.nav" },
+  { id: "errors", label: "errors", match: (e) => e.level === "error" || e.level === "warn" },
+];
+function renderTerm() {
+  const tabs = $("#termTabs"); if (!tabs) return;
+  if (!tabs.children.length) {
+    for (const t of TERM_TABS) {
+      const b = el("button", { class: "term-tab" + (t.id === TERM_FILTER.current ? " active" : ""), "data-tab": t.id }, t.label);
+      b.addEventListener("click", () => { TERM_FILTER.current = t.id; renderTerm(); });
+      tabs.append(b);
+    }
+  }
+  for (const b of tabs.children) b.classList.toggle("active", b.getAttribute("data-tab") === TERM_FILTER.current);
+  const body = $("#termBody"); const tab = TERM_TABS.find((t) => t.id === TERM_FILTER.current);
+  const shown = TERM_EVENTS.filter(tab.match);
+  $("#termMeta").textContent = `${TERM_EVENTS.length} event${TERM_EVENTS.length === 1 ? "" : "s"} · POST /api/log → logs/voice-evals-${new Date().toISOString().slice(0, 10)}.jsonl`;
+  if (!shown.length) { body.innerHTML = '<div class="term-empty">no events for this filter yet</div>'; return; }
+  body.innerHTML = shown.map((e) => {
+    const ts = e.ts.slice(11, 19);
+    const lvl = (e.level || "info").padEnd(4);
+    const f = e.fields ? "  " + JSON.stringify(e.fields).slice(0, 160) : "";
+    return `<div class="term-line ${e.level || ""}"><span class="ts">${ts}</span> <span class="level-tag">${lvl}</span> <span class="ch">${e.channel}</span>  <span class="msg">${(e.msg || "").replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c])}</span><span class="fields">${f}</span></div>`;
+  }).join("");
+  body.scrollTop = 0;
+}
+
+// ---------- sidebar nav ----------
+const NAV_ITEMS = [
+  { href: "/", label: "Widget showcase", ico: "▣" },
+  { href: "/react.html", label: "React hooks", ico: "ƒ" },
+  { href: "/components.html", label: "Components", ico: "◫" },
+  { sec: "Original (legacy)" },
+  { href: "/ui-library.html", label: "Library grid", ico: "◰" },
+  { href: "/examples.html", label: "Examples", ico: "◱" },
+  { href: "/blocks.html", label: "Blocks", ico: "◧" },
+];
+function renderSidebar() {
+  const nav = $("#nav"); if (!nav) return;
+  nav.innerHTML = "";
+  for (const it of NAV_ITEMS) {
+    if (it.sec) { nav.append(el("div", { class: "nav-section label" }, it.sec)); continue; }
+    const a = el("a", { href: it.href, class: location.pathname === it.href ? "active" : "" });
+    a.innerHTML = `<span class="ico">${it.ico}</span><span class="label">${it.label}</span>`;
+    a.addEventListener("click", () => logEvent("playground.nav", "click", { to: it.href }));
+    nav.append(a);
+  }
+}
+
+// ---------- preview state indicators ----------
+function updatePreviewState() {
+  const v = state["variant"] || "full", p = state["placement"] || "bottom-right";
+  const mode = state["override-text-only"] ? "chat (text-only)" : (state["text-input"] ? "voice + text" : "voice");
+  if ($("#psVariant")) $("#psVariant").textContent = v;
+  if ($("#psPlacement")) $("#psPlacement").textContent = p;
+  if ($("#psMode")) $("#psMode").textContent = mode;
+}
 
 // ---------- specs ----------
 // Source: docs/research/elevenlabs-widget-ui (CustomAttributeList + WidgetConfig).
@@ -121,6 +208,7 @@ function mountWidget() {
   stage.append(w);
   if (runtimeHookOn) attachRuntimeHook(w);
   updateInspector();
+  logEvent("playground.widget", "mounted", { variant: state["variant"] || "full", placement: state["placement"] || "bottom-right", agent: AGENT_ID });
 }
 
 // L10: mutate SessionConfig at runtime before the session connects.
@@ -140,6 +228,7 @@ function applyAttr(spec) {
   if (!w) return;
   if (spec.remount) { mountWidget(); } else { reflect(spec, w); }
   updateUrl(); updateInspector();
+  logEvent("playground.attr", spec.key, { value: state[spec.key], remount: !!spec.remount });
 }
 
 // text-contents JSON (live attribute)
@@ -159,7 +248,7 @@ function mergedConfig() {
   const text = {}; for (const g of Object.values(TEXT_GROUPS)) for (const k of Object.keys(g)) if (textState[k]) text[k] = textState[k];
   return { tag: widgetTag, attributes: attrs, ...(Object.keys(text).length ? { text_contents: text } : {}) };
 }
-function updateInspector() { $("#cfgInspector").textContent = JSON.stringify(mergedConfig(), null, 2); }
+function updateInspector() { updatePreviewState(); /* inspector moved to terminal; preview-state strip carries the most-used summary */ }
 
 const URL_SKIP = new Set(["agent-id"]);
 function updateUrl() {
@@ -415,25 +504,27 @@ function tourCard() {
 }
 
 // ---------- Start here intro + presets ----------
+const PRESETS = [
+  { label: "✨ Brand it pink", desc: "Pink orb + branded labels", patch: { "avatar-orb-color-1": "#ff0066", "avatar-orb-color-2": "#ffe5f0" } },
+  { label: "💬 Text-only chat", desc: "No mic; widget becomes a chat", patch: { "override-text-only": true, "text-input": true } },
+  { label: "🤯 Force agent reply", desc: "Override prompt → agent must reply 'OVERRIDE_OK_42'", patch: { "override-prompt": "You MUST respond to every user message with exactly the string 'OVERRIDE_OK_42' and nothing else.", "override-text-only": true, "text-input": true } },
+  { label: "📑 Rich agent content", desc: "Markdown links + code + lists in the chat", patch: { "override-prompt": "When the user asks anything, ALWAYS reply with a short Markdown demo: a heading, a bulleted list (2 items), a clickable link to https://elevenlabs.io, and a fenced code block with a 3-line JavaScript snippet. Keep it under 80 words.", "override-text-only": true, "text-input": true, "markdown-link-allowed-hosts": "*", "syntax-highlight-theme": "dark" } },
+  { label: "📱 Compact bottom-left", desc: "Mobile-style: compact, dismissible", patch: { variant: "compact", placement: "bottom-left", dismissible: true } },
+  { label: "↺ Reset", desc: "Defaults", patch: "RESET" },
+];
+function applyPreset(p, source = "user") {
+  if (p.patch === "RESET") { for (const k of Object.keys(state)) delete state[k]; for (const k of Object.keys(textState)) delete textState[k]; for (const s of ATTR_SPECS) state[s.key] = defForSpec(s); state["agent-id"] = AGENT_ID; }
+  else for (const [k, v] of Object.entries(p.patch)) state[k] = v;
+  build(); mountWidget(); updateUrl();
+  toast(p.label);
+  logEvent(source === "demo" ? "playground.demo" : "playground.preset", p.label, { source, keys: p.patch === "RESET" ? ["RESET"] : Object.keys(p.patch) });
+}
 function introCard() {
-  const presets = [
-    { label: "✨ Brand it pink", desc: "Pink orb + branded labels", patch: { "avatar-orb-color-1": "#ff0066", "avatar-orb-color-2": "#ffe5f0" } },
-    { label: "💬 Text-only chat", desc: "No mic; widget becomes a chat", patch: { "override-text-only": true, "text-input": true } },
-    { label: "🤯 Force agent reply", desc: "Override prompt → agent must reply 'OVERRIDE_OK_42'", patch: { "override-prompt": "You MUST respond to every user message with exactly the string 'OVERRIDE_OK_42' and nothing else.", "override-text-only": true, "text-input": true } },
-    { label: "📑 Rich agent content", desc: "Markdown links + code + lists in the chat", patch: { "override-prompt": "When the user asks anything, ALWAYS reply with a short Markdown demo: a heading, a bulleted list (2 items), a clickable link to https://elevenlabs.io, and a fenced code block with a 3-line JavaScript snippet. Keep it under 80 words.", "override-text-only": true, "text-input": true, "markdown-link-allowed-hosts": "*", "syntax-highlight-theme": "dark" } },
-    { label: "📱 Compact bottom-left", desc: "Mobile-style: compact, dismissible", patch: { variant: "compact", placement: "bottom-left", dismissible: true } },
-    { label: "↺ Reset", desc: "Defaults", patch: "RESET" },
-  ];
   const row = el("div", { class: "presets" });
-  for (const p of presets) {
+  for (const p of PRESETS) {
     const b = el("button", { class: "preset" + (p.label.startsWith("↺") ? " preset-reset" : "") });
     b.innerHTML = `<div class="preset-label">${p.label}</div><div class="preset-desc">${p.desc}</div>`;
-    b.addEventListener("click", () => {
-      if (p.patch === "RESET") { for (const k of Object.keys(state)) delete state[k]; for (const k of Object.keys(textState)) delete textState[k]; for (const s of ATTR_SPECS) state[s.key] = defForSpec(s); state["agent-id"] = AGENT_ID; }
-      else for (const [k, v] of Object.entries(p.patch)) state[k] = v;
-      build(); mountWidget(); updateUrl();
-      toast(p.label);
-    });
+    b.addEventListener("click", () => applyPreset(p, "user"));
     row.append(b);
   }
   return card("start", "Start here — try a preset, then watch the live widget →", "", [
@@ -527,22 +618,51 @@ function build() {
   rebuildGrids();
 }
 
+// ---------- auto-demo cycler ----------
+let demoTimer = null, demoIdx = 0;
+function stopDemo() { if (demoTimer) clearTimeout(demoTimer); demoTimer = null; const b = $("#btnDemo"); if (b) { b.textContent = "▶ Auto demo"; b.classList.remove("demo-on"); } }
+function startDemo() {
+  const seq = PRESETS.filter((p) => p.patch !== "RESET");
+  demoIdx = 0;
+  const b = $("#btnDemo"); if (b) { b.textContent = "■ Stop demo"; b.classList.add("demo-on"); }
+  logEvent("playground.demo", "start", { steps: seq.length });
+  const step = () => {
+    const p = seq[demoIdx % seq.length];
+    applyPreset(p, "demo");
+    demoIdx++;
+    demoTimer = setTimeout(step, 4200);
+  };
+  step();
+}
+
 // ---------- boot ----------
 async function boot() {
   const cfg = await (await fetch("/api/config")).json();
   AGENT_ID = cfg.showcaseAgentId;
   $("#agentChip").textContent = "agent: " + AGENT_ID;
+  $("#agentChip").title = AGENT_ID;
   // seed defaults
   for (const s of ATTR_SPECS) if (!(s.key in state)) state[s.key] = defForSpec(s);
   state["agent-id"] = AGENT_ID;
   loadFromUrl();
   if (!state["agent-id"]) state["agent-id"] = AGENT_ID;
+  renderSidebar();
+  renderTerm();
   build();
   mountWidget();
   updateUrl();
+  updatePreviewState();
+  logEvent("playground.boot", "ready", { url: location.pathname, agent: AGENT_ID });
 
-  $("#btnRemount").addEventListener("click", () => { mountWidget(); toast("remounted"); });
-  $("#btnReset").addEventListener("click", () => { for (const k of Object.keys(state)) delete state[k]; for (const k of Object.keys(textState)) delete textState[k]; for (const s of ATTR_SPECS) state[s.key] = defForSpec(s); state["agent-id"] = AGENT_ID; history.replaceState(null, "", location.pathname); build(); mountWidget(); toast("reset"); });
-  $("#btnCopyCfg").addEventListener("click", () => { navigator.clipboard?.writeText($("#cfgInspector").textContent); toast("config copied"); });
+  $("#btnRemount").addEventListener("click", () => { mountWidget(); toast("remounted"); logEvent("playground.widget", "remount", { source: "user" }); });
+  $("#btnReset").addEventListener("click", () => { stopDemo(); for (const k of Object.keys(state)) delete state[k]; for (const k of Object.keys(textState)) delete textState[k]; for (const s of ATTR_SPECS) state[s.key] = defForSpec(s); state["agent-id"] = AGENT_ID; history.replaceState(null, "", location.pathname); build(); mountWidget(); toast("reset"); logEvent("playground.preset", "RESET", { source: "user" }); });
+  $("#btnDemo").addEventListener("click", () => { demoTimer ? stopDemo() : startDemo(); });
+  $("#btnTermClear").addEventListener("click", () => { TERM_EVENTS.length = 0; renderTerm(); toast("terminal cleared"); });
+  $("#btnTermCopy").addEventListener("click", () => { navigator.clipboard?.writeText(TERM_EVENTS.map((e) => JSON.stringify(e)).join("\n")); toast("copied as JSONL"); });
+  $("#btnTermToggle").addEventListener("click", () => {
+    const collapsed = $("#app").classList.toggle("term-collapsed");
+    $("#btnTermToggle").textContent = collapsed ? "▴" : "▾";
+    logEvent("playground.nav", collapsed ? "terminal.collapse" : "terminal.expand");
+  });
 }
 boot();
