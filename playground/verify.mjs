@@ -182,6 +182,28 @@ await step("JSONL log endpoint accepts events", async () => {
   return body.file;
 });
 
+await step("DEV-guarded widget PATCH round-trip — real ElevenLabs API", async () => {
+  // The showcase agent is [DEV], so the governance guard permits PATCH. The
+  // server forwards the PATCH body as platform_settings.widget partial; the
+  // live shape exposes color knobs as widget_config.btn_color etc. (no styles
+  // wrapper). Round-trip a sentinel btn_color through and restore it.
+  const cfg = await page.context().request.get(BASE + "/api/config");
+  const agent = (await cfg.json()).showcaseAgentId;
+  if (!agent) throw new Error("no showcaseAgentId in /api/config");
+  const get = await page.context().request.get(BASE + "/api/widget/" + agent);
+  if (get.status() !== 200) throw new Error("GET widget → " + get.status());
+  const before = (await get.json())?.widget_config ?? {};
+  const priorBtn = before.btn_color ?? "#000000";
+  const sentinel = "#ff00aa";
+  const patch = await page.context().request.fetch(BASE + "/api/widget/" + agent, { method: "PATCH", data: { btn_color: sentinel } });
+  if (patch.status() !== 200) throw new Error("PATCH sentinel → " + patch.status() + " body=" + (await patch.text()).slice(0, 120));
+  const back = (await (await page.context().request.get(BASE + "/api/widget/" + agent)).json())?.widget_config;
+  if (back?.btn_color !== sentinel) throw new Error("btn_color not persisted: got " + back?.btn_color);
+  const restore = await page.context().request.fetch(BASE + "/api/widget/" + agent, { method: "PATCH", data: { btn_color: priorBtn } });
+  if (restore.status() !== 200) throw new Error("restore PATCH → " + restore.status());
+  return `GET → PATCH btn_color=${sentinel} → verified → restored ${priorBtn}`;
+});
+
 await browser.close();
 
 // ---- report ----

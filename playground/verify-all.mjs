@@ -5,14 +5,12 @@ import { spawnSync } from "node:child_process"
 import { existsSync, statSync } from "node:fs"
 
 // verify.mjs proves the one-page console end-to-end (Showcase + Control plane
-// + JSONL terminal). live-probe.mjs hits the real ElevenLabs API for the 7
-// live capabilities (voice chrome, signed-url, prompt override sentinel,
-// WebRTC token, hero WebGL, multi-turn text, Scribe). audit-shots.mjs still
-// targets the pre-overhaul DOM and is left for a follow-up.
+// + JSONL terminal + DEV-guarded widget PATCH round-trip). live-probe.mjs hits
+// the real ElevenLabs API for the 7 live capabilities (voice chrome, signed-url,
+// prompt override sentinel, WebRTC token, hero WebGL, multi-turn text, Scribe).
 const steps = [
-  { name: "verify.mjs (e2e — 10 steps, one-page console)", cmd: "bun", args: ["run", "playground/verify.mjs"] },
+  { name: "verify.mjs (e2e — 11 steps, one-page console)", cmd: "bun", args: ["run", "playground/verify.mjs"] },
   { name: "live-probe.mjs (7 live capabilities)", cmd: "bun", args: ["run", "playground/live-probe.mjs"] },
-  // { name: "audit-shots.mjs (fidelity) — TODO rewrite for one-page console", cmd: "bun", args: ["run", "playground/audit-shots.mjs"] },
 ]
 
 const t0 = Date.now()

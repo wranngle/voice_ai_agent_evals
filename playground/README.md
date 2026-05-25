@@ -33,9 +33,9 @@ playground/
   agent.json                 the showcase agent id + provenance
   FEATURE-MATRIX.md          every feature / knob / combo, [x] / [~] / [ ]
   AUDIT.md                   honest fidelity audit with screenshot evidence
-  verify.mjs                 Playwright e2e (9 steps, fails on any console error)
+  verify.mjs                 Playwright e2e (11 steps, fails on any console error)
   live-probe.mjs             7 live capability probes (voice/signed-url/override-effect/...)
-  audit-shots.mjs            fidelity capture (text-contents / avatar / styles / etc.)
+  verify-all.mjs             single command: verify.mjs + live-probe.mjs = 18 assertions
   public/                    static: gallery.html (the page) + spa.css + textures/ + bundled .js; retained legacy .html
   audit/                     screenshots (verify/01-10, audit/A-Z)
   ui-library/src/            upstream elevenlabs/ui registry, vendored
@@ -79,12 +79,12 @@ Every file under `playground/ui-library/src/` was fetched verbatim from `github.
 ## Verify
 
 ```bash
-bun run playground/verify.mjs         # Playwright 9-step e2e (render → conversation → URL params) → audit/verify/
-bun run playground/live-probe.mjs     # 7 live capability probes → audit/F-L
-bun run playground/audit-shots.mjs    # fidelity capture → audit/A-E
+bun run playground/verify-all.mjs     # the gate: 11-step e2e + 7 live capabilities = 18 assertions
+bun run playground/verify.mjs         # Playwright e2e against the one-page console → playground/verify/
+bun run playground/live-probe.mjs     # 7 live capabilities (real agent + signed-url + WebRTC + Scribe) → playground/audit/
 ```
 
-Last green: `verify.mjs` 9/9 steps + 0 console errors, real agent reply confirmed.
+Last green: `verify-all.mjs` 11/11 + 7/7 = 18 assertions, 0 console errors, real agent + signed-url + WebRTC + Scribe all reached.
 
 ## Extend
 
