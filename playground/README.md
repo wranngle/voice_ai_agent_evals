@@ -1,6 +1,6 @@
 # ElevenLabs Widget & UI Component Showcase
 
-A **one-page Agent Console** that demos **every public ElevenLabs UI surface** — the embeddable chat/voice widget, the `@elevenlabs/react` hooks, the full ui.elevenlabs.io component library, the upstream component example demos, and all 11 upstream reference apps — wired to a real `[DEV]` ElevenLabs agent via a key-safe Bun proxy. `/` is a single React app (`gallery.html` + `ui-library/src/gallery-main.tsx` + `ui-library/src/spa/*`) with two client-side views — **Showcase** (auto-playing looks · capabilities · components) and **Control plane** (the live `<elevenlabs-convai>` widget + its full knob set) — plus a docked JSONL terminal. The earlier standalone pages are retained but 302 → `/`.
+A **one-page Agent Console** that demos **every public ElevenLabs UI surface** — the embeddable chat/voice widget, the `@elevenlabs/react` hooks, the full ui.elevenlabs.io component library, the upstream component example demos, and all 11 upstream reference apps — wired to a real `[DEV]` ElevenLabs agent via a key-safe Bun proxy. `/` is a single React app (`gallery.html` + `ui-library/src/gallery-main.tsx` + `ui-library/src/spa/*`) with three client-side views — **Showcase** (auto-playing looks · capabilities · components), **Control plane** (the live `<elevenlabs-convai>` widget + its full knob set), and **Hooks** (`@elevenlabs/react` ConversationProvider + useScribe with all three connection modes) — plus a docked JSONL terminal. Old standalone routes (`/widget.html`, `/react.html`, etc.) 302 → `/`.
 
 ## Run
 
@@ -12,14 +12,15 @@ The server reads `ELEVENLABS_API_KEY` from `./.env` or `~/.agents/.env`. **The k
 
 ## The one page
 
-`/` (`gallery.html`) is the whole product. Sidebar switches two client-side views (no page loads); a docked JSONL terminal logs every action to `logs/voice-evals-<date>.jsonl`.
+`/` (`gallery.html`) is the whole product. Sidebar switches three client-side views (no page loads); a docked JSONL terminal logs every action to `logs/voice-evals-<date>.jsonl`.
 
 | View | What | Source |
 |---|---|---|
 | **Showcase** | Hero orb + three auto-playing rails: Looks (8 live Orbs cycling agent states), Capabilities (8 tiles that deep-link into the control plane with a preset), Components (17 native ui.elevenlabs.io demos, mounted live) | `ui-library/src/spa/showcase.tsx` |
 | **Control plane** | The real `<elevenlabs-convai>` widget wired to the `[DEV]` agent + its config: mode / variant / placement / orb palette, 6 behavior toggles, runtime overrides (first message, prompt, language, speed, voice id, llm), server location | `ui-library/src/spa/control-plane.tsx` |
+| **Hooks (React)** | `@elevenlabs/react` directly: `ConversationProvider` + `useConversationControls` + `useScribe`, three connection modes (public agent-id · signed-url · WebRTC conversation-token), live event log, Scribe panel | `ui-library/src/spa/hooks.tsx` |
 
-Retained but redirected (302 → `/`): `index.html`+`app.js` (old knob control plane), `react.html`+`react.js` (hooks island), `ui-library.html` / `examples.html` / `blocks.html` (the `main` / `examples-main` / `blocks-main` bundles), `components.html`. Their bundles still build; the deep-dive demos they hosted are now imported directly into the Showcase.
+Old standalone routes (`/widget.html`, `/index.html`, `/react.html`, `/components.html`, `/ui-library.html`, `/examples.html`, `/blocks.html`) 302 → `/`. The deep-dive demos those pages used to host are now imported directly into the Showcase view.
 
 ## Showcase agent
 
@@ -44,11 +45,8 @@ playground/
     lib/              1      cn (tailwind-merge + clsx)
     examples/        17      one demo per EL component
     blocks/          11      full reference apps (Voice Chat / Pong / etc.)
-    spa/                     the one-page console: log.ts · ui.tsx · showcase.tsx · control-plane.tsx
-    gallery-main.tsx         entry → bundles the console at /
-    main.tsx                 entry → /ui-library.html bundle (retained)
-    examples-main.tsx        entry → /examples.html bundle (retained)
-    blocks-main.tsx          entry → /blocks.html bundle (retained)
+    spa/                     the one-page console: log.ts · ui.tsx · showcase.tsx · control-plane.tsx · hooks.tsx
+    gallery-main.tsx         entry → the single bundle behind /
 ```
 
 ### Proxy endpoints (all key-safe via the Bun server)
@@ -92,11 +90,11 @@ Last green: `verify-all.mjs` 11/11 + 7/7 = 18 assertions, 0 console errors, real
 - **Add a new component to the Showcase** → import its demo in `ui-library/src/spa/showcase.tsx` and add it to the `COMPONENTS` list (set `contain: true` if its root is `position:absolute`). Bun build picks it up.
 - **Add a new block** → drop the upstream `page.tsx` in `ui-library/src/blocks/<name>/`, run the same path-rewrites, register in `blocks-main.tsx`. If it has `"use server"` actions, write a client shim that hits the proxy.
 
-Build: `bun build playground/ui-library/src/{main,examples-main,blocks-main,gallery-main}.tsx --outdir playground/public/ui-library --target browser --format esm --define process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID='"agent_..."'`. `gallery-main` is the live one-page console (`/`); the other three back the retained deep-dive bundles.
+Build: `bun build playground/ui-library/src/gallery-main.tsx --outdir playground/public/ui-library --target browser --format esm --define process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID='"agent_..."'`. Single bundle; the SPA imports every demo + Orb + hooks directly from `ui-library/src/`.
 
 ## Honest gaps
 
-- `useScribe` panel in `/react.html` connects via single-use token but transcripts stay empty in headless because no real mic audio is sent. Works with real mic input.
+- `useScribe` panel in the Hooks view connects via single-use token but transcripts stay empty in headless because no real mic audio is sent. Works with real mic input.
 - Custom-tag re-registration is illustrative only — the CDN bundle registers `elevenlabs-convai` by default.
 - `worklet-path-*` widget attributes are settable but only have effect with a self-hosted worklet (CSP / offline).
 - The Pong block uses an in-memory player-presence map (single-tab); real multiplayer would need the upstream Upstash Redis.
