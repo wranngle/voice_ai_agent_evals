@@ -276,7 +276,9 @@ function ComponentsRail() {
       <Grid min={300}>
         {COMPONENTS.map(([name, Demo]) => (
           <Tile key={name} title={name} badge="component">
-            <div className="w-full"><Boundary name={name}><Demo /></Boundary></div>
+            {/* relative+overflow-hidden contains demos whose root is `absolute inset-0`
+                (e.g. SpeechInput) so they can't escape the tile and eat page clicks */}
+            <div className="relative w-full min-h-[200px] overflow-hidden"><Boundary name={name}><Demo /></Boundary></div>
           </Tile>
         ))}
       </Grid>
