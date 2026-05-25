@@ -158,9 +158,9 @@ export function HooksView({ agentId }: { agentId: string }) {
             <div className="card-h"><h2>Live conversation</h2><span className="badge">useConversation*</span></div>
             <div className="card-b" style={{ display: "block" }}>
               <Controls agentId={agentId} conn={conn} />
-              <div style={{ font: "600 9.5px var(--mono)", letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--accent)", borderBottom: "1px solid var(--line)", paddingBottom: 8, marginBottom: 10, marginTop: 14 }}>Event log</div>
+              <div style={{ font: "600 9.5px var(--mono)", letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--brand-accent)", borderBottom: "1px solid var(--line)", paddingBottom: 8, marginBottom: 10, marginTop: 14 }}>Event log</div>
               <EventLog />
-              <div style={{ font: "600 9.5px var(--mono)", letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--accent)", borderBottom: "1px solid var(--line)", paddingBottom: 8, marginBottom: 10, marginTop: 18 }}>Scribe (useScribe)</div>
+              <div style={{ font: "600 9.5px var(--mono)", letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--brand-accent)", borderBottom: "1px solid var(--line)", paddingBottom: 8, marginBottom: 10, marginTop: 18 }}>Scribe (useScribe)</div>
               <ScribePanel />
             </div>
           </Card>

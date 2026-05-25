@@ -45,7 +45,7 @@ function Toggle({ on, onChange, label }: { on: boolean; onChange: (v: boolean) =
 }
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-    <div style={{ font: "600 9.5px var(--mono)", letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--accent)", borderBottom: "1px solid var(--line)", paddingBottom: 8 }}>{title}</div>
+    <div style={{ font: "600 9.5px var(--mono)", letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--brand-accent)", borderBottom: "1px solid var(--line)", paddingBottom: 8 }}>{title}</div>
     {children}
   </div>
 )

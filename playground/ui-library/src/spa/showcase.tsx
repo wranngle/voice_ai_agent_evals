@@ -83,7 +83,7 @@ export function Showcase({ agentState, tick, playing, onOpen }: { agentState: Ag
       <RailHead n="02" title="What an agent can do" blurb="Auto-demoing; click any tile to open it live →" />
       <Grid min={272} className="stagger">
         {CAPS.map((c, i) => (
-          <div key={c.title} style={i === spotlight ? { borderRadius: "var(--r)", boxShadow: "0 0 0 1.5px var(--accent)" } : undefined}>
+          <div key={c.title} style={i === spotlight ? { borderRadius: "var(--r)", boxShadow: "0 0 0 1.5px var(--brand-accent)" } : undefined}>
             <Tile title={c.title} footer={<button className="deeplink" onClick={() => onOpen(c.preset, c.title)}>▶ Open live →</button>}>
               <p style={{ color: "var(--text-dim)", fontSize: 12.5, lineHeight: 1.5, margin: 0, alignSelf: "stretch" }}>{c.blurb}</p>
             </Tile>
@@ -92,7 +92,7 @@ export function Showcase({ agentState, tick, playing, onOpen }: { agentState: Ag
       </Grid>
 
       <RailHead n="03" title="What the UI components can do" blurb={`${COMPONENTS.length} native components from ui.elevenlabs.io, mounted live`} />
-      <Grid min={300} className="stagger">
+      <Grid min={300} className="stagger components-rail">
         {COMPONENTS.map(([name, Demo, contain]) => (
           <Tile key={name} title={name} badge="component" contain={contain}>
             <div style={{ width: "100%" }}><Boundary name={name}><Demo /></Boundary></div>

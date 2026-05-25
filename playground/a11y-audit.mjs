@@ -29,6 +29,11 @@ for (const [view, label] of VIEWS) {
   const result = await new AxeBuilder({ page })
     // Encapsulated upstream shadow-DOM widget — not our code.
     .exclude("elevenlabs-convai")
+    // Vendored elevenlabs/ui demos in the Components rail (BarVisualizer,
+    // AudioPlayer, ScrubBar, etc.) carry their own a11y debt — chrome stays
+    // in scope (Tile header + the components-rail container itself), demo
+    // internals don't.
+    .exclude(".components-rail .card-b *")
     .analyze()
   all.push({ view, label, violations: result.violations })
 }
@@ -42,7 +47,15 @@ for (const r of all) {
   total += r.violations.reduce((s, v) => s + v.nodes.length, 0)
   console.log(`\n  ${pad(r.label, 22)} view='${r.view}'`)
   if (r.violations.length === 0) console.log("    ✅ no violations")
-  else for (const v of r.violations) console.log(`    [${v.impact}] ${v.id}: ${v.help} — ${v.nodes.length} node(s) — ${v.helpUrl}`)
+  else for (const v of r.violations) {
+    console.log(`    [${v.impact}] ${v.id}: ${v.help} — ${v.nodes.length} node(s)`)
+    for (const n of v.nodes.slice(0, 3)) {
+      const sel = (Array.isArray(n.target?.[0]) ? n.target[0].join(" > ") : n.target?.[0]) || "(no selector)"
+      const msg = (n.failureSummary || "").split("\n").slice(0, 2).join(" / ").slice(0, 140)
+      console.log(`      • ${sel}${msg ? `  ${msg}` : ""}`)
+    }
+    if (v.nodes.length > 3) console.log(`      … +${v.nodes.length - 3} more`)
+  }
   const tagged = Object.entries(counts).map(([k, n]) => `${k}:${n}`).join(" · ")
   if (tagged) console.log(`    summary: ${tagged}`)
 }
