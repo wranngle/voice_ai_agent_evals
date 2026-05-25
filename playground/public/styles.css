@@ -39,8 +39,11 @@ body.bare .topbar { display: none; }
   overflow: hidden;
 }
 .app.term-collapsed { grid-template-rows: 1fr 32px; }
+.app.no-preview { grid-template-columns: var(--sidebar-w) minmax(0, 1fr); grid-template-areas: "side main" "term term"; }
+.app.no-preview .preview { display: none; }
 @media (max-width: 1100px) {
   .app { grid-template-columns: 60px minmax(0, 1fr) 0; grid-template-areas: "side main main" "term term term"; }
+  .app.no-preview { grid-template-columns: 60px minmax(0, 1fr); grid-template-areas: "side main" "term term"; }
   .app .preview { display: none; }
   .sidebar .label { display: none; }
 }

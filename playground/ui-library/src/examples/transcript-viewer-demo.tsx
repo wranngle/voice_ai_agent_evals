@@ -22,8 +22,9 @@ const TranscriptViewerDemo = () => {
 
   useEffect(() => {
     fetch("/sounds/transcript-viewer/transcript-viewer-alignment.json")
-      .then((res) => res.json())
-      .then((data) => setAlignment(data))
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => data && setAlignment(data))
+      .catch(() => {})
   }, [])
 
   return (

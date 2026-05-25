@@ -78,14 +78,19 @@ export function renderTerm() {
 }
 
 const NAV_ITEMS = [
-  { href: "/", label: "Widget showcase", ico: "▣" },
+  { href: "/", label: "Gallery", ico: "✦" },
+  { href: "/widget.html", label: "Widget control plane", ico: "▣" },
   { href: "/react.html", label: "React hooks", ico: "ƒ" },
   { href: "/components.html", label: "Components", ico: "◫" },
-  { sec: "Original (legacy)" },
+  { sec: "Deep dives" },
   { href: "/ui-library.html", label: "Library grid", ico: "◰" },
   { href: "/examples.html", label: "Examples", ico: "◱" },
   { href: "/blocks.html", label: "Blocks", ico: "◧" },
 ];
+function isActive(href) {
+  const path = location.pathname === "/index.html" ? "/widget.html" : location.pathname;
+  return path === href || (href === "/" && (path === "/" || path === "/gallery.html"));
+}
 
 export function renderSidebar() {
   const nav = $("#nav"); if (!nav) return;
@@ -100,7 +105,7 @@ export function renderSidebar() {
     }
     const a = document.createElement("a");
     a.href = it.href;
-    if (location.pathname === it.href || (it.href === "/" && location.pathname === "/index.html")) a.classList.add("active");
+    if (isActive(it.href)) a.classList.add("active");
     a.innerHTML = `<span class="ico">${it.ico}</span><span class="label">${it.label}</span>`;
     a.addEventListener("click", () => logEvent("playground.nav", "click", { to: it.href }));
     nav.append(a);

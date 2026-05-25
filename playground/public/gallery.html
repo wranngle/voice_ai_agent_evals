@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ElevenLabs Agent Gallery — everything at a glance</title>
+  <link rel="preconnect" href="https://rsms.me/" />
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <link rel="stylesheet" href="/styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root, .dark { --background:222 33% 6%; --foreground:0 0% 95%; --card:222 28% 9%; --card-foreground:0 0% 95%;
+      --popover:222 28% 9%; --popover-foreground:0 0% 95%; --primary:90 53% 45%; --primary-foreground:0 0% 4%;
+      --secondary:222 20% 16%; --secondary-foreground:0 0% 95%; --muted:222 20% 16%; --muted-foreground:222 12% 60%;
+      --accent:222 20% 16%; --accent-foreground:0 0% 95%; --destructive:0 63% 41%; --destructive-foreground:0 0% 95%;
+      --border:222 18% 18%; --input:222 18% 18%; --ring:90 53% 45%; --radius:0.6rem; }
+    #root { color: hsl(var(--foreground)); }
+    .main { overflow-y: auto; }
+  </style>
+</head>
+<body>
+  <h1 class="visually-hidden">ElevenLabs Agent Gallery</h1>
+  <div class="app no-preview" id="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand"><span class="dot"></span><div><div class="title">ElevenLabs</div><div class="subtitle label">Agent Gallery</div></div></div>
+      <nav class="nav" id="nav"></nav>
+      <div class="spacer"></div>
+      <div class="agent-chip label" id="agentChip" title="">agent: …</div>
+    </aside>
+    <main class="main" id="main" aria-label="Agent gallery">
+      <h1 class="h1">Everything an agent can do — at a glance</h1>
+      <p class="lead">Auto-playing showcase of every capability, every look, and every UI component, in one uniform frame. Hit pause to stop the cycle; click any tile to open it live in the control plane.</p>
+      <div id="root"></div>
+    </main>
+    <section class="term" id="term" aria-label="Event terminal">
+      <div class="term-head">
+        <div class="term-tabs" id="termTabs"></div>
+        <span class="term-collapsed-only">terminal</span>
+        <div class="term-spacer"></div>
+        <span class="term-meta" id="termMeta">0 events</span>
+        <div class="term-actions">
+          <button id="btnTermClear">clear</button>
+          <button id="btnTermCopy">copy</button>
+          <button id="btnTermToggle">▾</button>
+        </div>
+      </div>
+      <div class="term-body" id="termBody"><div class="term-empty">events stream here · POST /api/log appends to logs/voice-evals-DATE.jsonl</div></div>
+    </section>
+  </div>
+  <script type="module">
+    import { logEvent, renderSidebar, renderTerm, wireTerminal, setAgentKey } from "/lib/shell.js";
+    renderSidebar(); renderTerm(); wireTerminal();
+    window.__galleryLog = (channel, msg, fields) => logEvent(channel, msg, fields ?? null);
+    fetch("/api/config").then((r) => r.json()).then((d) => {
+      setAgentKey(d.showcaseAgentId);
+      const c = document.getElementById("agentChip");
+      if (c) { c.textContent = "agent: " + d.showcaseAgentId; c.title = d.showcaseAgentId; }
+    });
+  </script>
+  <script type="module" src="/ui-library/gallery-main.js"></script>
+</body>
+</html>

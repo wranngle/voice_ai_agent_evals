@@ -220,7 +220,9 @@ const server = Bun.serve({
     if (pathname.startsWith("/api/")) return json({ error: "unknown endpoint" }, 404);
 
     // ---- static ----
-    let rel = pathname === "/" ? "/index.html" : pathname;
+    // Home is the auto-playing gallery; the knob control plane lives at /widget.html
+    // (index.html is the control plane, aliased for back-compat).
+    let rel = pathname === "/" ? "/gallery.html" : pathname === "/widget.html" ? "/index.html" : pathname;
     const file = Bun.file(join(PUBLIC_DIR, rel));
     if (await file.exists()) {
       return new Response(file, { headers: { "content-type": CT[extname(rel)] ?? "application/octet-stream" } });

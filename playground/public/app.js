@@ -75,20 +75,22 @@ function renderTerm() {
 
 // ---------- sidebar nav ----------
 const NAV_ITEMS = [
-  { href: "/", label: "Widget showcase", ico: "▣" },
+  { href: "/", label: "Gallery", ico: "✦" },
+  { href: "/widget.html", label: "Widget control plane", ico: "▣" },
   { href: "/react.html", label: "React hooks", ico: "ƒ" },
   { href: "/components.html", label: "Components", ico: "◫" },
-  { sec: "Original (legacy)" },
+  { sec: "Deep dives" },
   { href: "/ui-library.html", label: "Library grid", ico: "◰" },
   { href: "/examples.html", label: "Examples", ico: "◱" },
   { href: "/blocks.html", label: "Blocks", ico: "◧" },
 ];
 function renderSidebar() {
   const nav = $("#nav"); if (!nav) return;
+  const here = location.pathname === "/index.html" ? "/widget.html" : location.pathname;
   nav.innerHTML = "";
   for (const it of NAV_ITEMS) {
     if (it.sec) { nav.append(el("div", { class: "nav-section label" }, it.sec)); continue; }
-    const a = el("a", { href: it.href, class: location.pathname === it.href ? "active" : "" });
+    const a = el("a", { href: it.href, class: here === it.href ? "active" : "" });
     a.innerHTML = `<span class="ico">${it.ico}</span><span class="label">${it.label}</span>`;
     a.addEventListener("click", () => logEvent("playground.nav", "click", { to: it.href }));
     nav.append(a);
