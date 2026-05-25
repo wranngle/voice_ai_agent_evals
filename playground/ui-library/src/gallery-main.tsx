@@ -52,16 +52,16 @@ function Terminal() {
   useEffect(() => { document.getElementById("app")?.classList.toggle("term-collapsed", collapsed) }, [collapsed])
   const esc = (s: string) => s.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]!))
   return (
-    <section className="term">
+    <section className="term" aria-label="Event terminal">
       <div className="term-h">
-        <div className="term-tabs">{TABS.map((t) => <button key={t.id} className={`term-tab${t.id === tab ? " active" : ""}`} onClick={() => setTab(t.id)}>{t.label}</button>)}</div>
+        <div className="term-tabs" role="tablist" aria-label="Event filter">{TABS.map((t) => <button key={t.id} className={`term-tab${t.id === tab ? " active" : ""}`} role="tab" aria-selected={t.id === tab} onClick={() => setTab(t.id)}>{t.label}</button>)}</div>
         <span className="term-spacer" />
         <span className="term-meta">{events.length} events · POST /api/log → logs/voice-evals-{new Date().toISOString().slice(0, 10)}.jsonl</span>
         <button className="btn" onClick={clearEvents}>clear</button>
         <button className="btn" onClick={() => navigator.clipboard?.writeText(getEvents().map((e) => JSON.stringify(e)).join("\n"))}>copy</button>
-        <button className="btn" onClick={() => setCollapsed((c) => !c)}>{collapsed ? "▴" : "▾"}</button>
+        <button className="btn" aria-label={collapsed ? "Expand terminal" : "Collapse terminal"} onClick={() => setCollapsed((c) => !c)}>{collapsed ? "▴" : "▾"}</button>
       </div>
-      <div className="term-b">
+      <div className="term-b" tabIndex={0} aria-label="Event log">
         {shown.length === 0 ? <div className="term-empty">no events for this filter yet</div> : shown.map((e, i) => (
           <div key={i} className={`tl ${e.level}`}>
             <span className="ts">{e.ts.slice(11, 19)}</span> <span className="lv">{e.level}</span> <span className="ch">{e.channel}</span>{"  "}
@@ -100,12 +100,12 @@ function App() {
 
   return (
     <div className="app" id="app">
-      <aside className="side">
+      <aside className="side" aria-label="Console sidebar">
         <div className="brand">
-          <span className="mark" />
+          <span className="mark" aria-hidden="true" />
           <div><div className="name">ElevenLabs</div><div className="sub">Agent Console</div></div>
         </div>
-        <nav className="nav">
+        <nav className="nav" aria-label="View switcher">
           {nav("showcase", "Showcase", ICONS.showcase)}
           {nav("console", "Control plane", ICONS.console)}
           {nav("hooks", "Hooks (React)", ICONS.hooks)}
@@ -114,7 +114,7 @@ function App() {
         <div className="agent-chip" title={agentId}>agent <b>●</b> {agentId ? agentId.slice(0, 20) + "…" : "connecting…"}</div>
       </aside>
 
-      <main className="main">
+      <main className="main" aria-label="Current view">
         <div className="view">
           {view === "showcase" && (
             <>

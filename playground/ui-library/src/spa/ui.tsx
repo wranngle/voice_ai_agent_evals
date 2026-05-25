@@ -17,7 +17,7 @@ export function Card({ className = "", glow, lift, children }: { className?: str
 export function Tile({ title, badge, footer, contain, children }: { title: string; badge?: string; footer?: React.ReactNode; contain?: boolean; children: React.ReactNode }) {
   return (
     <Card lift>
-      <div className="card-h"><h3>{title}</h3>{badge && <span className="badge">{badge}</span>}</div>
+      <div className="card-h"><h2>{title}</h2>{badge && <span className="badge">{badge}</span>}</div>
       <div className="card-b" style={contain ? { position: "relative", minHeight: 200, overflow: "hidden", display: "block" } : undefined}>{children}</div>
       {footer && <div className="card-f">{footer}</div>}
     </Card>
@@ -39,7 +39,7 @@ export const Grid = ({ min, className = "", children }: { min: number; className
 export function OrbTile({ name, colors, seed, agentState }: { name: string; colors: [string, string]; seed?: number; agentState: AgentState }) {
   return (
     <Card lift>
-      <div className="card-h"><h3>{name}</h3></div>
+      <div className="card-h"><h2>{name}</h2></div>
       <div className="card-b">
         <div className="orb-tile">
           <div className="orb-ring"><div className="orb-inner"><SafeOrb colors={colors} seed={seed} agentState={agentState} /></div></div>

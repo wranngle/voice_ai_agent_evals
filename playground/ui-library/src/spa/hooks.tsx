@@ -15,8 +15,10 @@ const emit = (type: string, data?: unknown) => {
   logEvent("hooks." + type, type, data && typeof data === "object" ? (data as Record<string, unknown>) : { value: String(data) })
 }
 
+// Wrap the control inside the label so axe sees the accessible name without
+// for/id plumbing (axe: label / select-name).
 const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
-  <div className="field"><label>{label}</label>{children}</div>
+  <label className="field"><span>{label}</span>{children}</label>
 )
 
 function EventLog() {
@@ -70,7 +72,7 @@ function Controls({ agentId, conn }: { agentId: string; conn: "agent-id" | "sign
           : <button id="hooks-end" className="btn" onClick={end}>■ endSession</button>}
       </div>
       <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-        <input id="hooks-input" type="text" disabled={!connected} value={msg} onChange={(e) => setMsg((e.target as HTMLInputElement).value)} style={{ flex: 1, background: "var(--bg)", border: "1px solid var(--line)", color: "var(--text)", borderRadius: 8, padding: "9px 11px" }} />
+        <input id="hooks-input" type="text" aria-label="Message to send" disabled={!connected} value={msg} onChange={(e) => setMsg((e.target as HTMLInputElement).value)} style={{ flex: 1, background: "var(--bg)", border: "1px solid var(--line)", color: "var(--text)", borderRadius: 8, padding: "9px 11px" }} />
         <button id="hooks-send" className="btn" disabled={!connected} onClick={send}>send</button>
       </div>
     </>
@@ -121,7 +123,7 @@ export function HooksView({ agentId }: { agentId: string }) {
   return (
     <div className="grid" style={{ gridTemplateColumns: "320px minmax(0,1fr)", gap: 18, alignItems: "start" }}>
       <Card>
-        <div className="card-h"><h3>Hook settings</h3><span className="badge">@elevenlabs/react</span></div>
+        <div className="card-h"><h2>Hook settings</h2><span className="badge">@elevenlabs/react</span></div>
         <div className="card-b" style={{ display: "block" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <Field label="Connection">
@@ -153,7 +155,7 @@ export function HooksView({ agentId }: { agentId: string }) {
           onStatusChange={(s: { status?: string } | string) => emit("onStatusChange", { status: typeof s === "string" ? s : s?.status })}
         >
           <Card>
-            <div className="card-h"><h3>Live conversation</h3><span className="badge">useConversation*</span></div>
+            <div className="card-h"><h2>Live conversation</h2><span className="badge">useConversation*</span></div>
             <div className="card-b" style={{ display: "block" }}>
               <Controls agentId={agentId} conn={conn} />
               <div style={{ font: "600 9.5px var(--mono)", letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--accent)", borderBottom: "1px solid var(--line)", paddingBottom: 8, marginBottom: 10, marginTop: 14 }}>Event log</div>

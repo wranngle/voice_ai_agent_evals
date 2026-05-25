@@ -31,8 +31,10 @@ const TOGGLES: { key: string; attr: string; label: string }[] = [
   { key: "showAvatar", attr: "show-avatar-when-collapsed", label: "Avatar when collapsed" },
 ]
 
+// Wrap children inside the <label> so the associated control gets an
+// accessible name without manual for/id plumbing (axe: label / select-name).
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <div className="field"><label>{label}</label>{children}</div>
+  return <label className="field"><span>{label}</span>{children}</label>
 }
 function Toggle({ on, onChange, label }: { on: boolean; onChange: (v: boolean) => void; label: string }) {
   return (
@@ -104,14 +106,14 @@ export function ControlPlane({ agentId, preset }: { agentId: string; preset: Pre
       </div>
 
       <Card>
-        <div className="card-h"><h3>Configuration</h3><span className="badge">{Object.keys(attrs).length} live</span></div>
+        <div className="card-h"><h2>Configuration</h2><span className="badge">{Object.keys(attrs).length} live</span></div>
         <div className="card-b" style={{ display: "block" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 26 }}>
             <Section title="Mode & layout">
               <Field label="Mode"><div className="seg">{(["voice", "text"] as const).map((m) => <button key={m} className={mode === m ? "sel" : ""} onClick={() => setMode(m)}>{m === "voice" ? "Voice" : "Text chat"}</button>)}</div></Field>
               <Field label="Variant"><div className="seg">{VARIANTS.map((v) => <button key={v} className={variant === v ? "sel" : ""} onClick={() => setVariant(v)}>{v}</button>)}</div></Field>
               <Field label="Placement"><select value={placement} onChange={(e) => setPlacement((e.target as HTMLSelectElement).value)}>{PLACEMENTS.map((p) => <option key={p} value={p}>{p}</option>)}</select></Field>
-              <Field label="Orb palette"><div style={{ display: "flex", gap: 8 }}>{PALETTES.map((p) => <button key={p.name} title={p.name} className={`swatch${colors[0] === p.c[0] ? " sel" : ""}`} style={{ background: `linear-gradient(135deg, ${p.c[0]}, ${p.c[1]})` }} onClick={() => setColors(p.c)} />)}</div></Field>
+              <Field label="Orb palette"><div style={{ display: "flex", gap: 8 }}>{PALETTES.map((p) => <button key={p.name} title={p.name} aria-label={`${p.name} palette`} className={`swatch${colors[0] === p.c[0] ? " sel" : ""}`} style={{ background: `linear-gradient(135deg, ${p.c[0]}, ${p.c[1]})` }} onClick={() => setColors(p.c)} />)}</div></Field>
             </Section>
 
             <Section title="Appearance & behavior">

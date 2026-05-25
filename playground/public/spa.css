@@ -126,7 +126,7 @@ code, pre, .mono { font-family: var(--mono); }
 .card.lift:hover { transform: translateY(-3px); box-shadow: 0 14px 40px rgba(0,0,0,0.45); }
 .card.glow { box-shadow: 0 0 0 1.5px var(--accent), 0 12px 40px rgba(125,211,252,0.12); border-color: transparent; }
 .card-h { display: flex; align-items: center; gap: 8px; padding: 13px 15px; border-bottom: 1px solid var(--line); }
-.card-h h3 { font-size: 13px; font-weight: 600; margin: 0; letter-spacing: -0.005em; }
+.card-h h2 { font-size: 13px; font-weight: 600; margin: 0; letter-spacing: -0.005em; }
 .card-h .badge { margin-left: auto; font: 600 9px/1 var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); background: var(--surface-3); padding: 4px 7px; border-radius: 5px; }
 .card-b { padding: 16px; flex: 1; display: flex; align-items: center; justify-content: center; }
 .card-f { padding: 11px 15px; border-top: 1px solid var(--line); font-size: 12px; }
