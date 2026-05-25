@@ -220,9 +220,12 @@ const server = Bun.serve({
     if (pathname.startsWith("/api/")) return json({ error: "unknown endpoint" }, 404);
 
     // ---- static ----
-    // Home is the auto-playing gallery; the knob control plane lives at /widget.html
-    // (index.html is the control plane, aliased for back-compat).
-    let rel = pathname === "/" ? "/gallery.html" : pathname === "/widget.html" ? "/index.html" : pathname;
+    // It's one page now: the console at "/" (gallery.html) holds the showcase and
+    // the live control plane. The old standalone pages 302 home so there's a single
+    // surface; their files are retained for reference but no longer routed to.
+    const LEGACY = new Set(["/widget.html", "/index.html", "/react.html", "/components.html", "/ui-library.html", "/examples.html", "/blocks.html"]);
+    if (LEGACY.has(pathname)) return new Response(null, { status: 302, headers: { location: "/" } });
+    let rel = pathname === "/" ? "/gallery.html" : pathname;
     const file = Bun.file(join(PUBLIC_DIR, rel));
     if (await file.exists()) {
       return new Response(file, { headers: { "content-type": CT[extname(rel)] ?? "application/octet-stream" } });

@@ -40,7 +40,21 @@ export function Orb({
 }: OrbProps) {
   return (
     <div className={className ?? "relative h-full w-full"}>
+      {/* Gradient sphere behind the canvas: graceful fallback if WebGL is slow
+          or unavailable, so the orb is never a blank black circle. */}
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: "8%",
+          borderRadius: "50%",
+          background: `radial-gradient(circle at 38% 32%, ${colors[0]}, ${colors[1]} 62%, ${colors[1]}00 100%)`,
+          filter: "blur(0.5px)",
+          opacity: 0.9,
+        }}
+      />
       <Canvas
+        style={{ position: "relative" }}
         resize={{ debounce: resizeDebounce }}
         gl={{
           alpha: true,
@@ -98,9 +112,9 @@ function Scene({
   const targetColor1Ref = useRef(new THREE.Color(colors[0]))
   const targetColor2Ref = useRef(new THREE.Color(colors[1]))
   const animSpeedRef = useRef(0.1)
-  const perlinNoiseTexture = useTexture(
-    "https://storage.googleapis.com/eleven-public-cdn/images/perlin-noise.png"
-  )
+  // Served locally — the upstream Google CDN URL loads cross-origin and can hang
+  // useTexture's Suspense indefinitely, leaving the orb a blank circle.
+  const perlinNoiseTexture = useTexture("/textures/perlin-noise.png")
 
   const agentRef = useRef<AgentState>(agentState)
   const modeRef = useRef<"auto" | "manual">(volumeMode)
