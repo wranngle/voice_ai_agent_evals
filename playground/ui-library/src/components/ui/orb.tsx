@@ -39,7 +39,11 @@ export function Orb({
   className,
 }: OrbProps) {
   return (
-    <div className={className ?? "relative h-full w-full"}>
+    // position:relative is forced inline so the absolute gradient fallback below
+    // anchors here even when a caller passes its own className (e.g. message
+    // avatars pass "h-full w-full" — without relative the gradient escaped and
+    // blew the orb up to fill the whole card).
+    <div className={className ?? "h-full w-full"} style={{ position: "relative", overflow: "hidden" }}>
       {/* Gradient sphere behind the canvas: graceful fallback if WebGL is slow
           or unavailable, so the orb is never a blank black circle. */}
       <div

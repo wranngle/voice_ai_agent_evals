@@ -4,11 +4,11 @@
 :root {
   --bg: #07090e;
   --bg-2: #0a0d13;
-  --surface: #0e121a;
-  --surface-2: #131822;
-  --surface-3: #1a212d;
-  --line: rgba(255, 255, 255, 0.07);
-  --line-2: rgba(255, 255, 255, 0.13);
+  --surface: #161c27;
+  --surface-2: #1c2230;
+  --surface-3: #232b3a;
+  --line: rgba(255, 255, 255, 0.11);
+  --line-2: rgba(255, 255, 255, 0.18);
   --text: #f3f5fa;
   --text-dim: #9aa3b5;
   --muted: #59616f;
@@ -114,11 +114,12 @@ code, pre, .mono { font-family: var(--mono); }
 
 /* ─── Card ─── */
 .card {
-  background: linear-gradient(180deg, var(--surface), var(--bg-2));
+  background: linear-gradient(180deg, var(--surface), var(--surface-2));
   border: 1px solid var(--line);
   border-radius: var(--r);
   overflow: hidden;
   display: flex; flex-direction: column;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 6px 20px rgba(0,0,0,0.35);
   transition: border-color 0.2s var(--ease), transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
 }
 .card:hover { border-color: var(--line-2); }
