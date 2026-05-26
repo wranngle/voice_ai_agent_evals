@@ -52,6 +52,22 @@ const CT: Record<string, string> = {
   ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".ico": "image/x-icon",
 };
 
+// Build the SPA bundle from source on startup so what we serve is never stale.
+// The committed artifact is gitignored — source under ui-library/src is the
+// only truth, and a contributor can never forget to rebuild.
+const buildResult = await Bun.build({
+  entrypoints: [join(import.meta.dir, "ui-library/src/gallery-main.tsx")],
+  outdir: join(PUBLIC_DIR, "ui-library"),
+  target: "browser",
+  format: "esm",
+  define: { "process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID": JSON.stringify(showcaseAgentId) },
+});
+if (!buildResult.success) {
+  console.error("\n  ✗ playground bundle build failed:");
+  for (const m of buildResult.logs) console.error("   ", m);
+  process.exit(1);
+}
+
 const server = Bun.serve({
   hostname: process.env.PLAYGROUND_BIND ?? "127.0.0.1",  // localhost-only by default; PROD opt-in via env
   port: PORT,

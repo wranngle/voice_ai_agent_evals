@@ -90,7 +90,7 @@ Last green: `verify-all.mjs` 11/11 verify + 7/7 live-probe + 0 a11y violations a
 - **Add a new component to the Showcase** → import its demo in `ui-library/src/spa/showcase.tsx` and add it to the `COMPONENTS` list (set `contain: true` if its root is `position:absolute`). Bun build picks it up.
 - **Add a new block** → drop the upstream `page.tsx` in `ui-library/src/blocks/<name>/`, run the same path-rewrites, register in `blocks-main.tsx`. If it has `"use server"` actions, write a client shim that hits the proxy.
 
-Build: `bun build playground/ui-library/src/gallery-main.tsx --outdir playground/public/ui-library --target browser --format esm --define process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID='"agent_..."'`. Single bundle; the SPA imports every demo + Orb + hooks directly from `ui-library/src/`.
+Build: the server **builds the SPA bundle from source on startup** (`Bun.build` in `server.ts`), so `bun playground` always serves current `ui-library/src/`. The artifact `public/ui-library/gallery-main.js` is gitignored — never committed, never stale. To build it manually (e.g. for static hosting): `bun build playground/ui-library/src/gallery-main.tsx --outdir playground/public/ui-library --target browser --format esm --define process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID='"agent_..."'`.
 
 ## Honest gaps
 
