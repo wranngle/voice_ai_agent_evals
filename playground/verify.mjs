@@ -244,6 +244,25 @@ await step("DEV-guarded widget PATCH round-trip — real ElevenLabs API", async 
   return `GET → PATCH btn_color=${sentinel} → verified → restored ${priorBtn}`;
 });
 
+await step("Governance: every agent's mutable flag matches [DEV]-only doctrine", async () => {
+  const agents = await (await page.context().request.get(BASE + "/api/agents")).json();
+  if (!Array.isArray(agents) || agents.length === 0) throw new Error("no agents from /api/agents");
+  // Doctrine: mutable IFF phase is DEV (prefix-less resolves to DEV). Any other
+  // prefix ([TEMPLATE]/[PROD]/…) must be mutable:false.
+  const wrong = agents.filter((a) => a.mutable !== (a.phase === "DEV"));
+  if (wrong.length) throw new Error("mutable⇎[DEV] for: " + JSON.stringify(wrong.slice(0, 3).map((a) => ({ phase: a.phase, mutable: a.mutable, name: a.name }))));
+  return `${agents.length} agents, all mutable ⇔ [DEV]`;
+});
+
+await step("Governance deny-path: PATCH a governed (non-DEV) agent → 403", async () => {
+  const agents = await (await page.context().request.get(BASE + "/api/agents")).json();
+  const governed = agents.find((a) => !a.mutable);
+  if (!governed) throw new Error("no governed agent on workspace to exercise the deny-path");
+  const r = await page.context().request.fetch(BASE + "/api/widget/" + governed.agent_id, { method: "PATCH", data: { btn_color: "#123456" } });
+  if (r.status() !== 403) throw new Error(`governed PATCH returned ${r.status()} (expected 403) for [${governed.phase}] ${governed.name}`);
+  return `403 on [${governed.phase}] ${governed.name}`;
+});
+
 // Resolve any in-flight console-arg lookups before tearing down the context.
 await Promise.all(pendingConsole);
 await browser.close();

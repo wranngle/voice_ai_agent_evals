@@ -30,7 +30,13 @@ const showcaseAgentId = existsSync(AGENT_JSON)
   ? JSON.parse(readFileSync(AGENT_JSON, "utf8")).showcaseAgentId
   : "";
 
-const GOVERNED = /^\[(ALPHA|BETA|PROD|ARCHIVED)\]/i;
+// Governance classification — single source of truth. Doctrine: mutable IFF the
+// name has no [PHASE] prefix OR the prefix is exactly [DEV]. Every other prefix
+// ([ALPHA]/[BETA]/[PROD]/[ARCHIVED]/[TEMPLATE]/[STAGING]/anything) needs explicit
+// approval. The old regex only blocked the 4 named phases, silently leaving
+// [TEMPLATE] and any unknown prefix mutable.
+const phaseOf = (name: string): string => name.match(/^\[([^\]]+)\]/)?.[1]?.trim().toUpperCase() ?? "DEV";
+const isMutableName = (name: string): boolean => phaseOf(name) === "DEV";
 
 const elFetch = (path: string, init: RequestInit = {}) =>
   fetch(`${EL}${path}`, { ...init, headers: { "xi-api-key": API_KEY, ...(init.headers ?? {}) } });
@@ -42,7 +48,7 @@ async function agentIsMutable(agentId: string): Promise<{ ok: boolean; name?: st
   const r = await elFetch(`/v1/convai/agents/${agentId}`);
   if (!r.ok) return { ok: false, reason: `agent fetch ${r.status}` };
   const name: string = ((await r.json()) as any).name ?? "";
-  if (GOVERNED.test(name)) return { ok: false, name, reason: `governed phase ${name.match(GOVERNED)![0]} — needs explicit approval` };
+  if (!isMutableName(name)) return { ok: false, name, reason: `governed phase [${phaseOf(name)}] — needs explicit approval` };
   return { ok: true, name }; // [DEV] or prefix-less (implicit DEV)
 }
 
@@ -84,10 +90,9 @@ const server = Bun.serve({
     if (pathname === "/api/agents") {
       const r = await elFetch(`/v1/convai/agents?page_size=100`);
       const d = (await r.json()) as any;
-      const phaseOf = (n: string) => (n.match(/^\[(\w+)\]/)?.[1] ?? "DEV").toUpperCase();
       return json((d.agents ?? []).map((a: any) => ({
         agent_id: a.agent_id, name: a.name, phase: phaseOf(a.name ?? ""),
-        mutable: !GOVERNED.test(a.name ?? ""),
+        mutable: isMutableName(a.name ?? ""),
       })));
     }
 
