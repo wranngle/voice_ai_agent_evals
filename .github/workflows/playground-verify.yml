@@ -58,14 +58,6 @@ jobs:
         if: steps.secret-check.outputs.skip != 'true'
         run: bunx playwright@latest install --with-deps chromium
 
-      - name: Build playground bundle (fresh from source — never trust the committed .js)
-        if: steps.secret-check.outputs.skip != 'true'
-        run: |
-          AGENT_ID="$(node -e "process.stdout.write(require('./playground/agent.json').showcaseAgentId)")"
-          bun build playground/ui-library/src/gallery-main.tsx \
-            --outdir playground/public/ui-library --target browser --format esm \
-            --define process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID="\"$AGENT_ID\""
-
       - name: Start playground server (background)
         if: steps.secret-check.outputs.skip != 'true'
         env:
