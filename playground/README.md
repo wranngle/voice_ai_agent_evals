@@ -1,6 +1,6 @@
 # ElevenLabs Widget & UI Component Showcase
 
-A **one-page Agent Console** that demos **every public ElevenLabs UI surface** — the embeddable chat/voice widget, the `@elevenlabs/react` hooks, the full ui.elevenlabs.io component library, the upstream component example demos, and all 11 upstream reference apps — wired to a real `[DEV]` ElevenLabs agent via a key-safe Bun proxy. `/` is a single React app (`gallery.html` + `ui-library/src/gallery-main.tsx` + `ui-library/src/spa/*`) with three client-side views — **Showcase** (auto-playing looks · capabilities · components), **Control plane** (the live `<elevenlabs-convai>` widget + its full knob set), and **Hooks** (`@elevenlabs/react` ConversationProvider + useScribe with all three connection modes) — plus a docked JSONL terminal. Old standalone routes (`/widget.html`, `/react.html`, etc.) 302 → `/`.
+A **one-page Agent Console** that demos **every public ElevenLabs UI surface** — the embeddable chat/voice widget, the `@elevenlabs/react` hooks, the full ui.elevenlabs.io component library, the upstream component example demos, and all 11 upstream reference apps — wired to a real `[DEV]` ElevenLabs agent via a key-safe Bun proxy. `/` is a single React app (`gallery.html` + `ui-library/src/gallery-main.tsx` + `ui-library/src/spa/*`) with four client-side views — **Showcase** (auto-playing looks · capabilities · components), **Control plane** (the live `<elevenlabs-convai>` widget + its full knob set), **Hooks** (`@elevenlabs/react` ConversationProvider + useScribe with all three connection modes), and **Reference apps** (11 upstream blocks behind a sub-tab switcher) — plus a docked JSONL terminal. Old standalone routes (`/widget.html`, `/react.html`, etc.) 302 → `/`.
 
 ## Run
 
@@ -12,7 +12,7 @@ The server reads `ELEVENLABS_API_KEY` from `./.env` or `~/.agents/.env`. **The k
 
 ## The one page
 
-`/` (`gallery.html`) is the whole product. Sidebar switches three client-side views (no page loads); a docked JSONL terminal logs every action to `logs/voice-evals-<date>.jsonl`.
+`/` (`gallery.html`) is the whole product. Sidebar switches four client-side views (no page loads); a docked JSONL terminal logs every action to `logs/voice-evals-<date>.jsonl`.
 
 | View | What | Source |
 |---|---|---|
@@ -45,7 +45,7 @@ playground/
     lib/              1      cn (tailwind-merge + clsx)
     examples/        17      one demo per EL component
     blocks/          11      full reference apps (Voice Chat / Pong / etc.)
-    spa/                     the one-page console: log.ts · ui.tsx · showcase.tsx · control-plane.tsx · hooks.tsx
+    spa/                     the one-page console: log.ts · ui.tsx · showcase.tsx · control-plane.tsx · hooks.tsx · blocks.tsx
     gallery-main.tsx         entry → the single bundle behind /
 ```
 

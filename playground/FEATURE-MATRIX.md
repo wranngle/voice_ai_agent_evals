@@ -218,7 +218,7 @@ Each one mounts the upstream `elevenlabs/ui/registry/elevenlabs-ui/examples/<dem
 - [x] P1–P17 All 17 demos render: Orb · Waveform · BarVisualizer · LiveWaveform · AudioPlayer · ScrubBar · Message · Conversation · ConversationBar · Response · TranscriptViewer · VoiceButton · VoicePicker · MicSelector · SpeechInput · ShimmeringText · Matrix
 
 ## Q. Reference apps (source under `ui-library/src/blocks/`) — 5 full client apps + 6 server-only
-> **Status:** sources retained from the elevenlabs/ui registry; the standalone `/blocks.html` page that mounted them was removed in the SPA consolidation. Not currently surfaced in the Showcase. The proxy endpoints (`/api/extract-form`, `/api/voice-nav`, `/api/scribe-token`, `/api/stt`) that powered Q6–Q11 still exist and are exercised by the test gate.
+> **Status:** surfaced in the SPA's Reference apps view (`ui-library/src/spa/blocks.tsx`) — a sub-tab switcher mounts one block at a time. All 11 blocks bundle (gallery-main.js ~6.7MB). Server actions originally `"use server"` are wired through the proxy endpoints (`/api/extract-form`, `/api/voice-nav`, `/api/scribe-token`, `/api/stt`) — all exercised by the test gate.
 
 - [x] Q1 Voice Chat 01 (Customer Support card) — UI
 - [x] Q2 Voice Chat 02 — UI

@@ -10,8 +10,9 @@ import { logEvent, setAgentKey, useLog, clearEvents, getEvents } from "@/spa/log
 import { Showcase } from "@/spa/showcase"
 import { ControlPlane, type Preset } from "@/spa/control-plane"
 import { HooksView } from "@/spa/hooks"
+import { BlocksView } from "@/spa/blocks"
 
-type View = "showcase" | "console" | "hooks"
+type View = "showcase" | "console" | "hooks" | "blocks"
 const STATES: AgentState[] = [null, "listening", "thinking", "talking"]
 
 const Icon = ({ d }: { d: string }) => (
@@ -21,6 +22,7 @@ const ICONS = {
   showcase: "M4 5h16M4 12h16M4 19h10",
   console: "M12 2a7 7 0 0 1 7 7c0 3-2 5-2 8H7c0-3-2-5-2-8a7 7 0 0 1 7-7z",
   hooks: "M6 4l3 8-3 8M18 4l-3 8 3 8M9 12h6",
+  blocks: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
 }
 
 function useAutoplay() {
@@ -109,6 +111,7 @@ function App() {
           {nav("showcase", "Showcase", ICONS.showcase)}
           {nav("console", "Control plane", ICONS.console)}
           {nav("hooks", "Hooks (React)", ICONS.hooks)}
+          {nav("blocks", "Reference apps", ICONS.blocks)}
         </nav>
         <div className="spacer" />
         <div className="agent-chip" title={agentId}>agent <b>●</b> {agentId ? agentId.slice(0, 20) + "…" : "connecting…"}</div>
@@ -120,6 +123,7 @@ function App() {
           <button className={view === "showcase" ? "active" : ""} onClick={() => go("showcase")}>Showcase</button>
           <button className={view === "console" ? "active" : ""} onClick={() => go("console")}>Control plane</button>
           <button className={view === "hooks" ? "active" : ""} onClick={() => go("hooks")}>Hooks</button>
+          <button className={view === "blocks" ? "active" : ""} onClick={() => go("blocks")}>Blocks</button>
         </nav>
         <div className="view">
           {view === "showcase" && (
@@ -156,6 +160,17 @@ function App() {
                 <div style={{ marginTop: 20 }}><button className="btn" onClick={() => go("showcase")}>← Back to showcase</button></div>
               </div>
               {agentId && <div style={{ marginTop: 26 }}><HooksView agentId={agentId} /></div>}
+            </>
+          )}
+          {view === "blocks" && (
+            <>
+              <div className="view-head">
+                <span className="eyebrow">Reference apps</span>
+                <h1 className="title">11 full apps. <span className="thin">Real upstream blocks.</span></h1>
+                <p className="lede">Voice Chat × 3 · Music Player × 2 · Realtime Transcriber · Transcriber · Voice Form · Voice Nav · Speaker · Pong — each from <code>elevenlabs/ui</code>'s blocks registry, mounted verbatim (server actions swapped for proxy shims).</p>
+                <div style={{ marginTop: 20 }}><button className="btn" onClick={() => go("showcase")}>← Back to showcase</button></div>
+              </div>
+              <div style={{ marginTop: 26 }}><BlocksView /></div>
             </>
           )}
         </div>
