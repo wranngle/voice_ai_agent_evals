@@ -34,7 +34,7 @@ playground/
   agent.json                 the showcase agent id + provenance
   FEATURE-MATRIX.md          every feature / knob / combo, [x] / [~] / [ ]
   AUDIT.md                   honest fidelity audit with screenshot evidence
-  verify.mjs                 Playwright e2e (11 steps, fails on any console error)
+  verify.mjs                 Playwright e2e (12 steps, fails on any console error)
   live-probe.mjs             7 live capability probes (voice/signed-url/override-effect/...)
   verify-all.mjs             single command: verify + live-probe + a11y + mobile audits
   public/                    static: gallery.html (the page) + spa.css + textures/ + bundled .js; retained legacy .html
@@ -77,12 +77,12 @@ Every file under `playground/ui-library/src/` was fetched verbatim from `github.
 ## Verify
 
 ```bash
-bun run playground/verify-all.mjs     # the gate: 11-step e2e + 7 live capabilities + a11y (4 views) + mobile (12 stops) = 30+ checks
+bun run playground/verify-all.mjs     # the gate: 12-step e2e + 7 live capabilities + a11y (4 views) + mobile (12 stops) = 30+ checks
 bun run playground/verify.mjs         # Playwright e2e against the one-page console → playground/verify/
 bun run playground/live-probe.mjs     # 7 live capabilities (real agent + signed-url + WebRTC + Scribe) → playground/audit/
 ```
 
-Last green: `verify-all.mjs` 11/11 verify + 7/7 live-probe + 0 a11y violations across 4 views + 12/12 mobile viewport×view stops, 0 console errors, real agent + signed-url + WebRTC + Scribe all reached.
+Last green: `verify-all.mjs` 12/12 verify + 7/7 live-probe + 0 a11y violations across 4 views + 12/12 mobile viewport×view stops, 0 console errors, real agent + signed-url + WebRTC + Scribe all reached.
 
 ## Extend
 
