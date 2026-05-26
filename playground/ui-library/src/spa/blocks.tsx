@@ -45,7 +45,7 @@ export function BlocksView() {
   const block = BLOCKS.find((b) => b.slug === active) ?? BLOCKS[0]
   const Mounted = block.Component
   return (
-    <div className="grid" style={{ gridTemplateColumns: "240px minmax(0,1fr)", gap: 18, alignItems: "start" }}>
+    <div className="blocks-grid">
       <Card>
         <div className="card-h"><h2>Reference apps</h2><span className="badge">{BLOCKS.length}</span></div>
         <div className="card-b" style={{ display: "block", padding: 8 }}>
