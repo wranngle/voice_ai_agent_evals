@@ -4,8 +4,8 @@
 // or page error. Run with the playground server up on :4321.
 //   bun run playground/verify.mjs
 import { chromium } from "playwright";
-import { mkdirSync } from "node:fs";
-import { join } from "node:path";
+import { mkdirSync, readdirSync, statSync } from "node:fs";
+import { join, extname } from "node:path";
 
 const BASE = process.env.PLAYGROUND_URL ?? "http://localhost:4321";
 const OUT = join(import.meta.dir, "verify");
@@ -279,6 +279,31 @@ await step("API rejects malformed JSON with 400 — no Bun default-page source l
   const log = await page.context().request.fetch(BASE + "/api/log", { method: "POST", headers: { "content-type": "application/json" }, data: Buffer.from("not json") });
   if (log.status() !== 400) throw new Error(`malformed /api/log → ${log.status()} (expected 400)`);
   return "PATCH + /api/log → 400, no leak";
+});
+
+await step("Static MIME: every public/ extension has a CT entry (no octet-stream fallback)", async () => {
+  // Doctrine-drift test: the CT map in server.ts must cover every file extension
+  // actually shipped under public/. Caught .mp3 missing — capability TTS samples
+  // were served as application/octet-stream, which is technically valid but
+  // can flake <audio> playback in stricter browsers.
+  const root = "playground/public";
+  const exts = new Map(); // ext -> first matching relative URL
+  const walk = (d) => {
+    for (const name of readdirSync(d)) {
+      const p = join(d, name);
+      if (statSync(p).isDirectory()) walk(p);
+      else { const e = extname(name).toLowerCase(); if (e && !exts.has(e)) exts.set(e, p.replace(root, "")); }
+    }
+  };
+  walk(root);
+  const bad = [];
+  for (const [ext, relPath] of exts) {
+    const r = await page.context().request.get(BASE + relPath);
+    const ct = (r.headers()["content-type"] ?? "").split(";")[0].trim();
+    if (ct === "application/octet-stream") bad.push(`${ext} → octet-stream (${relPath})`);
+  }
+  if (bad.length) throw new Error("missing CT entries: " + bad.join("; "));
+  return `${exts.size} extensions, all proper MIME`;
 });
 
 // Resolve any in-flight console-arg lookups before tearing down the context.

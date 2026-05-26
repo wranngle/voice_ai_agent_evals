@@ -56,6 +56,7 @@ const CT: Record<string, string> = {
   ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript",
   ".css": "text/css", ".json": "application/json", ".svg": "image/svg+xml", ".map": "application/json",
   ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".ico": "image/x-icon",
+  ".mp3": "audio/mpeg",  // capability TTS samples — were served as application/octet-stream
 };
 
 // Build the SPA bundle from source on startup so what we serve is never stale.

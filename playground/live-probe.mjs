@@ -23,6 +23,12 @@ const newPage = async (view = "showcase") => {
   // Filter only the known upstream r3f Canvas Provider race; fail the probe on
   // anything else so CI catches real Hooks/Control-plane regressions instead
   // of silently passing past a crashing component.
+  // NOTE: console.error coverage is intentionally NOT added here. The vendored
+  // <elevenlabs-convai> widget aborts its config fetch on every page teardown
+  // ("Cannot fetch config ... signal is aborted"), and live-probe creates many
+  // short-lived pages — so a strict console gate flakes on expected teardown
+  // noise. The verify.mjs gate already has a precise console filter that
+  // exercises the showcase + control-plane statically.
   page.on("pageerror", (err) => {
     const m = err?.message || String(err)
     const isR3fRace = /r3f|Canvas|<Provider>|Cannot read prop.*useState|Cannot destructure prop.*useContext/.test(m)
@@ -176,4 +182,7 @@ await browser.close()
 console.log("\n── live probe summary ──")
 const passed = steps.filter((s) => s.ok).length
 console.log(`${passed}/${steps.length} passed`)
+// Print every failing entry — silent pushes (console error / pageerror) used to
+// hide here; surface them so a regression is debuggable from the run log alone.
+for (const s of steps.filter((s) => !s.ok)) console.log(`  ✗ ${s.name} — ${s.err}`)
 process.exit(passed === steps.length ? 0 : 1)
