@@ -317,7 +317,9 @@ const server = Bun.serve({
   // leak the moment PLAYGROUND_BIND exposes this beyond localhost. Log it
   // server-side, return a clean JSON 500 with no internals (still sec-headered).
   error(err: Error) {
-    console.error("[server] unhandled:", err?.message ?? err);
+    // Log the stack server-side — that's where you debug from. The response
+    // body stays internals-free per the source-leak fix in #51.
+    console.error("[server] unhandled:", err?.stack || err?.message || err);
     return withSec(new Response(JSON.stringify({ ok: false, error: "internal error" }), {
       status: 500,
       headers: { "content-type": "application/json" },
