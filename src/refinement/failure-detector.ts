@@ -265,10 +265,11 @@ function renderTranscript(call: PersonaCall): string {
 
 const RUBRIC_JUDGE_SYSTEM = [
   'You are a strict QA judge for a business voice agent.',
-  'You are given a failure-mode rubric and a call transcript (numbered turns, agent + caller).',
+  'You are given a failure-mode rubric, business grounding context, and a call transcript (numbered turns, agent + caller, both roles in one zero-indexed array).',
   'Decide whether the AGENT violated the rubric. Be conservative: only fail on clear violations.',
+  'When the rubric mentions overclaiming, hallucination, hours, service area, or services, cross-check the agent statements against the BUSINESS CONTEXT block — do not infer beyond what is in that block.',
   'Respond with JSON only: {"fail": boolean, "turn_index": number, "evidence_phrase": string}.',
-  'turn_index is the 0-based index of the agent turn that violated; evidence_phrase is the exact offending substring (<=120 chars). If no violation, fail=false and the other fields may be empty.',
+  'turn_index is the 0-based ABSOLUTE index into the numbered transcript array (count both agent and caller turns, in order); evidence_phrase is the exact offending substring (<=120 chars). If no violation, fail=false and the other fields may be empty.',
 ].join(' ');
 
 type RubricVerdict = {
@@ -308,6 +309,7 @@ export async function detectRubricFailures(
   catalog: FailureModeCatalog,
   llm: LlmCompleteCallback,
   filterByModeIds?: string[],
+  businessContext?: string,
 ): Promise<DetectedFailure[]> {
   const modes = (filterByModeIds
     ? catalog.modes.filter(m => filterByModeIds.includes(m.id))
@@ -325,9 +327,12 @@ export async function detectRubricFailures(
       const {rubric} = mode.detector;
       tasks.push((async () => {
         try {
+          const userBlocks = [`RUBRIC:\n${rubric}`];
+          if (businessContext) userBlocks.push(`BUSINESS CONTEXT:\n${businessContext}`);
+          userBlocks.push(`TRANSCRIPT:\n${transcript}`);
           const raw = await llm({
             system: RUBRIC_JUDGE_SYSTEM,
-            user: `RUBRIC:\n${rubric}\n\nTRANSCRIPT:\n${transcript}`,
+            user: userBlocks.join('\n\n'),
             responseFormat: 'json',
           });
           const verdict = parseVerdict(raw);
@@ -335,17 +340,21 @@ export async function detectRubricFailures(
             return undefined;
           }
 
-          const turnIndex = typeof verdict.turn_index === 'number' && verdict.turn_index >= 0 && verdict.turn_index < call.turns.length
+          // Verdict turn_index is an absolute index into call.turns (both roles).
+          // If out-of-range or missing, fall back to the first agent turn so we
+          // still attach evidence rather than swallowing the finding.
+          const rawTurnIndex = typeof verdict.turn_index === 'number' && verdict.turn_index >= 0 && verdict.turn_index < call.turns.length
             ? verdict.turn_index
             : call.turns.findIndex(t => t.role === 'agent');
-          const safeIndex = Math.max(turnIndex, 0);
+          const safeIndex = Math.max(rawTurnIndex, 0);
+          const actualRole = call.turns[safeIndex]?.role ?? 'agent';
           return {
             mode_id: mode.id,
             severity: mode.severity,
             persona_id: call.persona_id,
             evidence: {
               turn_index: safeIndex,
-              role: 'agent',
+              role: actualRole,
               matched_phrase: verdict.evidence_phrase?.slice(0, 120) ?? '(judge-flagged)',
               surrounding_text: call.turns[safeIndex]?.text ?? '',
             },

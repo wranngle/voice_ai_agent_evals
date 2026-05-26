@@ -1,3 +1,4 @@
+import {accessSync, constants as fsConstants} from 'node:fs';
 /**
  * Default LLM provider for the Refinement orchestrator. Backs the
  * rubric_judge failure detectors (and any future LLM-driven step) with a
@@ -71,8 +72,18 @@ export function createCliLlm(binPath: string): LlmCompleteCallback {
 }
 
 function resolveLlmCli(): string | undefined {
+  // Honor LLM_SH only when the path points to an existing executable. A
+  // stale/mistyped LLM_SH would otherwise be preferred over a valid Gemini
+  // key, and createCliLlm would fail at exec time — rubric detection
+  // swallows that error per call, so the run silently reports zero rubric
+  // findings. Fall through to PATH lookup, then to undefined (offline-safe).
   if (process.env.LLM_SH) {
-    return process.env.LLM_SH;
+    try {
+      accessSync(process.env.LLM_SH, fsConstants.X_OK);
+      return process.env.LLM_SH;
+    } catch {
+      // not executable / does not exist — ignore and fall through
+    }
   }
 
   try {
