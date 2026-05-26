@@ -92,7 +92,7 @@ export function ControlPlane({ agentId, preset }: { agentId: string; preset: Pre
   useEffect(() => { logEvent("console.widget", "configured", { variant, placement, mode, knobs: Object.keys(attrs).length }) }, [key])
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: "minmax(0,1fr) 360px", gap: 18, alignItems: "start" }}>
+    <div className="cp-grid">
       <div className="stage" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 22, padding: 40, position: "sticky", top: 18 }}>
         <div className="stage-tag"><span className="dot" /> live · {agentId.slice(0, 18)}…</div>
         <div style={{ position: "relative", height: 180, width: 180 }}><SafeOrb colors={colors} agentState="listening" /></div>

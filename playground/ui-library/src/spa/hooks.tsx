@@ -135,7 +135,7 @@ export function HooksView({ agentId }: { agentId: string }) {
   useEffect(() => { setVer((n) => n + 1) }, [textOnly])
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: "320px minmax(0,1fr)", gap: 18, alignItems: "start" }}>
+    <div className="hooks-grid">
       <Card>
         <div className="card-h"><h2>Hook settings</h2><span className="badge">@elevenlabs/react</span></div>
         <div className="card-b" style={{ display: "block" }}>
