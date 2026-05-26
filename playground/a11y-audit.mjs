@@ -38,6 +38,29 @@ for (const [view, label] of VIEWS) {
     .analyze()
   all.push({ view, label, violations: result.violations })
 }
+// prefers-reduced-motion: the auto-play timer cycles the orb state + capability
+// spotlight via JS, which the CSS reduced-motion rule can't stop. Assert that a
+// reduced-motion user lands with auto-play paused (motion stays opt-in). axe
+// can't see this — it's JS-driven state, not a CSS animation.
+let reducedMotionProblem = null
+{
+  const rmCtx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" })
+  const rmPage = await rmCtx.newPage()
+  await rmPage.addInitScript(() => { try { localStorage.setItem("console.view", "showcase") } catch {} })
+  await rmPage.goto(BASE, { waitUntil: "networkidle", timeout: 30000 })
+  await rmPage.waitForSelector(".rail-head", { timeout: 15000 })
+  await rmPage.waitForTimeout(2000) // longer than the 1700ms tick interval
+  const state = await rmPage.evaluate(() => {
+    const btn = [...document.querySelectorAll("button")].find((b) => /Auto-play/.test(b.textContent || ""))
+    const pill = document.querySelector(".state-pill")?.textContent || ""
+    return { btnText: btn?.textContent?.trim() || "(no button)", pill }
+  })
+  // Paused button reads "▶ Auto-play"; running reads "⏸ Auto-play on". And with
+  // no ticks the state pill must still say idle.
+  if (/Auto-play on/.test(state.btnText)) reducedMotionProblem = `auto-play still running under reduced-motion (button: "${state.btnText}")`
+  else if (!/idle/.test(state.pill)) reducedMotionProblem = `orb state advanced under reduced-motion (pill: "${state.pill}")`
+  await rmCtx.close()
+}
 await browser.close()
 
 console.log("\n══ a11y audit ══")
@@ -61,6 +84,11 @@ for (const r of all) {
   if (tagged) console.log(`    summary: ${tagged}`)
 }
 console.log(`\n total nodes flagged: ${total}\n`)
-// Fail on any serious/critical violation; minor/moderate are warnings.
+
+console.log("══ prefers-reduced-motion ══")
+console.log(reducedMotionProblem ? `  ❌ ${reducedMotionProblem}` : "  ✓ auto-play paused under reduced-motion (motion opt-in)")
+
+// Fail on any serious/critical violation; minor/moderate are warnings. A
+// reduced-motion violation is blocking too — it's a forced-animation WCAG fail.
 const blocking = all.flatMap((r) => r.violations.filter((v) => v.impact === "serious" || v.impact === "critical")).length
-process.exit(blocking > 0 ? 1 : 0)
+process.exit(blocking > 0 || reducedMotionProblem ? 1 : 0)
