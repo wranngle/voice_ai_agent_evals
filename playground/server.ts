@@ -326,5 +326,5 @@ const server = Bun.serve({
 });
 
 console.log(`\n  ElevenLabs UI Showcase → http://localhost:${server.port}`);
-console.log(`  Showcase agent: ${showcaseAgentId || "(run playground/setup to create)"}`);
+console.log(`  Showcase agent: ${showcaseAgentId || "(none — write playground/agent.json with {\"showcaseAgentId\":\"agent_...\"})"}`);
 console.log(`  API key: loaded (never sent to browser)\n`);
