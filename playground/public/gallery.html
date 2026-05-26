@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ElevenLabs Agent Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/spa.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    /* Component demos use shadcn HSL tokens; map them onto the console palette so
+       the upstream UI sits inside the dark theme instead of fighting it. */
+    window.tailwind = window.tailwind || {};
+  </script>
+  <style>
+    :root, .dark {
+      --background: 222 32% 9%; --foreground: 0 0% 96%; --card: 222 26% 13%; --card-foreground: 0 0% 96%;
+      --popover: 222 26% 13%; --popover-foreground: 0 0% 96%; --primary: 0 0% 96%; --primary-foreground: 222 40% 5%;
+      --secondary: 222 18% 26%; --secondary-foreground: 0 0% 96%; --muted: 222 16% 24%; --muted-foreground: 222 12% 70%;
+      --accent: 222 18% 26%; --accent-foreground: 0 0% 96%; --destructive: 0 62% 52%; --destructive-foreground: 0 0% 96%;
+      --border: 222 16% 28%; --input: 222 16% 28%; --ring: 199 89% 74%; --radius: 0.6rem;
+    }
+    #root { height: 100vh; }
+  </style>
+  <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
+</head>
+<body class="dark">
+  <div id="root"></div>
+  <script type="module" src="/ui-library/gallery-main.js"></script>
+</body>
+</html>

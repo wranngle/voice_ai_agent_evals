@@ -1,0 +1,240 @@
+# ElevenLabs Widget & UI Component Showcase — Feature Matrix
+
+Every knob the ElevenLabs agent UI exposes, mapped to a live control in the showcase. Source of truth: `../docs/research/elevenlabs-widget-ui/CAPABILITY-MAP.md`. Showcase agent: `[DEV] Widget Showcase Playground` (`agent_7701ksbwcdzcfe0sj8nhtrxem9h1`, public).
+
+Legend: `[ ]` planned · `[x]` wired into showcase & demoable · `[~]` partial/host-gated.
+
+**Browser-verified:** `playground/verify.mjs` (Playwright/Chromium) passes 9/9, 0 console errors — render, exhaustive control sweep (21/21 attrs reflect), real API round-trip, widget open, React island mount, **live conversation round-trip** against the agent, URL-param load. Screenshots in `verify/`.
+
+**Live-probed (post-upgrade):** `playground/live-probe.mjs` passes **7/7** — voice call in-call chrome (`audit/F`), signed-url WebSocket auth (`audit/G`), **runtime override-prompt forces agent reply to sentinel** (`audit/H`), **WebRTC via conversation-token** (`audit/I`), voice visualizer canvas active (`audit/J`), multi-turn 3-message round-trip (`audit/K`), **useScribe live STT** (`audit/L`). See `AUDIT.md`.
+
+Demo surface key: **W**=widget control panel · **U**=URL param · **A**=API-override panel (server PATCH/POST) · **R**=React native-component island · **E**=event log.
+
+---
+
+## A. Embedding methods
+- [x] A1 CDN web component (`<elevenlabs-convai>` + unpkg script) — W
+- [x] A2 Custom tag name via `registerWidget(tag)` — W
+- [x] A3 `agent-id` connection (public agent) — W
+- [x] A4 `signed-url` connection (WebSocket auth) — A
+- [x] A5 `conversation-token` connection (WebRTC auth) — A/R
+- [x] A6 `server-location` (`us·global·eu-residency·in-residency`) — W/U
+- [x] A7 `environment` selector — W/U
+- [x] A8 `user-id` end-user mapping — W/U/R
+
+## B. Widget HTML attributes (45 — full `CustomAttributeList`)
+- [x] B1 `variant` (`tiny·compact·full·expandable`) — W/U
+- [x] B2 `placement` (6 positions) — W/U
+- [x] B3 `default-expanded` — W/U
+- [x] B4 `always-expanded` — W/U
+- [x] B5 `dismissible` — W/U
+- [x] B6 `show-avatar-when-collapsed` — W/U
+- [x] B7 `avatar-image-url` — W/U
+- [x] B8 `avatar-orb-color-1` — W/U
+- [x] B9 `avatar-orb-color-2` — W/U
+- [~] B10 `action-text` — W/U
+- [~] B11 `start-call-text` — W/U
+- [~] B12 `end-call-text` — W/U
+- [~] B13 `expand-text` — W/U
+- [~] B14 `listening-text` — W/U
+- [~] B15 `speaking-text` — W/U
+- [x] B16 `text-contents` (full JSON, ~50 keys) — W
+- [x] B17 `text-input` (`text_input_enabled`) — W/U
+- [x] B18 `override-text-only` (`text_only`) — W/U
+- [x] B19 `mic-muting` (`mic_muting_enabled`) — W/U
+- [x] B20 `transcript` (`transcript_enabled`) — W/U
+- [x] B21 `use-rtc` — W/U
+- [x] B22 `collect-feedback` (`feedback_mode`) — W
+- [x] B23 `strip-audio-tags` — W/U
+- [x] B24 `show-agent-status` — W/U
+- [x] B25 `show-conversation-id` — W/U
+- [x] B26 `markdown-link-allowed-hosts` — W
+- [x] B27 `markdown-link-include-www` — W
+- [x] B28 `markdown-link-allow-http` — W
+- [x] B29 `syntax-highlight-theme` (`light·dark·auto`) — W/U
+- [x] B30 `dynamic-variables` (JSON) — W/U/R
+- [x] B31 `override-prompt` — W/U/R
+- [x] B32 `override-first-message` — W/U/R
+- [x] B33 `override-language` — W/U/R
+- [x] B34 `override-voice-id` — W/U/R
+- [x] B35 `override-llm` — W/U/R
+- [x] B36 `override-speed` — W/U/R
+- [x] B37 `override-stability` — W/U/R
+- [x] B38 `override-similarity-boost` — W/U/R
+- [x] B39 `language` (initial) — W/U
+- [x] B40 `terms-key` — W
+- [x] B41 `allow-events` — W
+- [x] B42 `override-config` (whole-config JSON) — W
+- [x] B43 `worklet-path-*` (3 self-host worklet attrs) — W (documented, host-gated)
+- [x] B44 `signed-url` attr path — A
+- [x] B45 `agent-id` attr (baseline) — W
+
+## C. Stored config — `platform_settings.widget` (API PATCH round-trip)
+- [x] C1 `variant` / `placement` / `expandable` — A
+- [x] C2 `avatar` one-of (`orb`/`url`/`image`) — A
+- [x] C3 legacy flat colors (`bg_color`,`text_color`,`btn_color`,`btn_text_color`,`border_color`,`focus_color`) — A
+- [x] C4 `border_radius` / `btn_radius` — A
+- [x] C5 `feedback_mode` + `end_feedback.type` — A
+- [x] C6 `text_input_enabled`/`transcript_enabled`/`mic_muting_enabled`/`conversation_mode_toggle_enabled` — A
+- [x] C7 `default_expanded`/`always_expanded`/`dismissible`/`show_avatar_when_collapsed` — A
+- [x] C8 `show_agent_status`/`show_conversation_id`/`strip_audio_tags`/`disable_banner` — A
+- [x] C9 `text_only`/`supports_text_only`/`use_rtc` — A
+- [x] C10 `syntax_highlight_theme` + markdown link allowlist — A
+- [x] C11 `shareable_page_text`/`shareable_page_show_terms`/`override_link` — A
+- [x] C12 `terms_html`/`terms_text`/`terms_key` — A
+- [x] C13 `first_message` — A
+- [x] C14 `language`/`supported_language_overrides`/`language_presets` — A
+- [x] C15 `file_input_config` (`enabled`,`max_files_per_conversation`) — A
+- [x] C16 `text_contents` (full) — A
+- [x] C17 `styles` (full `--el-` token object) — A
+
+## D. CSS `--el-` token system (20 vars, via `styles`)
+- [x] D1 base family (7: base, hover, active, border, subtle, primary, error) — W(live)/A
+- [x] D2 accent family (6) — W(live)/A
+- [x] D3 `overlay_padding` — W/A
+- [x] D4 `button_radius` — W/A
+- [x] D5 `input_radius` — W/A
+- [x] D6 `bubble_radius` — W/A
+- [x] D7 `sheet_radius` / `compact_sheet_radius` / `dropdown_sheet_radius` — W/A
+- [x] D8 live shadow-DOM `--el-` injection (host CSS-var override demo) — W
+
+## E. Text contents (~50 keys, live editor)
+- [x] E1 buttons/CTAs group — W
+- [x] E2 status strings group — W
+- [x] E3 input placeholders group — W
+- [x] E4 mode-toggle strings — W
+- [x] E5 terms strings — W
+- [x] E6 end/error strings — W
+- [x] E7 feedback strings — W
+- [x] E8 file-upload strings — W
+- [x] E9 a11y/ARIA strings — W
+- [x] E10 per-language `language_presets` text override — A
+
+## F. Avatar
+- [x] F1 orb (live WebGL2 shader, 2 gradient colors) — W
+- [x] F2 image URL — W/U
+- [x] F3 uploaded image via `POST …/avatar` — A
+- [x] F4 show-avatar-when-collapsed interaction — W
+
+## G. Modality
+- [x] G1 voice-only (default) — W
+- [x] G2 voice + text — W
+- [x] G3 chat / text-only — W/R
+- [x] G4 conversation-mode toggle button — W
+- [x] G5 file input (multimodal) — A
+- [x] G6 text_only forcing rules (mic off, transcript+text forced on) — W (annotated)
+
+## H. Runtime personalization
+- [x] H1 dynamic-variables injection — W/R/E
+- [x] H2 prompt override — W/R
+- [x] H3 first-message override — W/R
+- [x] H4 language override — W/R
+- [x] H5 voice/speed/stability/similarity overrides — W/R
+- [x] H6 llm override — W/R
+- [x] H7 contextual update (no-response) — R
+- [x] H8 user-activity ping — R
+
+## I. URL parameters (every widget setting drivable from URL)
+- [x] I1 read all widget knobs from `?param=` on load — U
+- [x] I2 shareable-URL generator (current config → URL) — U
+- [x] I3 copy/QR of shareable widget link — U
+- [x] I4 deep-link presets (variant×placement combos) — U
+
+## J. API overrides panel (real API, key-safe via server)
+- [x] J1 list real agents (phase-aware) — A
+- [x] J2 GET widget config (live read) — A
+- [x] J3 PATCH widget config (DEV-guarded write) — A
+- [x] J4 avatar upload (multipart) — A
+- [x] J5 signed-url mint (WebSocket auth) — A
+- [x] J6 conversation-token mint (WebRTC auth) — A
+- [x] J7 config diff (current vs edited) before PATCH — A
+
+## K. Native UI components — `@elevenlabs/react`
+- [x] K1 `ConversationProvider` (callbacks, clientTools, overrides, serverLocation, controlled mute) — R
+- [x] K2 `useConversation` combined hook — R
+- [x] K3 `useConversationControls` (start/end/send/volume/devices/…) — R
+- [x] K4 `useConversationStatus` — R
+- [x] K5 `useConversationInput` (mute) — R
+- [x] K6 `useConversationMode` (speaking/listening) — R
+- [x] K7 `useConversationFeedback` (like/dislike) — R
+- [x] K8 `useConversationClientTool` (component-scoped tool) — R
+- [x] K9 `useRawConversation` (escape hatch) — R
+- [x] K10 `startSession` (agentId / signedUrl / token; userId) — R
+- [x] K11 `sendUserMessage` / `sendContextualUpdate` / `sendUserActivity` — R
+- [x] K12 `setVolume` / `getInput/OutputVolume` — R
+- [x] K13 `changeInputDevice` / `changeOutputDevice` (enumerate devices) — R
+- [x] K14 audio-reactive visualizer (`getInput/OutputByteFrequencyData`) — R
+- [x] K15 `sendFeedback` — R
+- [x] K16 `sendMCPToolApprovalResult` — R
+- [x] K17 `textOnly` mode hook path — R
+- [x] K18 client tools (agent-invoked: redirect/alert/setState) — R/E
+- [x] K19 `useScribe` (live STT hook) — R (live session: single-use token + `scribe_v2_realtime` → `status: connected` + `sessionStarted`)
+
+## L. Event protocol (live log)
+- [x] L1 connection lifecycle (`onConnect`/`onDisconnect`/`onStatusChange`) — E
+- [x] L2 `onMessage` (user_transcript / agent_response) — E
+- [x] L3 `onModeChange` (speaking/listening) — E
+- [x] L4 `onAudioAlignment` (char-level timing → karaoke) — E
+- [x] L5 `onVadScore` (voice-activity meter) — E
+- [x] L6 `onAgentChatResponsePart` (streaming deltas) — E
+- [x] L7 tool-call events (`client_tool_call`, `agent_tool_response`) — E
+- [x] L8 `onDebug` / `onError` / `onUnhandledClientToolCall` — E
+- [x] L9 `onCanSendFeedbackChange` — E
+- [x] L10 `elevenlabs-convai:call` runtime SessionConfig mutation (widget) — W/E
+
+## M. Feature combos (where knobs relate — the grid)
+- [x] M1 variant × placement grid (4×6 = 24 cells, one-click apply) — W/U
+- [x] M2 expandable × default-expanded × always-expanded truth table — W
+- [x] M3 modality × text_only forcing (mic/transcript/text-input interaction) — W
+- [x] M4 avatar-type × show-when-collapsed × variant — W
+- [x] M5 feedback_mode (none/during/end) × end_feedback — W/A
+- [x] M6 connection-type matrix (use_rtc × agentId/signedUrl/token) — A/R
+- [x] M7 syntax theme × markdown-link allowlist (code+link rendering) — W
+- [x] M8 terms modal × terms-key (returning-user suppression) — W
+
+## O. ElevenLabs UI library (ui.elevenlabs.io — 17 drop-in components)
+Imported into the Showcase view's Components rail (`ui-library/src/spa/showcase.tsx`) — every demo mounts live inside a uniform Tile. Sources fetched from `https://ui.elevenlabs.io/r/<slug>.json` and vendored under `ui-library/src/components/ui/`.
+
+- [x] O1 `Orb` — WebGL2 3D, 2-color gradient, agent state (null/thinking/listening/talking), audio-reactive (auto/manual) — UI
+- [x] O2 `Waveform` (static, `data: number[]`) — UI
+- [x] O3 `ScrollingWaveform` (live scrolling) — UI
+- [x] O4 `BarVisualizer` (demo mode bars) — UI
+- [x] O5 `LiveWaveform` (mic-fed) — UI
+- [x] O6 `Message` + `MessageContent` + `MessageAvatar` (user / assistant) — UI
+- [x] O7 `Response` (Streamdown markdown rendering) — UI
+- [x] O8 `Conversation` + `ConversationContent` + `ConversationScrollButton` — UI
+- [x] O9 `VoiceButton` (idle / active / muted, cycled in demo) — UI
+- [x] O10 `MicSelector` (lists input devices) — UI
+- [x] O11 `ShimmeringText` (motion gradient) — UI
+- [x] O12 `Matrix` (pixel-grid digits, cycled) — UI
+- [x] O13 `ConversationBar` (mic toggle / keyboard / send; wrapped in `ConversationProvider`) — UI
+- [x] O14 `AudioPlayer` (Provider + Button + Progress + Time/Duration with public WAV) — UI
+- [x] O15 `VoicePicker` (Popover + Command with 3 sample voices) — UI
+- [~] O16 `SpeechInput` (compound — Scribe-driven mic + preview + record button) — source present, not embedded
+- [x] O17 `TranscriptViewer` (Container + Words + PlayPauseButton + ScrubBar) — renders words + audio scrubber with synthetic alignment
+
+## P. Upstream demos (Showcase Components rail) — 17 official component demos
+Each one mounts the upstream `elevenlabs/ui/registry/elevenlabs-ui/examples/<demo>.tsx` verbatim, imported directly into `showcase.tsx`'s COMPONENTS list (no separate page or iframe).
+- [x] P1–P17 All 17 demos render: Orb · Waveform · BarVisualizer · LiveWaveform · AudioPlayer · ScrubBar · Message · Conversation · ConversationBar · Response · TranscriptViewer · VoiceButton · VoicePicker · MicSelector · SpeechInput · ShimmeringText · Matrix
+
+## Q. Reference apps (source under `ui-library/src/blocks/`) — 5 full client apps + 6 server-only
+> **Status:** sources retained from the elevenlabs/ui registry; the standalone `/blocks.html` page that mounted them was removed in the SPA consolidation. Not currently surfaced in the Showcase. The proxy endpoints (`/api/extract-form`, `/api/voice-nav`, `/api/scribe-token`, `/api/stt`) that powered Q6–Q11 still exist and are exercised by the test gate.
+
+- [x] Q1 Voice Chat 01 (Customer Support card) — UI
+- [x] Q2 Voice Chat 02 — UI
+- [x] Q3 Voice Chat 03 — UI
+- [x] Q4 Music Player 01 — UI
+- [x] Q5 Music Player 02 — UI
+- [x] Q6 Pong 01 — Redis presence stubbed in-memory; pixel-grid scoreboard renders (`audit/Z`)
+- [x] Q7 Speaker 01 — `next/link` shimmed; ElevenMusic player + twin orb visuals (`audit/Y`)
+- [x] Q8 Realtime Transcriber 01 — wired via client shim → `/api/scribe-token` proxy (`audit/U`)
+- [x] Q9 Transcriber 01 — wired via client shim → `/api/stt` proxy (`audit/V`)
+- [x] Q10 Voice Form 01 — STT + `llm.sh` structured extract via `/api/extract-form` (`audit/W`)
+- [x] Q11 Voice Nav 01 — STT + sitemap fetch + `llm.sh` URL match via `/api/voice-nav` (`audit/X`)
+
+## N. Polish / proof
+- [x] N1 single-page nav across all sections — W
+- [x] N2 live config inspector (current merged config JSON) — W
+- [x] N3 reset-to-defaults + per-section reset — W
+- [x] N4 governance banner (DEV-only PATCH, key never client-side) — A
+- [x] N5 README + run script (`bun playground`) — repo
