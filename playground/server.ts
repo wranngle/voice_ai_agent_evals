@@ -9,7 +9,7 @@
  */
 import { readFileSync, existsSync, appendFileSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
-import { join, extname } from "node:path";
+import { join, extname, resolve } from "node:path";
 
 const EL = "https://api.elevenlabs.io";
 const PORT = Number(process.env.PLAYGROUND_PORT ?? 4321);
@@ -167,8 +167,16 @@ const server = Bun.serve({
       proc.stdin.write(`User intent: ${transcript}`);
       proc.stdin.end();
       const out = (await new Response(proc.stdout).text()).trim();
-      try { return json({ data: JSON.parse(out), transcript }); }
+      let parsed: { url?: string } = {};
+      try { parsed = JSON.parse(out) as { url?: string }; }
       catch { return json({ data: {}, transcript, error: "LLM did not return JSON: " + out.slice(0, 160) }); }
+      // Enforce allowlist: LLM may hallucinate or be prompt-injected via the
+      // transcript. The Voice Nav iframe loads the returned URL, so accept only
+      // entries that appeared in the fetched ElevenLabs sitemap.
+      if (!parsed.url || !urls.includes(parsed.url)) {
+        return json({ data: {}, transcript, error: "LLM returned URL not in sitemap allowlist", llm_out: out.slice(0, 200) });
+      }
+      return json({ data: parsed, transcript });
     }
 
     // Audio → JSON extraction (STT + llm.sh) — used by voice-form-01 block.
@@ -227,7 +235,14 @@ const server = Bun.serve({
     const LEGACY = new Set(["/widget.html", "/index.html", "/react.html", "/components.html", "/ui-library.html", "/examples.html", "/blocks.html"]);
     if (LEGACY.has(pathname)) return new Response(null, { status: 302, headers: { location: "/" } });
     let rel = pathname === "/" ? "/gallery.html" : pathname;
-    const file = Bun.file(join(PUBLIC_DIR, rel));
+    // Resolve the requested path and confirm it stays inside PUBLIC_DIR;
+    // a request with `..` segments could otherwise escape and read arbitrary
+    // local files — especially risky when PLAYGROUND_BIND is set beyond localhost.
+    const requestedPath = resolve(PUBLIC_DIR, "." + rel);
+    if (requestedPath !== PUBLIC_DIR && !requestedPath.startsWith(PUBLIC_DIR + "/")) {
+      return new Response("Not found", { status: 404 });
+    }
+    const file = Bun.file(requestedPath);
     if (await file.exists()) {
       return new Response(file, { headers: { "content-type": CT[extname(rel)] ?? "application/octet-stream" } });
     }

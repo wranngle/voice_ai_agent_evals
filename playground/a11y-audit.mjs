@@ -9,6 +9,7 @@ const VIEWS = [
   ["showcase", "Showcase"],
   ["console", "Control plane"],
   ["hooks", "Hooks (React)"],
+  ["blocks", "Reference apps"],
 ]
 
 const browser = await chromium.launch({ headless: true, args: ["--no-sandbox"] })

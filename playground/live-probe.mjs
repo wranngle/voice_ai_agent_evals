@@ -20,8 +20,17 @@ const step = async (name, fn) => {
 const newPage = async (view = "showcase") => {
   const ctx = await browser.newContext({ viewport: { width: 1366, height: 860 }, permissions: ["microphone"] })
   const page = await ctx.newPage()
-  // Filter the known upstream r3f Canvas Provider race so it doesn't poison results.
-  page.on("pageerror", () => {})
+  // Filter only the known upstream r3f Canvas Provider race; fail the probe on
+  // anything else so CI catches real Hooks/Control-plane regressions instead
+  // of silently passing past a crashing component.
+  page.on("pageerror", (err) => {
+    const m = err?.message || String(err)
+    const isR3fRace = /r3f|Canvas|<Provider>|Cannot read prop.*useState|Cannot destructure prop.*useContext/.test(m)
+    if (!isR3fRace) {
+      console.log(`  pageerror (unexpected): ${m}`)
+      steps.push({ name: "pageerror", ok: false, err: m })
+    }
+  })
   await page.addInitScript((v) => { try { localStorage.setItem("console.view", v) } catch {} }, view)
   return page
 }
