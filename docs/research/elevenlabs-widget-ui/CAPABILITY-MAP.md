@@ -38,7 +38,7 @@ Prereqs: widget requires a **public agent with auth disabled** (Advanced tab). L
 
 ## 2. Web component — complete HTML attribute reference
 
-Source of truth: `external/source/types-attributes.ts` (`CustomAttributeList`, 45 entries). ✅ = documented on official page; ⚠️ = present in source, undocumented (use with care).
+Source of truth: `external/source/types-attributes.ts` (`CustomAttributeList`, 44 entries). ✅ = documented on official page; ⚠️ = present in source, undocumented (use with care).
 
 ### Identity / connection
 | Attribute | Notes |
@@ -69,15 +69,9 @@ Source of truth: `external/source/types-attributes.ts` (`CustomAttributeList`, 4
 ### Text / labels
 | Attribute | Notes |
 |---|---|
-| `action-text` ✅ | CTA before start. |
-| `start-call-text` ✅ | Start-call button. |
-| `end-call-text` ✅ | End-call button. |
-| `expand-text` ✅ | Expand control. |
-| `listening-text` ✅ | Listening status. |
-| `speaking-text` ✅ | Speaking status. |
-| `text-contents` ⚠️ | JSON blob overriding **all** text keys (§5). |
+| `text-contents` ⚠️ | JSON blob — the **only** observed text attribute on the custom element. Overrides every text key (§5). |
 
-> The `*-text` attributes are convenience shortcuts; the full text surface (40+ keys) is set via `text-contents` / server `text_contents`.
+> Note: `action-text` / `start-call-text` / `end-call-text` / `expand-text` / `listening-text` / `speaking-text` appear in vendor docs as convenience shortcuts but are **NOT** in `CustomAttributeList`, so `register(ConvAIWidget, tagName, [...CustomAttributeList], ...)` does not observe them on the custom element — setting them as HTML attributes is a no-op at runtime. Use `text-contents` (or the server-side `text_contents` block) for all text customization.
 
 ### Modality / features
 | Attribute | Config field | Notes |
