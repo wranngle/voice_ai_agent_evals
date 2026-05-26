@@ -42,6 +42,18 @@ const isMutableName = (name: string): boolean => phaseOf(name) === "DEV";
 // request (hundreds of KB + upstream RTT). Cache for an hour.
 const SITEMAP_TTL_MS = 60 * 60 * 1000;
 let sitemapCache: { urls: string[]; expiresAt: number } | null = null;
+// Spawn llm.sh with a hard timeout — without one, a hung subprocess blocks the
+// request until Bun's 120s idleTimeout closes the connection. 30s is far longer
+// than any normal LLM call but cuts the worst-case 4× and frees the connection.
+async function runLlmSh(input: string, systemPrompt: string, timeoutMs = 30_000): Promise<string> {
+  const proc = Bun.spawn(["llm.sh"], { stdin: "pipe", stdout: "pipe", stderr: "ignore", env: { ...process.env, LLM_SYSTEM: systemPrompt } });
+  proc.stdin.write(input);
+  proc.stdin.end();
+  const killer = setTimeout(() => { try { proc.kill(); } catch { /* already exited */ } }, timeoutMs);
+  try { return (await new Response(proc.stdout).text()).trim(); }
+  finally { clearTimeout(killer); }
+}
+
 async function getSitemapUrls(): Promise<string[]> {
   if (sitemapCache && Date.now() < sitemapCache.expiresAt) return sitemapCache.urls;
   console.log("[server] sitemap cache miss — fetching elevenlabs.io/docs/sitemap.xml");
@@ -215,10 +227,7 @@ async function handleRequest(req: Request): Promise<Response> {
       if (!transcript) return json({ data: {}, error: "empty transcript" });
       const urls = await getSitemapUrls();
       const sys = `Match the user's intent to ONE URL from this list and respond ONLY with JSON like {"url":"https://..."} — no fences, no prose.\n\nURLs:\n${urls.join("\n")}`;
-      const proc = Bun.spawn(["llm.sh"], { stdin: "pipe", stdout: "pipe", stderr: "ignore", env: { ...process.env, LLM_SYSTEM: sys } });
-      proc.stdin.write(`User intent: ${transcript}`);
-      proc.stdin.end();
-      const out = (await new Response(proc.stdout).text()).trim();
+      const out = await runLlmSh(`User intent: ${transcript}`, sys);
       let parsed: { url?: string } = {};
       try { parsed = JSON.parse(out) as { url?: string }; }
       catch { return json({ data: {}, transcript, error: "LLM did not return JSON: " + out.slice(0, 160) }); }
@@ -246,10 +255,7 @@ async function handleRequest(req: Request): Promise<Response> {
       const transcript = (((await sttRes.json()) as any).text || "").trim();
       if (!transcript) return json({ data: {}, error: "empty transcript" });
       const sys = 'Extract firstName and lastName from this voice transcript. Respond ONLY with valid JSON like {"firstName":"...","lastName":"..."} — no fences, no prose. Omit fields that are missing.';
-      const proc = Bun.spawn(["llm.sh"], { stdin: "pipe", stdout: "pipe", stderr: "ignore", env: { ...process.env, LLM_SYSTEM: sys } });
-      proc.stdin.write(`Transcript: ${transcript}`);
-      proc.stdin.end();
-      const out = (await new Response(proc.stdout).text()).trim();
+      const out = await runLlmSh(`Transcript: ${transcript}`, sys);
       try { return json({ data: JSON.parse(out), transcript }); }
       catch { return json({ data: {}, transcript, error: "LLM did not return JSON: " + out.slice(0, 160) }); }
     }
