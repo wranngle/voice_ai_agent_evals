@@ -34,7 +34,7 @@ if (drifts.length) {
 // the real ElevenLabs API for the 7 live capabilities (voice chrome, signed-url,
 // prompt override sentinel, WebRTC token, hero WebGL, multi-turn text, Scribe).
 const steps = [
-  { name: "verify.mjs (e2e — 12 steps, one-page console)", cmd: "bun", args: ["run", "playground/verify.mjs"] },
+  { name: "verify.mjs (e2e — 14 steps, one-page console)", cmd: "bun", args: ["run", "playground/verify.mjs"] },
   { name: "live-probe.mjs (7 live capabilities)", cmd: "bun", args: ["run", "playground/live-probe.mjs"] },
   { name: "a11y-audit.mjs (axe across 4 views — no serious/critical)", cmd: "bun", args: ["run", "playground/a11y-audit.mjs"] },
   { name: "mobile-audit.mjs (12 viewport×view stops — no h-scroll, no pageerrors)", cmd: "bun", args: ["run", "playground/mobile-audit.mjs"] },
