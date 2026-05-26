@@ -263,6 +263,24 @@ await step("Governance deny-path: PATCH a governed (non-DEV) agent → 403", asy
   return `403 on [${governed.phase}] ${governed.name}`;
 });
 
+await step("API rejects malformed JSON with 400 — no Bun default-page source leak", async () => {
+  const agents = await (await page.context().request.get(BASE + "/api/agents")).json();
+  const dev = agents.find((a) => a.mutable);
+  if (!dev) throw new Error("no mutable agent to exercise the malformed-body path");
+  // Mutable agent: guard passes, so the body parse runs. Malformed JSON must
+  // return a clean 400 — NOT the default Bun error page (which base64-encodes
+  // server source + stack in a __bunfallback payload).
+  // Buffer.from is critical: Playwright's `data: <string>` with application/json
+  // auto-wraps the string in quotes (sends valid JSON: a string literal), which
+  // would parse successfully and never exercise the catch. Buffer sends raw bytes.
+  const patch = await page.context().request.fetch(BASE + "/api/widget/" + dev.agent_id, { method: "PATCH", headers: { "content-type": "application/json" }, data: Buffer.from("not json {{{") });
+  if (patch.status() !== 400) throw new Error(`malformed PATCH → ${patch.status()} (expected 400)`);
+  if (/bunfallback|<!doctype|<html/i.test(await patch.text())) throw new Error("PATCH error leaked the Bun default page (source/stack)");
+  const log = await page.context().request.fetch(BASE + "/api/log", { method: "POST", headers: { "content-type": "application/json" }, data: Buffer.from("not json") });
+  if (log.status() !== 400) throw new Error(`malformed /api/log → ${log.status()} (expected 400)`);
+  return "PATCH + /api/log → 400, no leak";
+});
+
 // Resolve any in-flight console-arg lookups before tearing down the context.
 await Promise.all(pendingConsole);
 await browser.close();

@@ -106,7 +106,9 @@ const server = Bun.serve({
       if (req.method === "PATCH") {
         const guard = await agentIsMutable(id);
         if (!guard.ok) return json({ error: guard.reason, name: guard.name }, 403);
-        const widget = await req.json(); // partial platform_settings.widget
+        let widget: unknown; // partial platform_settings.widget
+        try { widget = await req.json(); }
+        catch { return json({ error: "invalid JSON body" }, 400); } // client error, not a leaked 500
         const r = await elFetch(`/v1/convai/agents/${id}`, {
           method: "PATCH",
           headers: { "content-type": "application/json" },
@@ -145,8 +147,10 @@ const server = Bun.serve({
     // JSONL action/event log — browser POSTs events, server appends per repo's
     // jsonl-trace spec (logs/voice-evals-<ISO-date>.jsonl rooted at CWD).
     if (pathname === "/api/log" && req.method === "POST") {
+      let body: { events?: any[] };
+      try { body = (await req.json()) as { events?: any[] }; }
+      catch { return json({ ok: false, error: "invalid JSON body" }, 400); } // client error, not 500
       try {
-        const body = (await req.json()) as { events?: any[] };
         const events = Array.isArray(body.events) ? body.events : [body];
         const date = new Date().toISOString().slice(0, 10);
         const dir = join(process.cwd(), "logs");
@@ -268,6 +272,17 @@ const server = Bun.serve({
       return new Response(file, { headers: { "content-type": CT[extname(rel)] ?? "application/octet-stream" } });
     }
     return new Response("Not found", { status: 404 });
+  },
+  // Without this, an unhandled throw falls to Bun's default error page, whose
+  // __bunfallback payload base64-encodes the server SOURCE + stack — an info
+  // leak the moment PLAYGROUND_BIND exposes this beyond localhost. Log it
+  // server-side, return a clean JSON 500 with no internals.
+  error(err: Error) {
+    console.error("[server] unhandled:", err?.message ?? err);
+    return new Response(JSON.stringify({ ok: false, error: "internal error" }), {
+      status: 500,
+      headers: { "content-type": "application/json" },
+    });
   },
 });
 
