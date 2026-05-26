@@ -38,6 +38,19 @@ const showcaseAgentId = existsSync(AGENT_JSON)
 const phaseOf = (name: string): string => name.match(/^\[([^\]]+)\]/)?.[1]?.trim().toUpperCase() ?? "DEV";
 const isMutableName = (name: string): boolean => phaseOf(name) === "DEV";
 
+// The EL docs sitemap rarely changes; voice-nav was re-downloading it on every
+// request (hundreds of KB + upstream RTT). Cache for an hour.
+const SITEMAP_TTL_MS = 60 * 60 * 1000;
+let sitemapCache: { urls: string[]; expiresAt: number } | null = null;
+async function getSitemapUrls(): Promise<string[]> {
+  if (sitemapCache && Date.now() < sitemapCache.expiresAt) return sitemapCache.urls;
+  console.log("[server] sitemap cache miss — fetching elevenlabs.io/docs/sitemap.xml");
+  const sm = await (await fetch("https://elevenlabs.io/docs/sitemap.xml")).text();
+  const urls = [...new Set((sm.match(/<loc>(.*?)<\/loc>/g) || []).map((m) => m.replace(/<\/?loc>/g, "")))].slice(0, 200);
+  sitemapCache = { urls, expiresAt: Date.now() + SITEMAP_TTL_MS };
+  return urls;
+}
+
 const elFetch = (path: string, init: RequestInit = {}) =>
   fetch(`${EL}${path}`, { ...init, headers: { "xi-api-key": API_KEY, ...(init.headers ?? {}) } });
 
@@ -186,8 +199,7 @@ const server = Bun.serve({
       if (!sttRes.ok) return json({ data: {}, error: `STT ${sttRes.status}` }, 500);
       const transcript = (((await sttRes.json()) as any).text || "").trim();
       if (!transcript) return json({ data: {}, error: "empty transcript" });
-      const sm = await (await fetch("https://elevenlabs.io/docs/sitemap.xml")).text();
-      const urls = [...new Set((sm.match(/<loc>(.*?)<\/loc>/g) || []).map((m) => m.replace(/<\/?loc>/g, "")))].slice(0, 200);
+      const urls = await getSitemapUrls();
       const sys = `Match the user's intent to ONE URL from this list and respond ONLY with JSON like {"url":"https://..."} — no fences, no prose.\n\nURLs:\n${urls.join("\n")}`;
       const proc = Bun.spawn(["llm.sh"], { stdin: "pipe", stdout: "pipe", stderr: "ignore", env: { ...process.env, LLM_SYSTEM: sys } });
       proc.stdin.write(`User intent: ${transcript}`);
