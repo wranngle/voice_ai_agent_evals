@@ -62,6 +62,12 @@ code, pre, .mono { font-family: var(--mono); }
 .blocks-grid { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 18px; align-items: start; }
 @media (max-width: 760px) { .blocks-grid { grid-template-columns: 1fr; } }
 
+/* Control plane (stage + 360px config) and Hooks (320px settings + pane) split
+   grids — stack below 760px so neither pane is crushed at phone width. */
+.cp-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 18px; align-items: start; }
+.hooks-grid { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 760px) { .cp-grid, .hooks-grid { grid-template-columns: 1fr; } }
+
 /* ─── Sidebar ─── */
 .side {
   grid-area: side;
