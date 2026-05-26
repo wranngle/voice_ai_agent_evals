@@ -167,6 +167,32 @@ await step("Sidebar round-trip: Control plane → Showcase → Control plane (no
   return "no page loads";
 });
 
+await step("Capability sample: 'Hear it' plays the TTS clip", async () => {
+  // Placed after the control-plane sequence so it doesn't disrupt the
+  // deeplink → control-plane view chain those steps rely on.
+  await fresh(); // Showcase
+  await page.waitForSelector("button.deeplink", { timeout: 10000 });
+  const hear = page.locator("button.deeplink", { hasText: /Hear it/ }).first();
+  await hear.click(); // user gesture → play() resolves
+  await page.waitForTimeout(900);
+  const state = await page.evaluate(() => {
+    const a = document.querySelector("audio");
+    return a ? { paused: a.paused, src: (a.currentSrc || a.src), time: a.currentTime } : null;
+  });
+  if (!state) throw new Error("no <audio> element rendered in a capability tile");
+  if (!/\/sounds\/capabilities\/.+\.mp3$/.test(state.src)) throw new Error("audio src not a capability sample: " + state.src);
+  // console.sample is logged inside play().then(); a warn-level entry = play() rejected.
+  const sample = await page.evaluate(() => {
+    const txt = document.querySelector(".term-b")?.innerText || "";
+    return { logged: /console\.sample/.test(txt), warned: /warn\s+console\.sample/.test(txt) };
+  });
+  if (!sample.logged) throw new Error("no console.sample event after Hear-it click");
+  if (sample.warned) throw new Error("play() rejected (warn console.sample): " + JSON.stringify(state));
+  if (state.paused && state.time === 0) throw new Error("audio neither playing nor advanced: " + JSON.stringify(state));
+  await shot("06-capability-audio.png");
+  return `playing ${state.src.split("/").pop()}`;
+});
+
 await step("Legacy routes 302 → /", async () => {
   const r = await page.context().request.get(BASE + "/widget.html", { maxRedirects: 0 });
   if (r.status() !== 302) throw new Error("/widget.html returned " + r.status() + " (expected 302)");
