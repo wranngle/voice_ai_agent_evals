@@ -114,7 +114,7 @@ The "Rich agent content" preset sets an override-prompt that forces the agent to
 
 ```bash
 bun playground &                      # server on :4321
-bun run playground/verify-all.mjs     # the gate: 30+ checks (verify.mjs 16/16 + live-probe.mjs 7/7 + a11y 0 violations × 4 views + mobile 12/12)
+bun run playground/verify-all.mjs     # the gate: 30+ checks (verify.mjs 17/17 + live-probe.mjs 7/7 + a11y 0 violations × 4 views + mobile 12/12)
 bun run playground/verify.mjs         # e2e against the one-page console → verify/
 bun run playground/live-probe.mjs     # live probes F–L (voice, signed-url, override-prompt sentinel, WebRTC token, hero WebGL, multi-turn, Scribe)
 ```

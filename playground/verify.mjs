@@ -281,6 +281,20 @@ await step("API rejects malformed JSON with 400 — no Bun default-page source l
   return "PATCH + /api/log → 400, no leak";
 });
 
+await step("Security headers (X-Frame-Options, X-Content-Type-Options, Referrer-Policy) on every response", async () => {
+  // Sample varied endpoints — the wrap must apply to static, API, and 404s alike.
+  // Catches accidental removal of the withSec() wrap on any code path; relevant
+  // once PLAYGROUND_BIND opens the server beyond localhost (clickjacking / MIME
+  // sniff / referer leak — same threat model as the source-leak fix #51).
+  for (const path of ["/", "/api/agents", "/api/config", "/api/nonexistent"]) {
+    const r = await page.context().request.get(BASE + path);
+    const h = r.headers();
+    const missing = ["x-frame-options", "x-content-type-options", "referrer-policy"].filter((k) => !h[k]);
+    if (missing.length) throw new Error(`${path} (${r.status()}) missing: ${missing.join(", ")}`);
+  }
+  return "all 3 headers on / + 3 API endpoints";
+});
+
 await step("Static MIME: every public/ extension has a CT entry (no octet-stream fallback)", async () => {
   // Doctrine-drift test: the CT map in server.ts must cover every file extension
   // actually shipped under public/. Caught .mp3 missing — capability TTS samples
