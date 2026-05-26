@@ -53,6 +53,7 @@ const CT: Record<string, string> = {
 };
 
 const server = Bun.serve({
+  hostname: process.env.PLAYGROUND_BIND ?? "127.0.0.1",  // localhost-only by default; PROD opt-in via env
   port: PORT,
   idleTimeout: 120,
   async fetch(req) {
@@ -236,4 +237,4 @@ const server = Bun.serve({
 
 console.log(`\n  ElevenLabs UI Showcase → http://localhost:${server.port}`);
 console.log(`  Showcase agent: ${showcaseAgentId || "(run playground/setup to create)"}`);
-console.log(`  API key: loaded (${API_KEY.slice(0, 6)}…, never sent to browser)\n`);
+console.log(`  API key: loaded (never sent to browser)\n`);
