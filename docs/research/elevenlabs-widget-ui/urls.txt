@@ -1,0 +1,44 @@
+# TIER 1 — Widget & UI core
+eleven-agents/customization/widget
+eleven-agents/guides/chat-mode
+eleven-agents/dashboard
+eleven-agents/api-reference/widget/get
+eleven-agents/api-reference/widget/create
+# TIER 2 — Native UI / SDK components
+eleven-api/resources/libraries
+eleven-agents/libraries/react
+eleven-agents/libraries/java-script
+eleven-agents/libraries/react-native
+eleven-agents/libraries/swift
+eleven-agents/libraries/kotlin
+eleven-agents/libraries/python
+eleven-agents/libraries/web-sockets
+# TIER 3 — Runtime / events / personalization (UI behavior)
+eleven-agents/customization/events
+eleven-agents/customization/events/client-events
+eleven-agents/customization/events/client-to-server-events
+eleven-agents/customization/personalization
+eleven-agents/customization/personalization/dynamic-variables
+eleven-agents/customization/personalization/overrides
+eleven-agents/customization/conversation-flow
+eleven-agents/customization/authentication
+# TIER 4 — Voice experience (UX of a voice agent)
+eleven-agents/customization/voice
+eleven-agents/customization/voice/expressive-mode
+eleven-agents/customization/voice/speed-control
+eleven-agents/customization/voice/multi-voice-support
+eleven-agents/customization/voice/pronunciation-dictionary
+eleven-agents/customization/voice/customization/language
+eleven-agents/customization/tools/tool-configuration/tool-call-sounds
+# TIER 5 — Embedding / no-code / avatar deploy surfaces
+eleven-agents/guides/quickstarts/next-js
+eleven-agents/guides/quickstarts/java-script
+eleven-agents/guides/integrations/live-avatar
+eleven-agents/guides/integrations/expo-react-native
+eleven-agents/guides/no-code/framer
+eleven-agents/guides/no-code/webflow
+eleven-agents/guides/no-code/wix
+eleven-agents/guides/no-code/squarespace
+eleven-agents/guides/no-code/ghost
+eleven-agents/guides/no-code/word-press
+eleven-agents/integrate/overview

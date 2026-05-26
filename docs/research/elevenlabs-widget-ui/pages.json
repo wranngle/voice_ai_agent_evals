@@ -1,0 +1,240 @@
+{
+  "captured": "2026-05-23",
+  "source": "elevenlabs.io/docs (.mdx raw)",
+  "pages": [
+    {
+      "slug": "eleven-agents/customization/widget",
+      "tier": "TIER 1 — Widget & UI core",
+      "local": "pages/eleven-agents/customization/widget.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/customization/widget.mdx"
+    },
+    {
+      "slug": "eleven-agents/guides/chat-mode",
+      "tier": "TIER 1 — Widget & UI core",
+      "local": "pages/eleven-agents/guides/chat-mode.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/guides/chat-mode.mdx"
+    },
+    {
+      "slug": "eleven-agents/dashboard",
+      "tier": "TIER 1 — Widget & UI core",
+      "local": "pages/eleven-agents/dashboard.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/dashboard.mdx"
+    },
+    {
+      "slug": "eleven-agents/api-reference/widget/get",
+      "tier": "TIER 1 — Widget & UI core",
+      "local": "pages/eleven-agents/api-reference/widget/get.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/api-reference/widget/get.mdx"
+    },
+    {
+      "slug": "eleven-agents/api-reference/widget/create",
+      "tier": "TIER 1 — Widget & UI core",
+      "local": "pages/eleven-agents/api-reference/widget/create.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/api-reference/widget/create.mdx"
+    },
+    {
+      "slug": "eleven-api/resources/libraries",
+      "tier": "TIER 2 — Native UI / SDK components",
+      "local": "pages/eleven-api/resources/libraries.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-api/resources/libraries.mdx"
+    },
+    {
+      "slug": "eleven-agents/libraries/react",
+      "tier": "TIER 2 — Native UI / SDK components",
+      "local": "pages/eleven-agents/libraries/react.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/libraries/react.mdx"
+    },
+    {
+      "slug": "eleven-agents/libraries/java-script",
+      "tier": "TIER 2 — Native UI / SDK components",
+      "local": "pages/eleven-agents/libraries/java-script.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/libraries/java-script.mdx"
+    },
+    {
+      "slug": "eleven-agents/libraries/react-native",
+      "tier": "TIER 2 — Native UI / SDK components",
+      "local": "pages/eleven-agents/libraries/react-native.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/libraries/react-native.mdx"
+    },
+    {
+      "slug": "eleven-agents/libraries/swift",
+      "tier": "TIER 2 — Native UI / SDK components",
+      "local": "pages/eleven-agents/libraries/swift.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/libraries/swift.mdx"
+    },
+    {
+      "slug": "eleven-agents/libraries/kotlin",
+      "tier": "TIER 2 — Native UI / SDK components",
+      "local": "pages/eleven-agents/libraries/kotlin.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/libraries/kotlin.mdx"
+    },
+    {
+      "slug": "eleven-agents/libraries/python",
+      "tier": "TIER 2 — Native UI / SDK components",
+      "local": "pages/eleven-agents/libraries/python.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/libraries/python.mdx"
+    },
+    {
+      "slug": "eleven-agents/libraries/web-sockets",
+      "tier": "TIER 2 — Native UI / SDK components",
+      "local": "pages/eleven-agents/libraries/web-sockets.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/libraries/web-sockets.mdx"
+    },
+    {
+      "slug": "eleven-agents/customization/events",
+      "tier": "TIER 3 — Runtime / events / personalization (UI behavior)",
+      "local": "pages/eleven-agents/customization/events.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/customization/events.mdx"
+    },
+    {
+      "slug": "eleven-agents/customization/events/client-events",
+      "tier": "TIER 3 — Runtime / events / personalization (UI behavior)",
+      "local": "pages/eleven-agents/customization/events/client-events.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/customization/events/client-events.mdx"
+    },
+    {
+      "slug": "eleven-agents/customization/events/client-to-server-events",
+      "tier": "TIER 3 — Runtime / events / personalization (UI behavior)",
+      "local": "pages/eleven-agents/customization/events/client-to-server-events.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/customization/events/client-to-server-events.mdx"
+    },
+    {
+      "slug": "eleven-agents/customization/personalization",
+      "tier": "TIER 3 — Runtime / events / personalization (UI behavior)",
+      "local": "pages/eleven-agents/customization/personalization.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/customization/personalization.mdx"
+    },
+    {
+      "slug": "eleven-agents/customization/personalization/dynamic-variables",
+      "tier": "TIER 3 — Runtime / events / personalization (UI behavior)",
+      "local": "pages/eleven-agents/customization/personalization/dynamic-variables.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/customization/personalization/dynamic-variables.mdx"
+    },
+    {
+      "slug": "eleven-agents/customization/personalization/overrides",
+      "tier": "TIER 3 — Runtime / events / personalization (UI behavior)",
+      "local": "pages/eleven-agents/customization/personalization/overrides.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/customization/personalization/overrides.mdx"
+    },
+    {
+      "slug": "eleven-agents/customization/conversation-flow",
+      "tier": "TIER 3 — Runtime / events / personalization (UI behavior)",
+      "local": "pages/eleven-agents/customization/conversation-flow.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/customization/conversation-flow.mdx"
+    },
+    {
+      "slug": "eleven-agents/customization/authentication",
+      "tier": "TIER 3 — Runtime / events / personalization (UI behavior)",
+      "local": "pages/eleven-agents/customization/authentication.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/customization/authentication.mdx"
+    },
+    {
+      "slug": "eleven-agents/customization/voice",
+      "tier": "TIER 4 — Voice experience (UX of a voice agent)",
+      "local": "pages/eleven-agents/customization/voice.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/customization/voice.mdx"
+    },
+    {
+      "slug": "eleven-agents/customization/voice/expressive-mode",
+      "tier": "TIER 4 — Voice experience (UX of a voice agent)",
+      "local": "pages/eleven-agents/customization/voice/expressive-mode.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/customization/voice/expressive-mode.mdx"
+    },
+    {
+      "slug": "eleven-agents/customization/voice/speed-control",
+      "tier": "TIER 4 — Voice experience (UX of a voice agent)",
+      "local": "pages/eleven-agents/customization/voice/speed-control.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/customization/voice/speed-control.mdx"
+    },
+    {
+      "slug": "eleven-agents/customization/voice/multi-voice-support",
+      "tier": "TIER 4 — Voice experience (UX of a voice agent)",
+      "local": "pages/eleven-agents/customization/voice/multi-voice-support.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/customization/voice/multi-voice-support.mdx"
+    },
+    {
+      "slug": "eleven-agents/customization/voice/pronunciation-dictionary",
+      "tier": "TIER 4 — Voice experience (UX of a voice agent)",
+      "local": "pages/eleven-agents/customization/voice/pronunciation-dictionary.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/customization/voice/pronunciation-dictionary.mdx"
+    },
+    {
+      "slug": "eleven-agents/customization/voice/customization/language",
+      "tier": "TIER 4 — Voice experience (UX of a voice agent)",
+      "local": "pages/eleven-agents/customization/voice/customization/language.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/customization/voice/customization/language.mdx"
+    },
+    {
+      "slug": "eleven-agents/customization/tools/tool-configuration/tool-call-sounds",
+      "tier": "TIER 4 — Voice experience (UX of a voice agent)",
+      "local": "pages/eleven-agents/customization/tools/tool-configuration/tool-call-sounds.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/customization/tools/tool-configuration/tool-call-sounds.mdx"
+    },
+    {
+      "slug": "eleven-agents/guides/quickstarts/next-js",
+      "tier": "TIER 5 — Embedding / no-code / avatar deploy surfaces",
+      "local": "pages/eleven-agents/guides/quickstarts/next-js.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/guides/quickstarts/next-js.mdx"
+    },
+    {
+      "slug": "eleven-agents/guides/quickstarts/java-script",
+      "tier": "TIER 5 — Embedding / no-code / avatar deploy surfaces",
+      "local": "pages/eleven-agents/guides/quickstarts/java-script.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/guides/quickstarts/java-script.mdx"
+    },
+    {
+      "slug": "eleven-agents/guides/integrations/live-avatar",
+      "tier": "TIER 5 — Embedding / no-code / avatar deploy surfaces",
+      "local": "pages/eleven-agents/guides/integrations/live-avatar.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/guides/integrations/live-avatar.mdx"
+    },
+    {
+      "slug": "eleven-agents/guides/integrations/expo-react-native",
+      "tier": "TIER 5 — Embedding / no-code / avatar deploy surfaces",
+      "local": "pages/eleven-agents/guides/integrations/expo-react-native.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/guides/integrations/expo-react-native.mdx"
+    },
+    {
+      "slug": "eleven-agents/guides/no-code/framer",
+      "tier": "TIER 5 — Embedding / no-code / avatar deploy surfaces",
+      "local": "pages/eleven-agents/guides/no-code/framer.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/guides/no-code/framer.mdx"
+    },
+    {
+      "slug": "eleven-agents/guides/no-code/webflow",
+      "tier": "TIER 5 — Embedding / no-code / avatar deploy surfaces",
+      "local": "pages/eleven-agents/guides/no-code/webflow.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/guides/no-code/webflow.mdx"
+    },
+    {
+      "slug": "eleven-agents/guides/no-code/wix",
+      "tier": "TIER 5 — Embedding / no-code / avatar deploy surfaces",
+      "local": "pages/eleven-agents/guides/no-code/wix.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/guides/no-code/wix.mdx"
+    },
+    {
+      "slug": "eleven-agents/guides/no-code/squarespace",
+      "tier": "TIER 5 — Embedding / no-code / avatar deploy surfaces",
+      "local": "pages/eleven-agents/guides/no-code/squarespace.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/guides/no-code/squarespace.mdx"
+    },
+    {
+      "slug": "eleven-agents/guides/no-code/ghost",
+      "tier": "TIER 5 — Embedding / no-code / avatar deploy surfaces",
+      "local": "pages/eleven-agents/guides/no-code/ghost.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/guides/no-code/ghost.mdx"
+    },
+    {
+      "slug": "eleven-agents/guides/no-code/word-press",
+      "tier": "TIER 5 — Embedding / no-code / avatar deploy surfaces",
+      "local": "pages/eleven-agents/guides/no-code/word-press.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/guides/no-code/word-press.mdx"
+    },
+    {
+      "slug": "eleven-agents/integrate/overview",
+      "tier": "TIER 5 — Embedding / no-code / avatar deploy surfaces",
+      "local": "pages/eleven-agents/integrate/overview.mdx",
+      "url": "https://elevenlabs.io/docs/eleven-agents/integrate/overview.mdx"
+    }
+  ]
+}
