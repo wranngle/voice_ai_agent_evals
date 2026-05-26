@@ -26,6 +26,8 @@ Old standalone routes (`/widget.html`, `/index.html`, `/react.html`, `/component
 
 `[DEV] Widget Showcase Playground` — `agent_7701ksbwcdzcfe0sj8nhtrxem9h1` (recorded in `agent.json`). Public (auth disabled) so the widget renders unauthenticated; cloned from the inbound template so it has a working voice + prompt; runtime overrides (voice/prompt/llm/language/text_only) enabled. `[DEV]` phase, safe to mutate from the API panel.
 
+**Fresh clone with no `agent.json`?** Pick any `[DEV]`-phase agent from your ElevenLabs workspace (or create one — the ElevenLabs MCP or dashboard works) and drop its id into `playground/agent.json` as `{"showcaseAgentId":"agent_..."}`. The server will boot without one but the showcase + live capabilities won't have a target to render against.
+
 ## Architecture
 
 ```
