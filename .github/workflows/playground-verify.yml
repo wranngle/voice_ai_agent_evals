@@ -13,6 +13,8 @@ on:
   pull_request:
     paths:
       - 'playground/**'
+      - 'package.json'
+      - 'bun.lock'
       - '.github/workflows/playground-verify.yml'
   workflow_dispatch:
 
