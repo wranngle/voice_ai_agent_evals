@@ -52,8 +52,12 @@ function Controls({ agentId, conn }: { agentId: string; conn: "agent-id" | "sign
       } else {
         opts.agentId = agentId
       }
+      // startSession returns void per @elevenlabs/react types — it kicks off
+      // an async connection whose outcome surfaces via the ConversationProvider
+      // callbacks (onConnect / onError, wired below). Emit the INTENT here, not
+      // success: the actual connected state is signaled by onConnect → "onConnect".
       c.startSession(opts as never)
-      emit("startSession", { conn })
+      emit("startSession.requested", { conn })
     } catch (e: unknown) { emit("error", { msg: (e as Error)?.message || String(e) }) }
   }
   const end = () => { try { c.endSession(); emit("endSession") } catch (e: unknown) { emit("error", { msg: (e as Error)?.message || String(e) }) } }
@@ -100,7 +104,17 @@ function ScribePanel() {
     onCommittedTranscript: ({ text }) => { if (text) setTranscript((t) => (t + " " + text).slice(-400)) },
     onPartialTranscript: ({ text }) => emit("scribe.partial", { len: text?.length || 0 }),
   })
-  const connect = async () => { if (armed.current) return; armed.current = true; try { await s.connect() } catch (e: unknown) { emit("scribe.error", { msg: (e as Error)?.message || String(e) }) } }
+  const connect = async () => {
+    if (armed.current) return
+    armed.current = true
+    try { await s.connect() }
+    catch (e: unknown) {
+      // Reset the guard so retry is possible without a full page reload
+      // (mic permission denial, transient token/network failures).
+      armed.current = false
+      emit("scribe.error", { msg: (e as Error)?.message || String(e) })
+    }
+  }
   return (
     <div id="hooks-scribe" style={{ marginTop: 14 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
