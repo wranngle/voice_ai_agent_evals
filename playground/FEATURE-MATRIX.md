@@ -193,7 +193,7 @@ Demo surface key: **W**=widget control panel · **U**=URL param · **A**=API-ove
 - [x] M8 terms modal × terms-key (returning-user suppression) — W
 
 ## O. ElevenLabs UI library (ui.elevenlabs.io — 17 drop-in components)
-Built into `/ui-library.html` via Bun bundle from sources fetched at `https://ui.elevenlabs.io/r/<slug>.json`.
+Imported into the Showcase view's Components rail (`ui-library/src/spa/showcase.tsx`) — every demo mounts live inside a uniform Tile. Sources fetched from `https://ui.elevenlabs.io/r/<slug>.json` and vendored under `ui-library/src/components/ui/`.
 
 - [x] O1 `Orb` — WebGL2 3D, 2-color gradient, agent state (null/thinking/listening/talking), audio-reactive (auto/manual) — UI
 - [x] O2 `Waveform` (static, `data: number[]`) — UI
@@ -213,11 +213,13 @@ Built into `/ui-library.html` via Bun bundle from sources fetched at `https://ui
 - [~] O16 `SpeechInput` (compound — Scribe-driven mic + preview + record button) — source present, not embedded
 - [x] O17 `TranscriptViewer` (Container + Words + PlayPauseButton + ScrubBar) — renders words + audio scrubber with synthetic alignment
 
-## P. Upstream demos (`/examples.html`) — 17 official component demos
-Each one mounts the upstream `elevenlabs/ui/registry/elevenlabs-ui/examples/<demo>.tsx` verbatim.
-- [x] P1–P17 All 17 demos render: Orb · Waveform · BarVisualizer · LiveWaveform · AudioPlayer · ScrubBar · Message · Conversation · ConversationBar · Response · TranscriptViewer · VoiceButton · VoicePicker · MicSelector · SpeechInput · ShimmeringText · Matrix (`audit/S`)
+## P. Upstream demos (Showcase Components rail) — 17 official component demos
+Each one mounts the upstream `elevenlabs/ui/registry/elevenlabs-ui/examples/<demo>.tsx` verbatim, imported directly into `showcase.tsx`'s COMPONENTS list (no separate page or iframe).
+- [x] P1–P17 All 17 demos render: Orb · Waveform · BarVisualizer · LiveWaveform · AudioPlayer · ScrubBar · Message · Conversation · ConversationBar · Response · TranscriptViewer · VoiceButton · VoicePicker · MicSelector · SpeechInput · ShimmeringText · Matrix
 
-## Q. Reference apps (`/blocks.html`) — 5 full client apps + 6 server-only
+## Q. Reference apps (source under `ui-library/src/blocks/`) — 5 full client apps + 6 server-only
+> **Status:** sources retained from the elevenlabs/ui registry; the standalone `/blocks.html` page that mounted them was removed in the SPA consolidation. Not currently surfaced in the Showcase. The proxy endpoints (`/api/extract-form`, `/api/voice-nav`, `/api/scribe-token`, `/api/stt`) that powered Q6–Q11 still exist and are exercised by the test gate.
+
 - [x] Q1 Voice Chat 01 (Customer Support card) — UI
 - [x] Q2 Voice Chat 02 — UI
 - [x] Q3 Voice Chat 03 — UI

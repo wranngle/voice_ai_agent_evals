@@ -78,8 +78,8 @@ The showcase is **real, not cosmetic**: controls drive the actual web component 
 
 ## Post-upgrade expansion (this branch's latest pass)
 
-### UI library (`/ui-library.html`) — 17/17 sections, 15+ visibly working
-After missing it entirely in the first pass, the full ElevenLabs UI library at https://ui.elevenlabs.io is now integrated. Sources fetched from `/r/<slug>.json` (recursive: shadcn primitives via `ui.shadcn.com`), normalized to `@/components/ui/`, bundled with `Bun.build` to `playground/public/ui-library/main.js` (5.7MB). Per-section error boundary so one bad component can't blank the page (`audit/R-ui-library-full.png`).
+### UI library (Showcase Components rail) — 17/17 sections, 15+ visibly working
+After missing it entirely in the first pass, the full ElevenLabs UI library at https://ui.elevenlabs.io is now integrated. Sources fetched from `/r/<slug>.json` (recursive: shadcn primitives via `ui.shadcn.com`), normalized to `@/components/ui/`. Originally bundled into its own `/ui-library.html` page; after the SPA consolidation the 17 demos are imported directly into `ui-library/src/spa/showcase.tsx` and mount inside the Components rail Tiles, each wrapped in a per-tile error boundary so a broken one can't blank the page.
 
 | # | Component | Live? | Evidence |
 |---|---|---|---|
