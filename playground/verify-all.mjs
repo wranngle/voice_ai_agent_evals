@@ -12,6 +12,14 @@ import { existsSync, statSync, readFileSync } from "node:fs"
 const stepCount = (file) => (readFileSync(file, "utf8").match(/^\s*(?:await\s+)?step\(/gm) || []).length
 const REAL_STEPS = stepCount("playground/verify.mjs")
 const REAL_PROBES = stepCount("playground/live-probe.mjs")
+// mobile-audit stops = VIEWPORTS.length × VIEWS.length, computed from source.
+// Match VIEWPORTS entries by `{ name: "..."` and VIEWS entries by their `["slug",`
+// shape — fragile to a structural rewrite, but a guard that fails fast on a
+// rewrite is what you want: the rewriter then updates the regex once.
+const mobileSrc = readFileSync("playground/mobile-audit.mjs", "utf8")
+const REAL_STOPS =
+  (mobileSrc.match(/\{\s*name:\s*"[a-z]+",\s*w:\s*\d+/g) || []).length *
+  (mobileSrc.match(/^\s*\["[a-z]+",\s*"[^"]+"\]/gm) || []).length
 const driftGuards = [
   // [label, sourceFile (truth), realCount, [file, ...patterns]...]
   ["verify steps", REAL_STEPS, [
@@ -28,6 +36,12 @@ const driftGuards = [
     ["playground/verify-all.mjs", /(\d+)\s*live\s*capabilit/i],
     [".github/workflows/playground-verify.yml", /(\d+)\s*\/\s*\d+\s*live\s*probes?/i],
   ]],
+  ["mobile stops", REAL_STOPS, [
+    ["playground/README.md", /(\d+)\s*stops?\b/i, /(\d+)\s*\/\s*\d+\s*mobile/i],
+    ["playground/AUDIT.md", /mobile\s+(\d+)\s*\/\s*\d+/i],
+    ["playground/verify-all.mjs", /(\d+)\s*viewport[×x]view/i],
+    [".github/workflows/playground-verify.yml", /(\d+)\s*viewport[×x]view/i],
+  ]],
 ]
 const drifts = []
 for (const [label, real, sources] of driftGuards) {
@@ -40,7 +54,7 @@ for (const [label, real, sources] of driftGuards) {
   }
 }
 if (drifts.length) {
-  console.error(`\n❌ doctrine-drift (verify=${REAL_STEPS}, probes=${REAL_PROBES}):\n  ${drifts.join("\n  ")}\n`)
+  console.error(`\n❌ doctrine-drift (verify=${REAL_STEPS}, probes=${REAL_PROBES}, stops=${REAL_STOPS}):\n  ${drifts.join("\n  ")}\n`)
   process.exit(1)
 }
 
