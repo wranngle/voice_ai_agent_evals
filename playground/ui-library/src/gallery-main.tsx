@@ -4,7 +4,7 @@
 // and a live control plane, switched client-side. No page loads. Everything logs.
 
 import { createRoot } from "react-dom/client"
-import React, { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { type AgentState } from "@/components/ui/orb"
 import { logEvent, setAgentKey, useLog, clearEvents, getEvents } from "@/spa/log"
 import { Showcase } from "@/spa/showcase"
@@ -25,8 +25,14 @@ const ICONS = {
   blocks: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
 }
 
+// Auto-play cycles the orb state + capability spotlight on a timer. The CSS
+// prefers-reduced-motion rule only stops CSS keyframes, not these JS-driven
+// state changes, so honor the preference here: reduced-motion users land paused
+// (motion stays opt-in via the Auto-play button) instead of being forced into it.
+const prefersReducedMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true
+
 function useAutoplay() {
-  const [playing, setPlaying] = useState(true)
+  const [playing, setPlaying] = useState(!prefersReducedMotion)
   const [tick, setTick] = useState(0)
   useEffect(() => {
     if (!playing) return
