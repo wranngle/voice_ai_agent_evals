@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { PauseIcon, PlayIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -56,6 +57,16 @@ const AudioPlayerDemo = () => {
 
 const Player = () => {
   const player = useAudioPlayer<Track>()
+  // Local divergence from upstream: pre-select the first example track on mount
+  // so the showcase doesn't render with a 'No track selected' headline + the
+  // Speed/Progress/Button controls disabled (looked broken in static contexts).
+  // The user still has to click Play — no autoplay.
+  useEffect(() => {
+    if (!player.activeItem && exampleTracks[0]) {
+      const t = exampleTracks[0]
+      player.setActiveItem({ id: t.id, src: t.url, data: t })
+    }
+  }, [player])
 
   return (
     <div className="flex flex-1 items-center p-4 sm:p-6">
