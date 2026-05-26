@@ -15,7 +15,7 @@ const errors = [];
 const steps = [];
 const step = async (name, fn) => {
   try { const info = await fn(); steps.push({ name, ok: true, info }); console.log(`  ✓ ${name}${info ? " — " + info : ""}`); }
-  catch (e) { steps.push({ name, ok: false, err: e.message }); console.log(`  ✗ ${name} — ${e.message}`); }
+  catch (e) { steps.push({ name, ok: false, err: e.message, stack: e.stack }); console.log(`  ✗ ${name} — ${e.message}`); }
 };
 
 const browser = await chromium.launch({ headless: true, args: ["--no-sandbox", "--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream"] });
@@ -352,6 +352,16 @@ console.log(`steps: ${passed}/${steps.length} passed`);
 console.log(`console/page errors: ${errors.length}`);
 errors.slice(0, 12).forEach((e) => console.log("   ! " + e));
 const failed = steps.filter((s) => !s.ok);
+// Print stacks for failing steps — sibling of #79/#81: catch stores message
+// only on the inline ✗ line for readability, but the summary needs the stack
+// so a CI failure is debuggable from the run log alone (no artifact download).
+if (failed.length) {
+  console.log("\n── failing step stacks ──");
+  for (const s of failed) {
+    const lines = (s.stack || "").split("\n").slice(0, 6).map((l) => "    " + l).join("\n");
+    console.log(`  ✗ ${s.name}${lines ? "\n" + lines : ""}`);
+  }
+}
 const ok = errors.length === 0 && failed.length === 0;
 console.log(`\n${ok ? "PASS ✅" : "FAIL ❌"} — screenshots in playground/verify/\n`);
 process.exit(ok ? 0 : 1);
