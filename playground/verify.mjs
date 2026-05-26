@@ -94,7 +94,7 @@ await step("Showcase view: hero + 3 rails render", async () => {
   if (counts.railHeads < 3) throw new Error("expected 3 rails, got " + counts.railHeads);
   if (counts.orbTiles < 6) throw new Error("Looks: only " + counts.orbTiles + " orb tiles");
   if (counts.openLive < 6) throw new Error("Capabilities: only " + counts.openLive + " Open-live buttons");
-  if (counts.componentTiles < 12) throw new Error("Components: only " + counts.componentTiles + " tiles");
+  if (counts.componentTiles < 17) throw new Error("Components: only " + counts.componentTiles + " tiles");
   return JSON.stringify(counts);
 });
 

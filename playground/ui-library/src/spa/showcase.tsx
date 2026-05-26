@@ -9,6 +9,7 @@ import BarVisualizerDemo from "@/examples/bar-visualizer-demo"
 import ConversationDemo from "@/examples/conversation-demo"
 import LiveWaveformDemo from "@/examples/live-waveform-demo"
 import MatrixDemo from "@/examples/matrix-demo"
+import OrbDemo from "@/examples/orb-demo"
 import MessageDemo from "@/examples/message-demo"
 import ResponseDemo from "@/examples/response-demo"
 import ScrubBarDemo from "@/examples/scrub-bar-demo"
@@ -45,7 +46,7 @@ const CAPS: Cap[] = [
 ]
 
 const COMPONENTS: [string, React.FC<any>, boolean][] = [
-  ["Waveform", WaveformDemo, false], ["BarVisualizer", BarVisualizerDemo, false], ["LiveWaveform", LiveWaveformDemo, false],
+  ["Orb", OrbDemo, false], ["Waveform", WaveformDemo, false], ["BarVisualizer", BarVisualizerDemo, false], ["LiveWaveform", LiveWaveformDemo, false],
   ["AudioPlayer", AudioPlayerDemo, false], ["ScrubBar", ScrubBarDemo, false], ["TranscriptViewer", TranscriptViewerDemo, false],
   ["Message", MessageDemo, false], ["Conversation", ConversationDemo, false], ["ConversationBar", ConversationBarDemo, false],
   ["Response", ResponseDemo, false], ["VoiceButton", VoiceButtonDemo, false], ["VoicePicker", VoicePickerDemo, false],
