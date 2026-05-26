@@ -42,7 +42,7 @@ playground/
   ui-library/src/            upstream elevenlabs/ui registry, vendored
     components/ui/   63      shadcn primitives + EL components (Orb, Conversation, etc.)
     hooks/            5      useScribe, useTranscriptViewer, etc.
-    lib/              1      cn (tailwind-merge + clsx)
+    lib/              2      cn (tailwind-merge + clsx) + next-link shim
     examples/        17      one demo per EL component
     blocks/          11      full reference apps (Voice Chat / Pong / etc.)
     spa/                     the one-page console: log.ts · ui.tsx · showcase.tsx · control-plane.tsx · hooks.tsx · blocks.tsx
@@ -66,7 +66,7 @@ playground/
 | `POST /api/extract-form` | STT → `llm.sh` structured extract → JSON (powers `voice-form-01`) |
 | `POST /api/voice-nav` | STT → sitemap fetch → `llm.sh` URL match (powers `voice-nav-01`) |
 
-**Governance guard:** PATCH/avatar succeed only for `[DEV]` or prefix-less agents; `[ALPHA|BETA|PROD|ARCHIVED]` return `403`. Mirrors the repo's ElevenLabs governance rule.
+**Governance guard:** PATCH/avatar succeed only for `[DEV]` or prefix-less agents (implicit DEV). **Any** other prefix — `[ALPHA]`, `[BETA]`, `[PROD]`, `[ARCHIVED]`, `[TEMPLATE]`, `[STAGING]`, anything — returns `403`. Mirrors the repo's ElevenLabs governance rule.
 
 **LLM access:** every LLM call goes through `llm.sh` (Gemini provider chain) per the project's no-direct-REST-keys rule. The two upstream blocks that originally used `generateObject` from the Vercel `ai` SDK are re-wired through `/api/extract-form` and `/api/voice-nav`.
 
