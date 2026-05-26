@@ -11,8 +11,8 @@ import { existsSync, statSync } from "node:fs"
 const steps = [
   { name: "verify.mjs (e2e — 11 steps, one-page console)", cmd: "bun", args: ["run", "playground/verify.mjs"] },
   { name: "live-probe.mjs (7 live capabilities)", cmd: "bun", args: ["run", "playground/live-probe.mjs"] },
-  { name: "a11y-audit.mjs (axe across 3 views — no serious/critical)", cmd: "bun", args: ["run", "playground/a11y-audit.mjs"] },
-  { name: "mobile-audit.mjs (9 viewport×view stops — no h-scroll, no pageerrors)", cmd: "bun", args: ["run", "playground/mobile-audit.mjs"] },
+  { name: "a11y-audit.mjs (axe across 4 views — no serious/critical)", cmd: "bun", args: ["run", "playground/a11y-audit.mjs"] },
+  { name: "mobile-audit.mjs (12 viewport×view stops — no h-scroll, no pageerrors)", cmd: "bun", args: ["run", "playground/mobile-audit.mjs"] },
 ]
 
 const t0 = Date.now()
