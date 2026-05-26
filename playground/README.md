@@ -38,7 +38,7 @@ playground/
   live-probe.mjs             7 live capability probes (voice/signed-url/override-effect/...)
   verify-all.mjs             single command: verify + live-probe + a11y + mobile audits
   public/                    static: gallery.html (the page) + spa.css + textures/ + bundled .js; retained legacy .html
-  audit/                     screenshots (verify/01-10, audit/A-Z)
+  audit/, verify/            gate screenshots (gitignored; regenerated each run)
   ui-library/src/            upstream elevenlabs/ui registry, vendored
     components/ui/   63      shadcn primitives + EL components (Orb, Conversation, etc.)
     hooks/            5      useScribe, useTranscriptViewer, etc.

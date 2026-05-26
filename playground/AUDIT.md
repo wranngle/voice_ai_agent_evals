@@ -1,6 +1,6 @@
 # Capability Audit — what ElevenLabs UI can do vs. what the showcase actually demonstrates
 
-Honest pass over every capability area: does the control exist, does it drive the real config, and — the part that matters — does the capability **visibly manifest** in the rendered widget / island? Evidence = screenshots in `verify/` and `audit/`, captured in real headless Chromium against the live showcase agent (`agent_7701ksbwcdzcfe0sj8nhtrxem9h1`).
+Honest pass over every capability area: does the control exist, does it drive the real config, and — the part that matters — does the capability **visibly manifest** in the rendered widget / island? Evidence = screenshots written to `verify/` and `audit/` (gitignored — regenerate them by running the gate below), captured in real headless Chromium against the live showcase agent (`agent_7701ksbwcdzcfe0sj8nhtrxem9h1`).
 
 Verdict legend:
 - ✅ **Demonstrated** — observed rendering/changing in-browser (screenshot).
@@ -114,7 +114,7 @@ The "Rich agent content" preset sets an override-prompt that forces the agent to
 
 ```bash
 bun playground &                      # server on :4321
-bun run playground/verify-all.mjs     # the gate: 30+ checks (verify.mjs 11/11 + live-probe.mjs 7/7 + a11y 0 violations × 4 views + mobile 12/12)
+bun run playground/verify-all.mjs     # the gate: 30+ checks (verify.mjs 12/12 + live-probe.mjs 7/7 + a11y 0 violations × 4 views + mobile 12/12)
 bun run playground/verify.mjs         # e2e against the one-page console → verify/
 bun run playground/live-probe.mjs     # live probes F–L (voice, signed-url, override-prompt sentinel, WebRTC token, hero WebGL, multi-turn, Scribe)
 ```

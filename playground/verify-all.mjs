@@ -2,7 +2,32 @@
 // Single command for "is the playground demonstrably working end to end?"
 //   bun run playground/verify-all.mjs
 import { spawnSync } from "node:child_process"
-import { existsSync, statSync } from "node:fs"
+import { existsSync, statSync, readFileSync } from "node:fs"
+
+// Doctrine-drift guard: verify.mjs's step count is the source of truth, but it's
+// also claimed in prose across README / AUDIT / FEATURE-MATRIX and in this file's
+// own step labels. They drifted to 9/11/12 once. Derive the real count from the
+// step() invocations and fail the gate if any doc disagrees, so the number can
+// only be wrong in one place at a time (here) instead of silently rotting.
+const REAL_STEPS = (readFileSync("playground/verify.mjs", "utf8").match(/^\s*(?:await\s+)?step\(/gm) || []).length
+const driftSources = [
+  ["playground/README.md", /verify\.mjs[^\n]*?\((\d+)\s*steps?/i, /verify\b[^\n]*?(\d+)\s*\/\s*\d+\s*verify/i],
+  ["playground/AUDIT.md", /verify\.mjs\s+(\d+)\s*\/\s*\d+/i],
+  ["playground/FEATURE-MATRIX.md", /verify\.mjs[^\n]*?passes\s+(\d+)\s*\/\s*\d+/i],
+  ["playground/verify-all.mjs", /verify\.mjs[^\n]*?(\d+)\s*steps?/i],
+]
+const drifts = []
+for (const [file, ...pats] of driftSources) {
+  const txt = readFileSync(file, "utf8")
+  for (const pat of pats) {
+    const hit = txt.match(pat)
+    if (hit && Number(hit[1]) !== REAL_STEPS) drifts.push(`${file}: claims ${hit[1]}, verify.mjs has ${REAL_STEPS}`)
+  }
+}
+if (drifts.length) {
+  console.error(`\n❌ verify step-count drift (source of truth = ${REAL_STEPS}):\n  ${drifts.join("\n  ")}\n`)
+  process.exit(1)
+}
 
 // verify.mjs proves the one-page console end-to-end (Showcase + Control plane
 // + JSONL terminal + DEV-guarded widget PATCH round-trip). live-probe.mjs hits
