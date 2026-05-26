@@ -15,7 +15,7 @@ const browser = await chromium.launch({ headless: true, args: ["--no-sandbox", "
 const steps = []
 const step = async (name, fn) => {
   try { const info = await fn(); steps.push({ name, ok: true, info }); console.log(`  ✓ ${name}${info ? " — " + info : ""}`) }
-  catch (e) { steps.push({ name, ok: false, err: e.message }); console.log(`  ✗ ${name} — ${e.message}`) }
+  catch (e) { steps.push({ name, ok: false, err: e.message, stack: e.stack }); console.log(`  ✗ ${name} — ${e.message}`) }
 }
 const newPage = async (view = "showcase") => {
   const ctx = await browser.newContext({ viewport: { width: 1366, height: 860 }, permissions: ["microphone"] })
@@ -182,7 +182,11 @@ await browser.close()
 console.log("\n── live probe summary ──")
 const passed = steps.filter((s) => s.ok).length
 console.log(`${passed}/${steps.length} passed`)
-// Print every failing entry — silent pushes (console error / pageerror) used to
-// hide here; surface them so a regression is debuggable from the run log alone.
-for (const s of steps.filter((s) => !s.ok)) console.log(`  ✗ ${s.name} — ${s.err}`)
+// Print every failing entry with stack — silent pushes used to hide in the
+// count; the inline catch logs the message for fast scanning, the summary
+// adds the stack so a CI failure is debuggable from the run log alone.
+for (const s of steps.filter((s) => !s.ok)) {
+  console.log(`  ✗ ${s.name} — ${s.err}`)
+  if (s.stack) console.log(s.stack.split("\n").slice(0, 6).map((l) => "    " + l).join("\n"))
+}
 process.exit(passed === steps.length ? 0 : 1)
