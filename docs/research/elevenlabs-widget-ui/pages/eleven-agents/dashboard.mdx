@@ -1,0 +1,121 @@
+> This is a page from the ElevenLabs documentation. For a complete page index, fetch https://elevenlabs.io/docs/llms.txt. For the full documentation in a single file, fetch https://elevenlabs.io/docs/llms-full.txt.
+
+# Analytics
+
+## Overview
+
+The analytics dashboard provides granular, real-time metrics for your conversational agents. You can break down performance across multiple dimensions — by agent, branch, time period, language, call type, model, and more — to understand exactly how your agents are performing in production.
+
+Analytics data is powered by a high-performance columnar database, enabling fast queries across large volumes of conversation data with flexible filtering and grouping.
+
+## Accessing analytics
+
+Navigate to the **Analytics** tab in your agents dashboard. You can view metrics across your entire workspace or filter down to a specific agent.
+
+![Analytics dashboard General tab showing call count, average duration, total cost, and call
+volume over time](https://files.buildwithfern.com/https://elevenlabs.docs.buildwithfern.com/docs/028eabc5e8536870547389bc6a07c2fe01d9e9440c4f930cc2f9d1efdf22de37/assets/images/conversational-ai/analytics-general.png)
+
+When running [experiments](/docs/eleven-agents/operate/experiments), you can jump directly to branch-filtered analytics from the agent configuration page using the **View Analytics** button. This pre-applies the agent and branch filters so you can compare variant performance immediately.
+
+## Time range and granularity
+
+Select the time range for your analysis using the date picker at the top of the dashboard. You can choose from preset ranges or define a custom window.
+
+The dashboard automatically adjusts the granularity of time-series charts based on your selected range — hourly buckets for short ranges, daily or weekly for longer ranges.
+
+## Available metrics
+
+### Conversations
+
+* **Call count** — total number of conversations in the selected period
+* **Total duration** — aggregate conversation time
+* **Average duration** — mean conversation length
+* **Total cost** — total spend across all conversations
+* **Average cost** — mean cost per conversation
+
+### Performance
+
+* **Agent response latency** — time for the agent to respond (median and percentiles)
+* **Error rate** — percentage of conversations with errors
+* **Error breakdown** — errors categorized by type (tool failures, LLM errors, connection issues)
+
+### Success evaluation
+
+If you have [evaluation criteria](/docs/eleven-agents/customization/agent-analysis/success-evaluation) configured, the dashboard shows success, failure, and unknown rates for each criterion. This is the primary way to measure business outcomes across experiments.
+
+### Data collection
+
+If you have [data collection](/docs/eleven-agents/customization/agent-analysis/data-collection) configured, collected values are available as filterable dimensions in the dashboard.
+
+### Language breakdown
+
+See the distribution of conversations across languages. This is useful for understanding multilingual adoption and comparing agent performance across different languages.
+
+### Active calls
+
+The dashboard displays the current number of active calls in real time. This reflects ongoing sessions across your workspace and is also available via the API.
+
+## Filtering
+
+Narrow your analytics view by applying filters on any combination of dimensions:
+
+![Tools tab showing average error rate and average tool latency grouped by tool
+type](https://files.buildwithfern.com/https://elevenlabs.docs.buildwithfern.com/docs/381d3ab344234172f0cf9474ec7388e19dbb3da7b4b7698becbd839bb96a1e15/assets/images/conversational-ai/analytics-tools.png)
+
+| Filter                  | Description                                                       |
+| ----------------------- | ----------------------------------------------------------------- |
+| **Agent**               | View metrics for a specific agent                                 |
+| **Branch**              | Compare performance across experiment branches                    |
+| **Call type**           | Filter by inbound, outbound, or web calls                         |
+| **Language**            | Filter by conversation language                                   |
+| **Conversation source** | Filter by how the conversation was initiated (widget, phone, API) |
+| **LLM model**           | Compare performance across different language models              |
+| **TTS model**           | Compare performance across text-to-speech models                  |
+| **ASR model**           | Compare performance across speech recognition models              |
+| **Tool type**           | Filter by specific tools used in conversations                    |
+| **Error type**          | Isolate conversations with specific error categories              |
+| **Evaluation criteria** | Filter by success evaluation results                              |
+
+## Grouping
+
+Group metrics by any of the filterable dimensions to break down aggregate numbers.
+
+![LLMs tab showing LLM time to first sentence over
+time](https://files.buildwithfern.com/https://elevenlabs.docs.buildwithfern.com/docs/abfe0baeebc774a3782213d19e9fcf9d106cf12112fc530333289d8247f9fc10/assets/images/conversational-ai/analytics-llms.png)
+
+![Turn taking latency chart showing p50, p90, and p99
+percentiles](https://files.buildwithfern.com/https://elevenlabs.docs.buildwithfern.com/docs/e010346a296dd85403e9b4519378eba78cefd60aca798645cb435ceefc793bd6/assets/images/conversational-ai/analytics-latency.png)
+
+For example:
+
+* **Group by branch** to compare experiment variants side by side
+* **Group by language** to see how agents perform across languages
+* **Group by LLM model** to compare model performance and cost
+* **Group by call type** to understand differences between inbound and outbound calls
+
+Multiple grouping dimensions can be combined for deeper analysis.
+
+## Using analytics with experiments
+
+Analytics is the primary tool for measuring [experiment](/docs/eleven-agents/operate/experiments) outcomes. The recommended workflow:
+
+Select the agent running your experiment.
+
+Break down all metrics by branch to see variant-level performance.
+
+Look at the metrics that matter for your hypothesis — success evaluation results, conversation
+duration, cost, error rates.
+
+When one variant consistently outperforms, increase its traffic share or merge it to main.
+
+You can jump directly to this view from the agent configuration page by clicking the **View Analytics** button next to your traffic deployment settings. This pre-applies the correct agent and branch filters.
+
+## Next steps
+
+Set up A/B tests and use analytics to measure the impact
+
+Define custom criteria to measure conversation quality
+
+Extract structured data from conversations for analytics
+
+Observe live conversations and send control commands

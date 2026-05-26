@@ -1,0 +1,264 @@
+> This is a page from the ElevenLabs documentation. For a complete page index, fetch https://elevenlabs.io/docs/llms.txt. For the full documentation in a single file, fetch https://elevenlabs.io/docs/llms-full.txt.
+
+# Tool Call Sounds
+
+## Overview
+
+Tool call sounds provide ambient audio feedback during tool execution, creating a more natural and engaging conversation experience. When your agent executes a tool - such as fetching data from an API or processing a request - these sounds help fill moments of silence and indicate to users that the agent is actively working.
+
+ElevenLabs Agents supports multiple built-in ambient sounds that you can configure at both the tool level and integration level, giving you fine-grained control over when and how sounds are played during your conversations.
+
+## Use Cases
+
+Tool call sounds are particularly effective in scenarios where:
+
+* **API calls take time to complete**: Play ambient music or typing sounds while fetching data from external services
+* **Long-running operations**: Provide audio feedback during database queries, complex calculations, or third-party integrations
+* **Natural conversation flow**: Fill gaps in the conversation to prevent awkward silences
+* **User expectations**: Signal to users that the agent is processing their request rather than experiencing technical issues
+
+Tool call sounds are optional. If you prefer silent tool execution, simply leave the tool call
+sound setting as "None".
+
+## Available Sounds
+
+ElevenLabs provides the following ambient audio options:
+
+| Sound Type         | Description                     | Best For                           |
+| ------------------ | ------------------------------- | ---------------------------------- |
+| None               | No sound during tool execution  | Quick operations, silent workflows |
+| Typing             | Keyboard typing sound effect    | Search queries, text processing    |
+| Elevator Music 1-4 | Light background music (upbeat) | Longer wait times, general use     |
+
+You can preview each sound in the dashboard by clicking the play button next to the dropdown when
+configuring tool call sounds.
+
+## Configuration
+
+Tool call sounds can be configured in two places, with tool-level configuration taking precedence:
+
+### Tool-Level Configuration
+
+Configure sounds for individual tools in your agent's tool settings.
+
+In the **Agent** section of your agent settings, select the tool you want to configure or create a new tool.
+
+Scroll to the **Tool Call Sound** section at the bottom of the tool configuration.
+
+![tool call sound dropdown](https://files.buildwithfern.com/https://elevenlabs.docs.buildwithfern.com/docs/093fd6c380e2d51f0b8dbe152377a35e1e4e0e422638519910016b9f1551233d/assets/images/agents/tool-call-sounds-1.png)
+
+Select a sound from the dropdown menu:
+
+* **None**: No sound will play
+* **Typing**: Keyboard typing effect
+* **Elevator Music 1-4**: Various ambient background music options
+
+If you've selected a sound (not "None"), you'll see an additional **Sound Behavior** option:
+
+![sound behavior dropdown](https://files.buildwithfern.com/https://elevenlabs.docs.buildwithfern.com/docs/00c7f6ddfb1b0240a900c8d6814c8706e045500d92f6a6c263d4a7c962e24fbe/assets/images/agents/tool-call-sounds-2.png)
+
+Choose when the sound should play:
+
+* **With pre-speech**: Sound plays only when the agent speaks before executing the tool
+* **Always play**: Sound plays during every tool execution, regardless of whether the agent speaks first
+
+Click **Save** to apply your tool call sound settings.
+
+```bash
+elevenlabs tools pull
+```
+
+Set `tool_call_sound` and `tool_call_sound_behavior`:
+
+```json
+{
+  "type": "webhook",
+  "name": "get_weather",
+  "tool_call_sound": "typing",
+  "tool_call_sound_behavior": "auto"
+}
+```
+
+Use `"auto"` for **With pre-speech** or `"always"` for **Always play**.
+
+```bash
+elevenlabs tools push
+```
+
+```python
+from elevenlabs import ElevenLabs
+
+elevenlabs = ElevenLabs()
+
+elevenlabs.conversational_ai.tools.update(
+    tool_id="tool_7101k5zvyjhmfg983brhmhkd98n6",
+    tool_config={
+        "type": "webhook",
+        "name": "get_weather",
+        "description": "Gets current weather data",
+        "tool_call_sound": "typing",
+        "tool_call_sound_behavior": "auto",
+        "api_schema": {
+            "url": "https://api.weather.com/data",
+            "method": "GET",
+        },
+    },
+)
+```
+
+```typescript
+import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
+
+const elevenlabs = new ElevenLabsClient();
+
+await elevenlabs.conversationalAi.tools.update("tool_7101k5zvyjhmfg983brhmhkd98n6", {
+  toolConfig: {
+    type: "webhook",
+    name: "get_weather",
+    description: "Gets current weather data",
+    toolCallSound: "typing",
+    toolCallSoundBehavior: "auto",
+    apiSchema: {
+      url: "https://api.weather.com/data",
+      method: "GET",
+    },
+  },
+});
+```
+
+### Integration-Level Configuration
+
+For tools created through integrations (MCP servers, API integrations, etc.), you can set default tool call sounds at the integration level:
+
+Go to **Agent Settings > Integrations** and select your integration.
+
+In the integration overview, locate the **Tool Call Sound** settings.
+
+![tool call sound integrations dropdown](https://files.buildwithfern.com/https://elevenlabs.docs.buildwithfern.com/docs/9c4c33501c814c3d124d76060853ee6eb8c59c8b4f0cc494d16267e9fe5cf56b/assets/images/agents/tool-call-sounds-3.png)
+
+Select a default sound that will apply to all tools from this integration unless overridden at the tool level.
+
+You can override the integration-level default for specific tools by configuring tool call sounds in the individual tool settings.
+
+## Sound Behavior Options
+
+The sound behavior setting determines when tool call sounds play during a conversation:
+
+### With Pre-Speech (Auto)
+
+**Default behavior**. The sound plays only when the agent speaks before using the tool.
+
+**Example scenario:**
+
+```
+User: "What's the weather in Tokyo?"
+Agent: "Let me check that for you..." [typing sound plays while fetching weather data]
+Agent: "It's currently 72 degrees and sunny in Tokyo."
+```
+
+**When to use:**
+
+* When you want sounds to play only after the agent has acknowledged the request
+* For a more natural conversational flow where silence after user speech would be awkward
+* When tool execution immediately follows agent speech
+
+### Always Play
+
+The sound plays during every tool execution, regardless of whether the agent speaks beforehand.
+
+**Example scenario:**
+
+```
+User: "Check my order status"
+[typing sound plays immediately while fetching order data]
+Agent: "Your order #12345 shipped yesterday and will arrive tomorrow."
+```
+
+**When to use:**
+
+* For operations that always take noticeable time
+* When you want consistent audio feedback for every tool call
+* For background operations that may not require agent acknowledgment
+
+If you select "Always play", the sound will play even when the agent doesn't speak before using
+the tool. This can result in sounds playing immediately after the user finishes speaking, which
+may feel abrupt in some conversational contexts.
+
+## Best Practices
+
+#### Match sounds to tool execution time
+
+For quick operations (\< 1 second), consider using "None" or the typing sound. For longer operations (> 3 seconds), elevator music options provide better user experience.
+
+#### Use "With pre-speech" for acknowledged actions
+
+When your agent explicitly acknowledges a request before executing it, use the "With pre-speech" behavior to create a natural conversation flow:
+
+```plaintext System prompt
+When users request information, first acknowledge their request before using tools.
+For example: "Let me check that for you..." then call the appropriate tool.
+```
+
+#### Configure at integration level for consistency
+
+If you have multiple tools from the same integration, configure tool call sounds at the integration level to ensure consistent audio feedback across all related tools.
+
+#### Test with realistic latencies
+
+Test your tool call sounds with realistic API latencies to ensure the audio feedback matches user expectations. Consider:
+
+* Network latency to your APIs
+* API processing time
+* Geographic distribution of your users
+
+#### Balance with interruption handling
+
+If your agent supports user interruptions, tool call sounds will be automatically stopped when the user interrupts. Ensure your conversation flow handles this gracefully.
+
+## Example Configurations
+
+### Search Agent
+
+**Use case**: Agent that searches a knowledge base or database
+
+**Configuration**:
+
+* Tool call sound: **Typing**
+* Sound behavior: **With pre-speech**
+* System prompt includes: *"When users ask questions, say 'Let me search for that' before calling the search tool."*
+
+### Customer Service Agent
+
+**Use case**: Agent that checks order status, inventory, or customer records
+
+**Configuration**:
+
+* Tool call sound: **Elevator Music 3**
+* Sound behavior: **Always play**
+* Rationale: Operations may take 2-5 seconds, and background music provides better experience than silence
+
+### Multi-Step Workflow
+
+**Use case**: Agent that performs multiple sequential tool calls
+
+**Configuration**:
+
+* First tool: **Typing** with **With pre-speech**
+* Subsequent tools: **Elevator Music 1** with **Always play**
+* System prompt orchestrates: *"First acknowledge the request, then execute tools sequentially."*
+
+## Troubleshooting
+
+### Sound not playing
+
+**Possible causes:**
+
+1. **No pre-speech**: If using "With pre-speech" behavior, the agent must speak before the tool executes. Update your system prompt to include acknowledgment.
+2. **Quick execution**: If the tool completes in less than \~500ms, the sound may not have time to play noticeably.
+
+## Related Resources
+
+* [Server Tools](/docs/eleven-agents/customization/tools/server-tools) - Learn how to configure webhook tools
+* [Client Tools](/docs/eleven-agents/customization/tools/client-tools) - Understand client-side tool execution
+* [System Tools](/docs/eleven-agents/customization/tools/system-tools) - Explore built-in platform tools
+* [Best Practices](/docs/eleven-api/guides/how-to/websockets/multi-context-web-socket) - General best practices for building conversational agents
