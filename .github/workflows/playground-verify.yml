@@ -70,7 +70,7 @@ jobs:
           cat /tmp/playground.log
           exit 1
 
-      - name: Run playground:verify (verify.mjs + live-probe.mjs)
+      - name: Run playground:verify-all (verify + live-probe + a11y + mobile)
         if: steps.secret-check.outputs.skip != 'true'
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
