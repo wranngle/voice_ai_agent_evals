@@ -1,0 +1,278 @@
+> This is a page from the ElevenLabs documentation. For a complete page index, fetch https://elevenlabs.io/docs/llms.txt. For the full documentation in a single file, fetch https://elevenlabs.io/docs/llms-full.txt.
+
+# Create widget avatar
+
+POST https://api.elevenlabs.io/v1/convai/agents/{agent_id}/avatar
+Content-Type: multipart/form-data
+
+Sets the avatar for an agent displayed in the widget
+
+Reference: https://elevenlabs.io/docs/eleven-agents/api-reference/widget/create
+
+## OpenAPI Specification
+
+```yaml
+openapi: 3.1.0
+info:
+  title: api
+  version: 1.0.0
+paths:
+  /v1/convai/agents/{agent_id}/avatar:
+    post:
+      operationId: create
+      summary: Post Agent Avatar
+      description: Sets the avatar for an agent displayed in the widget
+      tags:
+        - >-
+          subpackage_conversationalAi.subpackage_conversationalAi/agents.subpackage_conversationalAi/agents/widget.subpackage_conversationalAi/agents/widget/avatar
+      parameters:
+        - name: agent_id
+          in: path
+          description: The id of an agent. This is returned on agent creation.
+          required: true
+          schema:
+            type: string
+        - name: xi-api-key
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostAgentAvatarResponseModel'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                avatar_file:
+                  type: string
+                  format: binary
+                  description: An image file to be used as the agent's avatar.
+              required:
+                - avatar_file
+servers:
+  - url: https://api.elevenlabs.io
+  - url: https://api.us.elevenlabs.io
+  - url: https://api.eu.residency.elevenlabs.io
+  - url: https://api.in.residency.elevenlabs.io
+components:
+  schemas:
+    PostAgentAvatarResponseModel:
+      type: object
+      properties:
+        agent_id:
+          type: string
+        avatar_url:
+          type:
+            - string
+            - 'null'
+      required:
+        - agent_id
+      title: PostAgentAvatarResponseModel
+    ValidationErrorLocItems:
+      oneOf:
+        - type: string
+        - type: integer
+      title: ValidationErrorLocItems
+    ValidationError:
+      type: object
+      properties:
+        loc:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationErrorLocItems'
+        msg:
+          type: string
+        type:
+          type: string
+      required:
+        - loc
+        - msg
+        - type
+      title: ValidationError
+    HTTPValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationError'
+      title: HTTPValidationError
+
+```
+
+## SDK Code Examples
+
+```typescript
+import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
+
+async function main() {
+    const client = new ElevenLabsClient();
+    await client.conversationalAi.agents.widget.avatar.create("agent_id", {});
+}
+main();
+
+```
+
+```python
+from elevenlabs import ElevenLabs
+
+client = ElevenLabs()
+
+client.conversational_ai.agents.widget.avatar.create(
+    agent_id="agent_id",
+    avatar_file="example_avatar_file",
+)
+
+```
+
+```go
+package main
+
+import (
+	"fmt"
+	"strings"
+	"net/http"
+	"io"
+)
+
+func main() {
+
+	url := "https://api.elevenlabs.io/v1/convai/agents/agent_id/avatar"
+
+	payload := strings.NewReader("-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"avatar_file\"; filename=\"string\"\r\nContent-Type: application/octet-stream\r\n\r\n\r\n-----011000010111000001101001--\r\n")
+
+	req, _ := http.NewRequest("POST", url, payload)
+
+	req.Header.Add("Content-Type", "multipart/form-data; boundary=---011000010111000001101001")
+
+	res, _ := http.DefaultClient.Do(req)
+
+	defer res.Body.Close()
+	body, _ := io.ReadAll(res.Body)
+
+	fmt.Println(res)
+	fmt.Println(string(body))
+
+}
+```
+
+```ruby
+require 'uri'
+require 'net/http'
+
+url = URI("https://api.elevenlabs.io/v1/convai/agents/agent_id/avatar")
+
+http = Net::HTTP.new(url.host, url.port)
+http.use_ssl = true
+
+request = Net::HTTP::Post.new(url)
+request["Content-Type"] = 'multipart/form-data; boundary=---011000010111000001101001'
+request.body = "-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"avatar_file\"; filename=\"string\"\r\nContent-Type: application/octet-stream\r\n\r\n\r\n-----011000010111000001101001--\r\n"
+
+response = http.request(request)
+puts response.read_body
+```
+
+```java
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.Unirest;
+
+HttpResponse<String> response = Unirest.post("https://api.elevenlabs.io/v1/convai/agents/agent_id/avatar")
+  .header("Content-Type", "multipart/form-data; boundary=---011000010111000001101001")
+  .body("-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"avatar_file\"; filename=\"string\"\r\nContent-Type: application/octet-stream\r\n\r\n\r\n-----011000010111000001101001--\r\n")
+  .asString();
+```
+
+```php
+<?php
+require_once('vendor/autoload.php');
+
+$client = new \GuzzleHttp\Client();
+
+$response = $client->request('POST', 'https://api.elevenlabs.io/v1/convai/agents/agent_id/avatar', [
+  'multipart' => [
+    [
+        'name' => 'avatar_file',
+        'filename' => 'string',
+        'contents' => null
+    ]
+  ]
+]);
+
+echo $response->getBody();
+```
+
+```csharp
+using RestSharp;
+
+var client = new RestClient("https://api.elevenlabs.io/v1/convai/agents/agent_id/avatar");
+var request = new RestRequest(Method.POST);
+request.AddParameter("multipart/form-data; boundary=---011000010111000001101001", "-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"avatar_file\"; filename=\"string\"\r\nContent-Type: application/octet-stream\r\n\r\n\r\n-----011000010111000001101001--\r\n", ParameterType.RequestBody);
+IRestResponse response = client.Execute(request);
+```
+
+```swift
+import Foundation
+
+let headers = ["Content-Type": "multipart/form-data; boundary=---011000010111000001101001"]
+let parameters = [
+  [
+    "name": "avatar_file",
+    "fileName": "string"
+  ]
+]
+
+let boundary = "---011000010111000001101001"
+
+var body = ""
+var error: NSError? = nil
+for param in parameters {
+  let paramName = param["name"]!
+  body += "--\(boundary)\r\n"
+  body += "Content-Disposition:form-data; name=\"\(paramName)\""
+  if let filename = param["fileName"] {
+    let contentType = param["content-type"]!
+    let fileContent = String(contentsOfFile: filename, encoding: String.Encoding.utf8)
+    if (error != nil) {
+      print(error as Any)
+    }
+    body += "; filename=\"\(filename)\"\r\n"
+    body += "Content-Type: \(contentType)\r\n\r\n"
+    body += fileContent
+  } else if let paramValue = param["value"] {
+    body += "\r\n\r\n\(paramValue)"
+  }
+}
+
+let request = NSMutableURLRequest(url: NSURL(string: "https://api.elevenlabs.io/v1/convai/agents/agent_id/avatar")! as URL,
+                                        cachePolicy: .useProtocolCachePolicy,
+                                    timeoutInterval: 10.0)
+request.httpMethod = "POST"
+request.allHTTPHeaderFields = headers
+request.httpBody = postData as Data
+
+let session = URLSession.shared
+let dataTask = session.dataTask(with: request as URLRequest, completionHandler: { (data, response, error) -> Void in
+  if (error != nil) {
+    print(error as Any)
+  } else {
+    let httpResponse = response as? HTTPURLResponse
+    print(httpResponse)
+  }
+})
+
+dataTask.resume()
+```

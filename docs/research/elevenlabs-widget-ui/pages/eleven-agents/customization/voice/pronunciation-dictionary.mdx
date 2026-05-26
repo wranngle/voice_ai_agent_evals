@@ -1,0 +1,154 @@
+> This is a page from the ElevenLabs documentation. For a complete page index, fetch https://elevenlabs.io/docs/llms.txt. For the full documentation in a single file, fetch https://elevenlabs.io/docs/llms-full.txt.
+
+# Pronunciation dictionaries
+
+## Overview
+
+Pronunciation dictionaries allow you to customize how your AI agent pronounces specific words or phrases. This is particularly useful for:
+
+* Correcting pronunciation of names, places, or technical terms
+* Ensuring consistent pronunciation across conversations
+* Customizing regional pronunciation variations
+
+## Configuration
+
+Phoneme tags only work with the `eleven_flash_v2` model. When used with
+other models, the tags are silently skipped and the default pronunciation is used.
+
+Phoneme tags (IPA or CMU) only work for English. For other languages, use alias tags instead to
+substitute spellings or phrases that produce the pronunciation you need.
+
+### Attach a dictionary to your agent
+
+Open your agent in the dashboard, navigate to **Voice Settings**, and add a pronunciation dictionary. Save your changes.
+
+<img src="https://files.buildwithfern.com/https://elevenlabs.docs.buildwithfern.com/docs/1e7c851096776b9b8cb39cc95b54d394cc02ec7e4771d13958a259accf0ad757/assets/images/conversational-ai/pd-agents.webp" alt="Add a pronunciation dictionary from the agent's voice settings" />
+
+```bash
+elevenlabs agents pull --agent "<agent-name>"
+```
+
+Set `conversation_config.tts.pronunciation_dictionary_locators`:
+
+```json
+{
+  "conversation_config": {
+    "tts": {
+      "pronunciation_dictionary_locators": [
+        {
+          "pronunciation_dictionary_id": "<dictionary-id>",
+          "version_id": "<version-id>"
+        }
+      ]
+    }
+  }
+}
+```
+
+```bash
+elevenlabs agents push --agent "<agent-name>"
+```
+
+```python
+from elevenlabs import ElevenLabs
+
+elevenlabs = ElevenLabs()
+
+elevenlabs.conversational_ai.agents.update(
+    agent_id="agent_7101k5zvyjhmfg983brhmhkd98n6",
+    conversation_config={
+        "tts": {
+            "pronunciation_dictionary_locators": [
+                {
+                    "pronunciation_dictionary_id": "<dictionary-id>",
+                    "version_id": "<version-id>",
+                }
+            ]
+        },
+    },
+)
+```
+
+```typescript
+import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
+
+const elevenlabs = new ElevenLabsClient();
+
+await elevenlabs.conversationalAi.agents.update("agent_7101k5zvyjhmfg983brhmhkd98n6", {
+  conversationConfig: {
+    tts: {
+      pronunciationDictionaryLocators: [
+        {
+          pronunciationDictionaryId: "<dictionary-id>",
+          versionId: "<version-id>",
+        },
+      ],
+    },
+  },
+});
+```
+
+## Dictionary file format
+
+Pronunciation dictionaries use XML-based `.pls` files. Here's an example structure:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<lexicon version="1.0"
+      xmlns="http://www.w3.org/2005/01/pronunciation-lexicon"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.w3.org/2005/01/pronunciation-lexicon
+        http://www.w3.org/TR/2007/CR-pronunciation-lexicon-20071212/pls.xsd"
+      alphabet="ipa" xml:lang="en-GB">
+  <lexeme>
+    <grapheme>Apple</grapheme>
+    <phoneme>ˈæpl̩</phoneme>
+  </lexeme>
+  <lexeme>
+    <grapheme>UN</grapheme>
+    <alias>United Nations</alias>
+  </lexeme>
+</lexicon>
+```
+
+## Supported formats
+
+We support two types of pronunciation notation:
+
+1. **IPA (International Phonetic Alphabet)**
+
+   * More precise control over pronunciation
+   * Requires knowledge of IPA symbols
+   * Example: "nginx" as `/ˈɛndʒɪnˈɛks/`
+
+2. **CMU (Carnegie Mellon University) Dictionary format**
+   * Simpler ASCII-based format
+   * More accessible for English pronunciations
+   * Example: "tomato" as "T AH M EY T OW"
+
+You can use AI tools like Claude or ChatGPT to help generate IPA or CMU notations for specific
+words.
+
+## Best practices
+
+1. **Case sensitivity**: Create separate entries for capitalized and lowercase versions of words if needed
+2. **Testing**: Always test pronunciations with your chosen voice and model
+3. **Maintenance**: Keep your dictionary organized and documented
+4. **Scope**: Focus on words that are frequently mispronounced or critical to your use case
+
+## FAQ
+
+Phoneme tags are supported on `eleven_flash_v2`. All other models skip the phoneme entry and
+fall back to their normal pronunciation. For non-English languages, rely on alias tags because
+phoneme tags only cover English pronunciations.
+
+Yes, you can upload multiple dictionary files to handle different sets of pronunciations.
+
+The model will use its default pronunciation rules for any words not specified in the
+dictionary.
+
+## Additional resources
+
+* [Professional Voice Cloning](/docs/eleven-creative/voices/voice-cloning/professional-voice-cloning)
+* [Voice Design](/docs/eleven-creative/voices/voice-design)
+* [Text to Speech API Reference](/docs/api-reference/text-to-speech/convert)

@@ -1,0 +1,371 @@
+> This is a page from the ElevenLabs documentation. For a complete page index, fetch https://elevenlabs.io/docs/llms.txt. For the full documentation in a single file, fetch https://elevenlabs.io/docs/llms-full.txt.
+
+# WebSocket
+
+This documentation is for developers integrating directly with the ElevenLabs WebSocket API. For
+convenience, consider using [the official SDKs provided by
+ElevenLabs](/docs/eleven-agents/libraries/python).
+
+The [ElevenAgents](https://elevenlabs.io/agents) WebSocket API enables real-time, interactive voice conversations with AI agents. By establishing a WebSocket connection, you can send audio input and receive audio responses in real-time, creating life-like conversational experiences.
+
+Endpoint: `wss://api.elevenlabs.io/v1/convai/conversation?agent_id={agent_id}`
+
+## Authentication
+
+### Using Agent ID
+
+For public agents, you can directly use the `agent_id` in the WebSocket URL without additional authentication:
+
+```bash
+wss://api.elevenlabs.io/v1/convai/conversation?agent_id=<your-agent-id>
+```
+
+### Using a signed URL
+
+For private agents or conversations requiring authorization, obtain a signed URL from your server, which securely communicates with the ElevenLabs API using your API key.
+
+### Example using cURL
+
+**Request:**
+
+```bash
+curl -X GET "https://api.elevenlabs.io/v1/convai/conversation/get-signed-url?agent_id=<your-agent-id>" \
+     -H "xi-api-key: <your-api-key>"
+```
+
+**Response:**
+
+```json
+{
+  "signed_url": "wss://api.elevenlabs.io/v1/convai/conversation?agent_id=<your-agent-id>&token=<token>"
+}
+```
+
+Never expose your ElevenLabs API key on the client side.
+
+## WebSocket events
+
+### Client to server events
+
+The following events can be sent from the client to the server:
+
+Send non-interrupting contextual information to update the conversation state. This allows you to provide additional context without disrupting the ongoing conversation flow.
+
+```javascript
+{
+  "type": "contextual_update",
+  "text": "User clicked on pricing page"
+}
+```
+
+**Use cases:**
+
+* Updating user status or preferences
+* Providing environmental context
+* Adding background information
+* Tracking user interface interactions
+
+**Key points:**
+
+* Does not interrupt current conversation flow
+* Updates are incorporated as tool calls in conversation history
+* Helps maintain context without breaking the natural dialogue
+
+Contextual updates are processed asynchronously and do not require a direct response from the server.
+
+See the ElevenLabs Agents WebSocket API reference documentation for detailed message structures,
+parameters, and examples.
+
+## Next.js implementation example
+
+This example demonstrates how to implement a WebSocket-based conversational agent client in Next.js using the ElevenLabs WebSocket API.
+
+While this example uses the `voice-stream` package for microphone input handling, you can
+implement your own solution for capturing and encoding audio. The focus here is on demonstrating
+the WebSocket connection and event handling with the ElevenLabs API.
+
+First, install the necessary packages:
+
+```bash
+npm install voice-stream
+```
+
+The `voice-stream` package handles microphone access and audio streaming, automatically encoding the audio in base64 format as required by the ElevenLabs API.
+
+This example uses Tailwind CSS for styling. To add Tailwind to your Next.js project:
+
+```bash
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init -p
+```
+
+Then follow the [official Tailwind CSS setup guide for Next.js](https://tailwindcss.com/docs/guides/nextjs).
+
+Alternatively, you can replace the className attributes with your own CSS styles.
+
+Define the types for WebSocket events:
+
+```typescript app/types/websocket.ts
+type BaseEvent = {
+  type: string;
+};
+
+type UserTranscriptEvent = BaseEvent & {
+  type: "user_transcript";
+  user_transcription_event: {
+    user_transcript: string;
+  };
+};
+
+type AgentResponseEvent = BaseEvent & {
+  type: "agent_response";
+  agent_response_event: {
+    agent_response: string;
+  };
+};
+
+type AgentResponseCorrectionEvent = BaseEvent & {
+  type: "agent_response_correction";
+  agent_response_correction_event: {
+    original_agent_response: string;
+    corrected_agent_response: string;
+  };
+};
+
+type AudioResponseEvent = BaseEvent & {
+  type: "audio";
+  audio_event: {
+    audio_base_64: string;
+    event_id: number;
+    alignment: {
+      chars: string[];
+      char_durations_ms: number[];
+      char_start_times_ms: number[];
+    };
+  };
+};
+
+type InterruptionEvent = BaseEvent & {
+  type: "interruption";
+  interruption_event: {
+    reason: string;
+  };
+};
+
+type PingEvent = BaseEvent & {
+  type: "ping";
+  ping_event: {
+    event_id: number;
+    ping_ms?: number;
+  };
+};
+
+type AgentChatResponsePartEvent = BaseEvent & {
+  type: "agent_chat_response_part";
+  text_response_part: {
+    type: "start" | "delta" | "stop";
+    text: string;
+    event_id: string;
+  };
+};
+
+export type ElevenLabsWebSocketEvent =
+  | UserTranscriptEvent
+  | AgentResponseEvent
+  | AgentResponseCorrectionEvent
+  | AudioResponseEvent
+  | InterruptionEvent
+  | PingEvent
+  | AgentChatResponsePartEvent;
+```
+
+Create a custom hook to manage the WebSocket connection:
+
+```typescript app/hooks/useAgentConversation.ts
+'use client';
+
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useVoiceStream } from 'voice-stream';
+import type { ElevenLabsWebSocketEvent } from '../types/websocket';
+
+const sendMessage = (websocket: WebSocket, request: object) => {
+  if (websocket.readyState !== WebSocket.OPEN) {
+    return;
+  }
+  websocket.send(JSON.stringify(request));
+};
+
+export const useAgentConversation = () => {
+  const websocketRef = useRef<WebSocket>(null);
+  const [isConnected, setIsConnected] = useState<boolean>(false);
+
+  const { startStreaming, stopStreaming } = useVoiceStream({
+    onAudioChunked: (audioData) => {
+      if (!websocketRef.current) return;
+      sendMessage(websocketRef.current, {
+        user_audio_chunk: audioData,
+      });
+    },
+  });
+
+  const startConversation = useCallback(async () => {
+    if (isConnected) return;
+
+    const websocket = new WebSocket("wss://api.elevenlabs.io/v1/convai/conversation");
+
+    websocket.onopen = async () => {
+      setIsConnected(true);
+      sendMessage(websocket, {
+        type: "conversation_initiation_client_data",
+      });
+      await startStreaming();
+    };
+
+    websocket.onmessage = async (event) => {
+      const data = JSON.parse(event.data) as ElevenLabsWebSocketEvent;
+
+      // Handle ping events to keep connection alive
+      if (data.type === "ping") {
+        setTimeout(() => {
+          sendMessage(websocket, {
+            type: "pong",
+            event_id: data.ping_event.event_id,
+          });
+        }, data.ping_event.ping_ms);
+      }
+
+      if (data.type === "user_transcript") {
+        const { user_transcription_event } = data;
+        console.log("User transcript", user_transcription_event.user_transcript);
+      }
+
+      if (data.type === "agent_response") {
+        const { agent_response_event } = data;
+        console.log("Agent response", agent_response_event.agent_response);
+      }
+
+      if (data.type === "agent_response_correction") {
+        const { agent_response_correction_event } = data;
+        console.log("Agent response correction", agent_response_correction_event.corrected_agent_response);
+      }
+
+      if (data.type === "interruption") {
+        // Handle interruption
+      }
+
+      if (data.type === "audio") {
+        const { audio_event } = data;
+        // Implement your own audio playback system here
+        // Note: You'll need to handle audio queuing to prevent overlapping
+        // as the WebSocket sends audio events in chunks
+      }
+
+      if (data.type === "agent_chat_response_part") {
+        const { text_response_part } = data;
+        const { type: partType, text, event_id } = text_response_part;
+        // Handle streaming text chunks during text-only conversations
+        console.log("Chat response part:", partType, text, event_id);
+      }
+    };
+
+    websocketRef.current = websocket;
+
+    websocket.onclose = async () => {
+      websocketRef.current = null;
+      setIsConnected(false);
+      stopStreaming();
+    };
+  }, [startStreaming, isConnected, stopStreaming]);
+
+  const stopConversation = useCallback(async () => {
+    if (!websocketRef.current) return;
+    websocketRef.current.close();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (websocketRef.current) {
+        websocketRef.current.close();
+      }
+    };
+  }, []);
+
+  return {
+    startConversation,
+    stopConversation,
+    isConnected,
+  };
+};
+```
+
+Create a component to use the WebSocket hook:
+
+```typescript app/components/Conversation.tsx
+'use client';
+
+import { useCallback } from 'react';
+import { useAgentConversation } from '../hooks/useAgentConversation';
+
+export function Conversation() {
+  const { startConversation, stopConversation, isConnected } = useAgentConversation();
+
+  const handleStart = useCallback(async () => {
+    try {
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      await startConversation();
+    } catch (error) {
+      console.error('Failed to start conversation:', error);
+    }
+  }, [startConversation]);
+
+  return (
+    <div className="flex flex-col items-center gap-4">
+      <div className="flex gap-2">
+        <button
+          onClick={handleStart}
+          disabled={isConnected}
+          className="px-4 py-2 bg-blue-500 text-white rounded disabled:bg-gray-300"
+        >
+          Start Conversation
+        </button>
+        <button
+          onClick={stopConversation}
+          disabled={!isConnected}
+          className="px-4 py-2 bg-red-500 text-white rounded disabled:bg-gray-300"
+        >
+          Stop Conversation
+        </button>
+      </div>
+      <div className="flex flex-col items-center">
+        <p>Status: {isConnected ? 'Connected' : 'Disconnected'}</p>
+      </div>
+    </div>
+  );
+}
+```
+
+## Next steps
+
+1. **Audio Playback**: Implement your own audio playback system using Web Audio API or a library. Remember to handle audio queuing to prevent overlapping as the WebSocket sends audio events in chunks.
+2. **Error Handling**: Add retry logic and error recovery mechanisms
+3. **UI Feedback**: Add visual indicators for voice activity and connection status
+
+## Latency management
+
+To ensure smooth conversations, implement these strategies:
+
+* **Adaptive Buffering:** Adjust audio buffering based on network conditions.
+* **Jitter Buffer:** Implement a jitter buffer to smooth out variations in packet arrival times.
+* **Ping-Pong Monitoring:** Use ping and pong events to measure round-trip time and adjust accordingly.
+
+## Security best practices
+
+* Rotate API keys regularly and use environment variables to store them.
+* Implement rate limiting to prevent abuse.
+* Clearly explain the intention when prompting users for microphone access.
+* Optimized Chunking: Tweak the audio chunk duration to balance latency and efficiency.
+
+## Additional resources
+
+* [ElevenLabs Agents Documentation](/docs/eleven-agents/overview)
+* [ElevenLabs Agents SDKs](/docs/eleven-agents/libraries/python)
