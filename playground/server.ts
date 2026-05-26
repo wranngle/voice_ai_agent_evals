@@ -174,8 +174,12 @@ async function handleRequest(req: Request): Promise<Response> {
       let body: { events?: any[] };
       try { body = (await req.json()) as { events?: any[] }; }
       catch { return json({ ok: false, error: "invalid JSON body" }, 400); } // client error, not 500
+      // Require an explicit events array. The previous `[body]` fallback turned
+      // any malformed POST ({}) into a single "playground.unknown" log line —
+      // silent log pollution. Validate up front instead.
+      if (!Array.isArray(body.events)) return json({ ok: false, error: "missing or invalid `events` array" }, 400);
       try {
-        const events = Array.isArray(body.events) ? body.events : [body];
+        const events = body.events;
         const date = new Date().toISOString().slice(0, 10);
         const dir = join(process.cwd(), "logs");
         if (!existsSync(dir)) mkdirSync(dir, { recursive: true });

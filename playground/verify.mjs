@@ -278,7 +278,11 @@ await step("API rejects malformed JSON with 400 — no Bun default-page source l
   if (/bunfallback|<!doctype|<html/i.test(await patch.text())) throw new Error("PATCH error leaked the Bun default page (source/stack)");
   const log = await page.context().request.fetch(BASE + "/api/log", { method: "POST", headers: { "content-type": "application/json" }, data: Buffer.from("not json") });
   if (log.status() !== 400) throw new Error(`malformed /api/log → ${log.status()} (expected 400)`);
-  return "PATCH + /api/log → 400, no leak";
+  // Also reject valid JSON that's missing the required `events` array — the old
+  // [body] fallback silently wrote a "playground.unknown" line for every {} POST.
+  const empty = await page.context().request.fetch(BASE + "/api/log", { method: "POST", headers: { "content-type": "application/json" }, data: {} });
+  if (empty.status() !== 400) throw new Error(`/api/log {} → ${empty.status()} (expected 400 — missing events array)`);
+  return "PATCH + /api/log {malformed, no-events} → 400, no leak";
 });
 
 await step("Security headers (X-Frame-Options, X-Content-Type-Options, Referrer-Policy) on every response", async () => {
