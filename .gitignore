@@ -337,3 +337,7 @@ openspec/
 
 # Playground SPA bundle — built fresh by server.ts on startup; never commit the artifact
 playground/public/ui-library/gallery-main.js
+
+# Playground gate screenshots — regenerated on every verify/live-probe/mobile-audit run; not source
+playground/audit/
+playground/verify/

@@ -3,6 +3,9 @@
 // (the most common mobile regression) and any pageerror per stop.
 //   bun run playground/mobile-audit.mjs
 import { chromium } from "playwright"
+import { mkdirSync } from "node:fs"
+
+mkdirSync("playground/audit/mobile", { recursive: true })
 
 const BASE = "http://localhost:4321"
 const VIEWPORTS = [
