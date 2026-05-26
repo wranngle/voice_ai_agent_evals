@@ -15,19 +15,19 @@ The showcase is **real, not cosmetic**: controls drive the actual web component 
 
 | # | Visually confirmed | Evidence |
 |---|---|---|
-| Widget renders against the real agent (orb + trigger) | ✅ | `verify/01` |
-| 21/21 HTML-attribute controls reflect onto the element | ✅ | `verify/08` |
-| Custom `text-contents` labels render on the trigger | ✅ | `audit/A` ("AUDIT — custom label / begin") |
-| Avatar image replaces the orb | ✅ | `audit/B` |
-| `styles` PATCH visibly recolors the widget (accent→pink) | ✅ | `audit/C` |
-| `text_only` flips trigger to "Start a chat" | ✅ | `audit/D` |
-| `expandable` variant opens; terms modal shows | ✅ | `audit/E`, `verify/04` |
-| Live **voice call** in-call chrome (orb, mute toggle, text input, language selector) | ✅ | `audit/F` |
+| Widget renders against the real agent (orb + trigger) | ✅ | `verify/01-home`, `verify/04-widget-live` |
+| Knob change reflects to the element (`variant=compact`) | ✅ | verify step 6 (Knob reflects) |
+| Custom `text-contents` labels render on the trigger | ✅ | "AUDIT — custom label / begin" preset (manual capture) |
+| Avatar image replaces the orb | ✅ | manual capture |
+| `styles` PATCH visibly recolors the widget (accent→pink) | ✅ | manual capture |
+| `text_only` flips trigger to "Start a chat" | ✅ | manual capture |
+| `expandable` variant opens; terms modal shows | ✅ | `verify/04-widget-live` |
+| Live **voice call** in-call chrome (orb, mute toggle, text input, language selector) | ✅ | `audit/F` (live-probe step F) |
 | Live **signed-url** auth connection (WebSocket) | ✅ | `audit/G` (`status: connected`) |
-| Live **text conversation** round-trip (agent replies) | ✅ | `verify/07` |
-| React island mounts; all hooks; event log streams callbacks | ✅ | `verify/05–07` |
-| API GET + PATCH round-trip (DEV-guarded; BETA/PROD→403) | ✅ | `verify/09`, server guard test |
-| URL params drive the widget on load | ✅ | `verify/10` |
+| Live **text conversation** round-trip (agent replies) | ✅ | `audit/K` (live-probe multi-turn) |
+| React island mounts; all hooks; event log streams callbacks | ✅ | `verify/05-roundtrip`, live-probe `audit/F/H/I/K/L` |
+| API GET + PATCH round-trip (DEV-guarded; non-DEV→403) | ✅ | verify steps 14–15 (DEV PATCH + governance deny-path) |
+| URL params drive the widget on load | ✅ | `verify/03-deeplink` |
 | Runtime `override-prompt` forces agent reply to sentinel (`OVERRIDE_OK_42`) | ✅ | `audit/H` |
 | `conversation-token` → WebRTC connected (React voice) | ✅ | `audit/I` |
 | Voice visualizer canvas active in live voice session | ✅ | `audit/J` |
@@ -44,14 +44,14 @@ The showcase is **real, not cosmetic**: controls drive the actual web component 
 - Custom tag via `registerWidget(tag)` — ◑ snippet + mechanism shown; the CDN embed bundle only auto-registers `elevenlabs-convai`, so live custom-tag re-registration is illustrative, not wired.
 
 ### B. HTML attributes (45)
-- All 45 render as controls; **21/21** non-connection attrs asserted to reflect onto the element (`verify/08`). Booleans correctly omit when off.
+- All 45 render as controls in the Control plane; one (`variant=compact`) asserted to reflect to the element in verify step 6. Booleans correctly omit when off. The earlier 21/21 exhaustive sweep was consolidated out as the suite shifted to live-probe and gate-shape coverage; a re-sweep can be added back if a knob regression slips through.
 - `text-input`, `mic-muting`, language selector — ✅ visible in the live call (`audit/F`).
 - `transcript`, `show-conversation-id`, `show-agent-status` — ◑ config set + in-call container confirmed; these specific elements surface on their triggering events (a message, disconnect, tool call) — not isolated in a screenshot.
 - `B10–B15` (`action-text`/`start-call-text`/…) — `[~]` in the matrix: not in the v0.12.8 `CustomAttributeList`; their effect is achieved through `text-contents` (✅ `audit/A`).
 - `worklet-path-*` — 🔒 self-host worklet paths; settable, no effect without a CSP/offline host.
 
 ### C. Server config (`platform_settings.widget`) + D. `--el-` CSS tokens
-- GET + PATCH round-trip against the real API, DEV-guarded — ✅ (`verify/09`).
+- GET + PATCH round-trip against the real API, DEV-guarded — ✅ (verify steps 14–15: DEV PATCH succeeds, governed agent → 403).
 - `styles` tokens visibly recolor the widget — ✅ (`audit/C`).
 - `feedback_mode`, `terms_*`, `shareable_*`, `file_input_config`, legacy flat colors, `language_presets` — ◑ editable JSON → PATCH accepted; terms modal ✅ (`audit/E`); the rest set correctly, in-widget effect is state/plan-specific.
 
@@ -63,11 +63,11 @@ The showcase is **real, not cosmetic**: controls drive the actual web component 
 
 ### H. Runtime personalization — ✅ **effect visibly proven**: with `override-prompt` set to "respond only with `OVERRIDE_OK_42`", the live agent's reply was exactly that string (`audit/H`). All other overrides + dynamic-variables reflect as attributes (◑) on the same code path. The `elevenlabs-convai:call` SessionConfig hook is wired and logs its injection (◑).
 
-### K. Native React components — ConversationProvider + all 8 granular hooks + `useConversationClientTool` mount with zero invalid-hook errors (✅ `verify/05`). Controls, mute, feedback, contextual update, user activity, device enumeration, MCP-approval input — ✅ present and callable. `sendUserMessage` round-trip ✅ (`verify/07`); multi-turn ✅ (`audit/K`). **Audio visualizer (K14)** — canvas active during live voice session (`audit/J`); bars draw when output frequency data is non-zero (microphone audio in headless = silent sine, so bars are sparse).
+### K. Native React components — ConversationProvider + all 8 granular hooks + `useConversationClientTool` mount with zero invalid-hook errors (✅ `verify/05-roundtrip`). Controls, mute, feedback, contextual update, user activity, device enumeration, MCP-approval input — ✅ present and callable. `sendUserMessage` round-trip ✅ (live-probe `audit/H`, `audit/K`); multi-turn ✅ (`audit/K`). **Audio visualizer (K14)** — canvas active during live voice session (`audit/J`); bars draw when output frequency data is non-zero (microphone audio in headless = silent sine, so bars are sparse).
 
 ### K-bonus. Scribe (`useScribe`) — ✅ **live STT session established**: server proxy mints a real single-use token via `POST /v1/single-use-token/realtime_scribe`, hook configured with `modelId: "scribe_v2_realtime"` + `audioFormat: PCM_16000`. The session reaches `status: connected` and fires `onSessionStarted` (`audit/L`). The transcripts panel is empty because the headless probe doesn't push audio; calling `sendAudio()` with real PCM samples would populate `partialTranscript` / `committedTranscripts`. Panel renders connect/disconnect/mute/commit/clear, the 7 specific error callbacks, and the status badge.
 
-### L. Event protocol — onConnect/onStatusChange/onMessage/onModeChange/onAgentChatResponsePart all observed in the live event log (✅ `verify/07`). VAD/audio-alignment/tool-call/MCP events fire only in their scenarios → ◑.
+### L. Event protocol — onConnect/onStatusChange/onMessage/onModeChange/onAgentChatResponsePart all observed in the live event log (✅ live-probe `audit/G`, `audit/I`, `audit/K`). VAD/audio-alignment/tool-call/MCP events fire only in their scenarios → ◑.
 
 ## Honest gaps & caveats
 
