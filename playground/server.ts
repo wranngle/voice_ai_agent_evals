@@ -88,11 +88,21 @@ if (!buildResult.success) {
   process.exit(1);
 }
 
-const server = Bun.serve({
-  hostname: process.env.PLAYGROUND_BIND ?? "127.0.0.1",  // localhost-only by default; PROD opt-in via env
-  port: PORT,
-  idleTimeout: 120,
-  async fetch(req) {
+// Defensive response headers applied to every Response (including unhandled
+// errors). Relevant once PLAYGROUND_BIND exposes the server beyond localhost
+// — same threat model as the source-leak fix: clickjacking via iframe, MIME
+// sniffing of forwarded uploads, and referer-URL leakage outbound.
+const SEC_HEADERS: Record<string, string> = {
+  "X-Frame-Options": "DENY",
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "same-origin",
+};
+function withSec(res: Response): Response {
+  for (const [k, v] of Object.entries(SEC_HEADERS)) res.headers.set(k, v);
+  return res;
+}
+
+async function handleRequest(req: Request): Promise<Response> {
     const url = new URL(req.url);
     const { pathname } = url;
 
@@ -285,17 +295,23 @@ const server = Bun.serve({
       return new Response(file, { headers: { "content-type": CT[extname(rel)] ?? "application/octet-stream" } });
     }
     return new Response("Not found", { status: 404 });
-  },
+}
+
+const server = Bun.serve({
+  hostname: process.env.PLAYGROUND_BIND ?? "127.0.0.1",  // localhost-only by default; PROD opt-in via env
+  port: PORT,
+  idleTimeout: 120,
+  async fetch(req) { return withSec(await handleRequest(req)); },
   // Without this, an unhandled throw falls to Bun's default error page, whose
   // __bunfallback payload base64-encodes the server SOURCE + stack — an info
   // leak the moment PLAYGROUND_BIND exposes this beyond localhost. Log it
-  // server-side, return a clean JSON 500 with no internals.
+  // server-side, return a clean JSON 500 with no internals (still sec-headered).
   error(err: Error) {
     console.error("[server] unhandled:", err?.message ?? err);
-    return new Response(JSON.stringify({ ok: false, error: "internal error" }), {
+    return withSec(new Response(JSON.stringify({ ok: false, error: "internal error" }), {
       status: 500,
       headers: { "content-type": "application/json" },
-    });
+    }));
   },
 });
 
