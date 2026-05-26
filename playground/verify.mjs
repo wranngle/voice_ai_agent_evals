@@ -320,6 +320,23 @@ await step("Static MIME: every public/ extension has a CT entry (no octet-stream
   return `${exts.size} extensions, all proper MIME`;
 });
 
+await step("Scribe token fetch is lazy — no fetch on Hooks-view mount", async () => {
+  // ScribePanel used to fetch a single-use token in a mount-time useEffect;
+  // the JSONL log showed ~165× more scribe.tokenFetched events than scribe.connect.
+  // The token is now fetched only on the connect click. Compare event counts
+  // before/after Hooks navigation — must not increase. (Counts pre-navigation
+  // can be non-zero from SpeechInputDemo's vendored getToken in the Components
+  // rail, which is a separate, upstream-driven flow not in scope here.)
+  const countTokens = () => page.evaluate(() => ((document.querySelector(".term-b")?.innerText || "").match(/scribe\.tokenFetched/g) || []).length);
+  const before = await countTokens();
+  await page.locator(".nav-item", { hasText: "Hooks (React)" }).first().click();
+  await page.waitForSelector("#hooks-scribe-connect", { timeout: 10000 });
+  await page.waitForTimeout(1500); // settle: any eager mount fetch would have fired
+  const after = await countTokens();
+  if (after > before) throw new Error(`Scribe fetched a single-use token on Hooks mount: ${before}→${after}`);
+  return `no new tokenFetched on Hooks mount (count stable at ${after})`;
+});
+
 // Resolve any in-flight console-arg lookups before tearing down the context.
 await Promise.all(pendingConsole);
 await browser.close();

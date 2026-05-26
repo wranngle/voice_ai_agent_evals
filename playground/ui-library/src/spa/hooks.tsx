@@ -87,9 +87,12 @@ function ScribePanel() {
   const [token, setToken] = useState<string>("")
   const [transcript, setTranscript] = useState<string>("")
   const armed = useRef(false)
-  useEffect(() => {
-    fetch("/api/scribe-token").then((r) => r.json()).then((d) => { setToken(d.token || ""); emit("scribe.tokenFetched", { has: !!d.token }) }).catch((e) => emit("scribe.tokenError", { msg: e?.message }))
-  }, [])
+  // Lazy connect: a single-use token + s.connect() are fetched on button click,
+  // not on mount. Previously, every Hooks-view load burned a fresh token even
+  // if the user never connected — log showed ~165× more tokenFetched events
+  // than scribe.connect events. The wantConnect ref drives a useEffect that
+  // fires s.connect() once the new token has flowed through useScribe's prop.
+  const wantConnect = useRef(false)
   const s = useScribe({
     token,
     modelId: "scribe_v1",
@@ -104,22 +107,38 @@ function ScribePanel() {
     onCommittedTranscript: ({ text }) => { if (text) setTranscript((t) => (t + " " + text).slice(-400)) },
     onPartialTranscript: ({ text }) => emit("scribe.partial", { len: text?.length || 0 }),
   })
-  const connect = async () => {
-    if (armed.current) return
+  // Once the token arrives in response to a connect click, call s.connect().
+  // Two-step is required because useScribe captures `token` via prop, so we
+  // need a render with the new token to flow before connect can use it.
+  useEffect(() => {
+    if (!wantConnect.current || !token || armed.current) return
     armed.current = true
-    try { await s.connect() }
-    catch (e: unknown) {
-      // Reset the guard so retry is possible without a full page reload
-      // (mic permission denial, transient token/network failures).
+    wantConnect.current = false
+    s.connect().catch((e: unknown) => {
       armed.current = false
+      setToken("")
       emit("scribe.error", { msg: (e as Error)?.message || String(e) })
+    })
+  }, [token, s])
+  const connect = async () => {
+    if (armed.current || wantConnect.current) return
+    wantConnect.current = true
+    try {
+      const r = await fetch("/api/scribe-token")
+      const d = await r.json()
+      emit("scribe.tokenFetched", { has: !!d.token })
+      if (!d.token) throw new Error("no token from /api/scribe-token")
+      setToken(d.token)
+    } catch (e: unknown) {
+      wantConnect.current = false
+      emit("scribe.tokenError", { msg: (e as Error)?.message || String(e) })
     }
   }
   return (
     <div id="hooks-scribe" style={{ marginTop: 14 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
         <span id="hooks-scribe-status" className="state-pill"><span className="dot" /> scribe: {s.status ?? "idle"}</span>
-        <button id="hooks-scribe-connect" className="btn btn-sm" onClick={connect} disabled={!token}>connect</button>
+        <button id="hooks-scribe-connect" className="btn btn-sm" onClick={connect}>connect</button>
       </div>
       {transcript && <div style={{ font: "400 12px var(--sans)", color: "var(--text-dim)", padding: 10, background: "#04060a", borderRadius: 8, minHeight: 40 }}>{transcript}</div>}
     </div>
