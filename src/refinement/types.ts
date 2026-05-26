@@ -185,4 +185,6 @@ export type RefineOptions = {
   agent_id?: string;
   /** Inject a pre-built VoiceEvalsClient (mostly for tests; the orchestrator constructs one from env when omitted). */
   client?: unknown;
+  /** Optional LlmCompleteCallback for rubric_judge detectors. When omitted, rubric modes are skipped (offline-safe). */
+  llm?: unknown;
 };

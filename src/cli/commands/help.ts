@@ -59,6 +59,11 @@ PRIMARY COMMANDS
                   ELEVENLABS_API_KEY.
       --mock      Force mock mode even with --agent-id (deterministic
                   fixtures for demos / CI).
+      --no-llm    Skip the LLM rubric judge. By default, when an LLM CLI
+                  (llm.sh / LLM_SH) or GEMINI_API_KEY is available, the
+                  rubric_judge failure modes (medical/legal advice, menu
+                  hallucination, etc.) run through it; --no-llm keeps the
+                  run deterministic + offline.
 
   ceo-demo [agent-id] [--scenarios N] [--concurrency N]
       The central-promise eval: N scenarios × 5 canonical personas against
