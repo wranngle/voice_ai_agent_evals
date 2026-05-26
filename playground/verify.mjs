@@ -21,19 +21,32 @@ const step = async (name, fn) => {
 const browser = await chromium.launch({ headless: true, args: ["--no-sandbox", "--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream"] });
 const ctx = await browser.newContext({ permissions: ["microphone"], viewport: { width: 1366, height: 900 } });
 const page = await ctx.newPage();
-// React dev-mode warnings come through console.error prefixed "Warning:" — that's
-// development noise from the vendored elevenlabs/ui demos (NaN SVG attrs, ref
-// forwarding, non-boolean DOM attrs). They aren't runtime failures; filter them
-// out so real product errors still fail the run, but the upstream chatter doesn't.
+// Known vendored elevenlabs/ui dev-warnings — enumerated EXPLICITLY rather than
+// blanket-swallowing every "Warning:" line, so a new React warning from our own
+// code still fails the run. (The old `startsWith("Warning:")` swallow hid a real
+// styled-jsx bug where scoped <style jsx> never applied.) React passes the
+// attribute/component name as printf %s args, not in m.text(), so resolve args.
+const VENDOR_WARNINGS = [
+  // Radix <Button asChild> wraps a function component that doesn't forwardRef.
+  (s) => /Function components cannot be given refs/.test(s),
+  // elevenlabs/ui SpeechInput passes inert={true}; React 18 treats `inert` as a
+  // non-boolean DOM attr. The button still renders inert correctly — cosmetic.
+  (s) => /non-boolean attribute/.test(s) && /\binert\b/.test(s),
+];
+const pendingConsole = [];
 page.on("console", (m) => {
   if (m.type() !== "error") return;
-  const t = m.text();
-  if (t.startsWith("Warning:")) return;
-  // React auto-logs "The above error occurred in the <X> component" alongside
-  // an error caught by an error boundary. When the underlying cause is the
-  // known r3f Provider race, this companion is also noise.
-  if (/^The above error occurred in the .*Provider.* component/.test(t)) return;
-  errors.push("console: " + t);
+  pendingConsole.push(
+    Promise.all(m.args().map((a) => a.jsonValue().catch(() => "")))
+      .then((args) => {
+        const full = args.map((a) => (typeof a === "string" ? a : JSON.stringify(a))).join(" ");
+        if (full.startsWith("Warning:") && VENDOR_WARNINGS.some((re) => re(full))) return;
+        // r3f's Canvas Provider error-boundary companion line is also noise.
+        if (/^The above error occurred in the .*Provider.* component/.test(full)) return;
+        errors.push("console: " + m.text());
+      })
+      .catch(() => {})
+  );
 });
 // @react-three/fiber's internal Canvas Provider intermittently throws
 // "Cannot read properties of null (reading 'addEventListener')" when the 8
@@ -231,6 +244,8 @@ await step("DEV-guarded widget PATCH round-trip — real ElevenLabs API", async 
   return `GET → PATCH btn_color=${sentinel} → verified → restored ${priorBtn}`;
 });
 
+// Resolve any in-flight console-arg lookups before tearing down the context.
+await Promise.all(pendingConsole);
 await browser.close();
 
 // ---- report ----

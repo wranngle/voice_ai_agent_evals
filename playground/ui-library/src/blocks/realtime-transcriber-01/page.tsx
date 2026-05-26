@@ -544,7 +544,9 @@ export default function RealtimeTranscriber01() {
         isConnected={connectionState === "connected"}
       />
 
-      <style jsx>{`
+      {/* Plain <style> — keyframes are global anyway, and this app's bundler has
+          no styled-jsx transform (`<style jsx>` would leak a `jsx` DOM attr). */}
+      <style dangerouslySetInnerHTML={{ __html: `
         @keyframes shimmer {
           0% {
             transform: translateX(-20%) scale(1);
@@ -574,7 +576,7 @@ export default function RealtimeTranscriber01() {
             transform: translateY(-5%) scale(1.02);
           }
         }
-      `}</style>
+      ` }} />
 
       <div className="relative flex h-full w-full flex-col items-center justify-center gap-8 overflow-hidden px-8 py-12">
         {/* Main transcript area */}

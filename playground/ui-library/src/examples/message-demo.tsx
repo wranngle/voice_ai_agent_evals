@@ -115,7 +115,9 @@ const Example = () => {
 
   return (
     <>
-      <style jsx global>{`
+      {/* Plain global <style> — this app's bundler has no styled-jsx transform,
+          so `<style jsx>` would leak a `jsx` DOM attribute and not apply. */}
+      <style dangerouslySetInnerHTML={{ __html: `
         .message-demo-lists ol,
         .message-demo-lists ul {
           padding-left: 1.25rem !important;
@@ -123,7 +125,7 @@ const Example = () => {
         .message-demo-lists li {
           margin-left: 0 !important;
         }
-      `}</style>
+      ` }} />
       <div className="flex h-full max-h-[400px] w-full max-w-2xl flex-col overflow-hidden">
         <div className="flex flex-col gap-4 overflow-y-auto px-4 py-4">
           <div className="flex-shrink-0">
