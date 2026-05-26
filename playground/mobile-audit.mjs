@@ -35,7 +35,7 @@ for (const vp of VIEWPORTS) {
     const errs = []
     page.on("pageerror", (e) => {
       if (/Cannot read properties of null \(reading 'addEventListener'\)/.test(e.message)) return
-      errs.push(e.message)
+      errs.push({ message: e.message, stack: e.stack })
     })
     await page.addInitScript((v) => { try { localStorage.setItem("console.view", v) } catch {} }, view)
     await page.goto(BASE, { waitUntil: "networkidle", timeout: 30000 })
@@ -63,7 +63,7 @@ for (const vp of VIEWPORTS) {
     }, vp.w <= 760)
     const file = `mobile/${vp.name}-${view}.png`
     await page.screenshot({ path: "playground/audit/" + file, fullPage: false })
-    findings.push({ vp: vp.name, w: vp.w, view, ...m, errs: errs.length })
+    findings.push({ vp: vp.name, w: vp.w, view, ...m, errs })
     await ctx.close()
   }
 }
@@ -110,12 +110,18 @@ console.log("\n══ mobile audit ══")
 for (const f of findings) {
   const scroll = f.hasHScroll ? `❌ ${f.docW}px content / ${f.viewportW}px viewport` : "✓"
   const stack = f.crushed ? `  ❌ split-grid not stacked: ${f.crushed}` : ""
-  console.log(`  ${f.vp.padEnd(8)} ${String(f.w + "px").padEnd(7)} ${f.view.padEnd(10)} h-scroll: ${scroll}  pageerrors: ${f.errs}${stack}`)
+  console.log(`  ${f.vp.padEnd(8)} ${String(f.w + "px").padEnd(7)} ${f.view.padEnd(10)} h-scroll: ${scroll}  pageerrors: ${f.errs.length}${stack}`)
+  // Surface actual pageerror messages + stacks — without this the summary used
+  // to show "pageerrors: 3" with zero clue what failed. Sibling of #79/#81/#83.
+  for (const e of f.errs) {
+    console.log(`      ! ${e.message}`)
+    if (e.stack) console.log(e.stack.split("\n").slice(0, 4).map((l) => "        " + l).join("\n"))
+  }
 }
 console.log("\n══ viewbar navigation (phone) ══")
 if (navProblems.length === 0) console.log("  ✓ viewbar visible; all 4 buttons switch views")
 else navProblems.forEach((p) => console.log(`  ❌ ${p}`))
 
-const broken = findings.filter((f) => f.hasHScroll || f.errs > 0 || f.crushed).length + navProblems.length
+const broken = findings.filter((f) => f.hasHScroll || f.errs.length > 0 || f.crushed).length + navProblems.length
 console.log(`\n${broken === 0 ? "✅ all viewports clean" : "❌ " + broken + " stop(s) flagged"}\n`)
 process.exit(broken === 0 ? 0 : 1)
