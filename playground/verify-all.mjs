@@ -4,32 +4,43 @@
 import { spawnSync } from "node:child_process"
 import { existsSync, statSync, readFileSync } from "node:fs"
 
-// Doctrine-drift guard: verify.mjs's step count is the source of truth, but it's
-// also claimed in prose across README / AUDIT / FEATURE-MATRIX and in this file's
-// own step labels. They drifted to 9/11/12 once. Derive the real count from the
-// step() invocations and fail the gate if any doc disagrees, so the number can
-// only be wrong in one place at a time (here) instead of silently rotting.
-const REAL_STEPS = (readFileSync("playground/verify.mjs", "utf8").match(/^\s*(?:await\s+)?step\(/gm) || []).length
-const driftSources = [
-  ["playground/README.md", /verify\.mjs[^\n]*?\((\d+)\s*steps?/i, /verify\b[^\n]*?(\d+)\s*\/\s*\d+\s*verify/i],
-  ["playground/AUDIT.md", /verify\.mjs\s+(\d+)\s*\/\s*\d+/i],
-  ["playground/FEATURE-MATRIX.md", /verify\.mjs[^\n]*?passes\s+(\d+)\s*\/\s*\d+/i],
-  ["playground/verify-all.mjs", /verify\.mjs[^\n]*?(\d+)\s*steps?/i],
-  // Workflow comment was the one place this guard missed — its stale "12/12
-  // verify" ref slipped past every count bump from PR #41 onward until the
-  // PR that landed this line. Treat the CI workflow as a first-class source.
-  [".github/workflows/playground-verify.yml", /(\d+)\s*\/\s*\d+\s*verify\b/i],
+// Doctrine-drift guard: every test-suite count (verify steps, live-probe count)
+// is restated in prose across README / AUDIT / FEATURE-MATRIX / verify-all /
+// the CI workflow. Derive each real count from the source-of-truth file and
+// fail the gate if any doc disagrees — the number can only be wrong in one
+// place at a time (the source-of-truth file) instead of silently rotting.
+const stepCount = (file) => (readFileSync(file, "utf8").match(/^\s*(?:await\s+)?step\(/gm) || []).length
+const REAL_STEPS = stepCount("playground/verify.mjs")
+const REAL_PROBES = stepCount("playground/live-probe.mjs")
+const driftGuards = [
+  // [label, sourceFile (truth), realCount, [file, ...patterns]...]
+  ["verify steps", REAL_STEPS, [
+    ["playground/README.md", /verify\.mjs[^\n]*?\((\d+)\s*steps?/i, /verify\b[^\n]*?(\d+)\s*\/\s*\d+\s*verify/i],
+    ["playground/AUDIT.md", /verify\.mjs\s+(\d+)\s*\/\s*\d+/i],
+    ["playground/FEATURE-MATRIX.md", /verify\.mjs[^\n]*?passes\s+(\d+)\s*\/\s*\d+/i],
+    ["playground/verify-all.mjs", /verify\.mjs[^\n]*?(\d+)\s*steps?/i],
+    [".github/workflows/playground-verify.yml", /(\d+)\s*\/\s*\d+\s*verify\b/i],
+  ]],
+  ["live probes", REAL_PROBES, [
+    ["playground/README.md", /(\d+)\s*live\s*capabilit/i, /(\d+)\s*\/\s*\d+\s*live-probe/i],
+    ["playground/AUDIT.md", /live-probe\.mjs\s+(\d+)\s*\/\s*\d+/i],
+    ["playground/FEATURE-MATRIX.md", /live-probe\.mjs[^\n]*?passes\s*\*+(\d+)\s*\/\s*\d+/i],
+    ["playground/verify-all.mjs", /(\d+)\s*live\s*capabilit/i],
+    [".github/workflows/playground-verify.yml", /(\d+)\s*\/\s*\d+\s*live\s*probes?/i],
+  ]],
 ]
 const drifts = []
-for (const [file, ...pats] of driftSources) {
-  const txt = readFileSync(file, "utf8")
-  for (const pat of pats) {
-    const hit = txt.match(pat)
-    if (hit && Number(hit[1]) !== REAL_STEPS) drifts.push(`${file}: claims ${hit[1]}, verify.mjs has ${REAL_STEPS}`)
+for (const [label, real, sources] of driftGuards) {
+  for (const [file, ...pats] of sources) {
+    const txt = readFileSync(file, "utf8")
+    for (const pat of pats) {
+      const hit = txt.match(pat)
+      if (hit && Number(hit[1]) !== real) drifts.push(`${file} [${label}]: claims ${hit[1]}, source has ${real}`)
+    }
   }
 }
 if (drifts.length) {
-  console.error(`\n❌ verify step-count drift (source of truth = ${REAL_STEPS}):\n  ${drifts.join("\n  ")}\n`)
+  console.error(`\n❌ doctrine-drift (verify=${REAL_STEPS}, probes=${REAL_PROBES}):\n  ${drifts.join("\n  ")}\n`)
   process.exit(1)
 }
 
