@@ -115,6 +115,12 @@ function App() {
       </aside>
 
       <main className="main" aria-label="Current view">
+        {/* Compact view switcher for narrow viewports where the sidebar is hidden. */}
+        <nav className="viewbar" aria-label="View switcher (compact)">
+          <button className={view === "showcase" ? "active" : ""} onClick={() => go("showcase")}>Showcase</button>
+          <button className={view === "console" ? "active" : ""} onClick={() => go("console")}>Control plane</button>
+          <button className={view === "hooks" ? "active" : ""} onClick={() => go("hooks")}>Hooks</button>
+        </nav>
         <div className="view">
           {view === "showcase" && (
             <>

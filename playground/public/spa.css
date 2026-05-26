@@ -50,6 +50,13 @@ code, pre, .mono { font-family: var(--mono); }
 }
 .app.term-collapsed { grid-template-rows: 1fr 34px; }
 
+/* Compact in-main view switcher; shown only where the sidebar collapses. */
+.viewbar { display: none; gap: 4px; padding: 12px 14px 0; flex-wrap: wrap; }
+.viewbar button { font: 500 12px var(--sans); color: var(--text-dim); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 7px 13px; cursor: pointer; transition: 0.15s; }
+.viewbar button:hover { color: var(--text); border-color: var(--line-2); }
+.viewbar button.active { color: var(--text); background: var(--surface-2); border-color: var(--brand-accent); }
+@media (max-width: 920px) { .viewbar { display: flex; } }
+
 /* ─── Sidebar ─── */
 .side {
   grid-area: side;
