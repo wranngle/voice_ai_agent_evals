@@ -114,9 +114,10 @@ await step("Showcase boots cleanly: JSONL terminal has console.boot", async () =
 await step("Capability deep-link: 'Text chat' opens Control plane in-page with mode=text", async () => {
   await fresh();
   await page.waitForSelector("button.deeplink", { timeout: 10000 });
-  // 'Text chat' is one of the capability tiles; the deeplink lives in its Tile footer.
+  // Each capability tile now has two .deeplink buttons (Hear sample, Open live);
+  // target Open live explicitly so the test doesn't accidentally play audio.
   const tile = page.locator(".card", { hasText: "Text chat" }).first();
-  await tile.locator("button.deeplink").click();
+  await tile.locator("button.deeplink", { hasText: /Open live/ }).click();
   await page.waitForSelector(".view-head", { timeout: 5000 });
   await page.waitForTimeout(800);
   const head = await page.locator(".view-head .title").first().innerText();
