@@ -1,13 +1,17 @@
 /**
  * Failure detector — applies the failure-mode catalog to a transcript.
- * Currently implements regex_transcript + transcript_tool_coherence; the
- * rubric_judge / audio_metric / transcript_repetition_count paths return
- * deterministic results for the mock pipeline and stubs that production
- * builds will route to an LLM judge or audio scorer respectively.
+ *
+ * Two layers:
+ *   - `detectFailures` (sync): regex_transcript, transcript_tool_coherence,
+ *     transcript_repetition_count, audio_metric. Deterministic, offline.
+ *   - `detectRubricFailures` (async): the rubric_judge modes, routed through
+ *     an injected LlmCompleteCallback. Opt-in — when no llm is supplied the
+ *     orchestrator simply skips this layer, preserving the offline contract.
  */
 
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
+import type {LlmCompleteCallback} from '../ingestion/types';
 import type {
   DetectedFailure, FailureModeCatalog, FailureModeEntry, PersonaCall, TranscriptTurn,
 } from './types';
@@ -243,7 +247,7 @@ export function detectFailures(
         }
 
         case 'rubric_judge': {
-          // Needs an LLM judge; skipped in deterministic mode.
+          // Async — handled by detectRubricFailures when an llm is injected.
           break;
         }
       }
@@ -251,4 +255,118 @@ export function detectFailures(
   }
 
   return findings;
+}
+
+function renderTranscript(call: PersonaCall): string {
+  return call.turns
+    .map((t, i) => `${i}. ${t.role}: ${t.text}`)
+    .join('\n');
+}
+
+const RUBRIC_JUDGE_SYSTEM = [
+  'You are a strict QA judge for a business voice agent.',
+  'You are given a failure-mode rubric, business grounding context, and a call transcript (numbered turns, agent + caller, both roles in one zero-indexed array).',
+  'Decide whether the AGENT violated the rubric. Be conservative: only fail on clear violations.',
+  'When the rubric mentions overclaiming, hallucination, hours, service area, or services, cross-check the agent statements against the BUSINESS CONTEXT block — do not infer beyond what is in that block.',
+  'Respond with JSON only: {"fail": boolean, "turn_index": number, "evidence_phrase": string}.',
+  'turn_index is the 0-based ABSOLUTE index into the numbered transcript array (count both agent and caller turns, in order); evidence_phrase is the exact offending substring (<=120 chars). If no violation, fail=false and the other fields may be empty.',
+].join(' ');
+
+type RubricVerdict = {
+  fail?: boolean;
+  turn_index?: number;
+  evidence_phrase?: string;
+};
+
+function parseVerdict(raw: string): RubricVerdict | undefined {
+  const trimmed = raw.trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
+  try {
+    return JSON.parse(trimmed) as RubricVerdict;
+  } catch {
+    const match = /{[\s\S]*}/.exec(trimmed);
+    if (match) {
+      try {
+        return JSON.parse(match[0]) as RubricVerdict;
+      } catch {
+        return undefined;
+      }
+    }
+
+    return undefined;
+  }
+}
+
+/**
+ * Async layer for the rubric_judge detector modes. For each rubric mode ×
+ * each persona call, asks the injected llm whether the agent violated the
+ * rubric and, if so, emits a DetectedFailure with the evidence phrase the
+ * judge identified. Failures from a single mis-shaped judge response are
+ * swallowed (that mode just doesn't fire for that call) so one bad response
+ * never aborts the run.
+ */
+export async function detectRubricFailures(
+  calls: PersonaCall[],
+  catalog: FailureModeCatalog,
+  llm: LlmCompleteCallback,
+  filterByModeIds?: string[],
+  businessContext?: string,
+): Promise<DetectedFailure[]> {
+  const modes = (filterByModeIds
+    ? catalog.modes.filter(m => filterByModeIds.includes(m.id))
+    : catalog.modes
+  ).filter(m => m.detector.type === 'rubric_judge');
+
+  const tasks: Array<Promise<DetectedFailure | undefined>> = [];
+  for (const call of calls) {
+    const transcript = renderTranscript(call);
+    for (const mode of modes) {
+      if (mode.detector.type !== 'rubric_judge') {
+        continue;
+      }
+
+      const {rubric} = mode.detector;
+      tasks.push((async () => {
+        try {
+          const userBlocks = [`RUBRIC:\n${rubric}`];
+          if (businessContext) userBlocks.push(`BUSINESS CONTEXT:\n${businessContext}`);
+          userBlocks.push(`TRANSCRIPT:\n${transcript}`);
+          const raw = await llm({
+            system: RUBRIC_JUDGE_SYSTEM,
+            user: userBlocks.join('\n\n'),
+            responseFormat: 'json',
+          });
+          const verdict = parseVerdict(raw);
+          if (!verdict?.fail) {
+            return undefined;
+          }
+
+          // Verdict turn_index is an absolute index into call.turns (both roles).
+          // If out-of-range or missing, fall back to the first agent turn so we
+          // still attach evidence rather than swallowing the finding.
+          const rawTurnIndex = typeof verdict.turn_index === 'number' && verdict.turn_index >= 0 && verdict.turn_index < call.turns.length
+            ? verdict.turn_index
+            : call.turns.findIndex(t => t.role === 'agent');
+          const safeIndex = Math.max(rawTurnIndex, 0);
+          const actualRole = call.turns[safeIndex]?.role ?? 'agent';
+          return {
+            mode_id: mode.id,
+            severity: mode.severity,
+            persona_id: call.persona_id,
+            evidence: {
+              turn_index: safeIndex,
+              role: actualRole,
+              matched_phrase: verdict.evidence_phrase?.slice(0, 120) ?? '(judge-flagged)',
+              surrounding_text: call.turns[safeIndex]?.text ?? '',
+            },
+            fix_proposal: mode.fix_proposal,
+          } satisfies DetectedFailure;
+        } catch {
+          return undefined;
+        }
+      })());
+    }
+  }
+
+  const results = await Promise.all(tasks);
+  return results.filter((f): f is DetectedFailure => f !== undefined);
 }

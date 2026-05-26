@@ -46,6 +46,14 @@ voice-evals refine --mock --business-name "Riverside Heating & Cooling"
 
 In ~30 seconds it enriches the business, picks one of four shipped vertical templates (HVAC, dental, restaurant, legal), exercises the 5 canonical personas, applies the failure-mode catalog ([`config/failure-mode-catalog.json`](config/failure-mode-catalog.json), 21 modes across the ElevenLabs configuration surface), proposes plain-language fixes, scores before/after, and writes a session bundle under `proof/sessions/<id>/` — including a one-page compliance HTML (prints to PDF) and a re-runnable regression suite.
 
+**Detection has two layers.** Deterministic detectors (regex / tool-coherence / audio-metric) run offline with zero credentials. The `rubric_judge` modes — the semantic ones regex can't catch, like medical/legal advice emission, severity assessment, or menu hallucination — route through an `LlmCompleteCallback`. The CLI auto-wires one from an LLM CLI on PATH (`llm.sh` / `LLM_SH`) or `GEMINI_API_KEY`; pass `--no-llm` to stay deterministic. SDK consumers inject their own.
+
+**Live mode** (`--agent-id <id>`, needs `ELEVENLABS_API_KEY`) simulates each persona against a real agent via `simulateConversation`, then runs the same detector/diff/scoring pipeline on the returned transcripts.
+
+```bash
+voice-evals refine --agent-id agent_xxxx           # live, against your DEV agent
+```
+
 Open [`proof/refine.html`](proof/refine.html) to watch a run unfold (timeline · enrichment · personas with inline defect highlights · fix proposals · scoreboard · regression suite · compliance artifact). Four sessions ship seeded; arrow-key through them via the sidebar.
 
 ## Quickstart

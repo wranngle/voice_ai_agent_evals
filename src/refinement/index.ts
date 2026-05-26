@@ -5,8 +5,9 @@
 
 export {renderComplianceArtifact} from './compliance';
 export {enrich, enrichFromAgentPrompt} from './enrich';
-export {detectFailures, loadCatalog} from './failure-detector';
+export {detectFailures, detectRubricFailures, loadCatalog} from './failure-detector';
 export {inferBusinessContextFromAgent, runLivePersonaCalls} from './live-adapter';
+export {createCliLlm, createGeminiLlm, resolveDefaultJudgeLlm} from './llm-provider';
 export {runRefinement} from './orchestrator';
 export {CANONICAL_PERSONA_IDS, getPersonaCalls} from './persona-fixtures';
 export {buildPromptDiffs} from './prompt-diff';
