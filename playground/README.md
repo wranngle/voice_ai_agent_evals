@@ -36,7 +36,7 @@ playground/
   AUDIT.md                   honest fidelity audit with screenshot evidence
   verify.mjs                 Playwright e2e (11 steps, fails on any console error)
   live-probe.mjs             7 live capability probes (voice/signed-url/override-effect/...)
-  verify-all.mjs             single command: verify.mjs + live-probe.mjs = 18 assertions
+  verify-all.mjs             single command: verify + live-probe + a11y + mobile audits
   public/                    static: gallery.html (the page) + spa.css + textures/ + bundled .js; retained legacy .html
   audit/                     screenshots (verify/01-10, audit/A-Z)
   ui-library/src/            upstream elevenlabs/ui registry, vendored
@@ -88,7 +88,7 @@ Last green: `verify-all.mjs` 11/11 verify + 7/7 live-probe + 0 a11y violations a
 
 - **Add a new control-plane knob** → add it to `ui-library/src/spa/control-plane.tsx` (a `TOGGLES` entry for a boolean attribute, or a field + `attrs` mapping for a value). The live `<elevenlabs-convai>` remounts on change.
 - **Add a new component to the Showcase** → import its demo in `ui-library/src/spa/showcase.tsx` and add it to the `COMPONENTS` list (set `contain: true` if its root is `position:absolute`). Bun build picks it up.
-- **Add a new block** → drop the upstream `page.tsx` in `ui-library/src/blocks/<name>/`, run the same path-rewrites, register in `blocks-main.tsx`. If it has `"use server"` actions, write a client shim that hits the proxy.
+- **Add a new block** → drop the upstream `page.tsx` in `ui-library/src/blocks/<name>/`, run the same path-rewrites, then import it and add a `BLOCKS` entry in `ui-library/src/spa/blocks.tsx`. If it has `"use server"` actions, write a client shim that hits the proxy.
 
 Build: the server **builds the SPA bundle from source on startup** (`Bun.build` in `server.ts`), so `bun playground` always serves current `ui-library/src/`. The artifact `public/ui-library/gallery-main.js` is gitignored — never committed, never stale. To build it manually (e.g. for static hosting): `bun build playground/ui-library/src/gallery-main.tsx --outdir playground/public/ui-library --target browser --format esm --define process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID='"agent_..."'`.
 
