@@ -221,6 +221,18 @@ The template pins `@wranngle/voice-evals@v1` (major-tag pinned), runs on every P
 - **`tests/scenarios/`** — runnable scenario fixtures (transcript + scenario.yaml). `_template/` is the canonical schema; copy and edit.
 - **`tests/runs/`** — hand-authored synthetic result.json examples for a passing and a failing run, with a postmortem `NOTE.md` alongside the failing example to document the failure-mode reasoning; live CLI runs persist normalized results under `.test-data/`.
 - **`docs/`** — methodology, tool calling, webhook security, contributor walkthrough, model-update playbook
+- **`playground/`** — Bun-served single-page ElevenLabs widget + UI showcase (see below)
+
+## Playground — live ElevenLabs UI showcase
+
+Standalone single-page console at `playground/` that demos every `<elevenlabs-convai>` knob, the native UI components, the `@elevenlabs/react` hooks, and 11 upstream reference blocks against a real `[DEV]` showcase agent. Live PATCH round-trip through the governance guard, real Scribe / WebRTC / signed-url, API key never reaches the browser.
+
+```console
+$ bun playground          # http://localhost:4321
+$ bun playground:verify   # 18/18 e2e + 7/7 live-probe + a11y (4 views) + mobile
+```
+
+See [`playground/README.md`](playground/README.md) for the capability map and [`playground/AUDIT.md`](playground/AUDIT.md) for the per-capability evidence table.
 
 ## v1.0 phase tracker
 
