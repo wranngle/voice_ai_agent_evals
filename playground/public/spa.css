@@ -57,6 +57,11 @@ code, pre, .mono { font-family: var(--mono); }
 .viewbar button.active { color: var(--text); background: var(--surface-2); border-color: var(--brand-accent); }
 @media (max-width: 920px) { .viewbar { display: flex; } }
 
+/* Reference apps: side-by-side switcher + block pane on wide screens; stack
+   vertically below 760px so the block pane isn't squeezed to a clipped sliver. */
+.blocks-grid { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 760px) { .blocks-grid { grid-template-columns: 1fr; } }
+
 /* ─── Sidebar ─── */
 .side {
   grid-area: side;
