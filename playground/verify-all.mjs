@@ -15,6 +15,10 @@ const driftSources = [
   ["playground/AUDIT.md", /verify\.mjs\s+(\d+)\s*\/\s*\d+/i],
   ["playground/FEATURE-MATRIX.md", /verify\.mjs[^\n]*?passes\s+(\d+)\s*\/\s*\d+/i],
   ["playground/verify-all.mjs", /verify\.mjs[^\n]*?(\d+)\s*steps?/i],
+  // Workflow comment was the one place this guard missed — its stale "12/12
+  // verify" ref slipped past every count bump from PR #41 onward until the
+  // PR that landed this line. Treat the CI workflow as a first-class source.
+  [".github/workflows/playground-verify.yml", /(\d+)\s*\/\s*\d+\s*verify\b/i],
 ]
 const drifts = []
 for (const [file, ...pats] of driftSources) {
