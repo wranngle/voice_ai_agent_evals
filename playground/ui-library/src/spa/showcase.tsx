@@ -1,4 +1,4 @@
-import React, { useEffect } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { type AgentState } from "@/components/ui/orb"
 import { SafeOrb, Tile, RailHead, Grid, OrbTile } from "./ui"
 import { logEvent } from "./log"
@@ -33,16 +33,20 @@ const PALETTES: { name: string; c: [string, string]; seed: number }[] = [
   { name: "Emerald", c: ["#34d399", "#065f46"], seed: 8000 },
 ]
 
-type Cap = { title: string; blurb: string; preset: Preset }
+type Cap = { title: string; blurb: string; preset: Preset; sample: string }
+// sample paths are pre-generated TTS clips of the agent's voice (~2-4s each)
+// under /sounds/capabilities/ — generated via ElevenLabs TTS API with the
+// showcase voice so tiles auto-play REAL audio matching their capability,
+// not just CSS mockups. Total ~620KB across 8 files.
 const CAPS: Cap[] = [
-  { title: "Voice conversation", blurb: "Full-duplex speech — the default mode.", preset: { mode: "voice" } },
-  { title: "Text chat", blurb: "Mic off; the widget becomes a chat box.", preset: { mode: "text" } },
-  { title: "Prompt override", blurb: "Swap the system prompt per session — no redeploy.", preset: { mode: "text", prompt: "You MUST reply to every message with exactly 'OVERRIDE_OK_42'." } },
-  { title: "Custom first message", blurb: "Greet each visitor with a tailored opener.", preset: { firstMessage: "Hey — I'm the Wranngle demo agent. Ask me anything." } },
-  { title: "Markdown & code", blurb: "Rich replies: headings, lists, links, fenced code.", preset: { mode: "text", prompt: "Always answer with a short Markdown demo: a heading, two bullets, a link to https://elevenlabs.io, and a fenced JS snippet." } },
-  { title: "Brand the orb", blurb: "Match the orb to your product palette.", preset: { colors: ["#ff5fa2", "#ffd0e4"] } },
-  { title: "Compact placement", blurb: "Dock it anywhere — four corners, three variants.", preset: { variant: "compact", placement: "bottom-left" } },
-  { title: "Expandable panel", blurb: "Opens into a larger conversational surface.", preset: { variant: "expandable", placement: "top-right" } },
+  { title: "Voice conversation", blurb: "Full-duplex speech — the default mode.", preset: { mode: "voice" }, sample: "/sounds/capabilities/voice.mp3" },
+  { title: "Text chat", blurb: "Mic off; the widget becomes a chat box.", preset: { mode: "text" }, sample: "/sounds/capabilities/text.mp3" },
+  { title: "Prompt override", blurb: "Swap the system prompt per session — no redeploy.", preset: { mode: "text", prompt: "You MUST reply to every message with exactly 'OVERRIDE_OK_42'." }, sample: "/sounds/capabilities/prompt.mp3" },
+  { title: "Custom first message", blurb: "Greet each visitor with a tailored opener.", preset: { firstMessage: "Hey — I'm the Wranngle demo agent. Ask me anything." }, sample: "/sounds/capabilities/first-message.mp3" },
+  { title: "Markdown & code", blurb: "Rich replies: headings, lists, links, fenced code.", preset: { mode: "text", prompt: "Always answer with a short Markdown demo: a heading, two bullets, a link to https://elevenlabs.io, and a fenced JS snippet." }, sample: "/sounds/capabilities/markdown.mp3" },
+  { title: "Brand the orb", blurb: "Match the orb to your product palette.", preset: { colors: ["#ff5fa2", "#ffd0e4"] }, sample: "/sounds/capabilities/orb-brand.mp3" },
+  { title: "Compact placement", blurb: "Dock it anywhere — four corners, three variants.", preset: { variant: "compact", placement: "bottom-left" }, sample: "/sounds/capabilities/compact.mp3" },
+  { title: "Expandable panel", blurb: "Opens into a larger conversational surface.", preset: { variant: "expandable", placement: "top-right" }, sample: "/sounds/capabilities/expandable.mp3" },
 ]
 
 const COMPONENTS: [string, React.FC<any>, boolean][] = [
@@ -58,6 +62,34 @@ class Boundary extends React.Component<{ children: React.ReactNode; name: string
   static getDerivedStateFromError(e: Error) { return { err: e?.message || String(e) } }
   componentDidCatch(e: Error) { logEvent("console.error", this.props.name, { err: e?.message }, "error") }
   render() { return this.state.err ? <div style={{ color: "var(--err)", fontSize: 11, padding: "24px 0", textAlign: "center" }}>⚠ {this.state.err}</div> : this.props.children }
+}
+
+// Per-capability tile: blurb + a Hear-it button that plays a real ElevenLabs
+// TTS sample of the agent voice describing the capability, and the deep-link
+// into the live control plane with the preset pre-applied.
+function CapabilityTile({ c, spotlit, onOpen }: { c: Cap; spotlit: boolean; onOpen: (p: Preset, label: string) => void }) {
+  const audioRef = useRef<HTMLAudioElement>(null)
+  const [playing, setPlaying] = useState(false)
+  const toggle = () => {
+    const a = audioRef.current; if (!a) return
+    if (a.paused) {
+      a.currentTime = 0
+      a.play().then(() => { setPlaying(true); logEvent("console.sample", c.title, { src: c.sample }) }).catch((e) => logEvent("console.sample", c.title, { err: e?.message }, "warn"))
+    } else { a.pause(); setPlaying(false) }
+  }
+  return (
+    <div style={spotlit ? { borderRadius: "var(--r)", boxShadow: "0 0 0 1.5px var(--brand-accent)" } : undefined}>
+      <Tile title={c.title} footer={
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+          <button className="deeplink" aria-label={`Play sample for ${c.title}`} onClick={toggle}>{playing ? "■ Stop" : "▶ Hear it"}</button>
+          <button className="deeplink" onClick={() => onOpen(c.preset, c.title)}>Open live →</button>
+        </div>
+      }>
+        <p style={{ color: "var(--text-dim)", fontSize: 12.5, lineHeight: 1.5, margin: 0, alignSelf: "stretch" }}>{c.blurb}</p>
+        <audio ref={audioRef} src={c.sample} preload="none" onEnded={() => setPlaying(false)} />
+      </Tile>
+    </div>
+  )
 }
 
 export function Showcase({ agentState, tick, playing, onOpen }: { agentState: AgentState; tick: number; playing: boolean; onOpen: (p: Preset, label: string) => void }) {
@@ -81,15 +113,9 @@ export function Showcase({ agentState, tick, playing, onOpen }: { agentState: Ag
       <RailHead n="01" title="What it can look like" blurb={`Live orbs, auto-cycling state · ${agentState ?? "idle"}`} />
       <Grid min={158} className="stagger">{PALETTES.map((p) => <OrbTile key={p.name} name={p.name} colors={p.c} seed={p.seed} agentState={agentState} />)}</Grid>
 
-      <RailHead n="02" title="What an agent can do" blurb="Auto-demoing; click any tile to open it live →" />
+      <RailHead n="02" title="What an agent can do" blurb="Click ▶ Hear it for a real audio sample, Open live to talk to the agent →" />
       <Grid min={272} className="stagger">
-        {CAPS.map((c, i) => (
-          <div key={c.title} style={i === spotlight ? { borderRadius: "var(--r)", boxShadow: "0 0 0 1.5px var(--brand-accent)" } : undefined}>
-            <Tile title={c.title} footer={<button className="deeplink" onClick={() => onOpen(c.preset, c.title)}>▶ Open live →</button>}>
-              <p style={{ color: "var(--text-dim)", fontSize: 12.5, lineHeight: 1.5, margin: 0, alignSelf: "stretch" }}>{c.blurb}</p>
-            </Tile>
-          </div>
-        ))}
+        {CAPS.map((c, i) => <CapabilityTile key={c.title} c={c} spotlit={i === spotlight} onOpen={onOpen} />)}
       </Grid>
 
       <RailHead n="03" title="What the UI components can do" blurb={`${COMPONENTS.length} native components from ui.elevenlabs.io, mounted live`} />
