@@ -1,7 +1,7 @@
-// Central-promise e2e for the one-page Agent Console: load /, prove both
-// in-page views (Showcase + Control plane) work end-to-end, drive a real
-// <elevenlabs-convai> in the control plane, and exit non-zero on any console
-// or page error. Run with the playground server up on :4321.
+// Central-promise e2e for the one-page Agent Console: load /, prove the
+// Showcase, Control plane, and Hooks in-page views work end-to-end, drive a
+// real <elevenlabs-convai> in the control plane, and exit non-zero on any
+// console or page error. Run with the playground server up on :4321.
 //   bun run playground/verify.mjs
 import { chromium } from "playwright";
 import { mkdirSync, readdirSync, statSync } from "node:fs";
