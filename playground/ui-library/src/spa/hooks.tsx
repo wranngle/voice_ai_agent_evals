@@ -140,7 +140,7 @@ function ScribePanel() {
       setToken(d.token)
     } catch (e: unknown) {
       wantConnect.current = false
-      emit("scribe.tokenError", { msg: (e as Error)?.message || String(e) })
+      emit("scribe.tokenError", errFields(e))
     }
   }
   return (
