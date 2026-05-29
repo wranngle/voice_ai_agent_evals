@@ -6,10 +6,17 @@
  * scorers (WAV parse + RMS envelope + barge-in detection) — the marquee
  * differentiator vs. text-only voice-eval incumbents.
  *
- * Subsequent phases add: latency.ts (rolling p95), transcript.ts (tone /
- * tool-call axes), judges/{g-eval, arena, dag, rubric, lynx}, and the
- * migration from src/testing/runners/scenario-runner.ts onto these
- * primitives.
+ * Shipped surface (post-v1.1):
+ *   - judges/{g-eval, arena, dag, lynx}                   — 4 LLM-as-judge implementations
+ *   - dialog.ts                                            — scoreContainmentRate, scoreNotEarlyTermination
+ *   - rubrics.ts                                           — 7 canonical rubric prompts
+ *   - audio.ts                                             — 6 audio metrics (VAD, barge-in, SNR, pitch, WPM, AI-interrupt)
+ *
+ * Still deferred (per FEATURE-MAP § "Known Gaps"):
+ *   - latency.ts (rolling p95 module) — latency budgets are currently
+ *     enforced inline by src/testing/runners/scenario-runner.ts
+ *   - transcript.ts (standalone tone scorer) — tone is currently scored
+ *     inline in the scenario runner as `tone_judge`
  */
 
 export type {
