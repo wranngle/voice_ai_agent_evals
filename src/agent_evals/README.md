@@ -10,7 +10,7 @@ From the project root:
 bun install
 bun run test:offline                                    # all offline test suites incl. agent_evals
 bun run vitest run --project agent_evals                # just this package's tests
-bun run lib/agent_evals/runtime/cli.ts <fixture-path>   # run the evaluator end-to-end
+bun run src/agent_evals/runtime/cli.ts <fixture-path>   # run the evaluator end-to-end
 ```
 
 Tests include contract validation for ElevenLabs-style webhook events using synthetic fixtures (`fixtures/webhook-events.json`).
@@ -18,7 +18,7 @@ Tests include contract validation for ElevenLabs-style webhook events using synt
 ## Layout
 
 ```
-lib/agent_evals/
+src/agent_evals/
   types/        arktype-parsed shapes and public contracts. Imports nothing.
                 Conversation, Turn, EvaluationResult, WebhookPayload.
   config/       Env-driven runtime config. Imports types only.
