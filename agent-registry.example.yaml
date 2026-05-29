@@ -1,7 +1,7 @@
 # agent-registry.example.yaml
 #
 # OPERATOR CONVENTION — this file is documentation, not a harness-loaded
-# config. No code in lib/, scripts/, or tests/ parses agent-registry.yaml.
+# config. No code in src/, scripts/, or tests/ parses agent-registry.yaml.
 #
 # What the harness actually reads:
 #   - ELEVENLABS_AGENT_ID  env var (default agent for the runner scripts)
