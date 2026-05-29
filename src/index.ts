@@ -14,7 +14,8 @@
 
 export * from './testing/index';
 export type * from './ingestion/extraction/types';
-export {verifyElevenLabsSignature} from './security/elevenlabs-signature';
+export {createReplayCache, verifyElevenLabsSignature} from './security/elevenlabs-signature';
+export type {ReplayCache} from './security/elevenlabs-signature';
 
 // v1.1 n8n corrector surface (Phase F). Canonical subpath: `@wranngle/voice-evals/n8n`.
 export {
