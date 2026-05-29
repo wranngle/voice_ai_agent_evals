@@ -1,4 +1,4 @@
-// Responsive sweep of the one-page Agent Console — captures each of the three
+// Responsive sweep of the one-page Agent Console — captures each of the four
 // in-page views at phone / tablet / desktop widths, flags horizontal scroll
 // (the most common mobile regression) and any pageerror per stop.
 //   bun run playground/mobile-audit.mjs

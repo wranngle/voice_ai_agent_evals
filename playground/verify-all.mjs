@@ -4,11 +4,12 @@
 import { spawnSync } from "node:child_process"
 import { existsSync, statSync, readFileSync } from "node:fs"
 
-// Doctrine-drift guard: every test-suite count (verify steps, live-probe count)
-// is restated in prose across README / AUDIT / FEATURE-MATRIX / verify-all /
-// the CI workflow. Derive each real count from the source-of-truth file and
-// fail the gate if any doc disagrees — the number can only be wrong in one
-// place at a time (the source-of-truth file) instead of silently rotting.
+// Doctrine-drift guard: every test-suite count (verify steps, live-probe
+// count, mobile stops) is restated in prose across README / AUDIT /
+// FEATURE-MATRIX / verify-all / the CI workflow. Derive each real count from
+// the source-of-truth file and fail the gate if any doc disagrees — the
+// number can only be wrong in one place at a time (the source-of-truth file)
+// instead of silently rotting.
 const stepCount = (file) => (readFileSync(file, "utf8").match(/^\s*(?:await\s+)?step\(/gm) || []).length
 const REAL_STEPS = stepCount("playground/verify.mjs")
 const REAL_PROBES = stepCount("playground/live-probe.mjs")
