@@ -39,7 +39,7 @@ playground/
   verify.mjs                 Playwright e2e (19 steps, fails on any console error)
   live-probe.mjs             7 live capability probes (voice/signed-url/override-effect/...)
   verify-all.mjs             single command: verify + live-probe + a11y + mobile audits
-  public/                    static: gallery.html (the page) + spa.css + textures/ + bundled .js; retained legacy .html
+  public/                    static: gallery.html (the page) + spa.css + textures/ + bundled .js (legacy routes 302 → /)
   audit/, verify/            gate screenshots (gitignored; regenerated each run)
   ui-library/src/            upstream elevenlabs/ui registry, vendored
     components/ui/   63      shadcn primitives + EL components (Orb, Conversation, etc.)
