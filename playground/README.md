@@ -67,6 +67,7 @@ playground/
 | `POST /api/stt` | proxy ElevenLabs batch speech-to-text |
 | `POST /api/extract-form` | STT → `llm.sh` structured extract → JSON (powers `voice-form-01`) |
 | `POST /api/voice-nav` | STT → sitemap fetch → `llm.sh` URL match (powers `voice-nav-01`) |
+| `POST /api/log` | JSONL event sink → `logs/voice-evals-<date>.jsonl` (preserves client-emit `ts`) |
 
 **Governance guard:** PATCH/avatar succeed only for `[DEV]` or prefix-less agents (implicit DEV). **Any** other prefix — `[ALPHA]`, `[BETA]`, `[PROD]`, `[ARCHIVED]`, `[TEMPLATE]`, `[STAGING]`, anything — returns `403`. Mirrors the repo's ElevenLabs governance rule.
 

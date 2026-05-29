@@ -1,4 +1,4 @@
-// axe-core a11y audit across the three in-page views of the one-page Agent
+// axe-core a11y audit across the four in-page views of the one-page Agent
 // Console. Switches views via the sidebar (no reloads), then runs axe.
 //   bun run playground/a11y-audit.mjs
 import { chromium } from "playwright"
