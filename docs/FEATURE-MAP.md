@@ -28,10 +28,10 @@ Audio-native voice AI agent evaluation, closed-loop remediation, and combinatori
 | **doctor** | Python sidecar health check + install | `src/cli/commands/doctor.ts` | `voice-evals doctor [--install] [--dry-run]` | ✅ covered |
 | **agent list/create/clone/archive/promote** | Agent CRUD subcommands | `src/cli/commands/agent.ts` | `voice-evals agent <sub>` | ✅ covered |
 | **factory generate/upload/list/cleanup/execute/report/run** | Combinatorial test pipeline | `src/cli/commands/factory/*.ts` | `voice-evals factory <sub>` | ✅ covered |
-| **friction** | Remediation cycle stats + friction log | `src/cli/commands/friction.ts` | `voice-evals friction {summary\|dump\|stats}` | ✅ covered |
-| **n8n** | n8n workflow auto-corrector CLI | `src/cli/commands/n8n.ts` | `voice-evals n8n {fix\|validate\|diagnose}` | ✅ covered |
+| **friction** | Friction-log audit ops (O(1) tombstone resolve) | `src/cli/commands/friction.ts` | `voice-evals friction {tail\|list\|resolve}` | ✅ covered |
+| **n8n** | n8n workflow auto-corrector + Layer 7 runner | `src/cli/commands/n8n.ts` | `voice-evals n8n {diagnose\|fix\|eval}` | ✅ covered |
 | **webhooks** | Provision/rotate/status for the ElevenLabs ↔ n8n post-call webhook wiring | `src/cli/commands/webhooks.ts` | `voice-evals webhooks {status\|provision\|rotate}` | ✅ covered |
-| **scenarios** | Random scenario generator | `src/cli/commands/scenarios.ts` | `voice-evals scenarios {list\|export}` | ✅ covered |
+| **scenarios** | Random scenario generator | `src/cli/commands/scenarios.ts` | `voice-evals scenarios generate [--count N] [--seed N] [--output FILE]` | ✅ covered |
 | **legacy** | v0.x compatibility harness | `src/cli.ts` → `src/testing/cli.ts` | `voice-evals legacy <cmd>` | ⚠️ partial |
 
 ### 2. Agent CRUD Wrapper
