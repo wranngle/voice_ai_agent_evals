@@ -46,7 +46,7 @@ When the agent needs information, the choice is:
 
 Concrete example: an agent might use a KB attachment (`kb_xxxx_demo_locations` in the placeholder shape) for a fixed location list — data that changes once a quarter and benefits from being quoted precisely. The same agent uses a `lookup_record` server-side tool for per-caller account lookup — per-call data behind a CRM API.
 
-A scenario that asks the agent to use the wrong source (KB-shaped question routed to a tool, or vice versa) is a **routing-axis failure**, scored under `tool_routing` in the rubric.
+A scenario that asks the agent to use the wrong source (KB-shaped question routed to a tool, or vice versa) is a **routing-axis failure**, scored under `tool_call_routing` in the rubric.
 
 ## End-to-end example: the SMS booking tool
 
@@ -85,14 +85,14 @@ The full live shape is in `templates/sms-booking-tool-template.json`; this secti
 2. **Schema validation (fixture verdict)** — committed offline transcripts must include `schema_pass` for `parameters_pass: true`. This prevents the runner from treating arbitrary primitive arguments as proof of schema safety.
 3. **Webhook delivery (n8n)** — POST hits the n8n endpoint with `X-Webhook-Secret` header. n8n verifies, dispatches to Twilio, returns `{ status, message_id, error? }`.
 4. **Response back to LLM** — the result is fed back as a tool message. The agent uses it to confirm with the caller.
-5. **Harness assertions:**
+5. **Harness assertions (named axes the runner scores):**
    - `tool_call_schema`: emitted args carried an explicit passing schema verdict.
    - `tool_call_routing`: `expected: { route: tool, name: send_sms }` proves `send_sms` was called (not e.g. `send_email`); `expected: kb` proves no server-side tool was used.
    - `tool_call_round_trip_ms`: committed fixtures include `round_trip_ms` and stay under the scenario budget.
    - `expected_tool_calls`: live ElevenLabs simulation responses include parseable `tool_calls[].params_as_json` and a matching `tool_results` entry, proving the call completed rather than only being emitted.
    - `tool_call_latency_max_ms`: live ElevenLabs simulation responses include `tool_results.tool_latency_secs`, stay under the per-tool budget, and do not report error/blocked execution evidence.
-   - `tool_response_handling`: agent acknowledged the SMS confirmation in its next utterance.
-   - `tool_error_path`: a separate scenario forces the n8n webhook to return 503 and asserts the agent recovers gracefully ("I had trouble sending that text — could I confirm a different number?").
+
+   *Response-handling and tool-error recovery aren't separate scored axes — they're scenario-design concerns. Cover them by:* (a) authoring a follow-up scenario where the agent must acknowledge the SMS confirmation in its next utterance, asserting with `contains`/`regex` on the agent text; (b) authoring an error-path scenario that forces the n8n webhook to return 503 and asserts the agent recovers gracefully ("I had trouble sending that text — could I confirm a different number?"). Both ride on the same five named axes above.
 
 This is the only tool walked through end-to-end; the same template applies to `send_email`, `lookup_record`, and any future server-side tool.
 
