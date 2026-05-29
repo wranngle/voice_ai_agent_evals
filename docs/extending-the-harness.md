@@ -1,6 +1,15 @@
 # Extending the harness — adding a new scenario
 
-Scenario YAMLs are executable offline evals. The CLI discovers `tests/scenarios/<id>/scenario.yaml`, loads its deterministic `transcript.json`, and scores the committed axes that the offline runner supports today: barge-in recovery, tool-call schema, tool-vs-KB routing, tool-call round-trip latency, fixture voice latency budgets, and tone heuristics. Live audio analysis and live LLM judging remain separate roadmap items.
+Scenario YAMLs are executable offline evals. The CLI discovers `tests/scenarios/<id>/scenario.yaml`, loads its deterministic `transcript.json` (and optional `audio.wav`), and scores the committed axes the offline runner supports today:
+
+- **Voice / audio (DSP, `src/scoring/audio.ts`):** voice activity, barge-in recovery, AI-interrupting-user, signal-to-noise ratio, average pitch, words-per-minute.
+- **Tool calling:** schema conformance, tool-vs-KB routing, tool-call round-trip latency.
+- **Latency budgets:** fixture-p95 `ttfb_p95_ms`, `end_to_first_audio_p95_ms`, `total_turn_p95_ms`.
+- **Outcome / aggregate (`src/scoring/dialog.ts`):** not-early-termination, containment rate.
+- **LLM-judged (`src/scoring/judges/` + `src/scoring/rubrics.ts`):** g-eval / arena / DAG / Lynx judges; canonical rubrics for intent recognition, instruction following, task completion, first-call resolution, customer satisfaction, AI→human handoff, response consistency.
+- **Tone heuristics** (deterministic fallback used when no `judge_llm` is configured).
+
+What's still roadmap: **live mic-stream audio analysis** during a `simulateConversation` call (today's audio scorers consume committed WAV fixtures, not realtime), and **live-call LLM judging** (the judges run on transcripts post-call, not during).
 
 ## 1. Drop a transcript fixture in `tests/scenarios/`
 
