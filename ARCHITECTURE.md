@@ -93,15 +93,15 @@ Variables prefixed `secret__` are hidden from the LLM but still passed to server
 
 ## Performance targets
 
-These are the design intents the harness was built around. Today the runner captures one round-trip latency per test (`latency_ms` per result, `avg_latency_ms` and slowest-test in the run summary); per-segment thresholds below are documented intent — **not yet enforced as hard gates** (see `docs/methodology.md` "What's not implemented yet").
+The harness enforces fixture-p95 latency budgets as hard gates since the v1.0 scoring engine landed: `ttfb_p95_ms`, `end_to_first_audio_p95_ms`, `total_turn_p95_ms`, and `tool_call_round_trip_ms` all hard-fail a scenario when breached, alongside per-call `tool_call_latency_max_ms` against the live ElevenLabs runner. The integration-layer budgets below are operator targets — set them in your scenario YAML to wire them through.
 
 | Metric | Target | Critical | Enforced today? |
 |---|---|---|---|
-| Client-init response | <200 ms | <500 ms (ElevenLabs hard limit) | ❌ |
-| Tool webhook latency | <800 ms | <2 s | ❌ |
-| Post-call webhook | <2 s | <5 s | ❌ |
+| Client-init response | <200 ms | <500 ms (ElevenLabs hard limit) | ✅ via `tool_call_round_trip_ms` |
+| Tool webhook latency | <800 ms | <2 s | ✅ via `tool_call_latency_max_ms` (live) |
+| Post-call webhook | <2 s | <5 s | ⚠️ recorded only; no enforced p95 yet |
 
-The 500 ms ElevenLabs hard limit on client-init is enforced by ElevenLabs itself, not by this harness — your receiver will time out on ElevenLabs's side. The other rows are operator targets you'd assert on once the scoring engine lands.
+The 500 ms ElevenLabs hard limit on client-init is enforced by ElevenLabs itself — your receiver will time out on their side regardless of what this harness asserts. See `docs/methodology.md` § 2 ("Latency budgets") for the live-vs-fixture split and what still needs per-segment timing capture in the streaming-conversation path.
 
 ## Wiring your own deployment
 
@@ -116,8 +116,20 @@ The 500 ms ElevenLabs hard limit on client-init is enforced by ElevenLabs itself
 
 ## Related documentation
 
+External:
+
 - [ElevenLabs Conversational AI Docs](https://elevenlabs.io/docs/conversational-ai)
 - [n8n Workflow Documentation](https://docs.n8n.io)
-- [`docs/methodology.md`](docs/methodology.md) — eval scoring rubric
-- [`docs/tool-calling.md`](docs/tool-calling.md) — tool integration patterns
-- [`docs/webhook-security.md`](docs/webhook-security.md) — HMAC verification
+
+Per-surface deep dives:
+
+- [`docs/methodology.md`](docs/methodology.md) — eval scoring rubric (axes, weighting, latency budgets, judge selection)
+- [`docs/tool-calling.md`](docs/tool-calling.md) — tool integration patterns (server-side vs client-side, KB-vs-tool boundary)
+- [`docs/webhook-security.md`](docs/webhook-security.md) — `ElevenLabs-Signature` HMAC verification
+- [`docs/factory.md`](docs/factory.md) — combinatorial test factory (cartesian / pairwise / sample + YAML templates)
+- [`docs/autorefinement.md`](docs/autorefinement.md) — autorefinement engine (FAILURE_PATTERNS short-circuit + LLM fallback)
+- [`docs/n8n-correction.md`](docs/n8n-correction.md) — n8n workflow auto-corrector (`applyPartialUpdate`, `WORKFLOW_FIXES`)
+- [`docs/personas.md`](docs/personas.md) — canonical voice personas for `simulateConversation`
+- [`docs/handling-model-updates.md`](docs/handling-model-updates.md) — what changes when ElevenLabs (or `model-rankings.json`) ships a new model
+- [`docs/extending-the-harness.md`](docs/extending-the-harness.md) — adding new scenario kinds, scorers, and adapters
+- [`docs/deployment.md`](docs/deployment.md) — wiring the harness into CI / consumer repos via the gate workflow template
