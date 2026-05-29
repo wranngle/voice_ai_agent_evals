@@ -7,6 +7,7 @@ import {
   scoreFirstCallResolution,
   scoreInstructionFollowing,
   scoreIntentRecognition,
+  scoreResponseConsistency,
   scoreTaskCompletion,
 } from '../../src/scoring/rubrics';
 
@@ -158,5 +159,41 @@ describe('shared judge plumbing', () => {
     const dim = await scoreIntentRecognition(llm, {transcript, expectedIntent: 'book'});
     expect(dim.detail).not.toContain('<score>');
     expect(dim.detail).toContain('Aligned well');
+  });
+});
+
+describe('scoreResponseConsistency', () => {
+  it('passes when judge finds responses semantically aligned (5/5)', async () => {
+    const llm = mockLlm('All three responses converge on the same booking. <score>5</score>');
+    const dim = await scoreResponseConsistency(llm, {
+      responses: ['Booked Tue 2pm.', 'Confirmed Tuesday at 14:00.', 'Reserved your slot Tuesday 2pm.'],
+    });
+    expect(dim.status).toBe('passed');
+    expect(dim.score).toBe(1);
+  });
+
+  it('fails when judge flags drift (2/5)', async () => {
+    const llm = mockLlm('Response 3 picked a different day. <score>2</score>');
+    const dim = await scoreResponseConsistency(llm, {
+      responses: ['Tue 2pm.', 'Tue 2pm.', 'Wed 3pm.'],
+    });
+    expect(dim.status).toBe('failed');
+    expect(dim.score).toBe(0.25);
+  });
+
+  it('errors when only one response is supplied (need ≥2 to compare)', async () => {
+    const llm = mockLlm('<score>5</score>');
+    const dim = await scoreResponseConsistency(llm, {responses: ['single']});
+    expect(dim.status).toBe('error');
+    expect(dim.detail).toContain('at least 2');
+    expect(llm).not.toHaveBeenCalled();
+  });
+
+  it('numbers responses in the user prompt', async () => {
+    const llm = mockLlm('<score>5</score>');
+    await scoreResponseConsistency(llm, {responses: ['a', 'b']});
+    const [{user}] = llm.mock.calls[0] as Array<{system: string; user: string}>;
+    expect(user).toContain('Response 1');
+    expect(user).toContain('Response 2');
   });
 });
