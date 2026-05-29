@@ -14,10 +14,10 @@ bun run test:offline
 git status tests/scenarios/        # untracked or stale fixtures often cause CI/local divergence
 
 # 3. Run only the failing project for tight feedback loop.
-bun run test --project <project-name>     # ingestion, integration, governance, agent_evals
+bun run test --project <project-name>     # 27 projects: ingestion, integration, governance, agent_evals, elevenlabs, n8n-eval, mcp, wrapper, scoring, factory, n8n, refinement, … (see vitest.config.ts for the full list)
 ```
 
-`tests/runs/` holds hand-authored shape examples (synthetic; the scoring engine that would produce them automatically is on the roadmap — see `docs/methodology.md`). Diff against those when authoring or debugging a scenario YAML.
+`tests/runs/` holds hand-authored shape examples used as scenario-YAML scaffolding. Each one corresponds to a `result.json` shape the scoring engine emits today — diff against them when authoring or debugging a new scenario.
 
 If it's a flaky scenario (passes 80% of the time): the scenario isn't deterministic. See [`docs/extending-the-harness.md`](docs/extending-the-harness.md) — most likely a wall-clock or unseeded LLM call leaked in. Fix the fixture, don't retry the test.
 
