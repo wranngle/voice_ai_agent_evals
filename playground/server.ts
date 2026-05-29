@@ -120,7 +120,9 @@ async function handleRequest(req: Request): Promise<Response> {
 
     // ---- API proxy ----
     if (pathname === "/api/config") {
-      return json({ showcaseAgentId, embedScript: "https://unpkg.com/@elevenlabs/convai-widget-embed" });
+      // embedScript URL is hardcoded in gallery.html's <script src=> — no
+      // client ever consumed it from this endpoint. Keep config minimal.
+      return json({ showcaseAgentId });
     }
 
     if (pathname === "/api/agents") {
