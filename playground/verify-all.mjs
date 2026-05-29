@@ -5,11 +5,11 @@ import { spawnSync } from "node:child_process"
 import { existsSync, statSync, readFileSync } from "node:fs"
 
 // Doctrine-drift guard: every test-suite count (verify steps, live-probe
-// count, mobile stops) is restated in prose across README / AUDIT /
-// FEATURE-MATRIX / verify-all / the CI workflow. Derive each real count from
-// the source-of-truth file and fail the gate if any doc disagrees — the
-// number can only be wrong in one place at a time (the source-of-truth file)
-// instead of silently rotting.
+// count, mobile stops) and the showcase agent ID are restated across README /
+// AUDIT / FEATURE-MATRIX / verify-all / the CI workflow. Derive each real
+// value from the source-of-truth file (verify.mjs / live-probe.mjs /
+// mobile-audit.mjs / agent.json) and fail the gate if any doc disagrees —
+// truth can only live in one place; everywhere else just rots.
 const stepCount = (file) => (readFileSync(file, "utf8").match(/^\s*(?:await\s+)?step\(/gm) || []).length
 const REAL_STEPS = stepCount("playground/verify.mjs")
 const REAL_PROBES = stepCount("playground/live-probe.mjs")
@@ -53,6 +53,26 @@ for (const [label, real, sources] of driftGuards) {
       if (hit && Number(hit[1]) !== real) drifts.push(`${file} [${label}]: claims ${hit[1]}, source has ${real}`)
     }
   }
+}
+// Showcase agent ID drift — the ID is referenced verbatim in three docs.
+// agent.json is truth; AUDIT/FEATURE-MATRIX/README repeat it for the reader.
+// Without a guard, someone swapping the showcase agent leaves stale agent_…
+// strings in the docs that point at a deleted/wrong agent.
+const REAL_AGENT_ID = JSON.parse(readFileSync("playground/agent.json", "utf8")).showcaseAgentId
+const agentIdSources = [
+  "playground/README.md",
+  "playground/AUDIT.md",
+  "playground/FEATURE-MATRIX.md",
+]
+for (const file of agentIdSources) {
+  const txt = readFileSync(file, "utf8")
+  // Match alnum-bodied agent ids ≥20 chars (real ones are 28-char hex-like) —
+  // tight enough to skip "agent_response", "agent_tool_call" etc. that share
+  // the prefix in prose. The underscore in those phrases also already breaks
+  // the [a-z0-9] body run, so 20 is a safety floor, not the gating constraint.
+  const hits = [...txt.matchAll(/\bagent_[a-z0-9]{20,}\b/gi)].map((m) => m[0])
+  const wrong = hits.filter((id) => id !== REAL_AGENT_ID)
+  if (wrong.length) drifts.push(`${file} [agent id]: contains ${wrong.length} stale id(s) (${wrong[0]}…), agent.json has ${REAL_AGENT_ID}`)
 }
 if (drifts.length) {
   console.error(`\n❌ doctrine-drift (verify=${REAL_STEPS}, probes=${REAL_PROBES}, stops=${REAL_STOPS}):\n  ${drifts.join("\n  ")}\n`)
