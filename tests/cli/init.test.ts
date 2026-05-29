@@ -23,6 +23,12 @@ describe('runInit', () => {
       expect(content).toContain('@wranngle/voice-evals');
       expect(content).toContain('createVoiceEvalsClient');
       expect(content).toContain('LlmCompleteCallback');
+      // The scaffolded config lives in the consumer's project — it must
+      // not reach into SDK-internal relative paths like
+      // `../../internal/jsonl-trace`. Catches the regression fixed in
+      // fix/init-template-broken-import.
+      expect(content).not.toMatch(/from\s+['"]\.\.\/.+['"]/);
+      expect(content).not.toContain('internal/jsonl-trace');
       expect(lines.some(l => l.includes('Wrote'))).toBe(true);
     } finally {
       rmSync(cwd, {recursive: true, force: true});
