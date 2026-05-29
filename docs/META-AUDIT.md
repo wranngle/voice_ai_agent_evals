@@ -139,17 +139,22 @@ Each test file under `tests/_meta_audit/` targets one or more shortcomings. Some
 
 | File | Shortcoming(s) | Pass / Fail / TODO |
 |---|---|---|
-| `tests/_meta_audit/pattern_false_positives.test.ts` | S5, S6 | Mix: some PASS (current behavior is broken-by-design), some `it.fails` to mark them as known. |
-| `tests/_meta_audit/polish_loop_outcomes.test.ts` | S3, S8 | Demonstrates that the loop's success criterion is "iteration", not "improvement". |
-| `tests/_meta_audit/friction_log_scale.test.ts` | S7 | Synthetic 10k events, asserts resolve completes under 1 s. Will likely pass on small SSD but document the O(N) cost. |
-| `tests/_meta_audit/factory_pairwise_coverage.test.ts` | S4 | Computes actual 2-way pair-coverage rate on a 4×4×4 input; asserts ≥ 95 % (IPO optimal would be 100 %). |
-| `tests/_meta_audit/governance_edge_cases.test.ts` | S5, S10 | Emoji names, mixed-case phase, two-phase tags, mid-name phase. |
-| `tests/_meta_audit/cli_help_alignment.test.ts` | S10, S14 | Parses help text + dispatcher; asserts every dispatched command is documented and vice versa. |
-| `tests/_meta_audit/cross_runtime_determinism.test.ts` | S12 | Seeded mulberry32 output snapshot — locks the values in a snapshot so a Node 22 / Bun divergence is caught at PR time. |
+| `tests/_meta_audit/pattern-false-positives.test.ts` | S5, S6 | Mix: some PASS (current behavior is broken-by-design), some `it.fails` to mark them as known. |
+| `tests/_meta_audit/polish-loop-outcomes.test.ts` | S3, S8 | Demonstrates that the loop's success criterion is "iteration", not "improvement". |
+| `tests/_meta_audit/friction-log-scale.test.ts` | S7 | Synthetic 10k events, asserts resolve completes under 1 s. Will likely pass on small SSD but document the O(N) cost. |
+| `tests/_meta_audit/factory-pairwise-coverage.test.ts` | S4 | Computes actual 2-way pair-coverage rate on a 4×4×4 input; asserts ≥ 95 % (IPO optimal would be 100 %). |
+| `tests/_meta_audit/governance-edge-cases.test.ts` | S5, S10 | Emoji names, mixed-case phase, two-phase tags, mid-name phase. |
+| `tests/_meta_audit/cli-help-alignment.test.ts` | S10, S14 | Parses help text + dispatcher; asserts every dispatched command is documented and vice versa. |
+| `tests/_meta_audit/cross-runtime-determinism.test.ts` | S12 | Seeded mulberry32 output snapshot — locks the values so a Node 22 / Bun divergence fails the test at PR time. |
+| `tests/_meta_audit/exports-build-alignment.test.ts` | S15 (build invariant) | Asserts every `package.json` `exports[*]` entry corresponds to a `SUBPATH_ENTRIES` row in `scripts/build.mjs` so a new subpath doesn't ship a missing-file 404. |
+| `tests/_meta_audit/template-shape.test.ts` | S15 ([TEMPLATE] hardening) | Locks the [TEMPLATE] agent's config / prompt / `data_collection` shape so a silent edit can't drift the canonical agent contract. |
+| `tests/_meta_audit/template-webhook-fast-fail.test.ts` | S15 (client-initiation fast-fail) | Forces the client-initiation webhook handler to return a valid `conversation_initiation_client_data` shape even when every upstream enrichment hangs/throws — the 500 ms ElevenLabs hard limit is the real constraint. |
+| `tests/_meta_audit/template-roundtrip.test.ts` | S1, S2 (live contract) | Live HTTPS roundtrip against the [TEMPLATE] agent — bypasses the SDK so a `@elevenlabs/elevenlabs-js` shape change can't mask the real contract. Live-only (skipped without `ELEVENLABS_API_KEY`). |
+| `tests/_meta_audit/template-spiritual-shortcomings.test.ts` | All S# (catalog) | The aspirational-contract index — each `it.fails` cites its `S#` and `it('E# [PROMOTED]')` records the test that flipped from `fails` → `passes` (7 promoted so far: E2 / E3 / E4 / E5 / E6 / E8 / E9). |
 
 ## 5. What this audit does NOT close
 
-Even after the seven test files above, the following gaps remain (and need real work, not more tests):
+Even after the twelve test files above, the following gaps remain (and need real work, not more tests):
 
 1. **GEPA bridge needs an actual Python sidecar** to validate the protocol contract. (S11)
 2. **Audio coverage** needs μ-law / G.711 fixtures and a real-noise corpus. (Pillar 4, "Audio-native")
