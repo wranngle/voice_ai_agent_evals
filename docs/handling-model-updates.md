@@ -45,21 +45,38 @@ Any scenario that was passing against the old model and now fails is **a candida
 
 ### 3. Diff the scoring output against the pre-update snapshot
 
-The harness does not yet ship a generic per-axis run-diff tool. For now, capture the offline regression's JSON output and compare manually (or with your own script):
+The harness ships `voice-evals compare` — a side-by-side per-axis scorecard for N runs. The first run is the baseline; deltas in the Δ columns are computed relative to it. Input shape is `RunResult[]` (one JSON file per agent / model version) — see `examples/compare/run-aria.json` for the canonical shape:
 
-```bash
-bun run testing run -t scenario --json > tests/runs/<date>-new-model.json
-
-# Compare interesting fields against the snapshot from step 1 with jq, diff, or
-# whatever you have on hand. Look for axes that moved across multiple scenarios
-# (e.g. `barge_in_recovery` drops 15% → new TTS model has different pacing) vs
-# one-scenario regressions (e.g. `tool_call_schema` on a single fixture → that
-# scenario's prompt may need a small tweak).
-diff <(jq '.failures' tests/runs/pre-update-snapshot.json) \
-     <(jq '.failures' tests/runs/<date>-new-model.json)
+```json
+{
+  "agentId": "<old-or-new-model-id>",
+  "scenario": "<scenario-or-suite-name>",
+  "outcome": {
+    "status": "passed | failed",
+    "score": 0.91,
+    "dimensions": [
+      {"name": "barge_in_recovery", "status": "passed", "score": 0.85, "detail": "..."},
+      {"name": "tool_call_schema",   "status": "passed", "score": 1.00, "detail": "..."}
+    ],
+    "errors": []
+  }
+}
 ```
 
-A first-class `scripts/diff-runs.ts` with `--by-axis` aggregation is on the roadmap; until it lands, treat the JSON above as your input and own the comparison.
+```bash
+# Capture the offline regression as JSON, then massage it into the RunResult shape
+# (one file per model). `testing run --json` emits the suite summary, not
+# per-agent RunResults, so you'll need a small jq step to project per-scenario.
+bun run testing run -t scenario --json > tests/runs/<date>-new-model.raw.json
+# ... project to RunResult[] per agent: tests/runs/<date>-new-model.json
+#     and tests/runs/pre-update.json ...
+
+bun run compare \
+  --runs tests/runs/pre-update.json,tests/runs/<date>-new-model.json \
+  --out  tests/runs/<date>-compare.html
+```
+
+The HTML renders a per-dimension table with old/new score per axis and a Δ column — axes that moved across multiple scenarios stand out (e.g. `barge_in_recovery` drops 15% → new TTS model has different pacing) vs one-scenario regressions (e.g. `tool_call_schema` on a single fixture → that scenario's prompt may need a small tweak). See `examples/compare/run-{aria,nova}.json` + the `demo:compare` script in `package.json` for a runnable end-to-end.
 
 ### 4. Decide: rollback, re-tune, or accept
 
