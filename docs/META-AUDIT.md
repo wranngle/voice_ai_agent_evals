@@ -159,7 +159,7 @@ Even after the twelve test files above, the following gaps remain (and need real
 1. **GEPA bridge needs an actual Python sidecar** to validate the protocol contract. (S11)
 2. **Audio coverage** needs μ-law / G.711 fixtures and a real-noise corpus. (Pillar 4, "Audio-native")
 3. **Real ElevenLabs SDK integration tests** require live credentials + CI secrets management. (S1, S2)
-4. **Optimistic concurrency on n8n PUT** is a feature gap, not a test gap. (S5)
+4. **Optimistic concurrency on n8n PUT** is a feature gap, not a test gap. (See §2 "n8n corrector races" — no `ETag`/`If-Match` on the PUT; the S-list catalogues test gaps, not this product gap.)
 5. **Friction log rotation/compaction** is a feature gap. (S7)
 6. **A/B framework** for polish-loop outcomes is a feature gap. (S3, S8)
 
