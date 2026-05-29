@@ -13,7 +13,7 @@ Rules:
 - ElevenLabs MCP doesn't expose a delete operation; treat that as policy, not just API limitation. To retire an agent: rename with `[ARCHIVED]` prefix, then update governance state.
 - Before creating a new agent, check the existing roster for similar ones (70%+ name/system-prompt similarity → strongly prefer cloning; 40-70% → at least surface to the user).
 
-Governance state lives in `context/elevenlabs-agents/governance.yaml` (auto-maintained on create).
+Governance is stateless — no auto-maintained registry file. The wrapper's pure-function helpers read the `[PHASE]` prefix directly from the agent's `name` on every call (`parseAgentName` → `enforceMutation`) and the `llm` ban list from `config/model-rankings.json` (`assertModelAllowed`). All in `src/wrapper/governance.ts`.
 
 ## ElevenLabs agent LLM models
 
