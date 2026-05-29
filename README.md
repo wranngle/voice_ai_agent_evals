@@ -138,7 +138,7 @@ Test runner and scenario framework for evaluating ElevenLabs Conversational AI v
 
 **Scoring** — Composable `Task = (dataset, caller, scorer)` model; `compose`, `weighted`, `aggregate`; assertions DSL (`contains`, `regex`, `equals`, `not`, `llmRubric`); audio-native scorers (`parseWav`, RMS envelope, VAD, two-stream barge-in); judges (`g-eval`, `arena`, `dag`, `lynx`).
 
-**Test factory** — Combinatorial expansion (`cartesian`, `pairwise`, `kWise` with k≥3 support, `sample` with seeded Fisher-Yates), YAML template loader with `{placeholder}` interpolation + `inherit:`/`overrides:` overlay merging; 14 industries × 5+5+4+3 variants × 17 base scenarios shipped under `templates/factory/`.
+**Test factory** — Combinatorial expansion (`cartesian`, `pairwise`, `kWise` with k≥3 support, `sample` with seeded Fisher-Yates), YAML template loader with `{placeholder}` interpolation + `inherit:`/`overrides:` overlay merging; 12 industries × 5+5+4+3 variants × 17 base scenarios shipped under `templates/factory/`.
 
 **Closed-loop remediation** — `polishLoop` (6-phase: EVALUATE → ANALYZE → PROPOSE → APPLY → VERIFY → LOG) returns dimension-level deltas (`initialFailingDimensions`, `improvedDimensions`, `regressedDimensions`, `netImprovement`, `regressed`); 5 canonical `FAILURE_PATTERNS` (`SMS_AFTER_DECLINE`, `TOOL_NOT_CALLED`, `CONTEXT_LOST`, `HOSTILE_RESPONSE`, `INCONSISTENT_BEHAVIOR`) with context-aware regex (negation lookahead, agent-quoting suppression); append-only friction log with O(1) tombstone resolve; cycle-stats aggregation.
 
@@ -146,7 +146,7 @@ Test runner and scenario framework for evaluating ElevenLabs Conversational AI v
 
 **n8n auto-corrector** — `createN8nCorrector` with `applyPartialUpdate`, `diagnoseWorkflowFailure`, 4 `WORKFLOW_FIXES` (retry, error-handling, timeout, webhook data); node-level vs parameters-level key separation enforced via `NODE_LEVEL_PROPS`. `evaluateWorkflows` (Layer 7) feeds black-box failures back into the friction log.
 
-**Ingestion** — Post-call webhook importer, TestChain proposer/designer (LLM-driven), 5 canonical personas with audio traits, deterministic random scenario generator (14 industries × 24 names × 5 call volumes × 4 interest levels).
+**Ingestion** — Post-call webhook importer, TestChain proposer/designer (LLM-driven), 5 canonical personas with audio traits, deterministic random scenario generator (12 industries × 24 names × 5 call volumes × 4 interest levels).
 
 **Regression** — Versioned baselines + Braintrust-shape diff; CI-gateable on `result.regressions.length`.
 
