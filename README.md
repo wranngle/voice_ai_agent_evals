@@ -196,9 +196,11 @@ bun run testing:gtm-ops --root ../gtm_ops --tag ui
 
 To wire to your live agent, copy `agent-registry.example.yaml` → `agent-registry.yaml` (gitignored) and fill in real IDs, or set `ELEVENLABS_AGENT_ID` directly.
 
-## Gate merges on voice-evals score
+## Gate merges on voice-evals score (preview)
 
-Drop the gating workflow into a consumer repo to block PR merges whose voice-eval success rate falls below the threshold. Four-line install:
+The gating workflow template lives at [`.github/workflows/voice-evals-gate.yml.template`](.github/workflows/voice-evals-gate.yml.template). It pins `@wranngle/voice-evals@v1`, runs on every PR to `main`, uploads the JSON summary as an artifact, and posts a PR comment when the gate fails.
+
+> ⚠️  **Preview interface.** The template invokes `voice-evals score --fixtures <dir> --min-success-rate <rate> --json-summary <file>` — the v1.2 gate-native CLI shape. That flag surface is **not** shipped in v1.1.x; `voice-evals score` today takes a single WAV positional + `--html-out` / `--run-id` / `--json-log`. The template's header lists working alternatives (`legacy run -t scenario --json` + jq, or a per-fixture shell loop) you can splice in until the unified gate CLI lands.
 
 ```bash
 mkdir -p .github/workflows
@@ -207,8 +209,6 @@ curl -fsSL https://raw.githubusercontent.com/wranngle/voice-evals/v1/.github/wor
 gh secret set ELEVENLABS_API_KEY VOICE_EVALS_AGENT_ID
 git add .github/workflows/voice-evals-gate.yml && git commit -m "ci: gate PRs on voice-evals"
 ```
-
-The template pins `@wranngle/voice-evals@v1` (major-tag pinned), runs on every PR to `main`, uploads the JSON summary as an artifact, and posts a PR comment when the gate fails. See [`.github/workflows/voice-evals-gate.yml.template`](.github/workflows/voice-evals-gate.yml.template).
 
 ## What's in here
 
