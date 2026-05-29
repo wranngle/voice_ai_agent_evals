@@ -222,12 +222,14 @@ async function handleRequest(req: Request): Promise<Response> {
         appendFileSync(file, lines);
         return json({ ok: true, appended: events.length, file: `logs/voice-evals-${date}.jsonl` });
       } catch (e: any) {
-        // Disk full, permissions, parent dir gone — without server-side
-        // logging, the operator only sees the client's 500. Log the stack
-        // here (same posture as the Bun.serve error() handler in #79); the
-        // response body still has just the message, no internals.
+        // Disk full, permissions, parent dir gone — log the stack server-side
+        // (#81 posture); return a generic message to the client. The previous
+        // `error: e.message` leaked the FS error verbatim
+        // (e.g. "EACCES: permission denied, open '/abs/path/voice-evals.jsonl'")
+        // — same source-leak class as #51/#79 once PLAYGROUND_BIND exposes
+        // this beyond localhost.
         console.error("[server] /api/log write failed:", e?.stack || e?.message || e);
-        return json({ ok: false, error: e?.message || String(e) }, 500);
+        return json({ ok: false, error: "log write failed" }, 500);
       }
     }
 
