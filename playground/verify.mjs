@@ -277,10 +277,17 @@ await step("DEV-guarded widget PATCH round-trip — real ElevenLabs API", async 
   const sentinel = "#ff00aa";
   const patch = await page.context().request.fetch(BASE + "/api/widget/" + agent, { method: "PATCH", data: { btn_color: sentinel } });
   if (patch.status() !== 200) throw new Error("PATCH sentinel → " + patch.status() + " body=" + (await patch.text()).slice(0, 120));
-  const back = (await (await page.context().request.get(BASE + "/api/widget/" + agent)).json())?.widget_config;
-  if (back?.btn_color !== sentinel) throw new Error("btn_color not persisted: got " + back?.btn_color);
-  const restore = await page.context().request.fetch(BASE + "/api/widget/" + agent, { method: "PATCH", data: { btn_color: priorBtn } });
-  if (restore.status() !== 200) throw new Error("restore PATCH → " + restore.status());
+  // Restore in finally so an assertion failure between PATCH(sentinel) and
+  // PATCH(priorBtn) can't leak the sentinel into the showcase agent's config.
+  // Previously a thrown `btn_color not persisted` left btn_color=#ff00aa on
+  // the real ElevenLabs agent until someone noticed and manually reverted.
+  try {
+    const back = (await (await page.context().request.get(BASE + "/api/widget/" + agent)).json())?.widget_config;
+    if (back?.btn_color !== sentinel) throw new Error("btn_color not persisted: got " + back?.btn_color);
+  } finally {
+    const restore = await page.context().request.fetch(BASE + "/api/widget/" + agent, { method: "PATCH", data: { btn_color: priorBtn } });
+    if (restore.status() !== 200) throw new Error("restore PATCH → " + restore.status());
+  }
   return `GET → PATCH btn_color=${sentinel} → verified → restored ${priorBtn}`;
 });
 
