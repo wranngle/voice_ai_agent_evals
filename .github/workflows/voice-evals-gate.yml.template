@@ -1,17 +1,32 @@
-# voice-evals merge gating workflow (template)
+# voice-evals merge gating workflow (template) — PREVIEW
 #
 # Copy this file into your repo as `.github/workflows/voice-evals-gate.yml`
 # to block merges whose voice-eval success rate drops below the configured
 # threshold. Pinned to the `@wranngle/voice-evals@v1` major tag — bumping the
 # tag is an explicit opt-in to breaking changes.
 #
+# ⚠️  Forward-looking interface. `voice-evals score --fixtures <dir>
+#     --min-success-rate <rate> --json-summary <file>` is the v1.2 gate-native
+#     CLI shape and is NOT shipped in v1.1.x. Today's `voice-evals score`
+#     accepts a single WAV positional + `--html-out` / `--run-id` /
+#     `--json-log`. Until the gate CLI lands, use one of these alternatives:
+#
+#       a) `bunx '@wranngle/voice-evals@1' legacy run -t scenario --json`
+#          — runs the offline scenario fixtures and emits a `summary` JSON
+#          with `{total, passed, failed, errors, skipped}`. Threshold-gate
+#          against `.summary.passed / .summary.total` with jq.
+#       b) Drive `voice-evals score <wav>` per fixture from a shell loop and
+#          aggregate exit codes.
+#
+#     Treat this template as the contract we're landing in v1.2.
+#
 # Required repo secrets:
 #   ELEVENLABS_API_KEY            — read-only key for the agent under test
 #   VOICE_EVALS_AGENT_ID          — id of the ElevenLabs Conversational AI agent
 #
 # Optional env (override at the workflow_dispatch level if needed):
-#   VOICE_EVALS_FIXTURES_DIR      — defaults to `.test-data`
-#   VOICE_EVALS_MIN_SUCCESS_RATE  — defaults to `0.9` (90%)
+#   VOICE_EVALS_FIXTURES_DIR      — defaults to `.test-data` (planned v1.2)
+#   VOICE_EVALS_MIN_SUCCESS_RATE  — defaults to `0.9` (90%) (planned v1.2)
 
 name: voice-evals-gate
 
