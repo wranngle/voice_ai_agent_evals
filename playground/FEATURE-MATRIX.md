@@ -217,7 +217,7 @@ Imported into the Showcase view's Components rail (`ui-library/src/spa/showcase.
 Each one mounts the upstream `elevenlabs/ui/registry/elevenlabs-ui/examples/<demo>.tsx` verbatim, imported directly into `showcase.tsx`'s COMPONENTS list (no separate page or iframe).
 - [x] P1–P17 All 17 demos render: Orb · Waveform · BarVisualizer · LiveWaveform · AudioPlayer · ScrubBar · Message · Conversation · ConversationBar · Response · TranscriptViewer · VoiceButton · VoicePicker · MicSelector · SpeechInput · ShimmeringText · Matrix
 
-## Q. Reference apps (source under `ui-library/src/blocks/`) — 5 full client apps + 6 server-only
+## Q. Reference apps (source under `ui-library/src/blocks/`) — 11 full client apps
 > **Status:** surfaced in the SPA's Reference apps view (`ui-library/src/spa/blocks.tsx`) — a sub-tab switcher mounts one block at a time. All 11 blocks bundle (gallery-main.js ~6.7MB). Server actions originally `"use server"` are wired through the proxy endpoints (`/api/extract-form`, `/api/voice-nav`, `/api/scribe-token`, `/api/stt`) — all exercised by the test gate.
 
 - [x] Q1 Voice Chat 01 (Customer Support card) — UI
