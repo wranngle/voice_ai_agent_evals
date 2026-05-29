@@ -4,7 +4,7 @@
 import { chromium } from "playwright"
 import AxeBuilder from "@axe-core/playwright"
 
-const BASE = "http://localhost:4321"
+const BASE = process.env.PLAYGROUND_URL ?? "http://localhost:4321"
 const VIEWS = [
   ["showcase", "Showcase"],
   ["console", "Control plane"],

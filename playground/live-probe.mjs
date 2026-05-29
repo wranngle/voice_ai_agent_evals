@@ -7,7 +7,7 @@ import { chromium } from "playwright"
 import { mkdirSync } from "node:fs"
 import { join } from "node:path"
 
-const BASE = "http://localhost:4321"
+const BASE = process.env.PLAYGROUND_URL ?? "http://localhost:4321"
 const OUT = join(import.meta.dir, "audit")
 mkdirSync(OUT, { recursive: true })
 

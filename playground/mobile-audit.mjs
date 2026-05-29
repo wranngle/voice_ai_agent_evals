@@ -7,7 +7,7 @@ import { mkdirSync } from "node:fs"
 
 mkdirSync("playground/audit/mobile", { recursive: true })
 
-const BASE = "http://localhost:4321"
+const BASE = process.env.PLAYGROUND_URL ?? "http://localhost:4321"
 const VIEWPORTS = [
   { name: "phone", w: 375, h: 812 },
   { name: "tablet", w: 768, h: 1024 },
