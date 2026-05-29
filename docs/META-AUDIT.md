@@ -9,7 +9,7 @@ This is the "impatient-CEO" audit of `@wranngle/voice-evals`. It is deliberately
 The codebase ships:
 - ~30k LOC of production TypeScript (`src/`)
 - ~26k LOC of tests (`tests/`)
-- 24 vitest projects (`wrapper`, `scoring`, `remediation`, `factory`, `n8n`, `ingestion`, `ingestion-llm`, `regression`, `cli`, `refinement`, `compare`, `fuzz`, `budget`, `replay`, `leaderboard`, `_meta_audit`, … — see `vitest.config.ts`)
+- 27 vitest projects (`wrapper`, `scoring`, `remediation`, `factory`, `n8n`, `ingestion`, `ingestion-llm`, `regression`, `cli`, `refinement`, `compare`, `fuzz`, `budget`, `replay`, `leaderboard`, `report`, `log`, `scenarios`, `webhook`, `_meta_audit`, … — see `vitest.config.ts`)
 
 Test-to-code ratio is ~0.88. The per-pillar test counts in § 1 below were taken at a v1.1.0 snapshot and have not been re-verified since; treat them as illustrative of the **shape** of coverage, not the absolute count. The **kind** of test matters more than the count regardless.
 
