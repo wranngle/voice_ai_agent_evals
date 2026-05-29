@@ -58,8 +58,12 @@ tts:
 # =============================================================================
 llm:
   # Model: Gemini 3 Flash Preview (December 2025)
-  # Fast, capable, cost-effective for conversational AI
-  # Alternatives: gpt-4o-mini, claude-3-5-haiku, gemini-2.0-flash
+  # Fast, capable, cost-effective for conversational AI.
+  # Alternatives from config/model-rankings.json `recommended`:
+  #   claude-haiku-4-5, gpt-5-nano
+  # Do NOT use gpt-4o-mini / gpt-5-mini / gemini-2.0-flash-001 — those are in
+  # the project's `banned` list and the wrapper's governance gate rejects them
+  # at agent-create / agent-update time.
   model: "gemini-3-flash-preview"
 
   # Temperature: Low for consistent, focused responses

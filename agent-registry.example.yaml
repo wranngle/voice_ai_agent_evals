@@ -21,7 +21,7 @@ agents:
     name: PrimaryAgent (placeholder)
     role: inbound-voice-sdr
     voice: voice_xxxx_demo
-    llm: gpt-4o-mini
+    llm: gemini-3-flash-preview
     phone: "+15550100"
     knowledge_base:
       - kb_xxxx_demo
@@ -59,7 +59,7 @@ agents:
     name: SecondaryAgent (placeholder)
     role: outbound-callback
     voice: voice_yyyy_demo
-    llm: gpt-4o-mini
+    llm: gemini-3-flash-preview
     phone: "+15550101"
     knowledge_base: []
     tools: []
