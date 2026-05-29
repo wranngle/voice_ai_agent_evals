@@ -127,7 +127,7 @@ Audio-native voice AI agent evaluation, closed-loop remediation, and combinatori
 
 ### 15. OpenSpec Change Proposals
 
-- `add-gtm-ops-adapter` — pending — external workflow execution bridge
+- `add-gtm-ops-adapter` — **shipped** — external workflow execution bridge. All 7 tasks in `openspec/changes/add-gtm-ops-adapter/tasks.md` complete; surface lives at `src/testing/runners/external-command-runner.ts`, CLI at `scripts/run-gtm-ops-adapter.ts` (`bun run testing:gtm-ops`), docs at [`docs/external-app-adapters.md`](external-app-adapters.md).
 
 ---
 
