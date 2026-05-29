@@ -936,7 +936,7 @@ async function renderRegression(s) {
       const el = document.getElementById('pane-regression');
       if (!el) return;
       el.innerHTML = `<div style="margin-bottom:12px;color:var(--ink-2);font-size:12px;font-family:var(--mono)">
-        ${tests.length} regression tests captured · runnable via <code>voice-evals factory execute --bundle sessions/${id}/regression-suite.json</code>
+        ${tests.length} regression tests captured · <code>sessions/${id}/regression-suite.json</code> (persona prompts + assertion rubrics; re-runner lands in v1.2)
       </div>` + tests.map(t => `
         <div class="reg-card">
           <div class="id">${escapeHtml(t.test_id)}</div>
