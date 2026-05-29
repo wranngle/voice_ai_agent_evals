@@ -117,8 +117,8 @@ Audio-native voice AI agent evaluation, closed-loop remediation, and combinatori
 ### 13. Templates & Config
 
 - `templates/elevenlabs-agents/` — agent prompt template (legacy) + v1 system prompt (new today)
-- `templates/factory/` — 12 industries × ~20 variants × 17 base scenarios
-- `templates/ai_conversation_data_collection_fields_template.json` — 23 fields across requestor/contact/request/routing
+- `templates/factory/` — 12 industries × 20 variants (5 demo_close + 5 objection + 5 personality + 5 edge_case) × 26 base scenarios
+- `templates/ai_conversation_data_collection_fields_template.json` — 22 fields across requestor (3) / contact (7) / request (5) / routing (7)
 - `config/model-rankings.json` — default/recommended/banned LLM IDs
 
 ### 14. Scripts
