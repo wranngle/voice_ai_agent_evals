@@ -2,17 +2,31 @@
  * @wranngle/voice-evals/remediation — closed-loop performance evaluation
  * and remediation.
  *
- * Phase 5 MVP:
+ * Surface:
  *   - proposeFix({llm, agentConfig, failures}) -> FixProposal[]
  *   - applyFix({client, agentId, fix, governance?, dryRun?}) -> ApplyFixResult
  *   - polishLoop({client, agentId, evaluate, llm, ...}) -> PolishLoopResult
- *   - gepa-bridge.ts: contract for the Phase 5.x Python sidecar (GEPA)
+ *   - gepa-bridge.ts: thin contract for the Python GEPA sidecar
+ *     (`voice-evals doctor --install` provisions the venv; full optimizer
+ *     wiring tracked for v1.2 per README phase tracker).
+ *   - friction-log.ts: append-only JSONL audit (logFriction +
+ *     read/getUnresolved/resolve helpers).
+ *   - cycle-stats.ts: aggregateCycleStats(history, result) for
+ *     dashboard-friendly polish-loop rollups.
+ *   - patterns.ts: 5 FAILURE_PATTERNS + detectPatterns for the
+ *     deterministic ANALYZE → PROPOSE shortcut.
+ *   - supersystem.ts: runSupersystem orchestrates L1 (polishLoop) + L2
+ *     (n8n auto-correct) + L3 (friction log) in one driver.
  *
- * Deferred to Phase 5.x:
- *   - Postinstall provisioning of the Python venv (uv + gepa + pyrit)
- *   - gepa_run.py JSON-IO subprocess contract
- *   - PyRIT adversarial sidecar (uses same install path)
- *   - persistent governance.yaml state updates on apply
+ * Still deferred:
+ *   - PyRIT adversarial sidecar (uses the same Python install path as
+ *     GEPA; per README, lands in v1.2).
+ *
+ * Not a roadmap item, just so the next reader doesn't add it back:
+ * **there is no persistent governance file**. Governance is stateless code
+ * in src/wrapper/governance.ts (parseAgentName / enforceMutation /
+ * assertModelAllowed); the agent's `[PHASE]` prefix + config/model-rankings.json
+ * are the only sources of truth. See AGENTS.md § ElevenLabs agent governance.
  */
 
 export type {
