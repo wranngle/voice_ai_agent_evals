@@ -11,7 +11,7 @@ Verdict legend:
 
 ## Summary
 
-The showcase is **real, not cosmetic**: controls drive the actual web component and the real ElevenLabs API, and the capabilities are confirmed end-to-end against the live showcase agent. After the account upgrade, the live-probe suite reaches **7/7 ✅** — multi-turn conversation, runtime-override *effects* (agent reply forced to a sentinel), WebRTC via `conversation-token`, voice visualizer, in-call chrome, signed-url auth, and `useScribe` realtime STT (single-use token + `scribe_v2_realtime` model, `status: connected` + `sessionStarted`).
+The showcase is **real, not cosmetic**: controls drive the actual web component and the real ElevenLabs API, and the capabilities are confirmed end-to-end against the live showcase agent. After the account upgrade, the live-probe suite reaches **7/7 ✅** — multi-turn conversation, runtime-override *effects* (agent reply forced to a sentinel), WebRTC via `conversation-token`, voice visualizer, in-call chrome, signed-url auth, and `useScribe` realtime STT (single-use token + `scribe_v1` model, `scribe.connect` event emitted).
 
 | # | Visually confirmed | Evidence |
 |---|---|---|
@@ -32,7 +32,7 @@ The showcase is **real, not cosmetic**: controls drive the actual web component 
 | `conversation-token` → WebRTC connected (React voice) | ✅ | `audit/I` |
 | Voice visualizer canvas active in live voice session | ✅ | `audit/J` |
 | Multi-turn text conversation (3 messages, 3 agent replies) | ✅ | `audit/K` |
-| `useScribe` live STT — connected + sessionStarted (single-use token, scribe_v2_realtime) | ✅ | `audit/L` |
+| `useScribe` live STT — `scribe.connect` event emitted (single-use token, scribe_v1) | ✅ | `audit/L` |
 
 ## By capability area
 
@@ -65,7 +65,7 @@ The showcase is **real, not cosmetic**: controls drive the actual web component 
 
 ### K. Native React components — ConversationProvider + all 8 granular hooks + `useConversationClientTool` mount with zero invalid-hook errors (✅ `verify/05-roundtrip`). Controls, mute, feedback, contextual update, user activity, device enumeration, MCP-approval input — ✅ present and callable. `sendUserMessage` round-trip ✅ (live-probe `audit/H`, `audit/K`); multi-turn ✅ (`audit/K`). **Audio visualizer (K14)** — canvas active during live voice session (`audit/J`); bars draw when output frequency data is non-zero (microphone audio in headless = silent sine, so bars are sparse).
 
-### K-bonus. Scribe (`useScribe`) — ✅ **live STT session established**: server proxy mints a real single-use token via `POST /v1/single-use-token/realtime_scribe`, hook configured with `modelId: "scribe_v2_realtime"` + `audioFormat: PCM_16000`. The session reaches `status: connected` and fires `onSessionStarted` (`audit/L`). The transcripts panel is empty because the headless probe doesn't push audio; calling `sendAudio()` with real PCM samples would populate `partialTranscript` / `committedTranscripts`. Panel renders connect/disconnect/mute/commit/clear, the 7 specific error callbacks, and the status badge.
+### K-bonus. Scribe (`useScribe`) — ✅ **live STT session established**: server proxy mints a real single-use token via `POST /v1/single-use-token/realtime_scribe`, hook configured with `modelId: "scribe_v1"` and an explicit `microphone: {}` so the underlying client streams from `getUserMedia`. The session emits `scribe.connect` (asserted by live-probe step L via the JSONL event log) (`audit/L`). The transcripts panel is empty because the headless probe doesn't push audio; with real microphone input the `onPartialTranscript` / `onCommittedTranscript` callbacks populate the panel.
 
 ### L. Event protocol — onConnect/onStatusChange/onMessage/onModeChange/onAgentChatResponsePart all observed in the live event log (✅ live-probe `audit/G`, `audit/I`, `audit/K`). VAD/audio-alignment/tool-call/MCP events fire only in their scenarios → ◑.
 
