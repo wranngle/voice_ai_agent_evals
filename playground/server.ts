@@ -309,8 +309,9 @@ async function handleRequest(req: Request): Promise<Response> {
 
     // ---- static ----
     // It's one page now: the console at "/" (gallery.html) holds the showcase and
-    // the live control plane. The old standalone pages 302 home so there's a single
-    // surface; their files are retained for reference but no longer routed to.
+    // the live control plane. The old standalone routes 302 home so anyone with a
+    // bookmarked URL lands on the current surface; the files themselves are gone
+    // (only gallery.html ships under public/).
     const LEGACY = new Set(["/widget.html", "/index.html", "/react.html", "/components.html", "/ui-library.html", "/examples.html", "/blocks.html"]);
     if (LEGACY.has(pathname)) return new Response(null, { status: 302, headers: { location: "/" } });
     let rel = pathname === "/" ? "/gallery.html" : pathname;
