@@ -18,7 +18,8 @@ export {
 export {
   cleanProperty, cleanTools, hasMutualExclusionViolation,
 } from './tools';
-export {signElevenLabsPayload, verifyElevenLabsSignature} from './webhooks';
+export {createReplayCache, signElevenLabsPayload, verifyElevenLabsSignature} from './webhooks';
+export type {ReplayCache} from './webhooks';
 
 export {createTestsApi} from './tests';
 export type {

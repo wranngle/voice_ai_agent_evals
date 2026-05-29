@@ -7,5 +7,5 @@
  * it would churn 30+ tests for no behavioural gain.
  */
 
-export {verifyElevenLabsSignature, signElevenLabsPayload} from '../security/elevenlabs-signature';
-export type {VerifyOptions, VerifyResult} from '../security/elevenlabs-signature';
+export {createReplayCache, signElevenLabsPayload, verifyElevenLabsSignature} from '../security/elevenlabs-signature';
+export type {ReplayCache, VerifyOptions, VerifyResult} from '../security/elevenlabs-signature';
