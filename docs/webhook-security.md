@@ -44,7 +44,7 @@ function verifyElevenLabsSignature(
 }
 ```
 
-A working implementation lives in [`src/security/elevenlabs-signature.ts`](../src/security/elevenlabs-signature.ts) — `verifyElevenLabsSignature(rawBody, headerValue, sharedSecret, options?)` returns `{ok: true}` on success or `{ok: false, reason: 'malformed_header' | 'stale_or_missing_signature' | 'signature_mismatch'}`. Both verify and sign throw on an empty `sharedSecret` rather than silently HMAC'ing with an empty key. Test coverage lives at `tests/integration/elevenlabs-signature.test.ts` (16 cases — header parsing, tolerance window, body-tampering detection, custom-clock injection, empty-secret guard).
+A working implementation lives in [`src/security/elevenlabs-signature.ts`](../src/security/elevenlabs-signature.ts) — `verifyElevenLabsSignature(rawBody, headerValue, sharedSecret, options?)` returns `{ok: true}` on success or `{ok: false, reason: 'malformed_header' | 'stale_or_missing_signature' | 'signature_mismatch'}`. Both verify and sign throw on an empty `sharedSecret` rather than silently HMAC'ing with an empty key. Test coverage lives at `tests/integration/elevenlabs-signature.test.ts` (17 cases — header parsing, tolerance window, body-tampering detection, custom-clock injection, empty-secret guard).
 
 ## Signed replay tests
 
@@ -98,4 +98,10 @@ Other fields exist on the wire but aren't consumed — they're available if a fu
 
 ## Rotating the shared secret
 
-ElevenLabs returns a webhook's HMAC secret only at creation time. The webhook URL itself is **immutable**, so rotation = create new webhook + repoint references + delete old. Operators run this manually against the ElevenLabs API; this repo only ships the verifier (`src/security/elevenlabs-signature.ts`), not the create/rotate orchestration.
+ElevenLabs returns a webhook's HMAC secret only at creation time. The webhook URL itself is **immutable**, so rotation = create new webhook + repoint references + delete old. The repo ships the full create + rotate flow as `voice-evals webhooks` (`src/cli/commands/webhooks.ts`):
+
+- `voice-evals webhooks provision --agent-id <id>...` — register a workspace post-call webhook in ElevenLabs (if none exists for the target URL), persist the secret to `~/.agents/.env` as `ELEVENLABS_POST_CALL_WEBHOOK_SECRET`, wire each agent's `platform_settings.workspace_overrides`. Idempotent.
+- `voice-evals webhooks rotate` — unwire every agent currently using the webhook id, delete + recreate the workspace webhook, save the new secret, rewire all previously-consuming agents.
+- `voice-evals webhooks status [--agent-id <id>]` — inspect live wiring.
+
+The verifier in `src/security/elevenlabs-signature.ts` is what you call from your post-call handler; the `webhooks` CLI is what you call once during setup and again when rotating.
