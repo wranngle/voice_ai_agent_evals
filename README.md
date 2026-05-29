@@ -124,6 +124,7 @@ import {...} from '@wranngle/voice-evals/regression';   // Versioned baselines +
 import {...} from '@wranngle/voice-evals/remediation';  // proposeFix / applyFix / polishLoop + autorefinement patterns (v1.1)
 import {...} from '@wranngle/voice-evals/factory';      // Combinatorial test factory: cartesian/pairwise/sample + YAML templates (v1.1)
 import {...} from '@wranngle/voice-evals/n8n';          // n8n workflow auto-corrector + WORKFLOW_FIXES (v1.1)
+import {...} from '@wranngle/voice-evals/compare';      // Side-by-side per-axis scorecard across N RunResults: compareRuns + renderCompareHtml
 import {...} from '@wranngle/voice-evals/scenarios';    // Adversarial preset catalogue: noise / interrupt / mumble / accent
 ```
 
