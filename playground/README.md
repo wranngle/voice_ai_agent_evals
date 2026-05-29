@@ -19,6 +19,7 @@ The server reads `ELEVENLABS_API_KEY` from `./.env` or `~/.agents/.env`. **The k
 | **Showcase** | Hero orb + three auto-playing rails: Looks (8 live Orbs cycling agent states), Capabilities (8 tiles that deep-link into the control plane with a preset), Components (17 native ui.elevenlabs.io demos, mounted live) | `ui-library/src/spa/showcase.tsx` |
 | **Control plane** | The real `<elevenlabs-convai>` widget wired to the `[DEV]` agent + its config: mode / variant / placement / orb palette, 6 behavior toggles, runtime overrides (first message, prompt, language, speed, voice id, llm), server location | `ui-library/src/spa/control-plane.tsx` |
 | **Hooks (React)** | `@elevenlabs/react` directly: `ConversationProvider` + `useConversationControls` + `useScribe`, three connection modes (public agent-id · signed-url · WebRTC conversation-token), live event log, Scribe panel | `ui-library/src/spa/hooks.tsx` |
+| **Reference apps** | The 11 upstream blocks from `elevenlabs/ui` mounted behind a sub-tab switcher (Voice Chat × 3, Music Player × 2, Realtime Transcriber, Transcriber, Voice Form, Voice Nav, Speaker, Pong) | `ui-library/src/spa/blocks.tsx` |
 
 Old standalone routes (`/widget.html`, `/index.html`, `/react.html`, `/components.html`, `/ui-library.html`, `/examples.html`, `/blocks.html`) 302 → `/`. The deep-dive demos those pages used to host are now imported directly into the Showcase view.
 
