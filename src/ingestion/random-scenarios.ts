@@ -5,7 +5,9 @@
  * Ports the archive's `generateIndustryScenario` / `generateObjectionScenario`
  * functions from `supersystem/layer3-data-manager.js`. Produces N random
  * scenario specs by sampling from cross-products of:
- *   - 14 industries (loaded from templates/factory/industries.yaml)
+ *   - 14 industries (DEFAULT_INDUSTRIES, baked into this module — consumers
+ *     can override via options.industries; the factory module uses the
+ *     separate 12-entry pool from templates/factory/industries.yaml)
  *   - 24 names (a deterministic pool baked into this module)
  *   - 5 call volumes, 4 interest levels
  *   - 70/30 split between SMS-accept and SMS-decline
