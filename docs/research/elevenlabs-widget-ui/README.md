@@ -47,7 +47,7 @@ external/
 ## Key findings (full detail in CAPABILITY-MAP)
 
 1. Three control surfaces with strict precedence; **SDK overrides beat server/UI config**.
-2. **45 HTML attributes** exist in source — ~20 are undocumented on the official page (`override-llm`, `override-speed`, `collect-feedback`, `allow-events`, `environment`, `worklet-path-*`, …).
+2. **44 HTML attributes** exist in source — ~20 are undocumented on the official page (`override-llm`, `override-speed`, `collect-feedback`, `allow-events`, `environment`, `worklet-path-*`, …).
 3. Visual styling = a **20-variable `--el-` token system** emitted into the shadow-DOM `:host`; set via the `styles` config object, not external CSS.
 4. **~50 overridable text keys** + per-language `language_presets`.
 5. Native UI = `@elevenlabs/react` `ConversationProvider` + granular hooks + `useConversationClientTool`; audio-reactive visualizers via `getInput/OutputByteFrequencyData`.
