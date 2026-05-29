@@ -168,7 +168,7 @@ Demo surface key: **W**=widget control panel · **U**=URL param · **A**=API-ove
 - [x] K16 `sendMCPToolApprovalResult` — R
 - [x] K17 `textOnly` mode hook path — R
 - [x] K18 client tools (agent-invoked: redirect/alert/setState) — R/E
-- [x] K19 `useScribe` (live STT hook) — R (live session: single-use token + `scribe_v2_realtime` → `status: connected` + `sessionStarted`)
+- [x] K19 `useScribe` (live STT hook) — R (live session: single-use token + `scribe_v1` → `scribe.connect` event emitted)
 
 ## L. Event protocol (live log)
 - [x] L1 connection lifecycle (`onConnect`/`onDisconnect`/`onStatusChange`) — E
