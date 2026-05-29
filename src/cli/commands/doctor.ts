@@ -1,9 +1,12 @@
 /**
- * `voice-evals doctor` — sidecar status report.
+ * `voice-evals doctor` — sidecar status report and (with `--install`)
+ * the Python sidecar provisioner.
  *
- * Phase 6.x extracted from src/cli.ts into its own module. Phase 5.x will
- * add `doctor --install` which provisions the Python venv (uv + GEPA +
- * PyRIT). For now this command is read-only: it reports availability.
+ * Phase 6.x extracted from src/cli.ts into its own module; Phase 5.x
+ * landed `--install` which provisions the venv via `uv` + installs the
+ * `gepa` pip package + stages PyRIT under the same cache path (see
+ * `installSidecar` below). Without `--install` the command is read-only:
+ * it prints the cache path, venv binary, bridge script, and availability.
  */
 
 import {getSidecarPaths, isGepaAvailable} from '../../remediation/gepa-bridge';
