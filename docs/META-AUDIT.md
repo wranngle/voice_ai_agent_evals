@@ -129,7 +129,7 @@ The contract is implicit. The tests assume a happy world.
 | **S10** | **`--help` is hand-maintained** | `src/cli/commands/help.ts` | Will drift from the real dispatcher. No test enforces alignment. |
 | **S11** | **GEPA bridge is unproven** | `src/remediation/gepa-bridge.ts` | Stub that throws. The protocol isn't real. |
 | **S12** | **No cross-runtime determinism test** | `mulberry32`, audio fixtures | Bun and Node disagree silently. |
-| **S13** | **Webhook signature verifier untested against malicious signatures** | `src/security/elevenlabs-signature.ts` | Replay attacks, timing attacks — not covered. |
+| **S13** | **Webhook signature verifier untested against malicious signatures** | `src/security/elevenlabs-signature.ts` | ~~Replay attacks~~ now covered by E8 PROMOTED + an in-memory `ReplayCache` returning `signature_replayed`; timing attacks mitigated via `timingSafeEqual` in the hmac compare, no explicit constant-time benchmark yet. |
 | **S14** | **CLI argv parser is hand-rolled** | factory dispatcher, polish, score | Will diverge from itself per command. Already does. |
 | **S15** | **No regression test for v1.1.0 capability matrix in README** | README claims | The README ages faster than the code. |
 
