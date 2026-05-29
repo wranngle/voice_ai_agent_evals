@@ -26,9 +26,9 @@ Test-to-code ratio is ~0.88. The per-pillar test counts in § 1 below were taken
 | **7** | **Remediation** | `proposeFix`, `applyFix`, `polishLoop`, 5 `FAILURE_PATTERNS`, `friction-log`, `cycle-stats`, GEPA bridge stub | 70 | Loop has 12 tests. **None prove the loop actually improves an agent** — they prove iteration mechanics. |
 | **8** | **n8n corrector** (v1.1) | `createN8nCorrector`, `applyPartialUpdate`, 4 `WORKFLOW_FIXES`, `applyOperation` | 20 | All mocked fetch. Concurrent write race is unguarded. |
 | **9** | **Runners** (v0.x legacy) | ElevenLabs, n8n-eval, MCP, webhook, external-command | ~80 | Older surface. Webhook tests skipIf(CI) → most don't run in CI. |
-| **10** | **CLI** | `init`, `score`, `ingest`, `polish`, `baseline`, `doctor`, `factory`, `legacy` | 23 | No test that `--help` lists every command. No test that the dispatcher rejects malformed argv consistently. |
+| **10** | **CLI** | `help`, `init`, `score`, `demo`, `ingest`, `polish`, `refine`, `ceo-demo`, `baseline`, `compare`, `doctor`, `agent`, `factory`, `friction`, `n8n`, `webhooks`, `scenarios`, `legacy` | 23 | No test that `--help` lists every command. No test that the dispatcher rejects malformed argv consistently. |
 
-## 2. The roast — what 902 green tests don't tell you
+## 2. The roast — what 1,221 green tests don't tell you
 
 ### "Audio-native" is a marketing word
 
