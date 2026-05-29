@@ -31,7 +31,9 @@ external/
     styles-index.css         # shadow-DOM CSS, --el-audio-tag, syntax tokens
     styles-Style.tsx         # proves --el-<key> emission to :host
     contexts-attributes.tsx  # attribute plumbing
+    embed-index.ts           # widget bootstrap + tag registration
     orb-Orb.ts               # WebGL2 orb shader
+    widget-core-index.ts     # widget-core package entry (event protocol)
   deepwiki-5.2-configuration-and-customization.md
   deepwiki-5.3-embedding-guide.md
   deepwiki-5.4-ui-components-and-markdown.md
@@ -41,7 +43,7 @@ external/
 ## Coverage
 
 - 39/39 official `.mdx` pages downloaded clean (see `manifest.tsv`).
-- 6 ground-truth source files from `elevenlabs/packages@main`.
+- 8 ground-truth source files from `elevenlabs/packages@main`.
 - 3 DeepWiki digests + community-guide pointers.
 
 ## Key findings (full detail in CAPABILITY-MAP)
