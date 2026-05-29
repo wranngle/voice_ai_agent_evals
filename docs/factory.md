@@ -2,7 +2,7 @@
 
 The factory subsystem turns YAML templates into N concrete ElevenLabs tests, uploads them via the Tests API, runs them as a batch, and reports pass/fail.
 
-It is the v1.1 port of the archived `wranngle/voice_ai_agents/supersystem/test-factory/`. The combinatorial engine is pure TypeScript (~150 LOC), so no Python sidecar is required.
+It is the v1.1 port of the archived `wranngle/voice_ai_agents/supersystem/test-factory/`. The combinatorial engine is pure TypeScript (`src/factory/expand.ts`, ~450 LOC; five exports: `cartesian` / `pairwise` / `kWise` / `sample` / `expand`), so no Python sidecar is required.
 
 ## Quickstart (CLI)
 
