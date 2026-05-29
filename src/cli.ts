@@ -2,15 +2,23 @@
 /**
  * @wranngle/voice-evals CLI entry.
  *
- * v1.0 top-level surface:
+ * Top-level surface (v1.0 + v1.1):
  *   init             scaffold voice-evals.config.{ts,mjs}
  *   demo             60-second end-to-end demo on a synthesized fixture
  *   score <wav>      audio-native scoring (voice-activity + barge-in)
  *   ingest <txt>     transcript → ProposedTestCase[] via LLM data layer
  *   polish <agent>   closed-loop remediation (proposer + apply + iterate)
+ *   refine ...       business-targeted closed-loop refinement (v1.2 prep)
+ *   ceo-demo ...     live multi-scenario × persona showcase (DEV inbound)
  *   baseline ...     versioned regression baselines + diff
  *   compare ...      side-by-side scorecard for N agents (--runs a,b --out f)
  *   doctor           Python sidecar status / install
+ *   factory ...      generate / upload / list / cleanup / execute / report / run
+ *   agent ...        agents.{list, create, clone, archive, promote} (governance-gated)
+ *   friction ...     remediation cycle stats + friction log (summary | dump | stats)
+ *   n8n ...          n8n workflow auto-corrector (fix | validate | diagnose)
+ *   webhooks ...     ElevenLabs ↔ n8n post-call webhook (provision | rotate | status)
+ *   scenarios ...    random scenario generator (list | export)
  *   legacy <cmd>     legacy harness (v0.x scenario YAML / .test-data flow)
  *   --help, -h       this help
  */
