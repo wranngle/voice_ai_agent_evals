@@ -77,13 +77,13 @@ At 10 MB of frictions (a real production size), resolve is **O(N) IO** per call.
 ### Patterns regex are theatre
 
 ```ts
-const DECLINE_RE   = /\b(no|don't|stop|never mind|cancel|do not)\b/i
+const DECLINE_RE   = /\b(no|don't|do not|stop|never mind|cancel|i can't|i cannot)\b/i
 const HOSTILE_RE   = /\b(annoying|ridiculous|frustrating|rude|stupid|useless|terrible|wasting my time)\b/i
 ```
 
 - "no, but please send it" → fires `SMS_AFTER_DECLINE` falsely if SMS came earlier
 - Agent says "that's a stupid question" (paraphrasing the caller) → flags HOSTILE_RESPONSE
-- "I can't" is not in DECLINE_RE — semantic decline goes undetected
+- Semantic decline still goes undetected — "I'd rather not", "actually I changed my mind", "let's skip that" all bypass DECLINE_RE even after the recent `i can't` / `i cannot` additions
 - Coefficient-of-variation > 0.4 (INCONSISTENT_BEHAVIOR) — magic number with no tuning study
 
 These are heuristics dressed as a `FAILURE_PATTERNS` constant. The naming implies determinism. The behavior is brittle.
