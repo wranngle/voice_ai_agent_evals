@@ -28,8 +28,15 @@ export type {
 } from './audio';
 export {
   detectBargeIn, detectSpeechSegments, parseWav, rmsEnvelope,
-  scoreBargeIn, scoreVoiceActivity,
+  scoreAiInterruptingUser,
+  scoreAveragePitch,
+  scoreBargeIn,
+  scoreSignalToNoiseRatio,
+  scoreSpeechRate,
+  scoreVoiceActivity,
 } from './audio';
+
+export {scoreNotEarlyTermination} from './dialog';
 
 export {
   arenaJudge, evaluateDag, gEvalJudge, leaf, lynxJudge, regexBranch,

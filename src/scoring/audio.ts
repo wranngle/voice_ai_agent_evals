@@ -1,14 +1,19 @@
 /**
  * @wranngle/voice-evals/scoring/audio — audio-native scoring for WAV PCM 48kHz.
  *
- * Capabilities (Phase 2 MVP):
+ * Capabilities:
  *   - parseWav(buffer): WAV PCM parser (16/24/32-bit, mono or stereo).
  *   - rmsEnvelope(samples, sampleRate, windowMs): RMS-energy envelope.
  *   - detectSpeechSegments(envelope, opts): energy-threshold VAD.
  *   - detectBargeIn({callerSamples, agentSamples, sampleRate}): barge-in
  *     detection between two parallel speaker streams.
  *   - scoreVoiceActivity(wav, opts): dead-air dimension scorer.
- *   - scoreBargeIn(...): barge-in dimension scorer.
+ *   - scoreBargeIn(...): user-interrupts-agent dimension scorer.
+ *   - scoreAiInterruptingUser(...): agent-interrupts-user dimension scorer
+ *     (the inverse direction — agent talks over caller).
+ *   - scoreSignalToNoiseRatio(wav, opts): SNR(dB) over speech vs. silence.
+ *   - scoreAveragePitch(wav, opts): F0 estimation via autocorrelation.
+ *   - scoreSpeechRate(wav, {transcript, ...}): words-per-minute on speech.
  *
  * Audio fixture format per Phase 0 decision: WAV PCM 48kHz mono. Stereo and
  * 16/24/32-bit are accepted at parse time. Non-PCM formats (mu-law, ADPCM)
@@ -366,5 +371,254 @@ export function scoreBargeIn(options: BargeInOptions & {maxOverlapMs?: number; n
     score: passed ? 1 : Math.max(0, 1 - (overlapMs - maxOverlapMs) / 1000),
     detail: `barge-in at ${result.callerStartMs}ms, ${overlapMs}ms overlap (max ${maxOverlapMs}ms)`,
     evidence: result,
+  };
+}
+
+/**
+ * AI-interrupts-user scorer — the inverse direction of barge-in. Fails when
+ * the AGENT starts speaking while the caller is still speaking (overlap >
+ * `maxOverlapMs`). Operationally the same `detectBargeIn` algorithm with
+ * caller/agent channels swapped: agent onsets are scanned against active
+ * caller speech instead of the other way around.
+ *
+ * Use both `scoreBargeIn` and `scoreAiInterruptingUser` on the same WAV to
+ * separate "user butting in over the agent" (recoverable, the agent should
+ * yield) from "agent talking over the user" (a hard defect — the model
+ * should never preempt the caller).
+ */
+export function scoreAiInterruptingUser(options: BargeInOptions & {maxOverlapMs?: number; name?: string}): DimensionScore {
+  const result = detectBargeIn({
+    ...options,
+    callerSamples: options.agentSamples,
+    agentSamples: options.callerSamples,
+  });
+  const maxOverlapMs = options.maxOverlapMs ?? 250;
+  const name = options.name ?? 'ai_interrupting_user';
+  if (!result.detected) {
+    return {
+      name, status: 'passed', score: 1, detail: 'no agent-onset overlap detected', evidence: result,
+    };
+  }
+
+  const overlapMs = result.overlapMs ?? 0;
+  const passed = overlapMs <= maxOverlapMs;
+  return {
+    name,
+    status: passed ? 'passed' : 'failed',
+    score: passed ? 1 : Math.max(0, 1 - (overlapMs - maxOverlapMs) / 1000),
+    detail: `agent started at ${result.callerStartMs}ms, ${overlapMs}ms overlap into caller speech (max ${maxOverlapMs}ms)`,
+    evidence: result,
+  };
+}
+
+/**
+ * Signal-to-noise ratio (dB) scorer. Splits the envelope into "speech"
+ * windows (per `detectSpeechSegments`) and "non-speech" windows; SNR is
+ * `20 * log10(rmsSpeech / rmsNoise)`. Defaults: 50ms window, 0.02 threshold,
+ * pass at ≥ 20 dB (decent telephony quality).
+ *
+ * Edge cases handled: no speech detected → `error`. Pure-speech file (no
+ * noise windows) → `passed` with `SNR ∞` since there's no noise to measure.
+ * For stereo files, pass `channel` (0 = first deinterleaved channel).
+ */
+export function scoreSignalToNoiseRatio(
+  wav: WavInfo,
+  options: {minSnrDb?: number; threshold?: number; windowMs?: number; channel?: number; name?: string} = {},
+): DimensionScore {
+  const name = options.name ?? 'snr_db';
+  const samples = options.channel !== undefined && wav.channelSamples
+    ? wav.channelSamples[options.channel]
+    : wav.samples;
+  if (!samples) {
+    return {name, status: 'error', detail: `channel ${options.channel} not present (file has ${wav.channels} channel(s))`};
+  }
+
+  const windowMs = options.windowMs ?? 50;
+  const threshold = options.threshold ?? 0.02;
+  const minSnrDb = options.minSnrDb ?? 20;
+  const env = rmsEnvelope(samples, wav.sampleRate, windowMs);
+  const segments = detectSpeechSegments(env, {threshold, windowMs});
+
+  const speechWindows = new Set<number>();
+  for (const seg of segments) {
+    const startIdx = Math.floor(seg.startMs / windowMs);
+    const endIdx = Math.ceil(seg.endMs / windowMs);
+    for (let i = startIdx; i < endIdx; i++) {
+      speechWindows.add(i);
+    }
+  }
+
+  let signalSumSq = 0;
+  let signalCount = 0;
+  let noiseSumSq = 0;
+  let noiseCount = 0;
+  for (const [i, v] of env.entries()) {
+    if (speechWindows.has(i)) {
+      signalSumSq += v * v;
+      signalCount++;
+    } else {
+      noiseSumSq += v * v;
+      noiseCount++;
+    }
+  }
+
+  if (signalCount === 0) {
+    return {name, status: 'error', detail: 'no speech segments detected — cannot compute SNR'};
+  }
+
+  if (noiseCount === 0) {
+    return {
+      name, status: 'passed', score: 1, detail: 'no silence windows — pure-signal file (SNR ∞)', evidence: {signalCount, noiseCount: 0},
+    };
+  }
+
+  const signalRms = Math.sqrt(signalSumSq / signalCount);
+  const noiseRms = Math.sqrt(noiseSumSq / noiseCount);
+  const snrDb = 20 * Math.log10(signalRms / Math.max(noiseRms, 1e-10));
+  const passed = snrDb >= minSnrDb;
+
+  return {
+    name,
+    status: passed ? 'passed' : 'failed',
+    score: passed ? 1 : Math.max(0, snrDb / minSnrDb),
+    detail: `${snrDb.toFixed(1)}dB SNR (signal=${signalRms.toFixed(3)}, noise=${noiseRms.toFixed(3)}, min ${minSnrDb}dB)`,
+    evidence: {
+      snrDb, signalRms, noiseRms, signalWindowCount: signalCount, noiseWindowCount: noiseCount,
+    },
+  };
+}
+
+/**
+ * Average pitch (F0) scorer via time-domain autocorrelation. For each speech
+ * segment, takes a `frameMs`-wide frame near the segment midpoint, runs AC
+ * over lag range [SR/maxHz, SR/minHz], picks the lag with peak correlation,
+ * converts to Hz. The reported pitch is the mean across all frames.
+ *
+ * Use case: catches "robotic monotone" (low variance) or pitch drift (sudden
+ * shifts). Pass band defaults to 80–300 Hz (adult human voice). Tighten for
+ * a specific voice profile by passing `minHz` / `maxHz`.
+ */
+export function scoreAveragePitch(
+  wav: WavInfo,
+  options: {minHz?: number; maxHz?: number; frameMs?: number; threshold?: number; channel?: number; name?: string} = {},
+): DimensionScore {
+  const name = options.name ?? 'average_pitch_hz';
+  const samples = options.channel !== undefined && wav.channelSamples
+    ? wav.channelSamples[options.channel]
+    : wav.samples;
+  if (!samples) {
+    return {name, status: 'error', detail: `channel ${options.channel} not present (file has ${wav.channels} channel(s))`};
+  }
+
+  const minHz = options.minHz ?? 80;
+  const maxHz = options.maxHz ?? 300;
+  const frameMs = options.frameMs ?? 25;
+  const threshold = options.threshold ?? 0.02;
+  // Decouple the AC search range from the pass band. The detector searches the
+  // full plausible human-voice range (50–500 Hz) so a true F0 outside the user's
+  // pass band is still discovered; the band check happens post-hoc on the
+  // reported pitch. Without this, the searched range was [SR/maxHz, SR/minHz]
+  // and the reported pitch was guaranteed in-band — `status: 'failed'` was
+  // mathematically unreachable.
+  const minLag = Math.max(1, Math.floor(wav.sampleRate / 500));
+  const maxLag = Math.floor(wav.sampleRate / 50);
+  const frameSamples = Math.round((frameMs / 1000) * wav.sampleRate);
+
+  const env = rmsEnvelope(samples, wav.sampleRate, 50);
+  const segments = detectSpeechSegments(env, {threshold, windowMs: 50});
+  if (segments.length === 0) {
+    return {name, status: 'error', detail: 'no speech to analyze for pitch'};
+  }
+
+  const pitches: number[] = [];
+  for (const seg of segments) {
+    const midSample = Math.floor(((seg.startMs + seg.endMs) / 2 / 1000) * wav.sampleRate);
+    const start = Math.max(0, midSample - Math.floor(frameSamples / 2));
+    const end = Math.min(samples.length, start + frameSamples);
+    if (end - start <= maxLag) {
+      continue;
+    }
+
+    let bestLag = -1;
+    let bestCorr = 0;
+    for (let lag = minLag; lag <= maxLag; lag++) {
+      let corr = 0;
+      const last = end - start - lag;
+      for (let i = 0; i < last; i++) {
+        corr += samples[start + i] * samples[start + i + lag];
+      }
+
+      if (corr > bestCorr) {
+        bestCorr = corr;
+        bestLag = lag;
+      }
+    }
+
+    if (bestLag > 0) {
+      pitches.push(wav.sampleRate / bestLag);
+    }
+  }
+
+  if (pitches.length === 0) {
+    return {name, status: 'error', detail: 'no periodic content in detected speech (silent or noise-dominated)'};
+  }
+
+  const avgPitch = pitches.reduce((a, b) => a + b, 0) / pitches.length;
+  const inRange = avgPitch >= minHz && avgPitch <= maxHz;
+  return {
+    name,
+    status: inRange ? 'passed' : 'failed',
+    score: inRange ? 1 : 0,
+    detail: `${avgPitch.toFixed(1)} Hz average pitch over ${pitches.length} speech frame(s) (expected ${minHz}-${maxHz} Hz)`,
+    evidence: {avgPitchHz: avgPitch, pitches, frameCount: pitches.length},
+  };
+}
+
+/**
+ * Speech rate (words per minute) scorer. WPM = words / (speechSeconds / 60).
+ * Speech seconds is derived from `detectSpeechSegments` on the given channel
+ * — silence between words doesn't dilute the rate. Word count splits on
+ * whitespace runs from the supplied transcript.
+ *
+ * Pass band defaults: 130–180 WPM (natural conversational range). Below 100
+ * suggests an over-deliberate / stalling agent; above 220 suggests a rushed
+ * TTS or unnatural-fast voice. Customize via `minWpm` / `maxWpm`.
+ */
+export function scoreSpeechRate(
+  wav: WavInfo,
+  options: {transcript: string; minWpm?: number; maxWpm?: number; threshold?: number; channel?: number; name?: string},
+): DimensionScore {
+  const name = options.name ?? 'words_per_minute';
+  const samples = options.channel !== undefined && wav.channelSamples
+    ? wav.channelSamples[options.channel]
+    : wav.samples;
+  if (!samples) {
+    return {name, status: 'error', detail: `channel ${options.channel} not present (file has ${wav.channels} channel(s))`};
+  }
+
+  const words = options.transcript.trim().split(/\s+/).filter(Boolean).length;
+  if (words === 0) {
+    return {name, status: 'error', detail: 'transcript has no words'};
+  }
+
+  const env = rmsEnvelope(samples, wav.sampleRate, 50);
+  const segments = detectSpeechSegments(env, {threshold: options.threshold ?? 0.02, windowMs: 50});
+  const speechMs = segments.reduce((sum, s) => sum + (s.endMs - s.startMs), 0);
+  if (speechMs === 0) {
+    return {name, status: 'error', detail: 'no speech detected for the supplied transcript'};
+  }
+
+  const wpm = words / (speechMs / 60_000);
+  const minWpm = options.minWpm ?? 130;
+  const maxWpm = options.maxWpm ?? 180;
+  const inRange = wpm >= minWpm && wpm <= maxWpm;
+  return {
+    name,
+    status: inRange ? 'passed' : 'failed',
+    score: inRange ? 1 : 0,
+    detail: `${wpm.toFixed(1)} WPM (${words} words / ${(speechMs / 1000).toFixed(2)}s speech; expected ${minWpm}-${maxWpm})`,
+    evidence: {
+      wpm, words, speechMs, expectedRange: [minWpm, maxWpm],
+    },
   };
 }
