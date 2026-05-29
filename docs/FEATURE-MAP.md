@@ -17,15 +17,20 @@ Audio-native voice AI agent evaluation, closed-loop remediation, and combinatori
 | **help** | Print command reference + env var guide | `src/cli/commands/help.ts` | `voice-evals help` | ✅ covered |
 | **init** | Scaffold `voice-evals.config.{ts,mjs}` | `src/cli/commands/init.ts` | `voice-evals init [--force]` | ✅ covered |
 | **score** | Audio-native WAV scoring (RMS envelope, VAD, barge-in) | `src/cli/commands/score.ts` | `voice-evals score <wav>` | ✅ covered |
+| **demo** | One-shot demo run that writes a self-contained HTML report | `src/cli/commands/demo.ts` | `voice-evals demo` | ✅ covered |
 | **ingest** | Transcript → `ProposedTestCase[]` via LLM | `src/cli/commands/ingest.ts` | `voice-evals ingest <txt>` | ✅ covered |
 | **polish** | Closed-loop remediation (evaluate → propose → apply → iterate) | `src/cli/commands/polish.ts` | `voice-evals polish <agent-id> [--dry-run] [--max-iterations N]` | ✅ covered |
+| **refine** | Business-targeted refinement: scrape vertical, run personas, write refined config | `src/cli/commands/refine.ts` | `voice-evals refine --business-name <X> --website <Y> --vertical <Z> [--personas a,b] [--mock] [--no-llm]` | ✅ covered |
+| **ceo-demo** | Live multi-scenario × multi-persona showcase against a [DEV] inbound agent | `src/cli/commands/ceo-demo.ts` | `voice-evals ceo-demo [<agent-id>] [--scenarios N]` | ✅ covered |
 | **baseline capture** | Snapshot current agent test results | `src/cli/commands/baseline.ts` | `voice-evals baseline capture <name>` | ✅ covered |
 | **baseline diff** | Compare current vs versioned baseline | `src/cli/commands/baseline.ts` | `voice-evals baseline diff <name>` | ✅ covered |
+| **compare** | Side-by-side per-axis scorecard across N `RunResult` JSONs (model-update diff) | `src/compare/cli.ts` | `voice-evals compare --runs <csv> --out <html>` | ✅ covered |
 | **doctor** | Python sidecar health check + install | `src/cli/commands/doctor.ts` | `voice-evals doctor [--install] [--dry-run]` | ✅ covered |
 | **agent list/create/clone/archive/promote** | Agent CRUD subcommands | `src/cli/commands/agent.ts` | `voice-evals agent <sub>` | ✅ covered |
 | **factory generate/upload/list/cleanup/execute/report/run** | Combinatorial test pipeline | `src/cli/commands/factory/*.ts` | `voice-evals factory <sub>` | ✅ covered |
 | **friction** | Remediation cycle stats + friction log | `src/cli/commands/friction.ts` | `voice-evals friction {summary\|dump\|stats}` | ✅ covered |
 | **n8n** | n8n workflow auto-corrector CLI | `src/cli/commands/n8n.ts` | `voice-evals n8n {fix\|validate\|diagnose}` | ✅ covered |
+| **webhooks** | Provision/rotate/status for the ElevenLabs ↔ n8n post-call webhook wiring | `src/cli/commands/webhooks.ts` | `voice-evals webhooks {status\|provision\|rotate}` | ✅ covered |
 | **scenarios** | Random scenario generator | `src/cli/commands/scenarios.ts` | `voice-evals scenarios {list\|export}` | ✅ covered |
 | **legacy** | v0.x compatibility harness | `src/cli.ts` → `src/testing/cli.ts` | `voice-evals legacy <cmd>` | ⚠️ partial |
 
