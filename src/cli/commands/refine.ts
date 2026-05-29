@@ -59,7 +59,7 @@ export async function runRefine(options: RefineCliOptions): Promise<number> {
   out('');
   out(`  refining: ${options.agentId ? `agent ${options.agentId}` : options.businessName ?? options.websiteUrl}`);
   out(`  mode:     ${isLive ? 'live (ElevenLabs simulateConversation)' : (options.mock ? 'mock (deterministic fixtures)' : 'mock (no agent id given)')}`);
-  out(`  judge:    ${judgeLlm ? 'LLM rubric judging on (GEMINI_API_KEY)' : 'deterministic only (no LLM key / --no-llm)'}`);
+  out(`  judge:    ${judgeLlm ? 'LLM rubric judging on (llm.sh / LLM_SH or GEMINI_API_KEY)' : 'deterministic only (no LLM key / --no-llm)'}`);
   if (options.vertical) {
     out(`  vertical: ${options.vertical} (override)`);
   }
