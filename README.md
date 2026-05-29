@@ -230,7 +230,7 @@ Standalone single-page console at `playground/` that demos every `<elevenlabs-co
 
 ```console
 $ bun playground          # http://localhost:4321
-$ bun playground:verify   # 18/18 e2e + 7/7 live-probe + a11y (4 views) + mobile
+$ bun playground:verify   # 19/19 e2e + 7/7 live-probe + a11y (4 views) + mobile
 ```
 
 See [`playground/README.md`](playground/README.md) for the capability map and [`playground/AUDIT.md`](playground/AUDIT.md) for the per-capability evidence table.
