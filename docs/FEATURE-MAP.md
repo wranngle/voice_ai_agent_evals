@@ -33,11 +33,11 @@ Audio-native voice AI agent evaluation, closed-loop remediation, and combinatori
 
 | Function | Purpose | File | Test status |
 |----------|---------|------|------------|
-| `list()` / `get()` | Enumerate / fetch | `src/wrapper/agents.ts:47-56` | ✅ |
-| `create()` | Auto `[DEV]` prefix on creation | `src/wrapper/agents.ts:58-79` | ✅ |
-| `update()` | Governance-gated mutation | `src/wrapper/agents.ts:80-93` | ✅ |
-| `clone()` | Duplicate + rename, fully implemented | `src/wrapper/agents.ts:95-122` | ✅ |
-| `archive()` / `promote()` | Phase transitions | `src/wrapper/agents.ts:124-186` | ✅ |
+| `list()` / `get()` | Enumerate / fetch | `src/wrapper/agents.ts:55-64` | ✅ |
+| `create()` | Auto `[DEV]` prefix on creation | `src/wrapper/agents.ts:66-106` | ✅ |
+| `update()` | Governance-gated mutation | `src/wrapper/agents.ts:108-141` | ✅ |
+| `clone()` | Duplicate + rename, fully implemented | `src/wrapper/agents.ts:143-178` | ✅ |
+| `archive()` / `promote()` | Phase transitions | `src/wrapper/agents.ts:180-247` | ✅ |
 
 ### 3. Governance
 
@@ -48,8 +48,8 @@ Audio-native voice AI agent evaluation, closed-loop remediation, and combinatori
 
 ### 4. Webhook Security
 
-- `verifyElevenLabsSignature()` — HMAC-SHA256 with 30-min skew window — `src/security/elevenlabs-signature.ts:79` ✅ (16 test cases)
-- `signElevenLabsPayload()` — test-fixture signer — `src/security/elevenlabs-signature.ts:127` ✅
+- `verifyElevenLabsSignature()` — HMAC-SHA256 with 30-min skew window — `src/security/elevenlabs-signature.ts:130` ✅ (17 test cases)
+- `signElevenLabsPayload()` — test-fixture signer — `src/security/elevenlabs-signature.ts:185` ✅
 
 ### 5. n8n Workflow Engine
 
@@ -94,7 +94,7 @@ Audio-native voice AI agent evaluation, closed-loop remediation, and combinatori
 
 - Strategies: `cartesian`, `pairwise`, `kWise`, `sample` (Fisher-Yates) — `src/factory/expand.ts` ✅
 - Template loaders: `loadIndustries`, `loadVariants`, `loadTemplates` — `src/factory/templates.ts` ✅
-- `resolveInheritance()` — `inherit:` / `overrides:` merging — `src/factory/templates.ts:260` ✅
+- `resolveInheritance()` — `inherit:` / `overrides:` merging — `src/factory/templates.ts:82` ✅
 - `generatedToCreatePayload()` / `generatedTestsToCreatePayloads()` — converter — `src/factory/to-elevenlabs.ts` ❌ uncovered
 - YAML assets: `templates/factory/{industries,variants,base-scenarios}.yaml` — file assets
 
