@@ -39,6 +39,15 @@ export {
 export {scoreNotEarlyTermination} from './dialog';
 
 export {
+  scoreAiHumanHandoff,
+  scoreCustomerSatisfaction,
+  scoreFirstCallResolution,
+  scoreInstructionFollowing,
+  scoreIntentRecognition,
+  scoreTaskCompletion,
+} from './rubrics';
+
+export {
   arenaJudge, evaluateDag, gEvalJudge, leaf, lynxJudge, regexBranch,
 } from './judges';
 export type {
