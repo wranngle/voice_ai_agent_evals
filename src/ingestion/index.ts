@@ -12,9 +12,15 @@
  *     for adversarial / persona-driven test expansion (apply N personas to
  *     M scenarios -> N×M variant test suite).
  *
- * Deferred to Phase 3.x: the Designer step (proposed scenarios -> structured
- * assertion specs), adversarial bridge to PyRIT (lives in Phase 5 with the
- * Python sidecar), persona derivation from production call samples via LLM.
+ * Phase 3.x extensions (also shipped):
+ *   - Designer step (proposed scenarios -> structured assertion specs) —
+ *     `designAssertions` from `./designer.ts`.
+ *   - Random scenario generator — `generateRandomScenarios` from
+ *     `./random-scenarios.ts`.
+ *
+ * Still deferred: adversarial bridge to PyRIT (uses the same Python sidecar
+ * install path as GEPA; per README, lands in v1.2 with the GEPA optimizer
+ * wiring), persona derivation from production call samples via LLM.
  */
 
 export type {

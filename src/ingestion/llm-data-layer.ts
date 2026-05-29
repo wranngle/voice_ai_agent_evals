@@ -6,8 +6,9 @@
  *   Designer  — LLM converts proposed scenarios into structured assertions.
  *   Judge     — separate LLM scores the agent's output against assertions.
  *
- * This module ships the Proposer. The Designer is deferred to Phase 3.x;
- * the Judge already exists as `llmRubric` in src/scoring/assertions.ts.
+ * This module ships the Proposer. The Designer ships in `./designer.ts`
+ * (`designAssertions`); the Judge already exists as `llmRubric` in
+ * `src/scoring/assertions.ts`.
  *
  * The Proposer is LLM-bound by callback (LlmCompleteCallback). Consumers
  * plug Anthropic / OpenAI / local Llama / Lynx without us pinning a SDK.
