@@ -328,7 +328,10 @@ export async function detectRubricFailures(
       tasks.push((async () => {
         try {
           const userBlocks = [`RUBRIC:\n${rubric}`];
-          if (businessContext) userBlocks.push(`BUSINESS CONTEXT:\n${businessContext}`);
+          if (businessContext) {
+            userBlocks.push(`BUSINESS CONTEXT:\n${businessContext}`);
+          }
+
           userBlocks.push(`TRANSCRIPT:\n${transcript}`);
           const raw = await llm({
             system: RUBRIC_JUDGE_SYSTEM,
