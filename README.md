@@ -7,9 +7,9 @@
 
 > Audio-native voice AI agent eval, polish, and regression-test factory wrapping ElevenLabs Conversational AI — closed-loop performance evaluation, GEPA-driven prompt remediation, latency-budget-as-code, dynamic test detection from arbitrary conversational data via an LLM data-translation layer, packaged as a Bun-first TypeScript SDK.
 
-## Status — v1.0 release candidate
+## Status — v1.1.0 shipped on npm
 
-Phases 0-5 are merged on `feat/v1.0-bun-package`; Phase 6 (CLI completion + docs site + npm publish) is in progress. The Python sidecar that powers GEPA closed-loop optimization is stubbed as a contract (Phase 5.x install lands shortly); the rest of `polishLoop` works against the single-shot LLM proposer today.
+`@wranngle/voice-evals@1.1.0` (released 2026-05-13). Phases 0–6.x of the v1.0 line landed first, followed by the 1.1.0 supersystem port — native ElevenLabs Tests API wrap, combinatorial factory, autorefinement engine, n8n workflow corrector, and agent CRUD with `[PHASE]` governance. The Python sidecar that powers GEPA closed-loop optimization is installable via `voice-evals doctor --install` (uv-managed venv + `gepa_run.py`); the stub is wired against the single-shot LLM proposer with the full optimizer following in v1.2.
 
 See [`CHANGELOG.md`](CHANGELOG.md) for per-phase detail.
 
@@ -205,7 +205,7 @@ The gating workflow template lives at [`.github/workflows/voice-evals-gate.yml.t
 
 ```bash
 mkdir -p .github/workflows
-curl -fsSL https://raw.githubusercontent.com/wranngle/voice-evals/v1/.github/workflows/voice-evals-gate.yml.template \
+curl -fsSL https://raw.githubusercontent.com/wranngle/voice_ai_agent_evals/main/.github/workflows/voice-evals-gate.yml.template \
   -o .github/workflows/voice-evals-gate.yml
 gh secret set ELEVENLABS_API_KEY VOICE_EVALS_AGENT_ID
 git add .github/workflows/voice-evals-gate.yml && git commit -m "ci: gate PRs on voice-evals"
@@ -214,7 +214,7 @@ git add .github/workflows/voice-evals-gate.yml && git commit -m "ci: gate PRs on
 ## What's in here
 
 - **`src/testing/`** — runner library: `runners/` (elevenlabs, n8n-eval, mcp, webhook, external-command), `adapters/`, `ingestion/`, CLI
-- **`src/extraction/`** — structured extraction from transcripts and post-call payloads (will be reshaped into `src/ingestion/` in Phase 3)
+- **`src/ingestion/extraction/`** — structured extraction from transcripts and post-call payloads (moved here from `src/extraction/` in Phase 3)
 - **`src/agent_evals/`** — agent-eval runtime + fixtures
 - **`src/security/`** — ElevenLabs HMAC signature verification
 - **`scripts/`** — build (`build.mjs`), postinstall (`postinstall.mjs`), runner entry points (`test-elevenlabs-runner`, `test-mcp-runner`, `test-n8n-eval-runner`), and harness utilities (`health-check`, `monitor-executions`, `list-workflows`, `ingest-and-run`)
@@ -235,9 +235,11 @@ $ bun playground:verify   # 19/19 e2e + 7/7 live-probe + a11y (4 views) + mobile
 
 See [`playground/README.md`](playground/README.md) for the capability map and [`playground/AUDIT.md`](playground/AUDIT.md) for the per-capability evidence table.
 
-## v1.0 phase tracker
+## Phase tracker
 
-Tracked under [`feat/v1.0-bun-package`](https://github.com/wranngle/voice-evals/tree/feat/v1.0-bun-package). See [`CHANGELOG.md`](CHANGELOG.md) for full per-phase notes.
+See [`CHANGELOG.md`](CHANGELOG.md) for full per-phase notes.
+
+### v1.0 line (shipped)
 
 - ✅ **Phase 0** — package shell + build pipeline
 - ✅ **Phase 1** — ElevenLabs wrapper (governance + tool-schema cleaning)
@@ -247,12 +249,25 @@ Tracked under [`feat/v1.0-bun-package`](https://github.com/wranngle/voice-evals/
 - ✅ **Phase 3.x** — TestChain Designer (free-form draft assertions → structured specs)
 - ✅ **Phase 4** — regression baselines + Braintrust-shaped diff
 - ✅ **Phase 5** — closed-loop remediation (proposer + apply + polish loop; GEPA bridge contract)
-- ✅ **Phase 5.x** — Python sidecar install via `voice-evals doctor --install` (uv-managed venv + gepa pip + `gepa_run.py` JSON-IO; Python stub, full optimizer wiring in v1.1)
+- ✅ **Phase 5.x** — Python sidecar install via `voice-evals doctor --install` (uv-managed venv + gepa pip + `gepa_run.py` JSON-IO; Python stub, full optimizer wiring in v1.2)
 - ✅ **Phase 6** — CLI doctor + README v1.0 + quickstart example
 - ✅ **Phase 6.x** — matrix CI on Bun 1.1 + Node 20 + Node 22; CLI commands split (`init`, `baseline capture`, `baseline diff`)
-- ⏳ **npm publish** — `bun publish` to `@wranngle/voice-evals@1.0.0` (user-authorized action; not autonomous)
+- ✅ **npm publish** — `@wranngle/voice-evals@1.0.0` shipped to the registry
+
+### v1.1.0 (shipped 2026-05-13)
+
+- ✅ **Phase A** — Native ElevenLabs Tests API wrap (`client.tests.{create, list, runBatch, pollInvocation, …}`)
+- ✅ **Phase B** — Combinatorial factory (`cartesian`, `pairwise` IPO, YAML templates)
+- ✅ **Phase C** — Factory CLI (`voice-evals factory {generate, upload, list, cleanup, execute, report, run}`)
+- ✅ **Phase D** — Friction log + cycle stats + random scenarios
+- ✅ **Phase E** — Autorefinement engine (5 canonical FAILURE_PATTERNS short-circuit ANALYZE → PROPOSE)
+- ✅ **Phase F** — n8n workflow corrector (`applyPartialUpdate`, `diagnoseWorkflowFailure`, batched fix application)
+- ✅ **Phase G** — Agent CRUD extensions (`agents.{create, update, clone, archive, promote}` with `[PHASE]` governance)
+
+### Next
+
 - ⏳ **GitHub repo rename** — `wranngle/voice_ai_agent_evals` → `wranngle/voice-evals` (user action)
-- ⏳ **v1.1** — scenario-runner migration onto new scoring primitives; full GEPA optimizer wiring; PyRIT adversarial sidecar
+- ⏳ **v1.2** — full GEPA optimizer wiring; scenario-runner migration onto new scoring primitives; PyRIT adversarial sidecar
 
 ## Documentation
 
