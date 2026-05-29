@@ -1,10 +1,11 @@
 /**
  * JSONL trace emission — the project-wide runtime logging standard.
  *
- * Per AGENTS.md ("Greenfield Development & Testing Policy"): all runtime
- * files obey JSONL standards. Trace events are newline-delimited JSON
+ * All runtime trace events obey JSONL standards: newline-delimited JSON
  * objects appended to `logs/voice-evals-<ISO-date>.jsonl` at the consumer
- * project root (CWD), not inside node_modules.
+ * project root (CWD), not inside node_modules. (Project AGENTS.md covers
+ * ElevenLabs governance + naming, not JSONL — the older parenthetical
+ * citation pointed at a section that does not exist.)
  *
  * Event shape (single line per call, no pretty-print):
  *   {
