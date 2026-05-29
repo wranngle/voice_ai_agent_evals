@@ -14,6 +14,15 @@ const emit = (type: string, data?: unknown) => {
   listeners.forEach((f) => f())
   logEvent("hooks." + type, type, data && typeof data === "object" ? (data as Record<string, unknown>) : { value: String(data) })
 }
+// Sibling of #79/#81/#83/#85 in the catch-drops-stack chain. Every catch in
+// this file emitted { msg } only, so JSONL log entries for client-side hook
+// errors had no file/line. Stack added when present (DOM Event objects from
+// useScribe's onError don't carry one — that path collapses to msg only).
+const errFields = (e: unknown): Record<string, unknown> => {
+  const msg = (e as Error)?.message || String(e)
+  const stack = (e as Error)?.stack
+  return stack ? { msg, stack } : { msg }
+}
 
 // Wrap the control inside the label so axe sees the accessible name without
 // for/id plumbing (axe: label / select-name).
@@ -58,12 +67,12 @@ function Controls({ agentId, conn }: { agentId: string; conn: "agent-id" | "sign
       // success: the actual connected state is signaled by onConnect → "onConnect".
       c.startSession(opts as never)
       emit("startSession.requested", { conn })
-    } catch (e: unknown) { emit("error", { msg: (e as Error)?.message || String(e) }) }
+    } catch (e: unknown) { emit("error", errFields(e)) }
   }
-  const end = () => { try { c.endSession(); emit("endSession") } catch (e: unknown) { emit("error", { msg: (e as Error)?.message || String(e) }) } }
+  const end = () => { try { c.endSession(); emit("endSession") } catch (e: unknown) { emit("error", errFields(e)) } }
   const send = () => {
     try { c.sendUserMessage(msg); emit("sendUserMessage", { len: msg.length }) }
-    catch (e: unknown) { emit("error", { msg: (e as Error)?.message || String(e) }) }
+    catch (e: unknown) { emit("error", errFields(e)) }
   }
 
   return (
@@ -103,7 +112,7 @@ function ScribePanel() {
     autoConnect: false,
     onConnect: () => emit("scribe.connect"),
     onDisconnect: () => emit("scribe.disconnect"),
-    onError: (e: Error | Event) => emit("scribe.error", { msg: (e as Error)?.message || String(e) }),
+    onError: (e: Error | Event) => emit("scribe.error", errFields(e)),
     onCommittedTranscript: ({ text }) => { if (text) setTranscript((t) => (t + " " + text).slice(-400)) },
     onPartialTranscript: ({ text }) => emit("scribe.partial", { len: text?.length || 0 }),
   })
@@ -117,7 +126,7 @@ function ScribePanel() {
     s.connect().catch((e: unknown) => {
       armed.current = false
       setToken("")
-      emit("scribe.error", { msg: (e as Error)?.message || String(e) })
+      emit("scribe.error", errFields(e))
     })
   }, [token, s])
   const connect = async () => {
