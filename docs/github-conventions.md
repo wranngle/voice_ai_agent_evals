@@ -38,15 +38,15 @@ Three forms, deterministic templates (no LLM in the bootstrap path), shipped to 
 
 Each form has a required **Area** dropdown. The `issue-triage` workflow reads the dropdown and applies `a/<area>` automatically — you never label by hand.
 
-## Auto-fill via AI: `gh-issue.sh`
+## Auto-fill via AI: `gh-issue` shell function
 
 ```bash
-gh-issue.sh "voice agent fails on inputs > 8s"
-gh-issue.sh -t feat -a cli "ship --json flag"
-gh-issue.sh -t research -a infra "evaluate fly.io vs railway"
+gh-issue "voice agent fails on inputs > 8s"
+gh-issue -t feat -a cli "ship --json flag"
+gh-issue -t research -a infra "evaluate fly.io vs railway"
 ```
 
-Wraps `llm.sh` to generate the form body from a one-liner, then `gh issue create`s with the right title prefix and labels.
+Wraps `llm.sh` to generate the form body from a one-liner, then `gh issue create`s with the right title prefix and labels. Defined inline as a shell function in `~/.claude/CLAUDE.md` (no separate `gh-issue.sh` script — that split utility was consolidated alongside `git_good`; see `~/.dotfiles/scripts/bin/git_good` for the unified Git automation surface).
 
 ## Issue → PR linkage
 
@@ -116,9 +116,11 @@ immediate merge when that policy says `require_green=true`.
 
 ## Failure triage
 
-`github-hygiene.sh triage-failures` reads recent failed Actions runs across the selected repos and writes per-repo failure reports under the run report directory.
+`git_good triage` reads recent failed Actions runs across the selected repos and writes per-repo failure reports under the run report directory.
 
-`github-hygiene.sh repair-failures` adds two universal repair steps: disables known noisy legacy AI review workflows and runs the normal dotfiles security-hygiene rollout in branch mode by default. It records semantic app/test/security failures instead of pretending they can be fixed generically.
+`git_good repair` adds two universal repair steps: disables known noisy legacy AI review workflows and runs the normal dotfiles security-hygiene rollout in branch mode by default. It records semantic app/test/security failures instead of pretending they can be fixed generically.
+
+(Both verbs replaced the retired `github-hygiene.sh triage-failures` / `repair-failures` split scripts; see `~/.dotfiles/scripts/bin/git_good` for the full unified surface.)
 
 ## Why not labels for status/priority/effort?
 
