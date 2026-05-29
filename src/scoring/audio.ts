@@ -42,6 +42,35 @@ const CHUNK_WAVE = 0x57_41_56_45;
 const CHUNK_FMT = 0x66_6D_74_20;
 const CHUNK_DATA = 0x64_61_74_61;
 
+/**
+ * Resolve the sample stream for a scorer's `channel` option:
+ *
+ *  - undefined → the whole file (mono samples or interleaved stereo as-is).
+ *  - explicit on stereo+ → the deinterleaved per-channel array.
+ *  - `0` on mono → the mono samples (channel 0 of a mono file is the file).
+ *  - any other index on mono → `undefined` (caller should `error` out).
+ *
+ * Previous behavior silently fell back to `wav.samples` whenever
+ * `wav.channelSamples` was undefined, which turned "I asked for channel 1 on
+ * a mono file" into "score the wrong audio" instead of "error". P2 codex
+ * review on PR #108.
+ */
+function pickChannel(wav: WavInfo, channel?: number): Float32Array | undefined {
+  if (channel === undefined) {
+    return wav.samples;
+  }
+
+  if (wav.channelSamples) {
+    return wav.channelSamples[channel];
+  }
+
+  if (channel === 0) {
+    return wav.samples;
+  }
+
+  return undefined;
+}
+
 export function parseWav(buffer: ArrayBuffer | Uint8Array): WavInfo {
   const ab = buffer instanceof Uint8Array
     ? buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)
@@ -233,7 +262,12 @@ export function detectSpeechSegments(
     } else if (inSpeech) {
       silenceRun++;
       if (silenceRun >= minSilenceWindows) {
-        const segEnd = i - silenceRun;
+        // segEnd is the index AFTER the last speech window — matching the
+        // trailing-speech branch below which uses `envelope.length - silenceRun`.
+        // Previously `i - silenceRun` recorded the LAST SPEECH INDEX, so endMs
+        // came back one windowMs short (e.g. a 1000ms tone followed by silence
+        // showed endMs=950 instead of 1000). P2 codex review on PR #108.
+        const segEnd = i + 1 - silenceRun;
         if (segEnd - segStart >= minSpeechWindows) {
           segments.push({startMs: segStart * windowMs, endMs: segEnd * windowMs});
         }
@@ -325,14 +359,12 @@ export function scoreVoiceActivity(
   wav: WavInfo,
   options: {minSpeechMs: number; threshold?: number; channel?: number; name?: string},
 ): DimensionScore {
-  const samples = options.channel !== undefined && wav.channelSamples
-    ? wav.channelSamples[options.channel]
-    : wav.samples;
+  const samples = pickChannel(wav, options.channel);
   if (!samples) {
     return {
       name: options.name ?? 'voice_activity',
       status: 'error',
-      detail: `channel ${options.channel} not present (file has ${wav.channels} channel(s))`,
+      detail: `channel ${options.channel} not available (file has ${wav.channels} channel(s))`,
     };
   }
 
@@ -426,11 +458,9 @@ export function scoreSignalToNoiseRatio(
   options: {minSnrDb?: number; threshold?: number; windowMs?: number; channel?: number; name?: string} = {},
 ): DimensionScore {
   const name = options.name ?? 'snr_db';
-  const samples = options.channel !== undefined && wav.channelSamples
-    ? wav.channelSamples[options.channel]
-    : wav.samples;
+  const samples = pickChannel(wav, options.channel);
   if (!samples) {
-    return {name, status: 'error', detail: `channel ${options.channel} not present (file has ${wav.channels} channel(s))`};
+    return {name, status: 'error', detail: `channel ${options.channel} not available (file has ${wav.channels} channel(s))`};
   }
 
   const windowMs = options.windowMs ?? 50;
@@ -503,16 +533,13 @@ export function scoreAveragePitch(
   options: {minHz?: number; maxHz?: number; frameMs?: number; threshold?: number; channel?: number; name?: string} = {},
 ): DimensionScore {
   const name = options.name ?? 'average_pitch_hz';
-  const samples = options.channel !== undefined && wav.channelSamples
-    ? wav.channelSamples[options.channel]
-    : wav.samples;
+  const samples = pickChannel(wav, options.channel);
   if (!samples) {
-    return {name, status: 'error', detail: `channel ${options.channel} not present (file has ${wav.channels} channel(s))`};
+    return {name, status: 'error', detail: `channel ${options.channel} not available (file has ${wav.channels} channel(s))`};
   }
 
   const minHz = options.minHz ?? 80;
   const maxHz = options.maxHz ?? 300;
-  const frameMs = options.frameMs ?? 25;
   const threshold = options.threshold ?? 0.02;
   // Decouple the AC search range from the pass band. The detector searches the
   // full plausible human-voice range (50–500 Hz) so a true F0 outside the user's
@@ -522,6 +549,11 @@ export function scoreAveragePitch(
   // mathematically unreachable.
   const minLag = Math.max(1, Math.floor(wav.sampleRate / 500));
   const maxLag = Math.floor(wav.sampleRate / 50);
+  // Frame must cover ≥ 3 periods of the lowest searched F0 (50 Hz → 60 ms)
+  // for the autocorrelation to find a stable peak. Default 75 ms covers 50 Hz
+  // with one period of margin. P2 codex review on PR #108: at 25 ms the AC
+  // misdetected an 80 Hz tone as the 500 Hz minimum-lag candidate.
+  const frameMs = options.frameMs ?? 75;
   const frameSamples = Math.round((frameMs / 1000) * wav.sampleRate);
 
   const env = rmsEnvelope(samples, wav.sampleRate, 50);
@@ -539,8 +571,12 @@ export function scoreAveragePitch(
       continue;
     }
 
-    let bestLag = -1;
-    let bestCorr = 0;
+    // Compute normalized AC across the search range. Normalize by the number
+    // of products so low-lag (high-Hz) candidates can't win on iteration count
+    // alone — without this, lag=96 (500 Hz) accumulates ~5× more terms than
+    // lag=480 (100 Hz) and beats the true peak for low F0 signals.
+    const acValues = new Float32Array(maxLag - minLag + 1);
+    let maxCorr = 0;
     for (let lag = minLag; lag <= maxLag; lag++) {
       let corr = 0;
       const last = end - start - lag;
@@ -548,9 +584,37 @@ export function scoreAveragePitch(
         corr += samples[start + i] * samples[start + i + lag];
       }
 
-      if (corr > bestCorr) {
-        bestCorr = corr;
+      corr /= last;
+      acValues[lag - minLag] = corr;
+      if (corr > maxCorr) {
+        maxCorr = corr;
+      }
+    }
+
+    // Pick the fundamental: the FIRST local maximum in the AC curve. A clean
+    // periodic signal has equal-AC peaks at the fundamental and its harmonics
+    // (e.g. 200 Hz sine: AC peaks at lag 240, 480, 720, 960 — picking the
+    // largest single value is FP-noise-determined and routinely returns a
+    // half- or third-pitch reading). Scanning for the first peak from the
+    // low-lag (high-Hz) side reliably lands on the fundamental period for
+    // pure tones, mixed-harmonic content, and noisy signals alike. Falls back
+    // to the global max-AC lag if no local maximum is found in range (so
+    // monotone or near-DC inputs still produce a reading).
+    let bestLag = -1;
+    for (let lag = minLag + 1; lag <= maxLag - 1; lag++) {
+      const idx = lag - minLag;
+      if (acValues[idx] > 0 && acValues[idx] > acValues[idx - 1] && acValues[idx] >= acValues[idx + 1]) {
         bestLag = lag;
+        break;
+      }
+    }
+
+    if (bestLag < 0 && maxCorr > 0) {
+      for (let lag = minLag; lag <= maxLag; lag++) {
+        if (acValues[lag - minLag] === maxCorr) {
+          bestLag = lag;
+          break;
+        }
       }
     }
 
@@ -589,11 +653,9 @@ export function scoreSpeechRate(
   options: {transcript: string; minWpm?: number; maxWpm?: number; threshold?: number; channel?: number; name?: string},
 ): DimensionScore {
   const name = options.name ?? 'words_per_minute';
-  const samples = options.channel !== undefined && wav.channelSamples
-    ? wav.channelSamples[options.channel]
-    : wav.samples;
+  const samples = pickChannel(wav, options.channel);
   if (!samples) {
-    return {name, status: 'error', detail: `channel ${options.channel} not present (file has ${wav.channels} channel(s))`};
+    return {name, status: 'error', detail: `channel ${options.channel} not available (file has ${wav.channels} channel(s))`};
   }
 
   const words = options.transcript.trim().split(/\s+/).filter(Boolean).length;

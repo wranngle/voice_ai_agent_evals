@@ -362,3 +362,62 @@ describe('scoreSpeechRate', () => {
     expect(dim.status).toBe('error');
   });
 });
+
+// Regression tests for the three P2 codex review findings on PR #108.
+describe('PR #108 codex review regressions', () => {
+  it('rejects an out-of-range channel on a mono file (was silently scoring wav.samples)', () => {
+    const samples = sine(500, SR, 440, 0.5);
+    const wav = parseWav(synthesizeWav(samples, SR, 1));
+    // Pre-fix, channel:1 on a mono WAV fell through to wav.samples and scored
+    // the (only) mono signal as if it were channel 1 of a stereo file. Now it
+    // errors with a clear "not available" message.
+    const dim = scoreSignalToNoiseRatio(wav, {channel: 1});
+    expect(dim.status).toBe('error');
+    expect(dim.detail).toContain('not available');
+    expect(dim.detail).toContain('1 channel');
+  });
+
+  it('accepts channel:0 on a mono file (the mono signal IS channel 0)', () => {
+    // Side-condition of the channel fix: explicit channel:0 on mono should
+    // succeed against wav.samples (it would be needlessly hostile to error).
+    const samples = concat(silence(100, SR), sine(400, SR, 440, 0.5), silence(100, SR));
+    const wav = parseWav(synthesizeWav(samples, SR, 1));
+    const dim = scoreSignalToNoiseRatio(wav, {channel: 0, minSnrDb: 10});
+    expect(dim.status).toBe('passed');
+  });
+
+  it('detects an 80 Hz tone (was falsely scored as the 500 Hz minimum-lag candidate)', () => {
+    // Pre-fix, unnormalized AC + a 25 ms frame made low-Hz tones get scored
+    // as the 500 Hz minimum-lag candidate. After normalization + frame ≥ 75 ms
+    // + local-max peak picking, an 80 Hz tone reports ~80 Hz. Pass band is
+    // widened to 75-300 to accommodate lag-quantization at SR=48k (lag=603
+    // = 79.6 Hz is the closest discrete lag to 80 Hz, just below the default
+    // 80 Hz floor); what's being tested is the detected frequency, not the
+    // floor.
+    const samples = concat(silence(100, SR), sine(400, SR, 80, 0.5), silence(100, SR));
+    const wav = parseWav(synthesizeWav(samples, SR, 1));
+    const dim = scoreAveragePitch(wav, {minHz: 75, maxHz: 300});
+    expect(dim.status).toBe('passed');
+    const evidence = dim.evidence as {avgPitchHz: number};
+    // Pre-fix this would have reported ~500 Hz. Now it lands within 5 Hz of
+    // the true 80 Hz fundamental.
+    expect(Math.abs(evidence.avgPitchHz - 80)).toBeLessThan(5);
+  });
+
+  it('counts the full last speech window in speech duration (WPM no longer inflated)', () => {
+    // detectSpeechSegments used to record segEnd as the START of the last
+    // speech window, dropping windowMs (50 ms by default) per segment. WPM
+    // = words / speechMs, so a too-short denominator inflated WPM and could
+    // pass borderline cases. Build a 1000 ms tone + silence and confirm the
+    // segment end is at 1000 ms (not 950 ms).
+    const samples = concat(sine(1000, SR, 440, 0.5), silence(300, SR));
+    const env = rmsEnvelope(samples, SR, 50);
+    const segs = detectSpeechSegments(env, {threshold: 0.05});
+    expect(segs).toHaveLength(1);
+    // Allow ±1 window of float-rounding slack but verify it's NOT the old
+    // 950 ms regression.
+    expect(segs[0].endMs).toBeGreaterThanOrEqual(950);
+    expect(segs[0].endMs).toBeLessThanOrEqual(1050);
+    expect(segs[0].endMs - segs[0].startMs).toBeGreaterThanOrEqual(1000);
+  });
+});
