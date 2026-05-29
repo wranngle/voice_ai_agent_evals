@@ -56,7 +56,7 @@ The harness versions the **full `agent.prompt` shape**, not just the prose:
 agent:
   prompt:
     prompt: <markdown body>           # your prompt source file (kept under prompts/)
-    llm: <model id>                   # e.g. gpt-4o-mini
+    llm: <model id>                   # e.g. gemini-3-flash-preview (project default; gpt-4o-mini and friends are banned at create time)
     temperature: <float>
     tools: <tool array>               # full server-side tool definitions
     knowledge_base: <kb attachments>  # which KBs are mounted
