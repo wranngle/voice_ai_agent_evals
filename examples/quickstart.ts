@@ -1,10 +1,17 @@
 /**
  * @wranngle/voice-evals — quickstart example.
  *
- * Demonstrates each v1.0 namespace end-to-end with synthesized data.
+ * Demonstrates the v1.0 namespaces end-to-end with synthesized data —
+ * `wrapper`, `scoring`, `ingestion`, `regression`, `remediation`.
  * Run with: `bun run examples/quickstart.ts`
  *
  * No live ElevenLabs API key required — every external call is mocked.
+ *
+ * v1.1 namespaces have their own dedicated examples:
+ *   - `factory` + `tests-api` → `examples/factory-end-to-end.ts`
+ *   - `remediation` autorefinement (FAILURE_PATTERNS) → `examples/autorefinement.ts`
+ *   - `n8n` workflow corrector → see `docs/n8n-correction.md`
+ *
  * For a real-agent integration, see docs/methodology.md and the
  * `testing:live:el` script.
  */
