@@ -62,9 +62,9 @@ Audio-native voice AI agent evaluation, closed-loop remediation, and combinatori
 
 - `importPostCallWebhook()` — deterministic webhook → `TestCase[]` — `src/ingestion/post-call-import.ts` ✅
 - `proposeTestCases()` — LLM transcript → tests — `src/ingestion/llm-data-layer.ts` ✅
-- `designAssertions()` — assertion builder (Phase 3.x stub) — `src/ingestion/designer.ts` ✅
+- `designAssertions()` — assertion builder (free-form QA strings → structured `DesignedAssertion[]` via LLM callback) — `src/ingestion/designer.ts` ✅
 - `CANONICAL_PERSONAS` — adversarial persona traits — `src/ingestion/persona-generator.ts` ✅
-- `generateRandomScenario()` — dynamic scenarios — `src/ingestion/random-scenarios.ts` ⚠️ uncommitted
+- `generateRandomScenarios()` — dynamic scenarios (industries × names × volumes × interests) — `src/ingestion/random-scenarios.ts` ✅
 - Extraction (5 files: categories, strictness, validation) — `src/ingestion/extraction/` ✅
 
 ### 7. Scoring
@@ -140,10 +140,9 @@ Audio-native voice AI agent evaluation, closed-loop remediation, and combinatori
 
 ## Known Gaps (deliberately not shipped)
 
-- **Python sidecar / GEPA (Phase 5.x)** — stubbed as echo-back
-- **PyRIT integration (Phase 5.x)** — contract only
-- **Postinstall provisioning** — no-op stub
-- **Designer step (Phase 3.x)** — returns mock data
-- **Drift module (Phase 4.x)** — permutation tests planned, not shipped
-- **Latency budget module (v1.1 planned)** — `scoring/latency.ts` not yet created
-- **Transcript/tone scorers (v1.2 planned)** — deferred
+- **GEPA optimizer wiring (v1.2)** — Python sidecar install ships via `voice-evals doctor --install`; the optimizer stub echoes prompts back. Full optimizer wiring lands in v1.2 once the metric-callback transport is finalized.
+- **PyRIT adversarial sidecar (v1.2)** — uses the same Python install path as GEPA; contract only today.
+- **Automatic Python install at `npm install`** — intentional. Postinstall is opt-in by design (CI / containers / build images often lack `uv` or Python). Operator runs `voice-evals doctor --install` when they want the sidecar.
+- **Drift module — statistical-significance regression gates** — permutation tests are planned but not shipped. Today's `diffAgainstBaseline` does deterministic per-axis diff, not significance testing.
+- **Dedicated `scoring/latency.ts` module** — latency budgets are enforced inline by `src/testing/runners/scenario-runner.ts` (`ttfb_p95_ms` / `end_to_first_audio_p95_ms` / `total_turn_p95_ms` / `tool_call_round_trip_ms`); a standalone `scoring/latency.ts` API is planned for v1.2.
+- **Dedicated transcript-tone scorer module** — tone is currently scored inline in the scenario runner via `tone_judge` (deterministic heuristic + judge-LLM hook); a standalone `src/scoring/transcript-tone.ts` module is planned for v1.2.
