@@ -136,9 +136,9 @@ Once tests pass, the workflow can be deployed via the n8n-mcp tools.
 
 ## Development Status
 
-- [ ] ElevenLabs API documentation cached
-- [ ] Twilio API documentation cached
-- [ ] Curl tests passing
+- [x] ElevenLabs API documentation cached (`docs/elevenlabs/api-reference.md`)
+- [x] Twilio API documentation cached (`docs/twilio/api-reference.md`)
+- [ ] Curl tests passing (scripts exist under `tests/{elevenlabs,twilio}/`; passing status requires real credentials)
 - [ ] Workflow JSON created
 - [ ] Deployed to dev instance
 - [ ] Integration tested
