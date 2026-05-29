@@ -190,6 +190,12 @@ async function handleRequest(req: Request): Promise<Response> {
       // any malformed POST ({}) into a single "playground.unknown" log line —
       // silent log pollution. Validate up front instead.
       if (!Array.isArray(body.events)) return json({ ok: false, error: "missing or invalid `events` array" }, 400);
+      // Empty array → no-op success. Otherwise `[].map(...).join("\n") + "\n"`
+      // appends a bare "\n" — a blank line in the JSONL stream that crashes
+      // every downstream JSON.parse. log.ts already skips flushing empty
+      // batches, so the only way to reach here with [] is a probe or a hostile
+      // client; either way a clean 200 ok beats poisoning the trace file.
+      if (body.events.length === 0) return json({ ok: true, appended: 0 });
       try {
         const events = body.events;
         const date = new Date().toISOString().slice(0, 10);

@@ -214,11 +214,23 @@ await step("Legacy routes 302 → /", async () => {
   return "302 → /";
 });
 
-await step("JSONL log endpoint accepts events", async () => {
+await step("JSONL log endpoint accepts events (and empty array is a clean no-op)", async () => {
   const r = await page.context().request.post(BASE + "/api/log", { data: { events: [{ channel: "verify.smoke", msg: "ok", level: "info" }] } });
   if (r.status() !== 200) throw new Error("POST /api/log → " + r.status());
   const body = await r.json();
   if (!body.ok) throw new Error("body: " + JSON.stringify(body));
+  // Empty-array no-op guard: file size must NOT grow, and the response says
+  // appended:0. Previously [] wrote a bare "\n" — a blank line in the JSONL
+  // stream that crashes every downstream JSON.parse(line).
+  const fs = await import("node:fs");
+  const path = (await import("node:path")).join(process.cwd(), body.file);
+  const before = fs.existsSync(path) ? fs.statSync(path).size : 0;
+  const e = await page.context().request.post(BASE + "/api/log", { data: { events: [] } });
+  if (e.status() !== 200) throw new Error("empty POST → " + e.status());
+  const eb = await e.json();
+  if (eb.appended !== 0) throw new Error(`empty appended=${eb.appended}, expected 0`);
+  const after = fs.existsSync(path) ? fs.statSync(path).size : 0;
+  if (after !== before) throw new Error(`empty POST grew file by ${after - before} bytes`);
   return body.file;
 });
 
