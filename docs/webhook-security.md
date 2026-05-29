@@ -44,7 +44,7 @@ function verifyElevenLabsSignature(
 }
 ```
 
-A working implementation lives in [`src/security/elevenlabs-signature.ts`](../src/security/elevenlabs-signature.ts) — `verifyElevenLabsSignature(rawBody, headerValue, sharedSecret, options?)` returns `{ok: true}` on success or `{ok: false, reason: 'malformed_header' | 'stale_or_missing_signature' | 'signature_mismatch'}`. Both verify and sign throw on an empty `sharedSecret` rather than silently HMAC'ing with an empty key. Test coverage lives at `tests/integration/elevenlabs-signature.test.ts` (17 cases — header parsing, tolerance window, body-tampering detection, custom-clock injection, empty-secret guard).
+A working implementation lives in [`src/security/elevenlabs-signature.ts`](../src/security/elevenlabs-signature.ts) — `verifyElevenLabsSignature(rawBody, headerValue, sharedSecret, options?)` returns `{ok: true}` on success or `{ok: false, reason: 'malformed_header' | 'stale_or_missing_signature' | 'signature_mismatch' | 'signature_replayed'}`. Both verify and sign throw on an empty `sharedSecret` rather than silently HMAC'ing with an empty key. The `signature_replayed` reason fires when the same `t,v0` pair is seen twice inside the tolerance window via the (optional, in-memory by default) `ReplayCache` — see `createReplayCache()` for the shape; production multi-process deployments should provide a Redis-backed implementation. Test coverage lives at `tests/integration/elevenlabs-signature.test.ts` (17 cases — header parsing, tolerance window, body-tampering detection, custom-clock injection, empty-secret guard, replay-cache rejection).
 
 ## Signed replay tests
 
