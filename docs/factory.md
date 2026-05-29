@@ -41,9 +41,9 @@ ELEVENLABS_API_KEY=... voice-evals factory run \
 
 `expand_with: [industries, demo_close_variants]` × strategy gates how the cross-product is realized:
 
-| Strategy | Tests for 14 × 5 vars | When to use |
+| Strategy | Tests for 12 × 5 vars | When to use |
 |---|---|---|
-| `cartesian` | 70 (every combination) | Small spaces, comprehensive coverage |
+| `cartesian` | 60 (every combination) | Small spaces, comprehensive coverage |
 | `pairwise` | ~20-25 | Most cases — every (k_i, k_j) pair covered once |
 | `sample` | `--count` (default 100) | Smoke tests, nightly sweeps |
 
