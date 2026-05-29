@@ -39,6 +39,7 @@ Path 2 is the pragmatic answer.
 
 - Scenario YAML: `tests/scenarios/barge-in-mid-question/scenario.yaml`
 - Result JSON: `result.json` (this directory)
-- Harness assertion: TBD — the per-axis scoring engine that would automate
-  this verdict is still on the roadmap (see `docs/methodology.md`); this
-  postmortem was hand-authored to document the intended failure shape.
+- Harness assertion: the offline scenario runner now scores both axes this
+  postmortem cites (`barge_in_recovery`, `total_turn_p95_ms` — see
+  `docs/methodology.md` §5); this NOTE.md remains a hand-authored
+  postmortem documenting the failure shape the runner is expected to catch.
