@@ -36,7 +36,7 @@ export {
   scoreVoiceActivity,
 } from './audio';
 
-export {scoreNotEarlyTermination} from './dialog';
+export {scoreContainmentRate, scoreNotEarlyTermination} from './dialog';
 
 export {
   scoreAiHumanHandoff,
@@ -44,6 +44,7 @@ export {
   scoreFirstCallResolution,
   scoreInstructionFollowing,
   scoreIntentRecognition,
+  scoreResponseConsistency,
   scoreTaskCompletion,
 } from './rubrics';
 

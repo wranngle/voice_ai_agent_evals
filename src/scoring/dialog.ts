@@ -49,3 +49,48 @@ export function scoreNotEarlyTermination(options: {
     evidence: {terminated: options.terminated, goalAchieved: options.goalAchieved},
   };
 }
+
+/**
+ * Containment Rate — aggregate over N runs: what fraction were
+ * "contained" (resolved without a human handoff)?
+ *
+ * The headline call-center "AI did its job" metric. Pairs naturally with
+ * `scoreFirstCallResolution` + `scoreAiHumanHandoff` for the per-run
+ * inputs:
+ *
+ *   const runs = await Promise.all(scenarios.map(async (s) => {
+ *     const fcr = await scoreFirstCallResolution(llm, {...});
+ *     const handoff = await scoreAiHumanHandoff(llm, {...});
+ *     return { resolved: fcr.status === 'passed', handedOff: handoff.score > 0 };
+ *   }));
+ *   const dim = scoreContainmentRate({ runs });
+ *
+ * Default pass band: 70% (industry-standard "good agent" floor). Lift
+ * `minRate` for stricter SLOs.
+ */
+export function scoreContainmentRate(options: {
+  runs: Array<{handedOff: boolean; resolved: boolean}>;
+  minRate?: number;
+  name?: string;
+}): DimensionScore {
+  const name = options.name ?? 'containment_rate';
+  const total = options.runs.length;
+  if (total === 0) {
+    return {name, status: 'error', detail: 'no runs supplied — cannot compute containment rate'};
+  }
+
+  const contained = options.runs.filter(r => r.resolved && !r.handedOff).length;
+  const rate = contained / total;
+  const minRate = options.minRate ?? 0.7;
+  const passed = rate >= minRate;
+  return {
+    name,
+    status: passed ? 'passed' : 'failed',
+    score: rate,
+    detail: `${contained}/${total} contained (${(rate * 100).toFixed(1)}%, min ${(minRate * 100).toFixed(0)}%)`,
+    evidence: {
+      total, contained, rate, minRate,
+    },
+  };
+}
+

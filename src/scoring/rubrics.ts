@@ -245,3 +245,42 @@ export async function scoreAiHumanHandoff(
     user: `Transcript:\n${options.transcript}\n\nFocus on the handoff moment. Reason, then emit <score>1..5</score>.`,
   });
 }
+
+/**
+ * Response Consistency — given N responses to the same input, judge whether
+ * they convey the same information / take the same actions. Pass when the
+ * judge confirms semantic equivalence (not character-identical — paraphrase
+ * is fine).
+ *
+ * Use to detect agent flakiness across reruns:
+ *
+ *   const responses = await Promise.all(Array.from({length: 5}, () =>
+ *     runScenario(scenario)
+ *   ));
+ *   const dim = await scoreResponseConsistency(llm, { responses });
+ *
+ * Errors if fewer than 2 responses are supplied (consistency over a singleton
+ * is trivially 1, which would mask a flaky agent that happens to be called once).
+ */
+export async function scoreResponseConsistency(
+  llm: LlmCompleteCallback,
+  options: {responses: string[]; name?: string; threshold?: number},
+): Promise<DimensionScore> {
+  const name = options.name ?? 'response_consistency';
+  if (options.responses.length < 2) {
+    return {name, status: 'error', detail: 'need at least 2 responses to judge consistency'};
+  }
+
+  const numbered = options.responses.map((r, i) => `Response ${i + 1}:\n${r}`).join('\n\n');
+  return judge(llm, {
+    name,
+    threshold: options.threshold ?? 0.6,
+    rawScale: '5',
+    system:
+      'You judge whether a set of N responses to the same input convey the same information '
+      + 'and take the same actions. Paraphrase is fine; contradictory content is not. '
+      + 'Output reasoning then <score>N</score> 1..5 where 1=responses disagree, 3=mostly aligned '
+      + 'with minor drift, 5=semantically equivalent. No other text after </score>.',
+    user: `${numbered}\n\nReason about consistency across all responses, then emit <score>1..5</score>.`,
+  });
+}
