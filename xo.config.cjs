@@ -8,6 +8,23 @@
  */
 module.exports = [
   {
+    // -- Scope: lint only the code that ships in the npm package + its tests.
+    //    Everything below is either a sibling-owned app (`playground/`), a
+    //    vendored shadcn-style component library (`playground/ui-library/`),
+    //    or a ground-truth corpus copied verbatim from elevenlabs/packages
+    //    (`docs/research/elevenlabs-widget-ui/external/source/`). None of it
+    //    ships in `dist/`; the `prepublishOnly` chain should not gate on it.
+    ignores: [
+      'dist/**',
+      'node_modules/**',
+      'playground/**',
+      'docs/research/**',
+      'reports/**',
+      'out/**',
+      '**/*.min.js',
+    ],
+  },
+  {
     space: 2,
     semicolon: true,
     prettier: false,

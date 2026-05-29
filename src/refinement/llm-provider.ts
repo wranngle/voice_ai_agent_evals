@@ -1,4 +1,3 @@
-import {accessSync, constants as fsConstants} from 'node:fs';
 /**
  * Default LLM provider for the Refinement orchestrator. Backs the
  * rubric_judge failure detectors (and any future LLM-driven step) with a
@@ -12,8 +11,8 @@ import {accessSync, constants as fsConstants} from 'node:fs';
  * Model defaults to gemini-3-flash-preview (the project's low-latency voice
  * default per CLAUDE.md). Override with REFINE_JUDGE_MODEL.
  */
-
 import {execFile, execFileSync} from 'node:child_process';
+import {accessSync, constants as fsConstants} from 'node:fs';
 import {promisify} from 'node:util';
 import type {LlmCompleteCallback} from '../ingestion/types';
 
