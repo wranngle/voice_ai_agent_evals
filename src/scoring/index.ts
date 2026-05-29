@@ -28,8 +28,25 @@ export type {
 } from './audio';
 export {
   detectBargeIn, detectSpeechSegments, parseWav, rmsEnvelope,
-  scoreBargeIn, scoreVoiceActivity,
+  scoreAiInterruptingUser,
+  scoreAveragePitch,
+  scoreBargeIn,
+  scoreSignalToNoiseRatio,
+  scoreSpeechRate,
+  scoreVoiceActivity,
 } from './audio';
+
+export {scoreContainmentRate, scoreNotEarlyTermination} from './dialog';
+
+export {
+  scoreAiHumanHandoff,
+  scoreCustomerSatisfaction,
+  scoreFirstCallResolution,
+  scoreInstructionFollowing,
+  scoreIntentRecognition,
+  scoreResponseConsistency,
+  scoreTaskCompletion,
+} from './rubrics';
 
 export {
   arenaJudge, evaluateDag, gEvalJudge, leaf, lynxJudge, regexBranch,
