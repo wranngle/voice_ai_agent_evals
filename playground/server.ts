@@ -196,8 +196,16 @@ async function handleRequest(req: Request): Promise<Response> {
         const dir = join(process.cwd(), "logs");
         if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
         const file = join(dir, `voice-evals-${date}.jsonl`);
+        // Preserve client-emit `ts` — per src/internal/jsonl-trace.ts spec, ts
+        // is the event-origin timestamp. For /api/log the browser is the
+        // emitter; the previous unconditional server-side toISOString() shifted
+        // every event by the 350ms client queue flush + network RTT, which
+        // hides ordering and burst patterns in the trace. Validate ISO 8601
+        // shape so a malformed payload can't poison the stream; fall back to
+        // server time when missing (e.g. gate-internal POSTs without a ts).
+        const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/;
         const lines = events.map((e: any) => JSON.stringify({
-          ts: new Date().toISOString(),
+          ts: typeof e?.ts === "string" && ISO.test(e.ts) ? e.ts : new Date().toISOString(),
           channel: e?.channel ?? "playground.unknown",
           level: e?.level ?? "info",
           ...(e?.run_id ? { run_id: e.run_id } : {}),
