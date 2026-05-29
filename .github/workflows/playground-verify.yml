@@ -4,7 +4,7 @@ name: playground-verify
 # on every PR that touches the playground. Requires the repo secret
 # ELEVENLABS_API_KEY (single setting key) — the only auth bit the proxy needs.
 # Does NOT exercise /api/extract-form or /api/voice-nav (those need llm.sh on
-# the runner); the other 9 proxy endpoints + 18/18 verify + 7/7 live probes
+# the runner); the other 9 proxy endpoints + 19/19 verify + 7/7 live probes
 # + axe a11y (4 views, no serious/critical) + mobile responsive sweep
 # (12 viewport×view stops, no h-scroll/pageerrors) all run against the
 # live ElevenLabs API.

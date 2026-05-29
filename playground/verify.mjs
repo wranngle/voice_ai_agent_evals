@@ -222,6 +222,34 @@ await step("JSONL log endpoint accepts events", async () => {
   return body.file;
 });
 
+await step("/api/log preserves client-emit ts (browser-origin truth)", async () => {
+  // Doctrine-guard for the fix that stopped /api/log from overwriting the
+  // client's ts. Per src/internal/jsonl-trace.ts, ts is origin time; the
+  // browser is the emitter for these events, so a server-side toISOString()
+  // erases the ~350ms client-flush + RTT shift. Two paths:
+  //   1. valid ISO from client → preserved verbatim
+  //   2. missing/invalid ts → server-time fallback (so legacy callers still work)
+  const fs = await import("node:fs");
+  const date = new Date().toISOString().slice(0, 10);
+  const file = `logs/voice-evals-${date}.jsonl`;
+  const clientTs = "2020-01-02T03:04:05.678Z"; // far past → can't be confused with server time
+  const tag = "verify.ts-guard." + Date.now();
+  const r = await page.context().request.post(BASE + "/api/log", { data: { events: [
+    { ts: clientTs, channel: tag + ".valid", msg: "ok", level: "info" },
+    { ts: "not-iso", channel: tag + ".invalid", msg: "ok", level: "info" },
+    { channel: tag + ".missing", msg: "ok", level: "info" },
+  ] } });
+  if (r.status() !== 200) throw new Error("POST → " + r.status());
+  // Tail the file and find our 3 tagged lines.
+  const text = fs.readFileSync(file, "utf8");
+  const lines = text.split("\n").filter((l) => l.includes(tag)).map((l) => JSON.parse(l));
+  const got = Object.fromEntries(lines.map((e) => [e.channel.split(".").pop(), e.ts]));
+  if (got.valid !== clientTs) throw new Error("valid ISO not preserved: " + got.valid);
+  if (got.invalid === "not-iso") throw new Error("invalid ts not rejected");
+  if (!/^\d{4}-/.test(got.missing || "")) throw new Error("missing-ts fallback failed: " + got.missing);
+  return "valid preserved · invalid+missing fall back to server time";
+});
+
 await step("DEV-guarded widget PATCH round-trip — real ElevenLabs API", async () => {
   // The showcase agent is [DEV], so the governance guard permits PATCH. The
   // server forwards the PATCH body as platform_settings.widget partial; the
