@@ -8,10 +8,10 @@
  *   stdin  : JSON-encoded GepaOptimizationInput
  *   stdout : JSON-encoded GepaOptimizationResult
  *
- * v1.0 ships a stub Python implementation that echoes prompts back (so the
- * round-trip and the venv are testable without depending on the GEPA pip
- * package being installable). The actual GEPA optimizer wiring lands in
- * v1.1 once we finalize the metric-callback transport.
+ * The package ships a stub Python implementation that echoes prompts back
+ * (so the round-trip and the venv are testable without depending on the
+ * GEPA pip package being installable). The actual GEPA optimizer wiring
+ * lands in v1.2 once we finalize the metric-callback transport.
  */
 
 export const GEPA_RUN_SCRIPT = `#!/usr/bin/env python3
@@ -21,9 +21,9 @@ voice-evals GEPA sidecar — JSON-IO protocol over stdin/stdout.
 Read GepaOptimizationInput from stdin, run GEPA (or stub), write
 GepaOptimizationResult to stdout.
 
-v1.0 ships a stub: echoes prompts back unchanged so the round-trip is
-testable without a working GEPA install. Full optimizer wiring lands in
-v1.1 — see CHANGELOG.md.
+Current release ships a stub: echoes prompts back unchanged so the
+round-trip is testable without a working GEPA install. Full optimizer
+wiring lands in v1.2 — see CHANGELOG.md.
 """
 import json
 import sys
@@ -44,8 +44,8 @@ def main() -> int:
 
     start = time.time()
 
-    # v1.0 stub: try to import gepa. If installed, we still echo for now
-    # (the optimizer wiring is staged for v1.1); if missing, we still
+    # Stub: try to import gepa. If installed, we still echo for now
+    # (the optimizer wiring is staged for v1.2); if missing, we still
     # succeed so the bridge contract is testable in environments without
     # the GEPA pip package.
     try:
@@ -59,7 +59,7 @@ def main() -> int:
         "durationMs": int((time.time() - start) * 1000),
         "stub": True,
         "gepa_pip_installed": gepa_available,
-        "note": "GEPA sidecar stub — full optimization lands in v1.1.",
+        "note": "GEPA sidecar stub — full optimization lands in v1.2.",
     }
     json.dump(result, sys.stdout)
     return 0

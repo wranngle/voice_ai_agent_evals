@@ -65,17 +65,18 @@ export type GepaOptimizationResult = {
  *
  * Install the sidecar with `voice-evals doctor --install`.
  *
- * v1.0 ships a Python stub that echoes prompts back; full GEPA optimization
- * wiring lands in v1.1 once the metric-callback transport is finalized
- * (today there is no clean way to drive the GEPA reflection loop's
- * per-rollout LLM judge from TypeScript without round-tripping per call).
+ * The package ships a Python stub that echoes prompts back; full GEPA
+ * optimization wiring lands in v1.2 once the metric-callback transport
+ * is finalized (today there is no clean way to drive the GEPA reflection
+ * loop's per-rollout LLM judge from TypeScript without round-tripping
+ * per call).
  */
 export async function runGepaOptimization(input: GepaOptimizationInput): Promise<GepaOptimizationResult> {
   if (!isGepaAvailable()) {
     throw new GepaUnavailableError(`GEPA Python sidecar not installed at ${SIDECAR_CACHE}. `
       + 'Run `voice-evals doctor --install` (requires Python 3.11+; uv preferred), '
       + 'or fall back to the single-shot proposer in polishLoop. '
-      + 'See CHANGELOG.md for sidecar install + v1.1 plan.');
+      + 'See CHANGELOG.md for sidecar install + v1.2 plan.');
   }
 
   const start = Date.now();
