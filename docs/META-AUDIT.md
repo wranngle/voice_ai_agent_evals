@@ -1,17 +1,17 @@
 # Meta-audit — feature map + roast + spiritual shortcomings
 
-This is the "impatient-CEO" audit of `@wranngle/voice-evals`. It is deliberately uncomfortable. The whole point is to surface what 902 green tests hide.
+This is the "impatient-CEO" audit of `@wranngle/voice-evals`. It is deliberately uncomfortable. The whole point is to surface what 1,221 green tests hide.
 
 ## TL;DR
 
-> **902 tests pass. That number lies about coverage.** A CEO who reads this should walk away skeptical of the "audio-native, closed-loop, 1000+ tests" copy until the spiritual-shortcoming tests under `tests/_meta_audit/` go from red to green.
+> **1,221 tests pass (out of 1,300; 73 currently red, 6 skipped). That number lies about coverage.** A CEO who reads this should walk away skeptical of the "audio-native, closed-loop, 1000+ tests" copy until the spiritual-shortcoming tests under `tests/_meta_audit/` go from red to green.
 
 The codebase ships:
-- 20.2k LOC of production TypeScript
-- 20.9k LOC of tests
-- 16 test namespaces (`wrapper`, `scoring`, `remediation`, `factory`, `n8n`, …)
+- ~30k LOC of production TypeScript (`src/`)
+- ~26k LOC of tests (`tests/`)
+- 24 vitest projects (`wrapper`, `scoring`, `remediation`, `factory`, `n8n`, `ingestion`, `ingestion-llm`, `regression`, `cli`, `refinement`, `compare`, `fuzz`, `budget`, `replay`, `leaderboard`, `_meta_audit`, … — see `vitest.config.ts`)
 
-Test-to-code ratio is 1.04 — looks great. But the **kind** of test matters more than the count.
+Test-to-code ratio is ~0.88. The per-pillar test counts in § 1 below were taken at a v1.1.0 snapshot and have not been re-verified since; treat them as illustrative of the **shape** of coverage, not the absolute count. The **kind** of test matters more than the count regardless.
 
 ## 1. Feature map (full surface)
 
