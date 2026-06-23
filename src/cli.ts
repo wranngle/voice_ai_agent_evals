@@ -161,9 +161,27 @@ async function dispatch(): Promise<number | undefined> {
       return dispatchScenarios({argv: process.argv.slice(3)});
     }
 
-    case 'legacy': {
-      // Shift argv left so the legacy CLI sees its own subcommand at argv[2].
-      process.argv = [process.argv[0], process.argv[1], ...process.argv.slice(3)];
+    case 'legacy':
+    // Top-level passthroughs to the legacy testing CLI. Without these, every
+    // `bun run testing run -t scenario` / `testing list` / `testing validate`
+    // / `testing report` invocation across docs/{deployment, handling-model-
+    // updates, extending-the-harness}.md + the package.json `testing:run`/
+    // `testing:list`/`testing:validate`/`testing:report` scripts errors with
+    // "unknown command". The legacy CLI's help text + 8 referenced doc sites
+    // all expect the bare verb. The `legacy <subcmd>` form is kept for
+    // explicitness.
+    case 'run':
+    case 'list':
+    case 'validate':
+    case 'report': {
+      // Shift argv so the legacy CLI sees its own subcommand at argv[2].
+      // For 'legacy <sub>' the user already typed the subcommand; drop the
+      // 'legacy' word. For the bare passthroughs the verb itself IS the
+      // subcommand; keep argv[2..] intact.
+      if (command === 'legacy') {
+        process.argv = [process.argv[0], process.argv[1], ...process.argv.slice(3)];
+      }
+
       await import('./testing/cli');
       return undefined;
     }
