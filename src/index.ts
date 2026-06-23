@@ -2,14 +2,17 @@
  * @wranngle/voice-evals — audio-native voice AI agent eval, polish, and
  * regression-test factory wrapping ElevenLabs Conversational AI.
  *
- * v1.0 in-progress: the public surface re-exported here will be reshaped
- * substantially in Phases 1-6 (wrapper, scoring, ingestion, regression,
- * remediation). See README.md "v1.0 roadmap" for the target shape.
+ * Flat barrel — re-exports the high-traffic surface (testing runners +
+ * ingestion-extraction types + ElevenLabs webhook verifier + n8n corrector)
+ * for `import {...} from '@wranngle/voice-evals'`. The canonical subpath
+ * exports live alongside in `package.json` and are the recommended
+ * consumer surface (smaller bundle, clearer intent):
  *
- * Phase 0 ships the existing eval-harness surface under the new package name
- * so consumers can install `@wranngle/voice-evals` today and migrate as the
- * v1.0 subpath exports (`/wrapper`, `/scoring`, `/scenarios`, `/ingestion`,
- * `/regression`, `/remediation`) land.
+ *   /wrapper  /tests-api  /scoring  /ingestion  /regression  /remediation
+ *   /factory  /n8n        /compare  /scenarios
+ *
+ * All shipped in v1.0 (2026-05-12) + v1.1 (2026-05-13); v1.2 prep is in
+ * flight (see CHANGELOG.md).
  */
 
 export * from './testing/index';
