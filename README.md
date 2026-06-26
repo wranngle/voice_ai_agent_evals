@@ -136,6 +136,20 @@ modules are split under `src/scoring`, `src/wrapper`, `src/regression`,
 `src/ingestion`, `src/remediation`, `src/factory`, and `src/n8n` for direct
 import.
 
+## Gate merges on voice-evals score
+
+The gating workflow template lives at [`.github/workflows/voice-evals-gate.yml.template`](.github/workflows/voice-evals-gate.yml.template). It runs on every pull request to `main` and fails the gate when the score drops below your threshold. Drop it into a consuming repo:
+
+```bash
+mkdir -p .github/workflows
+curl -fsSL https://raw.githubusercontent.com/wranngle/voice_ai_agent_evals/main/.github/workflows/voice-evals-gate.yml.template \
+  -o .github/workflows/voice-evals-gate.yml
+gh secret set ELEVENLABS_API_KEY VOICE_EVALS_AGENT_ID
+git add .github/workflows/voice-evals-gate.yml && git commit -m "ci: gate PRs on voice-evals"
+```
+
+The template calls the research-stage `voice-evals` CLI, and its header lists working fallbacks to splice in until the unified gate CLI ships.
+
 ## Tests
 
 ```bash
