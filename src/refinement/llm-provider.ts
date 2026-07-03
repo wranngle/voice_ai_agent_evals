@@ -1,15 +1,23 @@
 /**
  * Default LLM provider for the Refinement orchestrator. Backs the
- * rubric_judge failure detectors (and any future LLM-driven step) with a
- * Gemini callback constructed from GEMINI_API_KEY.
+ * rubric_judge failure detectors (and any future LLM-driven step) with
+ * `resolveDefaultJudgeLlm()` (preference order in source):
  *
- * Returns `undefined` when no key is present so the orchestrator stays
- * deterministic and offline in mock / CI mode — rubric_judge modes simply
- * don't fire, exactly as before. Production builds inside ElevenLabs would
- * inject their own model here.
+ *   1. A unified LLM CLI (`llm.sh`) resolved via `LLM_SH` or PATH —
+ *      owns its own provider fallback + auth.
+ *   2. A Gemini REST callback constructed from
+ *      `GEMINI_API_KEY` / `GOOGLE_API_KEY`.
+ *   3. `undefined` — rubric_judge modes simply don't fire, leaving
+ *      the orchestrator deterministic + offline (mock / CI mode).
  *
- * Model defaults to gemini-3-flash-preview (the project's low-latency voice
- * default per CLAUDE.md). Override with REFINE_JUDGE_MODEL.
+ * The CLI preference matches PR #168's correction to the
+ * `voice-evals refine` console line ("llm.sh / LLM_SH or
+ * GEMINI_API_KEY"). Production builds inside ElevenLabs would inject
+ * their own model here.
+ *
+ * Gemini model defaults to gemini-3-flash-preview (the project's
+ * low-latency voice default per CLAUDE.md). Override with
+ * `REFINE_JUDGE_MODEL`.
  */
 import {execFile, execFileSync} from 'node:child_process';
 import {accessSync, constants as fsConstants} from 'node:fs';
