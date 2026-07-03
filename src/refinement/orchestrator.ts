@@ -5,8 +5,10 @@
  *   1. Enrich (business name + website → vertical hint + service area + hours)
  *   2. Select vertical template
  *   3. Fill system prompt
- *   4. Run synthetic persona calls (mock fixtures today; live ElevenLabs
- *      Tests API once this lands inside the platform)
+ *   4. Run persona calls — `--mock` uses deterministic fixtures, `--agent-id`
+ *      routes through `agents.simulateConversation` via live-adapter.ts.
+ *      (Native Tests-API integration lands when refinement ships inside
+ *      the ElevenLabs agent builder; today the CLI uses simulateConversation.)
  *   5. Detect failures against the catalog
  *   6. Build plain-language prompt diffs
  *   7. Re-run personas with fixes applied; score before / after
