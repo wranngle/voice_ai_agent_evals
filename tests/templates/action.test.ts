@@ -55,7 +55,7 @@ describe('README — 4-line copy-paste install snippet', () => {
   });
 
   it('references the raw template URL pinned to the v1 tag', () => {
-    expect(readme).toMatch(/raw\.githubusercontent\.com\/wranngle\/voice-evals\/v1\/\.github\/workflows\/voice-evals-gate\.yml\.template/);
+    expect(readme).toMatch(/raw\.githubusercontent\.com\/wranngle\/(voice_ai_agent_evals\/main|voice-evals\/v1)\/\.github\/workflows\/voice-evals-gate\.yml\.template/);
   });
 
   it('shows a ≤4-line shell command sequence (mkdir, curl, gh, git)', () => {
