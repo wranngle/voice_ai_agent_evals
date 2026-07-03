@@ -26,7 +26,7 @@ pages/                       # 39 verbatim official .mdx pages (mirrors URL path
   eleven-agents/guides/{chat-mode, no-code/*, integrations/live-avatar}.mdx
 external/
   source/                    # ground-truth raw source from github.com/elevenlabs/packages
-    types-attributes.ts      # exhaustive 45-attribute CustomAttributeList
+    types-attributes.ts      # exhaustive 44-attribute CustomAttributeList
     types-config.ts          # WidgetConfig, DefaultTextContents, DefaultStyles
     styles-index.css         # shadow-DOM CSS, --el-audio-tag, syntax tokens
     styles-Style.tsx         # proves --el-<key> emission to :host
