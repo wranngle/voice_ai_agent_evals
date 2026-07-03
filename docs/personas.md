@@ -19,11 +19,11 @@ const prompt = buildPersonaSystemPrompt(persona, 'You need an HVAC quote, fast.'
 
 | id | accent | pace_wpm | interruption_tendency | frustration_slope |
 |---|---|---|---|---|
-| polite-elderly | gen-am | 110 | 0.05 | 0.10 |
-| frustrated-rusher | gen-am | 200 | 0.40 | 0.60 |
-| esl-non-native | strong-non-native | 130 | 0.15 | 0.30 |
-| confused-meanderer | gen-am | 140 | 0.10 | 0.20 |
-| hostile-skeptic | gen-am | 170 | 0.50 | 0.70 |
+| polite-elderly | american-midwest | 110 | 0.05 | 0.10 |
+| frustrated-rusher | american-east-coast | 180 | 0.60 | 0.80 |
+| esl-non-native | esl-generic | 90 | 0.10 | 0.30 |
+| confused-meanderer | — | 130 | 0.20 | 0.40 |
+| hostile-skeptic | — | 150 | 0.50 | 0.90 |
 
 These are deliberately small in number. They exist to surface different acoustic / dialogue regimes (pace, interruption, accent) without bulk dilution.
 
@@ -63,7 +63,7 @@ generateRandomScenarios(100, {
 });
 ```
 
-Industries default to the 14 in the factory's `industries.yaml`. Names default to a 24-name pool with mixed genders.
+Industries default to the 12 in the factory's `industries.yaml` (hvac, plumbing, electrical, property_management, roofing, pest_control, landscaping, garage_door, locksmith, pool_service, appliance_repair, general_contractor). Names default to a 24-name pool with mixed genders.
 
 ## When to use which
 
