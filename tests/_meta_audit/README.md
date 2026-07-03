@@ -58,7 +58,7 @@ Status of each contract after the 2026-05-13 cleanup pass, with the 2026-05-20 l
 | **E7** | A webhook-delivered `first_message` override appears as the first agent utterance. | ⚠️ OPT-IN GAP | `tests/integration/elevenlabs-simulate-live.test.ts` keeps an explicit `VOICE_EVALS_SIMULATE_OVERRIDE_CHECK=1` probe, but current public simulate-conversation docs do not list `conversation_config_override`; this is not default proof. |
 | **E8** | Signature verification rejects a replay of a fresh, valid digest. | ✅ DONE | `src/security/elevenlabs-signature.ts` — `createReplayCache()` factory + module-default in-memory cache, integrated into the verifier. |
 | **E9** | `data_collection` extraction is benchmarked against a labeled fixture set. | ✅ DONE | `tests/fixtures/data-collection-benchmark.json` — 6 labeled transcripts covering complete intake, emergency, estimate routing, different-contact-than-requestor, incomplete intake, and transfer cases. |
-| **E10** | Every public CLI verb emits structured JSONL traces. | ✅ DONE | `src/internal/jsonl-trace.ts` + `scripts/lib/jsonl-trace.mjs`. All 12 top-level verbs and 8 factory subcommands import `createTracer`. |
+| **E10** | Every public CLI verb emits structured JSONL traces. | ✅ DONE | `src/internal/jsonl-trace.ts` + `scripts/lib/jsonl-trace.mjs`. All 15 top-level verb files in `src/cli/commands/` (agent, baseline, ceo-demo, demo, doctor, friction, help, ingest, init, n8n, polish, refine, scenarios, score, webhooks) + the factory dispatcher + all 7 factory subcommands (cleanup / execute / generate / list / report / run / upload) import `createTracer`. Enforced by the E10 test which scans `src/cli/commands/**.ts` (excluding `config-loader.ts`). |
 
 ### Remaining gaps (called out, NOT pretended to be closed)
 
