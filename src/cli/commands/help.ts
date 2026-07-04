@@ -122,16 +122,16 @@ PRIMARY COMMANDS
 
 LEGACY HARNESS (v0.x scenario flow)
   run -t <scenario> [--json]
-      Legacy passthrough, identical to `legacy run`.
+      Legacy passthrough, identical to legacy run.
 
   list
-      Legacy passthrough, identical to `legacy list`.
+      Legacy passthrough, identical to legacy list.
 
   validate
-      Legacy passthrough, identical to `legacy validate`.
+      Legacy passthrough, identical to legacy validate.
 
   report
-      Legacy passthrough, identical to `legacy report`.
+      Legacy passthrough, identical to legacy report.
 
   legacy run|list|validate|report|ingest|clear
       The original test-runner CLI with stored scenario fixtures. Useful
