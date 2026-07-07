@@ -1,6 +1,6 @@
 # Feature Map — voice_ai_agent_evals
 
-Generated: 2026-05-12. Source: `@wranngle/voice-evals` v1.1.0 on branch `feat/v1.1.0-supersystem-port`.
+Generated: 2026-05-12 (v1.1.0 on branch `feat/v1.1.0-supersystem-port`); last refreshed 2026-07-07 (added §15–17 for the post-1.1.0 modules: refinement, compare, leaderboard, fuzz, budget, replay, notify).
 
 ## Overview
 
@@ -70,7 +70,7 @@ Audio-native voice AI agent evaluation, closed-loop remediation, and combinatori
 - `designAssertions()` — assertion builder (free-form QA strings → structured `DesignedAssertion[]` via LLM callback) — `src/ingestion/designer.ts` ✅
 - `CANONICAL_PERSONAS` — adversarial persona traits — `src/ingestion/persona-generator.ts` ✅
 - `generateRandomScenarios()` — dynamic scenarios (industries × names × volumes × interests) — `src/ingestion/random-scenarios.ts` ✅
-- Extraction (5 files: categories, strictness, validation) — `src/ingestion/extraction/` ✅
+- Extraction (4 logic files: `categories`, `prompt-builder`, `strictness`, `validation` + `types` + `index`) — `src/ingestion/extraction/` ✅
 
 ### 7. Scoring
 
@@ -85,8 +85,8 @@ Audio-native voice AI agent evaluation, closed-loop remediation, and combinatori
 - `applyFix()` — apply with governance gate — `src/remediation/apply.ts` ✅
 - `polishLoop()` — 6-phase loop (EVALUATE → ANALYZE → PROPOSE → APPLY → VERIFY → LOG) — `src/remediation/polish-loop.ts` ✅
 - Patterns: `SMS_AFTER_DECLINE`, `TOOL_NOT_CALLED`, `CONTEXT_LOST`, `HOSTILE_RESPONSE`, `INCONSISTENT_BEHAVIOR` — `src/remediation/patterns.ts` ✅
-- `FrictionLog` (uncommitted) — `src/remediation/friction-log.ts` ⚠️
-- `CycleStats` (uncommitted) — `src/remediation/cycle-stats.ts` ⚠️
+- `logFriction` / `readFrictionLog` / `getUnresolvedFrictions` / `resolveFrictionAppend` (preferred, O(1) TOMBSTONE) / `resolveFriction` (legacy O(N)) / `applyTombstones` — `src/remediation/friction-log.ts` ✅ (shipped v1.1.0; tests under `tests/remediation/friction-log.test.ts`)
+- `aggregateCycleStats` — `src/remediation/cycle-stats.ts` ✅ (shipped v1.1.0; tests under `tests/remediation/cycle-stats.test.ts`)
 - GEPA bridge (Python sidecar contract, stub in v1.0) — `src/remediation/gepa-bridge.ts` ✅
 - Supersystem orchestrator — `src/remediation/supersystem.ts` ✅
 
@@ -100,7 +100,7 @@ Audio-native voice AI agent evaluation, closed-loop remediation, and combinatori
 - Strategies: `cartesian`, `pairwise`, `kWise`, `sample` (Fisher-Yates) — `src/factory/expand.ts` ✅
 - Template loaders: `loadIndustries`, `loadVariants`, `loadTemplates` — `src/factory/templates.ts` ✅
 - `resolveInheritance()` — `inherit:` / `overrides:` merging — `src/factory/templates.ts:82` ✅
-- `generatedToCreatePayload()` / `generatedTestsToCreatePayloads()` — converter — `src/factory/to-elevenlabs.ts` ❌ uncovered
+- `generatedToCreatePayload()` / `generatedTestsToCreatePayloads()` — converter — `src/factory/to-elevenlabs.ts` ⚠️ partial (`generatedToCreatePayload` has 2 direct tests in `tests/cli/factory.test.ts:43-71`; `generatedTestsToCreatePayloads` exercised transitively through the factory generate flow but has no dedicated test)
 - YAML assets: `templates/factory/{industries,variants,base-scenarios}.yaml` — file assets
 
 ### 11. Testing Runners
@@ -115,8 +115,9 @@ Audio-native voice AI agent evaluation, closed-loop remediation, and combinatori
 ### 12. Agent Evals Runtime
 
 - Service: `createEvaluator()` — `src/agent_evals/service/evaluator.ts` ✅
+- Readiness verdict: `assessEvalUtility()` + `EvalMode` / `ReadinessVerdict` (`green` / `yellow` / `red`) — `src/agent_evals/service/readiness.ts` ✅ (covered by `tests/agent_evals/readiness.test.ts`; re-exported via `service/index.ts`)
 - Settings, metrics, logger, clock providers — `src/agent_evals/{config,providers}/*.ts` ✅
-- Conversation event-sourced repo — `src/agent_evals/repo/conversation-repo.ts`
+- Conversation event-sourced repo — `src/agent_evals/repo/conversation-repo.ts` ✅
 - UI render: ANSI formatter — `src/agent_evals/ui/render.ts` ✅
 
 ### 13. Templates & Config
@@ -130,18 +131,40 @@ Audio-native voice AI agent evaluation, closed-loop remediation, and combinatori
 
 - `build`, `postinstall`, `health-check`, `ingest-and-run`, `list-workflows`, `test-{elevenlabs,n8n,mcp}-runner`, `check-elevenlabs-agent` (with `--snapshot` mode), `monitor-executions`, `run-gtm-ops-adapter`
 
-### 15. OpenSpec Change Proposals
+### 15. Refinement Engine (one-button business refinement)
 
-- `add-gtm-ops-adapter` — **shipped** — external workflow execution bridge. All 7 tasks in `openspec/changes/add-gtm-ops-adapter/tasks.md` complete; surface lives at `src/testing/runners/external-command-runner.ts`, CLI at `scripts/run-gtm-ops-adapter.ts` (`bun run testing:gtm-ops`), docs at [`docs/external-app-adapters.md`](external-app-adapters.md).
+- `runRefinement()` orchestrator — enrich → template → personas → detect → diff → score → artifacts — `src/refinement/orchestrator.ts` ✅ (CLI: `voice-evals refine`; console: `proof/refine.html`)
+- Business enrichment (name/website → vertical + hours + service area; live agent-prompt inference) — `src/refinement/enrich.ts` ✅
+- Vertical template selection + system-prompt fill — `src/refinement/template-selector.ts` ✅
+- Failure-mode detection: regex catalog + LLM `rubric_judge` layer (model-aware `voice_marker_leakage` guard) — `src/refinement/failure-detector.ts` ✅
+- Live persona simulation via `agents.simulateConversation` — `src/refinement/live-adapter.ts` ✅
+- Plain-language prompt diffs, compliance artifact, JSONL session log — `src/refinement/{prompt-diff,compliance,session-log}.ts` ✅
+
+### 16. Comparison & Leaderboard
+
+- `compareRuns()` / `renderCompareHtml()` — side-by-side N-agent scorecard with Δ columns — `src/compare/` ✅ (CLI: `voice-evals compare`; subpath `./compare`)
+- `buildLeaderboard()` / `aggregateAgent()` / `renderJson` / `renderMarkdown` — `src/leaderboard/` ✅ (CLI: `bun run leaderboard`)
+
+### 17. Guardrails & Ops
+
+- Prompt-injection fuzz harness: `runFuzz` / `generateVariants` / `detectBreach` — `src/fuzz/` ✅ (CLI: `bun run fuzz:inject`)
+- Budget-as-code: `loadBudget` / `evaluateBudget` over `voice-evals.budget.yaml` (latency + cost ceilings) — `src/budget/index.ts` ✅
+- Schema-validated tool-call replay: `replayJsonl` / `validateToolCall` — `src/replay/tool-call.ts` ✅
+- Outbound notify webhook (report push) — `src/notify/webhook.ts` ✅ (covered via `tests/agent_evals/notify-reporter.test.ts`)
 
 ---
 
 ## Coverage Summary
 
-- Total source `.ts` files (excl. `.d.ts`): **118**
-- Test files (`.test.ts`): **74**
-- Modules with direct test coverage: **73**
-- Modules without coverage: **4** (`src/factory/to-elevenlabs.ts`, `src/internal/slug.ts`, `src/testing/scenarios.ts`, `src/wrapper/webhooks.ts` — last one covered indirectly via integration suite)
+Last refresh: post-v1.1.0 — counts are recomputable via `find src -name "*.ts" ! -name "*.d.ts" | wc -l`, `find tests -name "*.test.ts" | wc -l`, and a `grep -rE "from '[\.\/]+src/" tests/` distinct-import resolve.
+
+- Total source `.ts` files (excl. `.d.ts`): **169**
+- Test files (`.test.ts`): **102**
+- Source modules imported directly by at least one test: **100**
+- Curated list of notable uncovered modules (NOT a complement of the 100 above — the rest are mostly index re-exports / type aliases / internal utilities the test suite reaches transitively):
+  - `src/internal/slug.ts` — pure utility; trivial enough to skip but worth a property test.
+  - `src/testing/scenarios.ts` — legacy v0.x scenario loader; the v1.x flow uses `src/testing/runners/scenario-runner.ts` instead.
+  - `src/wrapper/webhooks.ts` — covered indirectly via `tests/integration/{post-call-receiver,elevenlabs-signature,runners}.test.ts`; no direct unit test.
 
 ## Known Gaps (deliberately not shipped)
 

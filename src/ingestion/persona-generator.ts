@@ -5,9 +5,19 @@
  * combinatorial cross of personas × scenarios catches failure modes that
  * a single persona ("the default polite caller") would miss.
  *
- * Phase 3 MVP ships canonical personas inspired by PolyPersona (arXiv
- * 2512.14562) and the Hamming AI accent / pace matrix. Phase 3.x adds
- * LLM-generated persona derivation from production call samples.
+ * Shipped: 5 canonical CANONICAL_PERSONAS inspired by PolyPersona
+ * (arXiv 2512.14562) and the Hamming AI accent / pace matrix —
+ * polite-elderly, frustrated-rusher, esl-non-native, confused-meanderer,
+ * hostile-skeptic (id list also surfaced via `CANONICAL_PERSONA_IDS` in
+ * `src/refinement/persona-fixtures.ts`).
+ *
+ * Still deferred (cited in src/remediation/index.ts "Still deferred"
+ * block, also surfaced in FEATURE-MAP §"Known Gaps"):
+ *   LLM-generated persona derivation from production call samples — a
+ *   future addition that would let operators ingest a corpus of real
+ *   calls and synthesize representative persona traits. NOT bound to
+ *   "Phase 3.x" (Phase 3.x shipped as the TestChain Designer per
+ *   CHANGELOG.md); reframe as a v1.2+ candidate.
  */
 
 export type PersonaTraits = {
@@ -104,7 +114,12 @@ export function listPersonas(): readonly Persona[] {
 
 /**
  * Inject persona traits into a system prompt for a simulated-user LLM.
- * Pair with src/wrapper/simulate.ts (Phase 1.x) or your own simulator.
+ * Pair with `src/refinement/live-adapter.ts` (the shipped wrapper around
+ * `agents.simulateConversation` used by `voice-evals refine --agent-id`),
+ * `src/testing/runners/elevenlabs-runner.ts` (the legacy scenario runner's
+ * simulate-conversation path), or your own simulator. There is no
+ * `src/wrapper/simulate.ts` — that file was planned but never built; the
+ * simulate-conversation surface lives in the testing/refinement modules.
  */
 export function buildPersonaSystemPrompt(persona: Persona, scenarioIntent: string): string {
   const t = persona.traits;

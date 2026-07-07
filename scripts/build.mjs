@@ -14,8 +14,13 @@
  * runtime file emitted here, otherwise consumers calling
  * `import … from '@wranngle/voice-evals/factory'` get ERR_MODULE_NOT_FOUND.
  *
- * @elevenlabs/elevenlabs-js is marked external (peerDependency); consumers
- * bring their own copy so we don't double-bundle the SDK.
+ * The EXTERNAL array below lists three packages excluded from bundling:
+ *   - `@elevenlabs/elevenlabs-js` — declared as a peerDependency; consumers
+ *     bring their own copy so we don't double-bundle the SDK.
+ *   - `arktype` + `yaml` — declared as regular `dependencies` (npm installs
+ *     them automatically). Kept external because they ship their own ESM,
+ *     are stable across versions, and inlining them inflates the dist/
+ *     bundle 4-5× without runtime benefit.
  */
 
 import {
@@ -35,6 +40,7 @@ const SUBPATH_ENTRIES = [
   {name: 'remediation', entry: 'src/remediation/index.ts', outdir: 'dist/remediation'},
   {name: 'factory', entry: 'src/factory/index.ts', outdir: 'dist/factory'},
   {name: 'n8n', entry: 'src/n8n/index.ts', outdir: 'dist/n8n'},
+  {name: 'compare', entry: 'src/compare/index.ts', outdir: 'dist/compare'},
   {name: 'scenarios', entry: 'src/scenarios/index.ts', outdir: 'dist/scenarios'},
 ];
 

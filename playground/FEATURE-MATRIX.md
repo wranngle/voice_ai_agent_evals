@@ -22,7 +22,9 @@ Demo surface key: **W**=widget control panel · **U**=URL param · **A**=API-ove
 - [x] A7 `environment` selector — W/U
 - [x] A8 `user-id` end-user mapping — W/U/R
 
-## B. Widget HTML attributes (45 — full `CustomAttributeList`)
+## B. Widget HTML attributes (45 entries — 39 from `CustomAttributeList` + 6 vendor-doc shortcuts)
+
+> Source-of-truth `CustomAttributeList` has 44 entries (`docs/research/elevenlabs-widget-ui/external/source/types-attributes.ts`); 3 of those — `server-location` / `user-id` / `environment` — are catalogued in §A above, the other 41 are below (B43 collapses the 3 `worklet-path-*` attrs into one row). The remaining 6 entries (B10–B15, all marked `[~]`) are convenience text-shortcut attributes that vendor docs name but `CustomAttributeList` excludes — per CAPABILITY-MAP §5 they are no-ops at runtime when set as HTML attributes; use `text-contents` instead.
 - [x] B1 `variant` (`tiny·compact·full·expandable`) — W/U
 - [x] B2 `placement` (6 positions) — W/U
 - [x] B3 `default-expanded` — W/U

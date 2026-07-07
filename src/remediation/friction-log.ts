@@ -2,12 +2,22 @@
  * @wranngle/voice-evals/remediation/friction-log — append-only JSONL audit log.
  *
  * Ports the archive's `data/friction-log.jsonl` pattern. Every event is a
- * single line of JSON; resolution is tracked by marking events as
- * `resolved: true` and rewriting the file (one rare write vs millions of
- * appends).
+ * single line of JSON. Two resolution APIs ship side-by-side:
+ *
+ *   - `resolveFrictionAppend()` (preferred, O(1)) — appends a `TOMBSTONE`
+ *     event that references the original by timestamp/pattern/type. Read
+ *     paths apply tombstones at scan time via `getUnresolvedFrictions()`.
+ *     Pick this for high-throughput logs (10k+ events) — the META-AUDIT
+ *     §"Friction log scales like a 1995 Perl script" critique applies to
+ *     the rewrite path, not this one.
+ *   - `resolveFriction()` (legacy) — flips `resolved: true` and rewrites
+ *     the file. Kept for backward compatibility; O(N) IO per call.
  *
  * Schema (matches archive):
  *   { timestamp, type, pattern?, agentId?, success, resolved, resolvedAt? }
+ *
+ * `TOMBSTONE` is a first-class event type in `FrictionEventType` so the
+ * audit trail captures the resolution decision, not just the resolved flag.
  */
 
 import {

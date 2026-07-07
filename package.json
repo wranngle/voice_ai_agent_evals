@@ -72,6 +72,10 @@
       "types": "./dist/n8n/index.d.ts",
       "import": "./dist/n8n/index.js"
     },
+    "./compare": {
+      "types": "./dist/compare/index.d.ts",
+      "import": "./dist/compare/index.js"
+    },
     "./scenarios": {
       "types": "./dist/scenarios/index.d.ts",
       "import": "./dist/scenarios/index.js"

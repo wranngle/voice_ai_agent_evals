@@ -43,8 +43,8 @@ The showcase is **real, not cosmetic**: controls drive the actual web component 
 - `server-location`, `environment`, `user-id` — ◑ reflected onto element / passed to `startSession`; regional/identity effect not separately observable here.
 - Custom tag via `registerWidget(tag)` — ◑ snippet + mechanism shown; the CDN embed bundle only auto-registers `elevenlabs-convai`, so live custom-tag re-registration is illustrative, not wired.
 
-### B. HTML attributes (45)
-- All 45 render as controls in the Control plane; one (`variant=compact`) asserted to reflect to the element in verify step 6. Booleans correctly omit when off. The earlier 21/21 exhaustive sweep was consolidated out as the suite shifted to live-probe and gate-shape coverage; a re-sweep can be added back if a knob regression slips through.
+### B. HTML attributes (44)
+- All 44 render as controls in the Control plane; one (`variant=compact`) asserted to reflect to the element in verify step 6. Booleans correctly omit when off. The earlier 21/21 exhaustive sweep was consolidated out as the suite shifted to live-probe and gate-shape coverage; a re-sweep can be added back if a knob regression slips through.
 - `text-input`, `mic-muting`, language selector — ✅ visible in the live call (`audit/F`).
 - `transcript`, `show-conversation-id`, `show-agent-status` — ◑ config set + in-call container confirmed; these specific elements surface on their triggering events (a message, disconnect, tool call) — not isolated in a screenshot.
 - `B10–B15` (`action-text`/`start-call-text`/…) — `[~]` in the matrix: not in the v0.12.8 `CustomAttributeList`; their effect is achieved through `text-contents` (✅ `audit/A`).

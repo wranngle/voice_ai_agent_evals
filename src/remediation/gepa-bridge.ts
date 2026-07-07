@@ -2,20 +2,29 @@
  * @wranngle/voice-evals/remediation/gepa-bridge — Python sidecar to GEPA.
  *
  * GEPA (Reflective Prompt Evolution, ICLR 2026 Oral) is Python-only; we
- * shell out to a uv-managed virtualenv. The venv is provisioned by
- * `scripts/postinstall.mjs` on first install (Phase 5.x will land the
- * actual install; Phase 5 ships this bridge as the consumer side so the
- * polish-loop can call it once the install lands).
+ * shell out to a uv-managed virtualenv. The venv is **opt-in** — provisioned
+ * by `voice-evals doctor --install` (per `src/cli/commands/doctor.ts` +
+ * `src/remediation/sidecar/install.ts`), NOT by `scripts/postinstall.mjs`
+ * (intentionally a noop — see PR #126 — so `npm install` in CI / containers /
+ * build images that lack `uv` doesn't break).
  *
  * Today this module exposes:
  *   - `isGepaAvailable()` — synchronous filesystem check for the venv
- *   - `runGepaOptimization(opts)` — subprocess invocation; throws with a
- *     clear message if the sidecar isn't installed (the caller is
- *     expected to graceful-degrade to the single-shot proposer).
+ *   - `runGepaOptimization(opts)` — subprocess invocation; throws
+ *     `GepaUnavailableError` with a clear `voice-evals doctor --install`
+ *     hint if the sidecar isn't installed. The caller (polish-loop)
+ *     graceful-degrades to the single-shot proposer in `./proposal.ts`.
  *
- * Phase 5.x will (a) install the venv on postinstall, (b) ship the GEPA
- * wrapper Python script that mediates input/output, (c) wire this bridge
- * into polish-loop as the preferred optimizer when available.
+ * Shipped today:
+ *   (a) `voice-evals doctor --install` provisions the venv (uv-managed) +
+ *       `gepa` pip + the JSON-IO `gepa_run.py` wrapper at
+ *       `~/.cache/voice-evals/python/<version>/`.
+ *   (b) `runGepaOptimization` JSON-IO contract.
+ *
+ * Still deferred to v1.2 (per FEATURE-MAP §"Known Gaps"):
+ *   - Wiring this bridge into polish-loop as the preferred optimizer when
+ *     available. Today the loop calls the single-shot proposer
+ *     unconditionally; the GEPA route exists but is not invoked.
  */
 
 import {existsSync} from 'node:fs';

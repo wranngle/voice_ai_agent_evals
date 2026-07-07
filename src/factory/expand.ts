@@ -4,7 +4,10 @@
  *   cartesian:  all combinations of variable arrays (N1 × N2 × ... × Nk tests)
  *   pairwise:   greedy approximation of IPO algorithm — covers every (key, value) PAIR
  *               at least once with far fewer tests than cartesian
+ *   kWise:      generalisation of pairwise to arbitrary k ≥ 2; every k-tuple of
+ *               (key, value) pairs covered at least once
  *   sample:     seeded random subset of the cartesian product
+ *   expand:     top-level dispatcher — picks one of the above by `ExpansionStrategy`
  *
  * All functions are pure (modulo the seeded RNG state). Pairwise uses a
  * candidate-sampling greedy heuristic that produces near-optimal pairwise

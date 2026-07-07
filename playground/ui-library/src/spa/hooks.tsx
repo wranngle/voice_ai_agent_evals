@@ -55,9 +55,15 @@ function Controls({ agentId, conn }: { agentId: string; conn: "agent-id" | "sign
         if (!d.signed_url) return emit("error", { msg: "no signed_url", body: d })
         opts.signedUrl = d.signed_url
       } else if (conn === "token") {
+        // /api/conversation-token proxies the ElevenLabs wire response (raw
+        // fetch, no SDK), so the snake_case field name reaches us as-is:
+        // `{agent_id, conversation_token, expiration_time_unix_secs, ...}`.
+        // The previous `d.token` check was reading an undefined field and
+        // always emitting "no token" — broke live-probe step I and any user
+        // who selected the "token" connection mode.
         const r = await fetch(`/api/conversation-token/${agentId}`); const d = await r.json()
-        if (!d.token) return emit("error", { msg: "no token", body: d })
-        opts.conversationToken = d.token; opts.connectionType = "webrtc"
+        if (!d.conversation_token) return emit("error", { msg: "no conversation_token", body: d })
+        opts.conversationToken = d.conversation_token; opts.connectionType = "webrtc"
       } else {
         opts.agentId = agentId
       }

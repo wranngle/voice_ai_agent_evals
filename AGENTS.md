@@ -64,20 +64,25 @@ Concrete pattern:
 ---
 
 <!-- OPENSPEC:START -->
-# OpenSpec Instructions
+# OpenSpec Instructions — RETIRED IN THIS PROJECT
 
-These instructions are for AI assistants working in this project.
+The OpenSpec scaffolding was deliberately removed in PR #4 ("Remove
+public OpenSpec scaffolding"): `openspec/AGENTS.md` (456 lines),
+`openspec/project.md`, and the `.claude/commands/openspec/*`
+slash-commands all deleted. No tracked `openspec/` files remain and no
+`openspec` CLI is installed — do **not** try to open
+`@/openspec/AGENTS.md`, it does not exist. (A gitignored
+`openspec/changes/` archive may still exist on local disks; it is
+historical record, not live instructions.)
 
-Always open `@/openspec/AGENTS.md` when the request:
-- Mentions planning or proposals (words like proposal, spec, change, plan)
-- Introduces new capabilities, breaking changes, architecture shifts, or big performance/security work
-- Sounds ambiguous and you need the authoritative spec before coding
+The `<!-- OPENSPEC:START/END -->` markers stay so a hypothetical
+`openspec init` re-install would find its slot and could legitimately
+re-overwrite this content. If you ever do reintroduce OpenSpec, run
+`openspec update` and the original "Always open @/openspec/AGENTS.md"
+block will return — that's the contract.
 
-Use `@/openspec/AGENTS.md` to learn:
-- How to create and apply change proposals
-- Spec format and conventions
-- Project structure and guidelines
-
-Keep this managed block so 'openspec update' can refresh the instructions.
+For project-specific judgment in the meantime: everything above this
+block (ElevenLabs governance, PATCH semantics, naming standards) is
+the authoritative project guide.
 
 <!-- OPENSPEC:END -->

@@ -2,8 +2,8 @@
 /**
  * @wranngle/voice-evals postinstall hook.
  *
- * Intentionally a noop. The Python sidecar (uv-managed venv + GEPA pip +
- * staged PyRIT) lives at ~/.cache/voice-evals/python/<version>/ and is
+ * Intentionally a noop. The Python sidecar (uv-managed venv + GEPA pip
+ * install) lives at ~/.cache/voice-evals/python/<version>/ and is
  * installed on demand via `voice-evals doctor --install` — never
  * automatically at `npm install` time, because:
  *   - many consumers run `npm install` in CI / containers / build images
