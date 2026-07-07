@@ -15,11 +15,9 @@ import {
   detectBargeIn, parseWav, scoreVoiceActivity,
 } from '../../scoring/audio';
 import type {DimensionScore} from '../../scoring/types';
-import {createTracer} from '../../internal/jsonl-trace';
+import {createTracer, traced} from '../../internal/jsonl-trace';
 
 const trace = createTracer('cli.demo');
-
-void trace;
 
 export type DemoOptions = {
   /** Stream output here. Defaults to stdout. */
@@ -31,6 +29,10 @@ export type DemoOptions = {
 };
 
 export async function runDemo(options: DemoOptions = {}): Promise<number> {
+  return traced(trace, undefined, async () => runDemoInner(options));
+}
+
+async function runDemoInner(options: DemoOptions = {}): Promise<number> {
   const out = options.out ?? ((line: string) => {
     process.stdout.write(`${line}\n`);
   });

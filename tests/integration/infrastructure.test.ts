@@ -165,6 +165,38 @@ describe('Convention: Offline/Live Project Classification', () => {
     expect(content).toContain('export const LIVE_PROJECTS');
   });
 
+  it('the OFFLINE_PROJECTS list stays in sync with package.json test:offline and both CI jobs', async () => {
+    // The 26-project --project flag list is hand-maintained in three places
+    // (package.json test:offline, vitest.yml Bun job, vitest.yml Node matrix
+    // job). Without this guard, a newly added project silently never runs in
+    // CI or test:offline.
+    const {OFFLINE_PROJECTS} = await import('../../vitest.config');
+    expect(OFFLINE_PROJECTS.length).toBeGreaterThan(0);
+
+    const extractProjects = (text: string): Set<string> =>
+      new Set([...text.matchAll(/--project[ =]([\w-]+)/g)].map(m => m[1]));
+
+    const packageJson = JSON.parse(readFileSync(join(PROJECT_ROOT, 'package.json'), 'utf-8')) as {scripts: Record<string, string>};
+    const scriptProjects = extractProjects(packageJson.scripts['test:offline']);
+    expect([...scriptProjects].sort(), 'package.json test:offline drifted from vitest.config OFFLINE_PROJECTS')
+      .toStrictEqual([...OFFLINE_PROJECTS].sort());
+
+    const {LIVE_PROJECTS} = await import('../../vitest.config');
+    const liveSet = new Set(LIVE_PROJECTS);
+    const workflow = readFileSync(join(PROJECT_ROOT, '.github/workflows/vitest.yml'), 'utf-8');
+    // Each `--project`-enumerating step must either cover the FULL offline
+    // list (the Bun job + the Node matrix job) or run only live projects
+    // (the secrets-gated live job) — anything else is silent drift.
+    const runBlocks = workflow.split(/\n\s+- name:/).filter(b => b.includes('--project'));
+    const offlineBlocks = runBlocks.filter(b => ![...extractProjects(b)].every(p => liveSet.has(p)));
+    expect(offlineBlocks.length, 'expected at least the Bun job and the Node matrix job to enumerate offline --project flags')
+      .toBeGreaterThanOrEqual(2);
+    for (const block of offlineBlocks) {
+      expect([...extractProjects(block)].sort(), 'a CI job drifted from vitest.config OFFLINE_PROJECTS')
+        .toStrictEqual([...OFFLINE_PROJECTS].sort());
+    }
+  });
+
   it('every test directory containing .test.ts files must be covered by a vitest project', () => {
     const testDir = join(PROJECT_ROOT, 'tests');
     const NON_TEST_DIRS = new Set(['setup', 'fixtures', '__mocks__', 'data', 'helpers', 'utils', 'runs', 'scenarios']);

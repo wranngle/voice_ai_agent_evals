@@ -14,9 +14,6 @@ import type {ModelRankings, VoiceEvalsClient} from '../../../wrapper/types';
 import {createTracer} from '../../../internal/jsonl-trace';
 
 const trace = createTracer('cli.factory.client-builder');
-// JSONL tracing — emit start/end events from dispatch entry points.
-
-void trace;
 
 export type BuildClientOptions = {
   apiKey?: string;
@@ -39,5 +36,6 @@ export function buildClientFromEnv(options: BuildClientOptions = {}): VoiceEvals
   const raw = new ElevenLabsClient(baseUrl
     ? {apiKey, environment: baseUrl}
     : {apiKey});
+  trace.info('client-built', {base_url: baseUrl ?? '(default)', key_source: options.apiKey ? 'option' : 'env'});
   return createVoiceEvalsClient({client: raw, modelRankings: DEFAULT_RANKINGS});
 }

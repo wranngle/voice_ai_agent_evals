@@ -15,13 +15,10 @@ import {existsSync, readFileSync, writeFileSync} from 'node:fs';
 import {type GeneratedTest, generatedToCreatePayload} from '../../../factory';
 import type {TestSummary} from '../../../wrapper/tests';
 import type {VoiceEvalsClient} from '../../../wrapper/types';
-import {createTracer} from '../../../internal/jsonl-trace';
+import {createTracer, traced} from '../../../internal/jsonl-trace';
 import {buildClientFromEnv} from './client-builder';
 
 const trace = createTracer('cli.factory.upload');
-// JSONL tracing — emit start/end events from dispatch entry points.
-
-void trace;
 
 export type FactoryUploadOptions = {
   input: string;
@@ -41,6 +38,10 @@ export type UploadManifestEntry = {
 };
 
 export async function runFactoryUpload(options: FactoryUploadOptions): Promise<number> {
+  return traced(trace, undefined, async () => runFactoryUploadInner(options));
+}
+
+async function runFactoryUploadInner(options: FactoryUploadOptions): Promise<number> {
   const out = options.out ?? ((line: string) => {
     process.stdout.write(`${line}\n`);
   });

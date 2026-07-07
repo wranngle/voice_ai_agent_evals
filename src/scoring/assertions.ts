@@ -111,7 +111,7 @@ export function notAsync(
  * with a configurable pass threshold.
  *
  * For G-Eval semantics, pair this with a CoT-prompted judge in your callback.
- * For pairwise ArenaGEval, see `pairwise()` (coming in Phase 2.x).
+ * For pairwise ArenaGEval, see `arenaJudge()` in `scoring/judges/arena.ts`.
  */
 export type LlmJudgeCallback = (rubric: string, output: string) => Promise<{
   score: number;

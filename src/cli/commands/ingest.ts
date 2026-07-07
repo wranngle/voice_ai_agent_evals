@@ -15,13 +15,10 @@ import {existsSync, readFileSync} from 'node:fs';
 import {designAssertions} from '../../ingestion/designer';
 import {proposeTestCases} from '../../ingestion/llm-data-layer';
 import type {LlmCompleteCallback, ProposedTestCase} from '../../ingestion/types';
-import {createTracer} from '../../internal/jsonl-trace';
+import {createTracer, traced} from '../../internal/jsonl-trace';
 import {loadConfig} from './config-loader';
 
 const trace = createTracer('cli.ingest');
-// JSONL tracing — emit start/end events from dispatch entry points.
-
-void trace;
 
 export type IngestOptions = {
   path: string;
@@ -36,6 +33,10 @@ export type IngestOptions = {
 };
 
 export async function runIngest(options: IngestOptions): Promise<number> {
+  return traced(trace, {path: options.path}, async () => runIngestInner(options));
+}
+
+async function runIngestInner(options: IngestOptions): Promise<number> {
   const out = options.out ?? ((line: string) => {
     process.stdout.write(`${line}\n`);
   });

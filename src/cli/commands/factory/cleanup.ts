@@ -18,14 +18,11 @@
 
 import {existsSync, readFileSync} from 'node:fs';
 import type {VoiceEvalsClient} from '../../../wrapper/types';
-import {createTracer} from '../../../internal/jsonl-trace';
+import {createTracer, traced} from '../../../internal/jsonl-trace';
 import type {UploadManifestEntry} from './upload';
 import {buildClientFromEnv} from './client-builder';
 
 const trace = createTracer('cli.factory.cleanup');
-// JSONL tracing — emit start/end events from dispatch entry points.
-
-void trace;
 
 export type FactoryCleanupOptions = {
   agentId?: string;
@@ -37,6 +34,10 @@ export type FactoryCleanupOptions = {
 };
 
 export async function runFactoryCleanup(options: FactoryCleanupOptions): Promise<number> {
+  return traced(trace, undefined, async () => runFactoryCleanupInner(options));
+}
+
+async function runFactoryCleanupInner(options: FactoryCleanupOptions): Promise<number> {
   const out = options.out ?? ((line: string) => {
     process.stdout.write(`${line}\n`);
   });

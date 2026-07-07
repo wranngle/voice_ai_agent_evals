@@ -7,15 +7,12 @@
  * console at proof/refine.html can render the run.
  */
 
-import {createTracer} from '../../internal/jsonl-trace';
+import {createTracer, traced} from '../../internal/jsonl-trace';
 import {runRefinement} from '../../refinement';
 import {renderEventForConsole} from '../../refinement/session-log';
 import type {RefineOptions} from '../../refinement/types';
 
 const trace = createTracer('cli.refine');
-// JSONL tracing — emit start/end events from dispatch entry points.
-
-void trace;
 
 export type RefineCliOptions = {
   businessName?: string;
@@ -31,6 +28,12 @@ export type RefineCliOptions = {
 };
 
 export async function runRefine(options: RefineCliOptions): Promise<number> {
+  return traced(trace, {
+    agent_id: options.agentId, business_name: options.businessName, mock: options.mock ?? false,
+  }, async () => runRefineInner(options));
+}
+
+async function runRefineInner(options: RefineCliOptions): Promise<number> {
   const out = options.out ?? ((line: string) => {
     process.stdout.write(`${line}\n`);
   });
@@ -96,7 +99,8 @@ export async function runRefine(options: RefineCliOptions): Promise<number> {
   out(`  defects:    ${session.detected_failures.length} detected → ${session.prompt_diffs.length} fixes proposed`);
   out(`  regression: ${session.regression_suite_size} cases captured for future re-runs`);
   out('');
-  out(`  artifacts (proof/sessions/${session.session_id}/):`);
+  const artifactRoot = options.outDir ?? 'proof/sessions';
+  out(`  artifacts (${artifactRoot}/${session.session_id}/):`);
   out('    session.json           — full event log + scoreboard + defects + diffs');
   out('    system-prompt.md       — rendered prompt for the agent');
   out('    regression-suite.json  — assertion suite captured for future re-runs');

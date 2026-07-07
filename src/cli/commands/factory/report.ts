@@ -5,14 +5,11 @@
  */
 
 import type {VoiceEvalsClient} from '../../../wrapper/types';
-import {createTracer} from '../../../internal/jsonl-trace';
+import {createTracer, traced} from '../../../internal/jsonl-trace';
 import {buildClientFromEnv} from './client-builder';
 import {printInvocationSummary} from './execute';
 
 const trace = createTracer('cli.factory.report');
-// JSONL tracing — emit start/end events from dispatch entry points.
-
-void trace;
 
 export type FactoryReportOptions = {
   invocationId: string;
@@ -23,6 +20,10 @@ export type FactoryReportOptions = {
 };
 
 export async function runFactoryReport(options: FactoryReportOptions): Promise<number> {
+  return traced(trace, undefined, async () => runFactoryReportInner(options));
+}
+
+async function runFactoryReportInner(options: FactoryReportOptions): Promise<number> {
   const out = options.out ?? ((line: string) => {
     process.stdout.write(`${line}\n`);
   });

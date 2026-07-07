@@ -19,12 +19,9 @@ import {parse as parseYaml} from 'yaml';
 import {createN8nCorrector} from '../../n8n/corrector';
 import {evaluateWorkflows, type WorkflowEvalConfig} from '../../n8n/workflow-eval';
 import type {NodeOperation} from '../../n8n/types';
-import {createTracer} from '../../internal/jsonl-trace';
+import {createTracer, traced} from '../../internal/jsonl-trace';
 
 const trace = createTracer('cli.n8n');
-// JSONL tracing — emit start/end events from dispatch entry points.
-
-void trace;
 
 export type N8nDispatchOptions = {
   argv: readonly string[];
@@ -32,6 +29,10 @@ export type N8nDispatchOptions = {
 };
 
 export async function dispatchN8n(options: N8nDispatchOptions): Promise<number> {
+  return traced(trace, undefined, async () => dispatchN8nInner(options));
+}
+
+async function dispatchN8nInner(options: N8nDispatchOptions): Promise<number> {
   const out = options.out ?? ((line: string) => {
     process.stdout.write(`${line}\n`);
   });

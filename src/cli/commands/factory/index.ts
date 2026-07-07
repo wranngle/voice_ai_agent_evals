@@ -13,12 +13,9 @@
  */
 
 import type {ExpansionStrategy} from '../../../factory';
-import {createTracer} from '../../../internal/jsonl-trace';
+import {createTracer, traced} from '../../../internal/jsonl-trace';
 
 const trace = createTracer('cli.factory.index');
-// JSONL tracing — emit start/end events from dispatch entry points.
-
-void trace;
 
 export type FactoryDispatchOptions = {
   argv: readonly string[];
@@ -26,6 +23,10 @@ export type FactoryDispatchOptions = {
 };
 
 export async function dispatchFactory(options: FactoryDispatchOptions): Promise<number> {
+  return traced(trace, undefined, async () => dispatchFactoryInner(options));
+}
+
+async function dispatchFactoryInner(options: FactoryDispatchOptions): Promise<number> {
   const out = options.out ?? ((line: string) => {
     process.stdout.write(`${line}\n`);
   });

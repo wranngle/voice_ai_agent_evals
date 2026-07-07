@@ -11,13 +11,10 @@
  * since it moves an agent to a phase that the wrapper otherwise refuses.
  */
 
-import {createTracer} from '../../internal/jsonl-trace';
+import {createTracer, traced} from '../../internal/jsonl-trace';
 import {buildClientFromEnv} from './factory/client-builder';
 
 const trace = createTracer('cli.agent');
-// JSONL tracing — emit start/end events from dispatch entry points.
-
-void trace;
 
 export type AgentDispatchOptions = {
   argv: readonly string[];
@@ -25,6 +22,10 @@ export type AgentDispatchOptions = {
 };
 
 export async function dispatchAgent(options: AgentDispatchOptions): Promise<number> {
+  return traced(trace, undefined, async () => dispatchAgentInner(options));
+}
+
+async function dispatchAgentInner(options: AgentDispatchOptions): Promise<number> {
   const out = options.out ?? ((line: string) => {
     process.stdout.write(`${line}\n`);
   });
