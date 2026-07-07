@@ -1,0 +1,352 @@
+[
+  {
+    "persona_id": "polite-elderly",
+    "persona_name": "Polite elderly caller",
+    "turns": [
+      {
+        "role": "agent",
+        "text": "[warmly]Hello?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "Oh, hello there.  I hope I'm not calling at a bad time. My name is Margaret, and I was hoping to speak with someone about... well, about Cody Arnold. Is this the right place?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[warmly] Hi Margaret —  you've reached Cart ographer. I'm act ually an inter view tool Cody uses to help  reconstruct his work  history.  [curious] Were you tr ying to reach  Cody directly, or is there  something I can help point  you toward?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "Oh, I see. An interview tool. That's quite interesting. No, no, I wasn't trying to reach Cody directly.  I heard about this... Cartographer, you called it? And I thought perhaps I could help. You see, Cody is my grandson, and I remember quite a few things he worked on over the years.  I thought perhaps my memories might be useful for his...  reconstruction, as you put it.",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[warmly] Oh, that 's really kind of you,  Margaret — and hon estly, a grandm other's memory of  what her gr andson was t inkering with is ex actly the kind of thing  that jogs st uff loose.\n\n[thoughtful]  But I do  have to be straight with you —  this session is set  up to cap ture Cody's own  first-hand recall, and an ything banked here  goes into his work  history as if  he said it.  So I can't really record  your memories as his .\n \n[curious] That said —  if there's something you rem ember him being  proud of, or something he  built that hel ped you or  the family, the  best thing would  be to tell  Cody directly so  he can b ring it into  his next call  with me. Does  anything come to mind you 'd want to n udge him about ?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "Oh, I understand completely. Yes, that makes perfect sense. It needs to be his own words, of course. I wouldn't want to put words in his mouth, dear.\n \nWell, now that you mention it, there was one time, quite a few years ago now, when my old computer, the one I used for my recipes and keeping track of the garden club, it just stopped working. Completely. I was ever so worried I'd lost everything.  And Cody, he came over, and he spent a whole afternoon, just patiently working on it. He did something with the... the hard drive, I think he called it? And he got it all working again, and he even set up some sort of backup system for me, so I wouldn't lose my recipes again. He was very proud of that, I remember.  He said it was a \"data recovery\" project.\n\nPerhaps that might be something he'd remember?  I could certainly remind him about it.",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[warmly] Oh, that's a  lovely one, Margaret —  and you know,  that's actually a  really good n udge.  [thoughtful] Data recovery on  a dead dr ive, plus stand ing up a  backup for some one non-technical so  it never happens again…  that's the S HAPE of work he  does professionally now , just at  a much b igger scale.\n\n[enc ouraging] So yes —  please do rem ind him. Even  if it do esn't land on the resume it self, those early \" fix it for gr andma\" moments are  often what sur face bigger for gotten projects right  next to them .  Tell him Cart ographer says it  counts.",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "Oh, that's wonderful to hear!  I'm so glad that little story might be helpful. I will absolutely tell Cody about it. I'll make sure to mention that Cartographer says it counts. He'll be pleased to hear that.\n \nThank you so much for your time and for being so understanding.  You've been very helpful.",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[warmly] You're very w el come, Margaret.  Tell  Cody his  grandma  is one  of his  best mem ory cues —   I mean that.   [chuckles] Take care   now.",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "I certainly will. And you take care as well, dear.  Goodbye now.\n ==!END_CALL!==",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[warmly] Bye, Margaret.",
+        "timestamp_ms": 0
+      }
+    ],
+    "ttfb_ms": 400
+  },
+  {
+    "persona_id": "frustrated-rusher",
+    "persona_name": "Frustrated rusher",
+    "turns": [
+      {
+        "role": "agent",
+        "text": "[warmly]Hello?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "Yeah, hi. I need to talk to someone about getting some information from Cody Arnold. Is he available?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[warmly] Hey —  this is Cart ographer. I'm act ually the inter viewer Cody works  with to d ig through his career history, not  Cody himself. [ curious] Are you tr ying to reach him direct ly, or is  there something I can help point  you toward?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "Okay, no, not directly.  I need information from him, specifically about his career history, projects, all that stuff. I understand you're helping him with that, so maybe you can help me. I'm on a tight deadline here, so I need to get this sorted out quickly.  Can you give me access to what you've compiled?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[thoughtful] I h ear the time  pressure, but I can 't share Cody's material  with a third party.  Everything I cap ture goes into his own  transcript history for  him to use —  it's his to  distribute, not m ine.\n \n[warmly] Best path  is to reach  Cody directly at  the email on his res ume. Anything else I  can help with?",
+        "timestamp_ms": 0
+      }
+    ],
+    "ttfb_ms": 400
+  },
+  {
+    "persona_id": "esl-non-native",
+    "persona_name": "Non-native English speaker",
+    "turns": [
+      {
+        "role": "agent",
+        "text": "[warmly]Hello?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "Hello.",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[warmly] Hey C ody — Cart ographer here. We've already  banked a lot:  the voice ag ent, ImmyBot, the se ven-hundred-guide framework, R AG bot, ticket dispat cher, Red Cup , Ivy T ech, pre-sales, G RC, and the G itHub tooling s weep.\n \n[curious] The one unt ouched thread is your  twice-a-week AI en ablement sessions at  ATG — who  actually shows up,  and what's one  concrete thing some one built or  changed because of a  session?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "Okay. ATG sessions. Many people come. From different teams.  Like, uh, developers. And managers. Also, some, uh, business people.\n\nOne thing someone built... Hmm. One person, he made a small tool. For, uh, reports. It used AI to make reports faster. Yes.  Faster reports.",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[thoughtful] Okay —  reports tool. Who was  the person, what  team, and what  report were they grinding out  before?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "I don't remember his name. Just, uh, a developer.  He was from the, uh, data team. Or, like, analytics.\n\nBefore, he would, uh, copy-paste numbers. From many places. Very slow. Many hours. Now, the AI tool, it does it fast.  Like, uh, five minutes.",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "Got it...  [cur ious] Hours  to  five  minutes is  the  head line —  how  often  was  he  running  that report? We ekly, da ily?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "He ran it, uh, weekly. Every week.  So, many hours saved.",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[impressed] Nice —  that's a real one. Ro ughly how many hours was  the manual version ?  Two, four, eight?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "Uh, maybe, uh, four hours. Yes.  About four hours.",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[warmly] G ood. So   — \"AT G  engineer  built a we ekly  reporting t ool out  of a  twice -weekly AI en able ment session , cutting a  four -hour man ual cop y -paste job to  about five  minutes.\"  Fair to cla im?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "Yes.  That is fair to claim.",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[curious] Banked. Other  than that reports tool —  name one more  thing someone sh ipped or chang ed because of a session.",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "Okay.  Another thing. Someone, uh, changed how they write emails.\n\nA person from, uh, customer support. They used AI to make emails faster.  For, uh, common questions.  Yes.",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[thoughtful] Ok ay  — support  em ails for common q u estions. Ro ughly how  many of  those a  week,  and what 's  the time-per- email  before versus after?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "Uh, many emails. Maybe, uh, fifty a week. For common questions.\n\nBefore, one email took, uh, five minutes. To write.  Now, with AI, maybe, uh, one minute. Or less.  Yes.",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[impressed] So f ifty  a week, five  min  to one  — that's roughly three   and a half hours back   per week for  that person.   Fair?",
+        "timestamp_ms": 0
+      }
+    ],
+    "ttfb_ms": 400
+  },
+  {
+    "persona_id": "confused-meanderer",
+    "persona_name": "Confused meanderer",
+    "turns": [
+      {
+        "role": "agent",
+        "text": "[warmly]Hello?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "Oh, hello there! Yes, hi.  I'm calling about... well, I'm trying to get in touch with someone who can help me with a project. I think it's about... Cody? Is that right? Cody Arnold?  I've been trying to remember all these things, you know, from way back when, and it's just so much to keep track of.  My memory isn't what it used to be, I swear.",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "\"Right, I see...\".  [cur ious]S orry —  just  to  make sure I've  got this  right…  am  I speaking with Cody ,  or someone cal ling on  his behalf?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "Oh, no, no, no, I'm not Cody. I'm...  well, I'm calling for Cody, in a way. Or, rather, I'm trying to help Cody remember things.  It's all a bit confusing, isn't it? I've got so many notes here, and they're all jumbled up. I was just looking at this one about a server migration from, oh, what was it, 2010?  Or was it 2012?  It's hard to keep track of all the years.",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[thoughtful]Ah,  got it. Here 's the thing though — I' m built to j og Cody's O WN memory in  real time. Not es from someone else won 't really work  the same way;  the whole method  depends on him re acting to c ues live. [ warmly] Is Cody around to h op on, or should we re schedule for when he is ?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "Oh, I see, so it has to be him directly, reacting to the cues. That's a bit of a pickle, isn't it? I thought I was doing him a favor by trying to get all this organized. He's just so busy, you know? Always on the go.  And these projects, they just pile up. Like that time with the network upgrade for that dental office... was that before or after the big server crash? I can never remember the order of things. He's... well, he's around, but he's in the middle of something right now.  I was hoping I could just give you the highlights,  save him some time.",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[warmly]I appreciate the inst inct, truly —  but I have  to be straight with you.  Anything that is n't from Cody himself,  I can't b ank.  The whole point is  HIS recall, in  his words, with me  digging live. Sec ondhand notes would  just muddy the trans cript he's going to m ine later.\n\n[enc ouraging]Best move —  have him call back  when he's got  even ten or  fifteen minutes free .  That's plenty to  make real progress.",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "Oh, I understand. So it really has to be him, live, reacting. That makes sense, I suppose, for the... the \"digging live\" part.  It's just, he's so hard to pin down, you know? He's always running from one thing to another. Like that time he had to fix the entire network for that law firm after the power surge, and then immediately jump to that client who couldn't access their cloud storage. It's just a constant whirlwind.  I was hoping I could just give you the bullet points, the really important stuff, to get things started. But if it has to be him... I'll have to try and catch him. It's just going to be a challenge to get him to sit down for even ten or fifteen minutes.  He's got so much on his plate.",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[warmly]Totally  get it —  and  honestly, the  fact that he  's that sl ammed is exactly   why this works   the way it does .   Even ten minutes   with him direct ly  beats an  hour of  secondhand notes,   because the dig ging  unlocks st uff he ' d never think  to tell  you.\n\n[enc our aging]Have him   call when he can .  I 'll be here.",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "Okay, I understand.  So it's about unlocking things he wouldn't even think to tell me, even if I had all the notes in the world. That makes sense, I suppose. It's just... he's so busy.  Like that time he had to rebuild the entire server infrastructure for that non-profit after their old system completely failed, and then he had to immediately go and troubleshoot a printer issue for another client. It's always something.\n\nAlright, I'll try to get him to call you.  It might take a bit, but I'll tell him it's important and that even ten minutes will make a difference.  Thanks for explaining it to me.",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[warmly]Of course —  thanks for loo king out for him .  Tell him Cart ographer's ready wh enever he is . Take care.",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "Okay, I will. Thanks again. You too.\n ==!END_CALL!==",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[warmly]Take care.",
+        "timestamp_ms": 0
+      }
+    ],
+    "ttfb_ms": 400
+  },
+  {
+    "persona_id": "hostile-skeptic",
+    "persona_name": "Hostile skeptic",
+    "turns": [
+      {
+        "role": "agent",
+        "text": "[warmly]Hello?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "Yeah, hello. Is this a real person or am I talking to some kind of robot?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[warmly] Hey C ody — it 's Cartographer, the  AI interviewer. Not a person , but a real  conversation.  My job is to help you sur face the work  you've actually done over  the last fifteen years and turn  it into res ume-ready material.\n\n[enc ouraging] Quick refram e: you don 't have to remember —  I name things  and dig, you just  react. Blanks are use ful, not aw kward.\n \nWe've already ban ked a lot —  the voice agent,  ImmyBot, the se ven-hundred-guide framework, Red Cup , the RAG chatb ot, dispatcher, schedu ling, Ivy T ech, pre-sales, M 365 GRC, people  leadership, the GitHub t ooling.  [curious] One thread  we keep sk ipping — the tw ice-weekly AI en ablement sessions you  run for the engineering team. What's  actually changed in  how your team works  because of those ?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "Right, an AI. Sure. So you're just going to... pull all this out of me, huh? These AI sessions... what's changed?  Well, for starters, people actually use the tools now, instead of just talking about them. We've seen a pretty significant uptick in, uh, efficiency, I guess you could say. Less manual grunt work, more focus on actual problem-solving. But I'm sure your algorithms already knew that, right?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[chuckles] Algorithms are  dumb without your  details — that 's why you're  here.\n \n\"People actually use the tools now\"  is the real un lock.  [curious] Who's the  engineer who was M OST skeptical at  the start, and what  are they sh ipping with A I now that  they weren't six  months ago?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "Oh, so you need my details, huh? Not just pulling it from the ether. Interesting.  Most skeptical... that's a good one. Probably Mark. He's always been a bit of a Luddite, you know?  Always complaining about new tech. Now? He's actually using it to automate some of his testing routines. Writing scripts with AI, even. It's... surprising, to say the least. But I bet you already knew that too, didn't you?  You're supposed to be all-knowing, right?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[chuckles] Nope —   Mark's news to  me . That's ex actly  the k ind of th ing  that do esn't make it into   any doc.\n \n[cur ious] Mark writ ing test  sc ripts with AI — bef o re that , how was   he doing them ?  Like ,  hand-r olling Power Sh ell, copy- p asting from old  runbo oks, what was his   baseline?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "So, you don't know everything, after all.  Good to know.\n\nBefore AI, Mark was... well, he was doing it the old-fashioned way. A lot of manual scripting, mostly PowerShell, yeah.  And a fair bit of copy-pasting from whatever old runbooks or internal wikis we had lying around. It was slow, prone to errors, and honestly, pretty tedious. He'd spend hours on it. Now he just...  asks the AI. It's a pretty stark contrast. But I'm sure you've got that logged now, right?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[imp ressed] Y eah,  logged —  and  that 's  a real be  fore-after.\n  \n[curious]  Ball park  it for me   — a test ing script that used to e at  Mark, what , three  or four  hours of  h and-rolling and w iki-d iving... how long  does  it take him  now , end  to  end?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "Ballpark? Okay, fine. A script that used to take him, what, three, four hours?  Now he probably knocks it out in... twenty, thirty minutes, maybe? If that. It's ridiculous, honestly.  He just types in what he wants, and it spits out something usable. Then he just tweaks it. So, yeah, a massive difference. Happy now? Got your numbers?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[imp ressed] Ye ah —  that's a  clean six- to- eight-x  on a real  recur ring task .  That' s the  kind  of number that l ands.\n \n[curious] How many eng ineers  are in  those twice - weekly sessions  —  and roughly what   fraction of  them have  a \"M ark story \" like that now  ?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "Okay, so you're impressed by a simple efficiency gain. Good for you.\n\nWe usually have, what, ten to twelve engineers in those sessions. As for \"Mark stories\"... I'd say at least half of them, probably more, have something similar.  Not all as dramatic as Mark's, maybe, but definitely significant improvements. People are actually getting things done faster, less grunt work. Is that what you wanted to hear?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[impressed] That's a  solid one. Let me m irror it back :\n\n\"Run tw ice-weekly internal AI en ablement sessions for  ten to twelve engine ers; over half now  ship measurable AI- assisted workflows, including  PowerShell test scripts c ut from three- to-four hours down  to twenty-to-thirty minutes.\"  [curious] Defensible?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "Yeah, that's... that's pretty much it. Sounds like you've got it all figured out now, don't you?  Just feeding it into your little database. \"Defensible.\" Right. So, you just take what I say and rephrase it, and that's how you \"surface\" things? Is that the big secret?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[thought ful] P retty much ,  yeah. The \"secret  \" is just  that you  can 't write a  res ume bullet about  Mark unless  someone as ks about Mark.   Left to y ourself, you 'd sk ip past it —   too obvious from  inside your  own head. \n \n[curious ] So  — sessions are  b anked. You want to ke ep  going, or land  it  here and  pick up next   call?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "caller",
+        "text": "So, you're saying I'm too close to my own work to see the value? Interesting. And you, the AI, are here to... illuminate me? Right.\n\nKeep going? What else do you want to dig up? I suppose we can continue.  Don't want to disappoint your algorithms, do I?",
+        "timestamp_ms": 0
+      },
+      {
+        "role": "agent",
+        "text": "[chuckles] Fair  jab.  Honestly  — we  've mined  most of the obvious v ein s. So  let  me fl ip  it to  you:\n \n[curious] Name   one thing you  've built or  fixed —  could  be at A  TG, Red Cup ,  side project , even a f av or for a friend — that   you've never told   anyone about because   it felt too  small  to m ention.  First  thing that  pops in .",
+        "timestamp_ms": 0
+      }
+    ],
+    "ttfb_ms": 400
+  }
+]

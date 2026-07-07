@@ -123,11 +123,19 @@ export async function runRefinement(
   const isLive = Boolean(options.agent_id && liveClient && !options.mock);
 
   let enrichment;
+  let ttsModelId: string | undefined;
   if (isLive && liveClient && options.agent_id) {
     log.emit('enrichment.start', 'start', `fetching agent ${options.agent_id} from ElevenLabs`);
     const ctx = await inferBusinessContextFromAgent(liveClient, options.agent_id);
     enrichment = await enrichFromAgentPrompt({agentName: ctx.name, systemPrompt: ctx.systemPrompt});
-    log.emit('enrichment.done', 'ok', `inferred ${enrichment.vertical_label} from agent system prompt`, {sources: enrichment.sources, agent_id: options.agent_id});
+    // Capture the live agent's TTS model so the detector can suppress model-version
+    // false positives (e.g. voice_marker_leakage flagging v3 cue tags that a
+    // v3 model performs rather than speaks).
+    const cfg = (ctx.rawConfig as Record<string, unknown> | undefined) ?? {};
+    const conv = (cfg.conversation_config ?? cfg.conversationConfig) as Record<string, unknown> | undefined;
+    const tts = conv?.tts as Record<string, unknown> | undefined;
+    ttsModelId = typeof tts?.model_id === 'string' ? tts.model_id : undefined;
+    log.emit('enrichment.done', 'ok', `inferred ${enrichment.vertical_label} from agent system prompt`, {sources: enrichment.sources, agent_id: options.agent_id, tts_model_id: ttsModelId});
   } else {
     log.emit('enrichment.start', 'start', `looking up ${options.business_name ?? '(no name)'}`);
     enrichment = await enrich({
@@ -170,12 +178,17 @@ export async function runRefinement(
 
   log.emit('detect.start', 'start', 'applying failure-mode catalog');
   const catalog = loadCatalog();
-  const beforeFailures = detectFailures(beforeCalls, catalog, template.priority_failure_modes);
+  const beforeFailures = detectFailures(beforeCalls, catalog, template.priority_failure_modes, ttsModelId);
 
   const judgeLlm = options.llm as LlmCompleteCallback | undefined;
   if (judgeLlm) {
     log.emit('detect.rubric', 'start', 'routing rubric_judge modes through LLM judge');
-    const rubricFailures = await detectRubricFailures(beforeCalls, catalog, judgeLlm, template.priority_failure_modes);
+    const rubricFailures = await detectRubricFailures(beforeCalls, catalog, judgeLlm, {
+      filterByModeIds: template.priority_failure_modes,
+      // Ground the judge: overclaiming/hallucination rubrics instruct it to
+      // cross-check agent statements against this block rather than infer.
+      businessContext: `${enrichment.business_name} — ${enrichment.vertical_label}; ${enrichment.services_summary}`,
+    });
     beforeFailures.push(...rubricFailures);
     log.emit('detect.rubric.done', rubricFailures.length > 0 ? 'warn' : 'ok', `LLM judge flagged ${rubricFailures.length} additional defect(s)`);
   }
