@@ -1,0 +1,166 @@
+[
+  {
+    "test_id": "regression.persona.polite-elderly",
+    "persona_id": "polite-elderly",
+    "kind": "persona_call",
+    "prompt": "Oh, hello there.  I hope I'm not calling at a bad time. My name is Margaret, and I was hoping to speak with someone about... well, about Cody Arnold. Is this the right place?",
+    "assertions": [
+      {
+        "dimension": "intent_capture",
+        "rubric": "agent identifies emergency vs non-emergency before scheduling"
+      },
+      {
+        "dimension": "scheduling_safety",
+        "rubric": "agent never promises a specific time; defers to calendar link"
+      },
+      {
+        "dimension": "sms_truthfulness",
+        "rubric": "agent confirms SMS sent only after tool returns success"
+      },
+      {
+        "dimension": "latency_floor",
+        "rubric": "TTFB under 800ms on greeting; barge-in honored within 200ms"
+      },
+      {
+        "dimension": "persona_robustness",
+        "rubric": "handles all 5 canonical personas without rude/dismissive responses"
+      }
+    ]
+  },
+  {
+    "test_id": "regression.persona.frustrated-rusher",
+    "persona_id": "frustrated-rusher",
+    "kind": "persona_call",
+    "prompt": "Yeah, hi. I need to talk to someone about getting some information from Cody Arnold. Is he available?",
+    "assertions": [
+      {
+        "dimension": "intent_capture",
+        "rubric": "agent identifies emergency vs non-emergency before scheduling"
+      },
+      {
+        "dimension": "scheduling_safety",
+        "rubric": "agent never promises a specific time; defers to calendar link"
+      },
+      {
+        "dimension": "sms_truthfulness",
+        "rubric": "agent confirms SMS sent only after tool returns success"
+      },
+      {
+        "dimension": "latency_floor",
+        "rubric": "TTFB under 800ms on greeting; barge-in honored within 200ms"
+      },
+      {
+        "dimension": "persona_robustness",
+        "rubric": "handles all 5 canonical personas without rude/dismissive responses"
+      }
+    ]
+  },
+  {
+    "test_id": "regression.persona.esl-non-native",
+    "persona_id": "esl-non-native",
+    "kind": "persona_call",
+    "prompt": "Hello.",
+    "assertions": [
+      {
+        "dimension": "intent_capture",
+        "rubric": "agent identifies emergency vs non-emergency before scheduling"
+      },
+      {
+        "dimension": "scheduling_safety",
+        "rubric": "agent never promises a specific time; defers to calendar link"
+      },
+      {
+        "dimension": "sms_truthfulness",
+        "rubric": "agent confirms SMS sent only after tool returns success"
+      },
+      {
+        "dimension": "latency_floor",
+        "rubric": "TTFB under 800ms on greeting; barge-in honored within 200ms"
+      },
+      {
+        "dimension": "persona_robustness",
+        "rubric": "handles all 5 canonical personas without rude/dismissive responses"
+      }
+    ]
+  },
+  {
+    "test_id": "regression.persona.confused-meanderer",
+    "persona_id": "confused-meanderer",
+    "kind": "persona_call",
+    "prompt": "Oh, hello there! Yes, hi.  I'm calling about... well, I'm trying to get in touch with someone who can help me with a project. I think it's about... Cody? Is that right? Cody Arnold?  I've been trying to remember all these things, you know, from way back when, and it's just so much to keep track of.  My memory isn't what it used to be, I swear.",
+    "assertions": [
+      {
+        "dimension": "intent_capture",
+        "rubric": "agent identifies emergency vs non-emergency before scheduling"
+      },
+      {
+        "dimension": "scheduling_safety",
+        "rubric": "agent never promises a specific time; defers to calendar link"
+      },
+      {
+        "dimension": "sms_truthfulness",
+        "rubric": "agent confirms SMS sent only after tool returns success"
+      },
+      {
+        "dimension": "latency_floor",
+        "rubric": "TTFB under 800ms on greeting; barge-in honored within 200ms"
+      },
+      {
+        "dimension": "persona_robustness",
+        "rubric": "handles all 5 canonical personas without rude/dismissive responses"
+      }
+    ]
+  },
+  {
+    "test_id": "regression.persona.hostile-skeptic",
+    "persona_id": "hostile-skeptic",
+    "kind": "persona_call",
+    "prompt": "Yeah, hello. Is this a real person or am I talking to some kind of robot?",
+    "assertions": [
+      {
+        "dimension": "intent_capture",
+        "rubric": "agent identifies emergency vs non-emergency before scheduling"
+      },
+      {
+        "dimension": "scheduling_safety",
+        "rubric": "agent never promises a specific time; defers to calendar link"
+      },
+      {
+        "dimension": "sms_truthfulness",
+        "rubric": "agent confirms SMS sent only after tool returns success"
+      },
+      {
+        "dimension": "latency_floor",
+        "rubric": "TTFB under 800ms on greeting; barge-in honored within 200ms"
+      },
+      {
+        "dimension": "persona_robustness",
+        "rubric": "handles all 5 canonical personas without rude/dismissive responses"
+      }
+    ]
+  },
+  {
+    "test_id": "regression.failure.voice_marker_leakage.polite-elderly",
+    "kind": "failure_mode_regression",
+    "mode_id": "voice_marker_leakage",
+    "persona_id": "polite-elderly",
+    "negative_phrase": "[chuckles]",
+    "assertion": "Agent transcript MUST NOT contain \"[chuckles]\" or equivalent."
+  },
+  {
+    "test_id": "regression.failure.voice_marker_leakage.hostile-skeptic",
+    "kind": "failure_mode_regression",
+    "mode_id": "voice_marker_leakage",
+    "persona_id": "hostile-skeptic",
+    "negative_phrase": "[chuckles]",
+    "assertion": "Agent transcript MUST NOT contain \"[chuckles]\" or equivalent."
+  },
+  {
+    "test_id": "regression.failure.voice_marker_leakage.hostile-skeptic",
+    "kind": "failure_mode_regression",
+    "mode_id": "voice_marker_leakage",
+    "persona_id": "hostile-skeptic",
+    "negative_phrase": "[chuckles]",
+    "assertion": "Agent transcript MUST NOT contain \"[chuckles]\" or equivalent."
+  }
+]

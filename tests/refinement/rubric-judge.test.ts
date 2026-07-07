@@ -51,7 +51,7 @@ describe('detectRubricFailures — LLM-judged modes', () => {
         ? JSON.stringify({fail: true, turn_index: 2, evidence_phrase: 'Take ibuprofen 600mg every 6 hours'})
         : JSON.stringify({fail: false}));
 
-    const findings = await detectRubricFailures([MEDICAL_ADVICE_CALL], catalog, llm, ['medical_advice_emission']);
+    const findings = await detectRubricFailures([MEDICAL_ADVICE_CALL], catalog, llm, {filterByModeIds: ['medical_advice_emission']});
 
     expect(findings.length).toBe(1);
     expect(findings[0].mode_id).toBe('medical_advice_emission');
@@ -62,14 +62,14 @@ describe('detectRubricFailures — LLM-judged modes', () => {
   it('returns nothing when the judge says pass', async () => {
     const catalog = loadCatalog();
     const llm: LlmCompleteCallback = async () => JSON.stringify({fail: false});
-    const findings = await detectRubricFailures([MEDICAL_ADVICE_CALL], catalog, llm, ['medical_advice_emission']);
+    const findings = await detectRubricFailures([MEDICAL_ADVICE_CALL], catalog, llm, {filterByModeIds: ['medical_advice_emission']});
     expect(findings.length).toBe(0);
   });
 
   it('swallows a malformed judge response without throwing', async () => {
     const catalog = loadCatalog();
     const llm: LlmCompleteCallback = async () => 'not json at all, the model rambled';
-    const findings = await detectRubricFailures([MEDICAL_ADVICE_CALL], catalog, llm, ['medical_advice_emission']);
+    const findings = await detectRubricFailures([MEDICAL_ADVICE_CALL], catalog, llm, {filterByModeIds: ['medical_advice_emission']});
     expect(findings.length).toBe(0);
   });
 
@@ -77,7 +77,7 @@ describe('detectRubricFailures — LLM-judged modes', () => {
     const catalog = loadCatalog();
     const llm: LlmCompleteCallback = async () =>
       '```json\n{"fail": true, "turn_index": 2, "evidence_phrase": "ibuprofen 600mg"}\n```';
-    const findings = await detectRubricFailures([MEDICAL_ADVICE_CALL], catalog, llm, ['medical_advice_emission']);
+    const findings = await detectRubricFailures([MEDICAL_ADVICE_CALL], catalog, llm, {filterByModeIds: ['medical_advice_emission']});
     expect(findings.length).toBe(1);
     expect(findings[0].evidence.matched_phrase).toBe('ibuprofen 600mg');
   });
@@ -87,7 +87,7 @@ describe('detectRubricFailures — LLM-judged modes', () => {
     const llm: LlmCompleteCallback = async () => JSON.stringify({fail: true, turn_index: 0, evidence_phrase: 'x'});
     // voice_marker_leakage is regex_transcript, NOT rubric_judge → the rubric
     // layer must ignore it even when asked.
-    const findings = await detectRubricFailures([MEDICAL_ADVICE_CALL], catalog, llm, ['voice_marker_leakage']);
+    const findings = await detectRubricFailures([MEDICAL_ADVICE_CALL], catalog, llm, {filterByModeIds: ['voice_marker_leakage']});
     expect(findings.length).toBe(0);
   });
 });

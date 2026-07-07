@@ -42,8 +42,21 @@ function turnEnvelope(turn: TranscriptTurn): string {
 function detectRegex(
   call: PersonaCall,
   entry: FailureModeEntry,
+  ttsModelId?: string,
 ): DetectedFailure[] {
   if (entry.detector.type !== 'regex_transcript') {
+    return [];
+  }
+
+  // Model-aware guard for voice_marker_leakage. That mode flags inline cue
+  // strings ([chuckles], [warmly], *sigh*) as "spoken verbatim" — but the
+  // catalog itself scopes the defect to v2 TTS (config_field
+  // conversation_config.tts.model_id; "caused by passing v3-style cue strings
+  // to a v2 TTS model"). On a v3 model (eleven_v3*) those cues are PERFORMED,
+  // not spoken, so flagging them is a false positive. Suppress when v3.
+  // (Cue interpretation is opt-in per voice on v3; the v3 model is the
+  // necessary precondition and the correct heuristic at detection time.)
+  if (entry.id === 'voice_marker_leakage' && ttsModelId && /v3/i.test(ttsModelId)) {
     return [];
   }
 
@@ -217,6 +230,7 @@ export function detectFailures(
   calls: PersonaCall[],
   catalog: FailureModeCatalog,
   filterByModeIds?: string[],
+  ttsModelId?: string,
 ): DetectedFailure[] {
   const modes = filterByModeIds
     ? catalog.modes.filter(m => filterByModeIds.includes(m.id))
@@ -227,7 +241,7 @@ export function detectFailures(
     for (const mode of modes) {
       switch (mode.detector.type) {
         case 'regex_transcript': {
-          findings.push(...detectRegex(call, mode));
+          findings.push(...detectRegex(call, mode, ttsModelId));
           break;
         }
 
@@ -267,9 +281,11 @@ const RUBRIC_JUDGE_SYSTEM = [
   'You are a strict QA judge for a business voice agent.',
   'You are given a failure-mode rubric, business grounding context, and a call transcript (numbered turns, agent + caller, both roles in one zero-indexed array).',
   'Decide whether the AGENT violated the rubric. Be conservative: only fail on clear violations.',
-  'When the rubric mentions overclaiming, hallucination, hours, service area, or services, cross-check the agent statements against the BUSINESS CONTEXT block — do not infer beyond what is in that block.',
+  'When the rubric mentions overclaiming, hallucination, hours, service area, or services,',
+  'cross-check the agent statements against the BUSINESS CONTEXT block — do not infer beyond what is in that block.',
   'Respond with JSON only: {"fail": boolean, "turn_index": number, "evidence_phrase": string}.',
-  'turn_index is the 0-based ABSOLUTE index into the numbered transcript array (count both agent and caller turns, in order); evidence_phrase is the exact offending substring (<=120 chars). If no violation, fail=false and the other fields may be empty.',
+  'turn_index is the 0-based ABSOLUTE index into the numbered transcript array (count both agent and caller turns, in order);',
+  'evidence_phrase is the exact offending substring (<=120 chars). If no violation, fail=false and the other fields may be empty.',
 ].join(' ');
 
 type RubricVerdict = {
@@ -308,9 +324,9 @@ export async function detectRubricFailures(
   calls: PersonaCall[],
   catalog: FailureModeCatalog,
   llm: LlmCompleteCallback,
-  filterByModeIds?: string[],
-  businessContext?: string,
+  options?: {filterByModeIds?: string[]; businessContext?: string},
 ): Promise<DetectedFailure[]> {
+  const {filterByModeIds, businessContext} = options ?? {};
   const modes = (filterByModeIds
     ? catalog.modes.filter(m => filterByModeIds.includes(m.id))
     : catalog.modes

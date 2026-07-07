@@ -161,7 +161,6 @@ async function dispatch(): Promise<number | undefined> {
       return dispatchScenarios({argv: process.argv.slice(3)});
     }
 
-    case 'legacy':
     // Top-level passthroughs to the legacy testing CLI. Without these, every
     // `bun run testing run -t scenario` / `testing list` / `testing validate`
     // / `testing report` invocation across docs/{deployment, handling-model-
@@ -170,6 +169,7 @@ async function dispatch(): Promise<number | undefined> {
     // "unknown command". The legacy CLI's help text + 8 referenced doc sites
     // all expect the bare verb. The `legacy <subcmd>` form is kept for
     // explicitness.
+    case 'legacy':
     case 'run':
     case 'list':
     case 'validate':
