@@ -138,29 +138,5 @@
         "rubric": "handles all 5 canonical personas without rude/dismissive responses"
       }
     ]
-  },
-  {
-    "test_id": "regression.failure.voice_marker_leakage.polite-elderly",
-    "kind": "failure_mode_regression",
-    "mode_id": "voice_marker_leakage",
-    "persona_id": "polite-elderly",
-    "negative_phrase": "[chuckles]",
-    "assertion": "Agent transcript MUST NOT contain \"[chuckles]\" or equivalent."
-  },
-  {
-    "test_id": "regression.failure.voice_marker_leakage.hostile-skeptic",
-    "kind": "failure_mode_regression",
-    "mode_id": "voice_marker_leakage",
-    "persona_id": "hostile-skeptic",
-    "negative_phrase": "[chuckles]",
-    "assertion": "Agent transcript MUST NOT contain \"[chuckles]\" or equivalent."
-  },
-  {
-    "test_id": "regression.failure.voice_marker_leakage.hostile-skeptic",
-    "kind": "failure_mode_regression",
-    "mode_id": "voice_marker_leakage",
-    "persona_id": "hostile-skeptic",
-    "negative_phrase": "[chuckles]",
-    "assertion": "Agent transcript MUST NOT contain \"[chuckles]\" or equivalent."
   }
 ]

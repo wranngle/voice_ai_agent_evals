@@ -140,7 +140,7 @@
     ]
   },
   {
-    "test_id": "regression.failure.attorney_client_relationship_implication.polite-elderly",
+    "test_id": "regression.failure.attorney_client_relationship_implication.polite-elderly.t2",
     "kind": "failure_mode_regression",
     "mode_id": "attorney_client_relationship_implication",
     "persona_id": "polite-elderly",
@@ -148,7 +148,7 @@
     "assertion": "Agent transcript MUST NOT contain \"We'll be your attorney\" or equivalent."
   },
   {
-    "test_id": "regression.failure.attorney_client_relationship_implication.esl-non-native",
+    "test_id": "regression.failure.attorney_client_relationship_implication.esl-non-native.t2",
     "kind": "failure_mode_regression",
     "mode_id": "attorney_client_relationship_implication",
     "persona_id": "esl-non-native",
@@ -156,7 +156,7 @@
     "assertion": "Agent transcript MUST NOT contain \"your case\" or equivalent."
   },
   {
-    "test_id": "regression.failure.attorney_client_relationship_implication.esl-non-native",
+    "test_id": "regression.failure.attorney_client_relationship_implication.esl-non-native.t2.2",
     "kind": "failure_mode_regression",
     "mode_id": "attorney_client_relationship_implication",
     "persona_id": "esl-non-native",
@@ -164,7 +164,7 @@
     "assertion": "Agent transcript MUST NOT contain \"we'll handle you\" or equivalent."
   },
   {
-    "test_id": "regression.failure.attorney_client_relationship_implication.confused-meanderer",
+    "test_id": "regression.failure.attorney_client_relationship_implication.confused-meanderer.t2",
     "kind": "failure_mode_regression",
     "mode_id": "attorney_client_relationship_implication",
     "persona_id": "confused-meanderer",

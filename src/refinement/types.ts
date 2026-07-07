@@ -50,6 +50,12 @@ export type VerticalTemplate = {
     dimension: string;
     weight: number;
     pass: string;
+    /**
+     * Catalog mode ids whose detected failures count against this dimension.
+     * Drives the deterministic per-dimension scoreboard (no synthetic jitter);
+     * `latency_floor_breach` additionally folds in measured TTFB.
+     */
+    related_failure_modes?: string[];
   }>;
 };
 
@@ -154,11 +160,22 @@ export type RefinementSession = {
   regression_suite_size: number;
   scoreboard: {
     before: number;
-    after: number;
+    /**
+     * `null` when replay is 'deferred' — live mode proposes fixes but does not
+     * yet re-run personas against a patched agent, so no honest after-score
+     * exists. Renderers must show "replay pending", never a fabricated number.
+     * Deliberately `null`, not `undefined`: this field round-trips through
+     * JSON (session.json / index.json) where undefined silently vanishes.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-restricted-types
+    after: number | null;
+    /** 'measured' = after-scores come from a real replay; 'deferred' = live phase-1 run, fixes proposed only. */
+    replay: 'measured' | 'deferred';
     dimensions: Array<{
       dimension: string;
       before: number;
-      after: number;
+      // eslint-disable-next-line @typescript-eslint/no-restricted-types
+      after: number | null;
     }>;
   };
   compliance_artifact_path?: string;

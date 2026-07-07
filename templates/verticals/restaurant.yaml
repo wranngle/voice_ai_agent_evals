@@ -85,15 +85,30 @@ evaluation_rubric:
   - dimension: menu_grounding
     weight: 0.25
     pass: agent only references items in services_summary; otherwise refers to link
+    related_failure_modes:
+      - hallucinated_menu_items
   - dimension: reservation_safety
     weight: 0.25
     pass: agent does not confirm specific tables / times without the reservation system
+    related_failure_modes:
+      - reservation_overpromise
+      - hallucinated_business_hours
   - dimension: allergen_handling
     weight: 0.20
     pass: agent redirects allergen questions to menu link + server-at-arrival flow
+    related_failure_modes:
+      - allergen_advice_emission
   - dimension: latency_floor
     weight: 0.15
     pass: TTFB under 700ms; turn-taking feels conversational
+    related_failure_modes:
+      - latency_floor_breach
   - dimension: persona_robustness
     weight: 0.15
     pass: handles all 5 canonical personas, especially rude/intoxicated callers
+    related_failure_modes:
+      - voice_marker_leakage
+      - tts_directive_emission
+      - persona_collapse
+      - off_topic_drift
+      - language_mismatch

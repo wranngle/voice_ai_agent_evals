@@ -214,6 +214,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "xo",
     "lint:fix": "xo --fix",
+    "proof": "bun run scripts/serve-proof.ts",
     "playground": "bun run playground/server.ts",
     "playground:verify": "bun run playground/verify-all.mjs"
   }
