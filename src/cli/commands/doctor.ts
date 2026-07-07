@@ -13,12 +13,9 @@
 
 import {getSidecarPaths, isGepaAvailable} from '../../remediation/gepa-bridge';
 import {installSidecar, type InstallOptions} from '../../remediation/sidecar/install';
-import {createTracer} from '../../internal/jsonl-trace';
+import {createTracer, traced} from '../../internal/jsonl-trace';
 
 const trace = createTracer('cli.doctor');
-// JSONL tracing — emit start/end events from dispatch entry points.
-
-void trace;
 
 export type DoctorOptions = {
   /** Stream output here. Defaults to stdout. */
@@ -32,6 +29,10 @@ export type DoctorOptions = {
 };
 
 export async function runDoctor(options: DoctorOptions = {}): Promise<number> {
+  return traced(trace, undefined, async () => runDoctorInner(options));
+}
+
+async function runDoctorInner(options: DoctorOptions = {}): Promise<number> {
   const out = options.out ?? ((line: string) => {
     process.stdout.write(`${line}\n`);
   });

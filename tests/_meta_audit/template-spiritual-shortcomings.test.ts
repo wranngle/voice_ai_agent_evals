@@ -1,10 +1,11 @@
 /**
  * META-AUDIT — Spiritual shortcomings: aspirational contracts the system
- * SHOULD satisfy but does not yet. Every test in this file is written with
- * `it.fails` against the CORRECT contract. Today they "pass" (because they
- * fail as expected). When someone fixes the underlying gap, the test starts
- * passing for real — vitest reports it as a `it.fails` failure, which means
- * "promote this to a real test and remove the `.fails` qualifier."
+ * SHOULD satisfy. Historical convention: each contract was authored as
+ * `it.fails` against the CORRECT contract, then promoted to a plain `it()`
+ * when the underlying gap was fixed. As of 2026-07 ALL contracts below have
+ * been promoted (markers: [PROMOTED] / [PROMOTED-PARTIAL] / [TRACKED-OPT-IN])
+ * and pass for real — zero `it.fails` remain. NEW aspirational contracts
+ * should still start as `it.fails`; see tests/_meta_audit/README.md.
  *
  * The set is curated to expose architectural gaps, not feature bugs:
  *
@@ -213,15 +214,27 @@ describe('META-AUDIT: SPIRITUAL — aspirational contracts that should hold but 
   });
 
   /**
-   * E10 contract — every public CLI verb file imports `createTracer` and
-   * emits at least one JSONL trace event per invocation. Detection looks for
-   * either the canonical import line or a `createTracer(` call site. config-
-   * loader and subcommand dispatcher utilities are exempt (they're helpers,
-   * not verbs).
+   * E10 contract — every public CLI verb file imports `createTracer` AND
+   * actually emits: either through the `traced()` lifecycle wrapper or a
+   * direct `trace.info/warn/error` call. A constructed-but-voided tracer
+   * (`void trace;`) satisfied the original shallow contract while emitting
+   * zero events — that pattern is now rejected. config-loader is exempt
+   * (helper, not a verb).
    */
   it('E10: every public CLI verb file imports a JSONL tracer', () => {
     const commandFiles = walkFiles(join(ROOT, 'src', 'cli', 'commands'), p => p.endsWith('.ts') && !p.endsWith('.test.ts') && !p.includes('config-loader'));
     const untraced = commandFiles.filter(p => !/createtracer\(|jsonl-trace/i.test(readFileSync(p, 'utf8')));
     expect(untraced, `CLI verbs without JSONL tracing: ${untraced.map(p => p.split('/').pop()).join(', ')}`).toEqual([]);
+  });
+
+  it('E10b: no CLI verb voids its tracer — every file emits via traced() or trace.*()', () => {
+    const commandFiles = walkFiles(join(ROOT, 'src', 'cli', 'commands'), p => p.endsWith('.ts') && !p.endsWith('.test.ts') && !p.includes('config-loader'));
+    const voided = commandFiles.filter(p => readFileSync(p, 'utf8').includes('void trace;'));
+    expect(voided, `CLI verbs that construct a tracer and void it: ${voided.map(p => p.split('/').pop()).join(', ')}`).toEqual([]);
+    const silent = commandFiles.filter(p => {
+      const source = readFileSync(p, 'utf8');
+      return !source.includes('traced(') && !/trace\.(info|warn|error|child)\(/.test(source);
+    });
+    expect(silent, `CLI verbs that never emit a trace event: ${silent.map(p => p.split('/').pop()).join(', ')}`).toEqual([]);
   });
 });

@@ -14,12 +14,9 @@ import type {BaselineRun} from '../../regression/types';
 import type {Status} from '../../scoring/types';
 import {getResultsByRun, listTestRuns} from '../../testing/local-storage';
 import type {TestResult, TestRun, TestStatus} from '../../testing/types';
-import {createTracer} from '../../internal/jsonl-trace';
+import {createTracer, traced} from '../../internal/jsonl-trace';
 
 const trace = createTracer('cli.baseline');
-// JSONL tracing — emit start/end events from dispatch entry points.
-
-void trace;
 
 export type BaselineOptions = {
   /** Stream output here. */
@@ -31,6 +28,10 @@ export type BaselineOptions = {
 const DEFAULT_DIR = 'baselines';
 
 export async function runBaselineCapture(name: string, options: BaselineOptions = {}): Promise<number> {
+  return traced(trace.child('capture'), undefined, async () => runBaselineCaptureInner(name, options));
+}
+
+async function runBaselineCaptureInner(name: string, options: BaselineOptions = {}): Promise<number> {
   const out = options.out ?? ((line: string) => {
     process.stdout.write(`${line}\n`);
   });
@@ -55,6 +56,10 @@ export async function runBaselineCapture(name: string, options: BaselineOptions 
 }
 
 export async function runBaselineDiff(name: string, options: BaselineOptions = {}): Promise<number> {
+  return traced(trace.child('diff'), undefined, async () => runBaselineDiffInner(name, options));
+}
+
+async function runBaselineDiffInner(name: string, options: BaselineOptions = {}): Promise<number> {
   const out = options.out ?? ((line: string) => {
     process.stdout.write(`${line}\n`);
   });

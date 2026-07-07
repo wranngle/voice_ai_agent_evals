@@ -6,12 +6,9 @@
  * The legacy commands are still reachable under `voice-evals legacy <cmd>`.
  */
 
-import {createTracer} from '../../internal/jsonl-trace';
+import {createTracer, traced} from '../../internal/jsonl-trace';
 
 const trace = createTracer('cli.help');
-// JSONL tracing — emit start/end events from dispatch entry points.
-
-void trace;
 
 export type HelpOptions = {
   out?: (line: string) => void;
@@ -31,10 +28,12 @@ PRIMARY COMMANDS
       dimension scores, writes an HTML report, exits 0. No env vars required —
       ideal first-touch surface (\`npx @wranngle/voice-evals demo\`).
 
-  score <wav-file>
+  score <wav-file> [--html-out <file>] [--run-id <id>] [--json-log <file>]
       Score a recorded conversation. Audio-native: voice-activity per channel
       and (for stereo: caller=L, agent=R) barge-in detection. Prints
-      DimensionScores. Exit 1 if any axis fails.
+      DimensionScores. Exit 1 if any axis fails. --html-out writes a
+      self-contained report, --run-id labels the run, --json-log appends
+      a JSONL result row.
 
   ingest <transcript-file>
       Extract structured TestCases from a conversation transcript via the
@@ -66,6 +65,10 @@ PRIMARY COMMANDS
                   rubric_judge failure modes (medical/legal advice, menu
                   hallucination, etc.) run through it; --no-llm keeps the
                   run deterministic + offline.
+      --session-id <id>   Name the session directory (default: timestamped).
+      --out-dir <dir>     Write the session bundle somewhere other than
+                          proof/sessions/.
+      --personas a,b,...  Run a subset of the 5 canonical personas.
 
   ceo-demo [agent-id] [--scenarios N] [--concurrency N]
       The central-promise eval: N scenarios × 5 canonical personas against
@@ -150,12 +153,22 @@ CONFIG
 ENV
   VOICE_EVALS_SKIP_PYTHON_INSTALL=1   Skip the optional Python sidecar
                                       install entirely.
+  VOICE_EVALS_DISABLE_TRACE=1         Suppress all JSONL runtime tracing
+                                      (logs/voice-evals-<date>.jsonl).
+  VOICE_EVALS_NOTIFY_WEBHOOK_URL      POST run reports to this webhook
+                                      (notify sink; off when unset).
+  REFINE_JUDGE_MODEL                  Override the LLM model used by the
+                                      refine rubric judge.
 
 DOCS
-  https://github.com/wranngle/voice-evals
+  https://github.com/wranngle/voice_ai_agent_evals
 `;
 
 export async function runHelp(options: HelpOptions = {}): Promise<number> {
+  return traced(trace, undefined, async () => runHelpInner(options));
+}
+
+async function runHelpInner(options: HelpOptions = {}): Promise<number> {
   const out = options.out ?? ((line: string) => {
     process.stdout.write(`${line}\n`);
   });

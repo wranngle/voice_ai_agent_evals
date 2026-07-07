@@ -144,6 +144,19 @@ export class N8nEvalRunner implements TestRunner {
         score = this.calculateScore(executionResult, config.eval_metrics);
       }
 
+      // custom_rubric needs an LLM judge this runner doesn't have — fail
+      // closed (same doctrine as unknown scoring axes) instead of silently
+      // scoring a supplied rubric as a no-op pass.
+      if (config.eval_metrics?.custom_rubric) {
+        assertions.push({
+          name: 'custom_rubric',
+          passed: false,
+          expected: 'LLM-judged rubric evaluation',
+          actual: 'not implemented',
+          message: 'custom_rubric is not implemented in the n8n-eval runner (no LLM judge wired). Remove the field or score via correctness_weight/helpfulness_weight.',
+        });
+      }
+
       // Check minimum score
       if (expected.min_score !== undefined) {
         assertions.push({
@@ -483,11 +496,10 @@ export class N8nEvalRunner implements TestRunner {
       }
     }
 
-    // Custom rubric would require LLM evaluation - return full weight for now
-    // In production, this would call an LLM to evaluate against the rubric
-    // if (metrics.custom_rubric) {
-    //   // TODO: Implement LLM-based evaluation
-    // }
+    // custom_rubric contributes NO weight here — it requires an LLM judge
+    // this runner doesn't have. runTest fails closed with an explicit
+    // `custom_rubric` assertion whenever the field is set, so a supplied
+    // rubric can never silently score as a pass.
 
     return totalWeight > 0 ? score / totalWeight : 100;
   }

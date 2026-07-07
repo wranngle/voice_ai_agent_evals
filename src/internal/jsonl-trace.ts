@@ -87,6 +87,28 @@ function emit(input: TraceEventInput): void {
   }
 }
 
+/**
+ * Wrap a CLI entry point with start/end/error trace events. Numeric results
+ * are recorded as the exit code; a throw emits an error event and rethrows.
+ * This is the canonical way a `runX`/`dispatchX` command emits its lifecycle
+ * — one `traced()` per invocation, `trace.child(...)` for nested steps.
+ */
+export async function traced<T>(
+  trace: Tracer,
+  fields: TraceFields | undefined,
+  run: () => Promise<T> | T,
+): Promise<T> {
+  trace.info('start', fields);
+  try {
+    const result = await run();
+    trace.info('end', typeof result === 'number' ? {exit_code: result} : undefined);
+    return result;
+  } catch (error) {
+    trace.error('fail', {error: error instanceof Error ? error.message : String(error)});
+    throw error;
+  }
+}
+
 export function createTracer(channel: string, options: {runId?: string; key?: string} = {}): Tracer {
   const runId = options.runId ?? randomUUID();
   const {key} = options;

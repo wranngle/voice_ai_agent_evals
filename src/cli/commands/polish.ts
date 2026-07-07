@@ -14,13 +14,10 @@
 import {polishLoop} from '../../remediation/polish-loop';
 import type {PolishLoopOptions, PolishLoopResult} from '../../remediation/types';
 import type {VoiceEvalsClient} from '../../wrapper/types';
-import {createTracer} from '../../internal/jsonl-trace';
+import {createTracer, traced} from '../../internal/jsonl-trace';
 import {loadConfig} from './config-loader';
 
 const trace = createTracer('cli.polish');
-// JSONL tracing — emit start/end events from dispatch entry points.
-
-void trace;
 
 export type PolishCliOptions = {
   agentId: string;
@@ -36,6 +33,10 @@ export type PolishCliOptions = {
 };
 
 export async function runPolish(options: PolishCliOptions): Promise<number> {
+  return traced(trace, {agent_id: options.agentId, dry_run: options.dryRun ?? false}, async () => runPolishInner(options));
+}
+
+async function runPolishInner(options: PolishCliOptions): Promise<number> {
   const out = options.out ?? ((line: string) => {
     process.stdout.write(`${line}\n`);
   });

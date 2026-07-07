@@ -18,13 +18,10 @@ import {
 } from '../../scoring/audio';
 import type {DimensionScore} from '../../scoring/types';
 import {renderHtml} from '../../report/html';
-import {createTracer} from '../../internal/jsonl-trace';
+import {createTracer, traced} from '../../internal/jsonl-trace';
 import {createEcsLogger, type EcsLogger} from '../../log/ecs';
 
 const trace = createTracer('cli.score');
-// JSONL tracing — emit start/end events from dispatch entry points.
-
-void trace;
 
 export type ScoreOptions = {
   /** Path to a WAV PCM file. */
@@ -48,6 +45,10 @@ export type ScoreOptions = {
 };
 
 export async function runScore(options: ScoreOptions): Promise<number> {
+  return traced(trace, {wav: options.path}, async () => runScoreInner(options));
+}
+
+async function runScoreInner(options: ScoreOptions): Promise<number> {
   const out = options.out ?? ((line: string) => {
     process.stdout.write(`${line}\n`);
   });

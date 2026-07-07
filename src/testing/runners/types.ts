@@ -168,6 +168,11 @@ export type N8nEvalTestConfig = {
   eval_metrics?: {
     correctness_weight?: number;
     helpfulness_weight?: number;
+    /**
+     * NOT implemented: needs an LLM judge the n8n-eval runner doesn't have.
+     * Setting it fails the test closed with an explicit `custom_rubric`
+     * assertion — it never silently passes.
+     */
     custom_rubric?: string;
   };
 };

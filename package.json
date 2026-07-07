@@ -202,7 +202,7 @@
     "testing:list": "bun run src/cli.ts list",
     "testing:validate": "bun run src/cli.ts validate",
     "testing:report": "bun run src/cli.ts report",
-    "testing:ingest": "bun run src/cli.ts ingest",
+    "testing:ingest": "bun run src/cli.ts legacy ingest",
     "testing:live": "bun run scripts/test-elevenlabs-runner.ts && bun run scripts/test-n8n-eval-runner.ts && bun run scripts/test-mcp-runner.ts",
     "testing:live:el": "bun run scripts/test-elevenlabs-runner.ts",
     "testing:live:n8n": "bun run scripts/test-n8n-eval-runner.ts",

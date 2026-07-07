@@ -7,12 +7,9 @@
 
 import {writeFileSync} from 'node:fs';
 import {generateRandomScenarios} from '../../ingestion/random-scenarios';
-import {createTracer} from '../../internal/jsonl-trace';
+import {createTracer, traced} from '../../internal/jsonl-trace';
 
 const trace = createTracer('cli.scenarios');
-// JSONL tracing — emit start/end events from dispatch entry points.
-
-void trace;
 
 export type ScenariosDispatchOptions = {
   argv: readonly string[];
@@ -20,6 +17,10 @@ export type ScenariosDispatchOptions = {
 };
 
 export async function dispatchScenarios(options: ScenariosDispatchOptions): Promise<number> {
+  return traced(trace, undefined, async () => dispatchScenariosInner(options));
+}
+
+async function dispatchScenariosInner(options: ScenariosDispatchOptions): Promise<number> {
   const out = options.out ?? ((line: string) => {
     process.stdout.write(`${line}\n`);
   });

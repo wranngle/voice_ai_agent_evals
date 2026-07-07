@@ -17,15 +17,12 @@ import {
 } from '../../../factory';
 import type {TestSummary} from '../../../wrapper/tests';
 import type {VoiceEvalsClient} from '../../../wrapper/types';
-import {createTracer} from '../../../internal/jsonl-trace';
+import {createTracer, traced} from '../../../internal/jsonl-trace';
 import {buildClientFromEnv} from './client-builder';
 import {printInvocationSummary} from './execute';
 import type {UploadManifestEntry} from './upload';
 
 const trace = createTracer('cli.factory.run');
-// JSONL tracing — emit start/end events from dispatch entry points.
-
-void trace;
 
 export type FactoryRunOptions = {
   agentId: string;
@@ -43,6 +40,10 @@ export type FactoryRunOptions = {
 const DEFAULT_TEMPLATES_DIR = 'templates/factory';
 
 export async function runFactoryRun(options: FactoryRunOptions): Promise<number> {
+  return traced(trace, undefined, async () => runFactoryRunInner(options));
+}
+
+async function runFactoryRunInner(options: FactoryRunOptions): Promise<number> {
   const out = options.out ?? ((line: string) => {
     process.stdout.write(`${line}\n`);
   });

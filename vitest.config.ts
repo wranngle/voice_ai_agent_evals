@@ -16,7 +16,11 @@ const srcDir = fileURLToPath(new URL('src', import.meta.url));
  *   tests/eval/**        → n8n-eval runner UNIT tests (mocked fetch)
  *   tests/mcp/**         → MCP runner UNIT tests (mocked fetch)
  *   tests/webhook/**     → MIXED: skipIf(CI)-guarded live HTTP + some mocked
- *   tests/*.test.ts      → Legacy root-level (treated as integration)
+ *   tests/*.test.ts      → NOT auto-classified: no project has a root-level
+ *                          glob. budget.test.ts runs only because the budget
+ *                          project names it explicitly — a new root-level
+ *                          file will silently never run; put it in a
+ *                          subdirectory (or add an explicit include).
  *
  * CI runs the offline projects only. The webhook project's live tests are
  * gated by `describe.skipIf(process.env.CI)` so they auto-skip in CI; the
@@ -287,13 +291,13 @@ const offlineProjects = [
   {
     // Meta-audit suite: tests that highlight design + architecture
     // shortcomings, not feature correctness. See docs/META-AUDIT.md.
-    // Some tests use `it.fails` or `it.todo` to mark known-broken-by-design
-    // contracts. These should be promoted to real tests as the underlying
-    // gaps get fixed.
+    // Convention: NEW aspirational contracts start as `it.fails` and get
+    // promoted to plain `it()` when the underlying gap is fixed. As of
+    // 2026-07 every previously-`it.fails` contract has been promoted —
+    // zero `it.fails`/`it.todo` markers remain in tests/.
     //
-    // Also the home for unified [TEMPLATE]-hardening tests: shipping-check
-    // suite (passing) + aspirational contracts (`it.fails`) live side-by-side
-    // here. The README in tests/_meta_audit/ explains the dual purpose.
+    // Also the home for unified [TEMPLATE]-hardening tests. The README in
+    // tests/_meta_audit/ explains the dual purpose and the promotion flow.
     test: {
       name: '_meta_audit',
       root: '.',
@@ -334,7 +338,11 @@ const liveProjects = [
   },
 ];
 
-// Export project name lists for CI to consume programmatically
+// Export project name lists. Nothing consumes these at runtime — the
+// --project flag lists in package.json test:offline and .github/workflows/
+// vitest.yml are hand-maintained copies. tests/integration/
+// infrastructure.test.ts imports OFFLINE_PROJECTS and fails when any of the
+// three copies drifts from this source of truth.
 export const OFFLINE_PROJECTS = offlineProjects.map(p => p.test.name);
 export const LIVE_PROJECTS = liveProjects.map(p => p.test.name);
 

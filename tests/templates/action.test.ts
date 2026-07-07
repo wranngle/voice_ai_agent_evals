@@ -66,14 +66,13 @@ describe('README — 4-line copy-paste install snippet', () => {
     expect(readme).toMatch(/Gate merges on voice-evals score/);
   });
 
-  it('references the raw template URL at a recognized repo path', () => {
-    // During the repo-rename transition, accept either:
-    //   - the live-repo URL `voice_ai_agent_evals/main` (correct today), or
-    //   - the legacy `voice-evals/v1` URL (forward-looking — both the repo
-    //     rename and the v1 tag are not yet shipped).
-    // Once every open PR on the rename-transition branch lands on main,
-    // tighten this regex to require only the live-repo path.
-    expect(readme).toMatch(/raw\.githubusercontent\.com\/wranngle\/(voice_ai_agent_evals\/main|voice-evals\/v1)\/\.github\/workflows\/voice-evals-gate\.yml\.template/);
+  it('references the raw template URL at the live repo path', () => {
+    // Tightened 2026-07-07 per the original transition note: the rename-
+    // transition PRs all landed, the repo is `voice_ai_agent_evals`, and the
+    // legacy `voice-evals/v1` URL is dead (no such repo/tag) — a README
+    // regression to it must fail here.
+    expect(readme).toMatch(/raw\.githubusercontent\.com\/wranngle\/voice_ai_agent_evals\/main\/\.github\/workflows\/voice-evals-gate\.yml\.template/);
+    expect(readme).not.toMatch(/wranngle\/voice-evals\/v1/);
   });
 
   it('shows a ≤4-line shell command sequence (mkdir, curl, gh, git)', () => {

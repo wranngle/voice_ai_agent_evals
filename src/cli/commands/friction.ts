@@ -9,12 +9,9 @@
 import {
   getUnresolvedFrictions, readFrictionLog, resolveFrictionAppend,
 } from '../../remediation/friction-log';
-import {createTracer} from '../../internal/jsonl-trace';
+import {createTracer, traced} from '../../internal/jsonl-trace';
 
 const trace = createTracer('cli.friction');
-// JSONL tracing — emit start/end events from dispatch entry points.
-
-void trace;
 
 export type FrictionDispatchOptions = {
   argv: readonly string[];
@@ -24,6 +21,10 @@ export type FrictionDispatchOptions = {
 const DEFAULT_PATH = 'data/friction-log.jsonl';
 
 export async function dispatchFriction(options: FrictionDispatchOptions): Promise<number> {
+  return traced(trace, undefined, async () => dispatchFrictionInner(options));
+}
+
+async function dispatchFrictionInner(options: FrictionDispatchOptions): Promise<number> {
   const out = options.out ?? ((line: string) => {
     process.stdout.write(`${line}\n`);
   });
