@@ -570,8 +570,23 @@ let allSessions = [];
 let currentSession = null;
 let verticalFilter = null;
 
+// Sessions written before the honest-replay change have a numeric
+// scoreboard.after and no replay field; new deferred (live phase-1) sessions
+// have after: null + replay: 'deferred'. Normalize both shapes.
+function replayState(scoreboard) {
+  if (scoreboard.replay) return scoreboard.replay;
+  return scoreboard.after === null || scoreboard.after === undefined ? 'deferred' : 'measured';
+}
+
 async function loadIndex() {
-  const r = await fetch('sessions/index.json');
+  let r;
+  try {
+    r = await fetch('sessions/index.json');
+  } catch {
+    document.getElementById('sessionsList').innerHTML =
+      '<div class="empty">This console loads session data over HTTP — opening the file directly (file://) blocks fetch in every major browser.<br><br>Serve it instead:<br><code>bun run proof</code><br>then open <code>http://localhost:4173/refine.html</code></div>';
+    return;
+  }
   if (!r.ok) {
     document.getElementById('sessionsList').innerHTML = '<div class="empty">No sessions yet.<br>Run <code>voice-evals refine --mock --business-name "…"</code></div>';
     return;
@@ -624,14 +639,15 @@ function renderSessionList() {
     return;
   }
   list.innerHTML = filtered.map(s => {
-    const delta = ((s.score_after - s.score_before) * 100).toFixed(0);
+    const deferred = s.score_after === null || s.score_after === undefined;
+    const delta = deferred ? null : ((s.score_after - s.score_before) * 100).toFixed(0);
     const active = currentSession && currentSession.session_id === s.session_id ? 'active' : '';
     return `<button class="session-card ${active}" type="button" data-id="${escapeAttr(s.session_id)}" aria-pressed="${active ? 'true' : 'false'}">
       <div class="name">${escapeHtml(s.business_name)}</div>
       <div class="meta">
         <span>${s.vertical_template_id}</span>
         <span class="defects">${s.defects_detected} defects</span>
-        <span class="delta">+${delta} pts</span>
+        <span class="delta">${deferred ? 'replay pending' : `${delta >= 0 ? '+' : ''}${delta} pts`}</span>
       </div>
     </button>`;
   }).join('');
@@ -665,9 +681,10 @@ async function loadAfterCalls(id) {
 
 function renderSession() {
   const s = currentSession;
-  const total = (s.scoreboard.after - s.scoreboard.before) * 100;
+  const deferred = replayState(s.scoreboard) === 'deferred';
+  const total = deferred ? null : (s.scoreboard.after - s.scoreboard.before) * 100;
   document.getElementById('sessionMeta').textContent =
-    `${s.session_id} · ${s.events.length} events · ${s.detected_failures.length} defects · +${total.toFixed(0)} pts`;
+    `${s.session_id} · ${s.events.length} events · ${s.detected_failures.length} defects · ${deferred ? 'replay pending' : `${total >= 0 ? '+' : ''}${total.toFixed(0)} pts`}`;
 
   const main = document.getElementById('main');
   main.innerHTML = `
@@ -683,8 +700,11 @@ function renderSession() {
     <div class="scoreboard">
       <div class="stat">
         <div class="label">overall score</div>
-        <div class="value delta">+${total.toFixed(0)} pts</div>
-        <div class="sub">${(s.scoreboard.before*100).toFixed(0)}% → ${(s.scoreboard.after*100).toFixed(0)}%</div>
+        ${deferred
+          ? `<div class="value">${(s.scoreboard.before*100).toFixed(0)}%</div>
+             <div class="sub">before · after pending fix replay</div>`
+          : `<div class="value delta">${total >= 0 ? '+' : ''}${total.toFixed(0)} pts</div>
+             <div class="sub">${(s.scoreboard.before*100).toFixed(0)}% → ${(s.scoreboard.after*100).toFixed(0)}%</div>`}
       </div>
       <div class="stat">
         <div class="label">defects detected</div>
@@ -699,7 +719,7 @@ function renderSession() {
       <div class="stat">
         <div class="label">regression tests</div>
         <div class="value">${s.regression_suite_size}</div>
-        <div class="sub">re-runnable</div>
+        <div class="sub">captured for re-runs</div>
       </div>
       <div class="stat">
         <div class="label">personas</div>
@@ -813,6 +833,7 @@ function renderEnrichment(s) {
 }
 
 function renderPersonas(s) {
+  const deferred = replayState(s.scoreboard) === 'deferred';
   const failuresByPersona = {};
   const afterByPersona = {};
   for (const f of s.detected_failures) {
@@ -830,7 +851,7 @@ function renderPersonas(s) {
         <span class="name">${escapeHtml(call.persona_name)}</span>
         <span class="stats">
           before <code>${call.ttfb_ms || '—'}ms</code> · after <code>${after?.ttfb_ms || '—'}ms</code> ·
-          defects <span class="${fs.length ? 'bad' : 'ok'}">${fs.length} → 0</span>
+          defects <span class="${fs.length ? 'bad' : 'ok'}">${deferred ? `${fs.length} (fixes proposed)` : `${fs.length} → 0`}</span>
         </span>
       </div>
       <div class="transcript-pair">
@@ -839,15 +860,18 @@ function renderPersonas(s) {
           ${call.turns.map((t,i) => renderTurn(t, i, fs)).join('')}
         </div>
         <div class="transcript-col after">
-          <div class="label">after · fixes applied</div>
-          ${renderAfterCall(after, fs)}
+          <div class="label">${deferred ? 'after · replay pending' : 'after · fixes applied'}</div>
+          ${renderAfterCall(after, fs, deferred)}
         </div>
       </div>
     </div>`;
   }).join('');
 }
 
-function renderAfterCall(after, failures) {
+function renderAfterCall(after, failures, deferred) {
+  if (deferred) {
+    return '<div class="turn"><em style="color:var(--ink-2);font-size:11px">Fixes are proposed but not yet applied to the live agent — no after-replay exists for this session. The fix-proposal tab shows what would change.</em></div>';
+  }
   if (!after) {
     return '<div class="turn"><em style="color:var(--ink-2);font-size:11px">No after-call replay saved for this persona.</em></div>';
   }
@@ -904,39 +928,50 @@ function renderDiffs(s) {
 }
 
 function renderScoreboard(s) {
+  const deferred = replayState(s.scoreboard) === 'deferred';
   const dims = s.scoreboard.dimensions;
-  return `<table class="rubric-table">
+  const pct = v => `${(v*100).toFixed(0)}%`;
+  const note = deferred
+    ? `<div style="margin-bottom:12px;color:var(--ink-2);font-size:12px;font-family:var(--mono)">before-measurement only — fixes are proposed, not yet applied or re-measured against the live agent</div>`
+    : '';
+  return `${note}<table class="rubric-table">
     <thead><tr><th>dimension</th><th>before</th><th>after</th><th>Δ</th></tr></thead>
     <tbody>
       ${dims.map(d => `
         <tr>
           <td>${escapeHtml(d.dimension)}</td>
-          <td class="num">${(d.before*100).toFixed(0)}% <span class="bar-wrap"><span class="bar before" style="width:${(d.before*100).toFixed(0)}%"></span></span></td>
-          <td class="num">${(d.after*100).toFixed(0)}% <span class="bar-wrap"><span class="bar" style="width:${(d.after*100).toFixed(0)}%"></span></span></td>
-          <td class="num delta">+${((d.after - d.before)*100).toFixed(0)}</td>
+          <td class="num">${pct(d.before)} <span class="bar-wrap"><span class="bar before" style="width:${pct(d.before)}"></span></span></td>
+          <td class="num">${d.after === null || d.after === undefined ? 'pending' : `${pct(d.after)} <span class="bar-wrap"><span class="bar" style="width:${pct(d.after)}"></span></span>`}</td>
+          <td class="num delta">${d.after === null || d.after === undefined ? '—' : `${d.after >= d.before ? '+' : ''}${((d.after - d.before)*100).toFixed(0)}`}</td>
         </tr>
       `).join('')}
       <tr style="background:var(--bg-1);font-weight:600">
         <td>overall</td>
-        <td class="num">${(s.scoreboard.before*100).toFixed(0)}%</td>
-        <td class="num">${(s.scoreboard.after*100).toFixed(0)}%</td>
-        <td class="num delta">+${((s.scoreboard.after - s.scoreboard.before)*100).toFixed(0)}</td>
+        <td class="num">${pct(s.scoreboard.before)}</td>
+        <td class="num">${deferred ? 'pending replay' : pct(s.scoreboard.after)}</td>
+        <td class="num delta">${deferred ? '—' : `${s.scoreboard.after >= s.scoreboard.before ? '+' : ''}${((s.scoreboard.after - s.scoreboard.before)*100).toFixed(0)}`}</td>
       </tr>
     </tbody>
   </table>`;
 }
 
-async function renderRegression(s) {
+function renderRegression(s) {
   const id = s.session_id;
+  // NOT async: this return value is interpolated synchronously into the pane
+  // template — an async function would stringify "[object Promise]" into the
+  // DOM. The fetch happens inside the timeout and replaces the placeholder.
   setTimeout(async () => {
+    const el = document.getElementById('pane-regression');
+    if (!el) return;
     try {
       const r = await fetch(`sessions/${id}/regression-suite.json`);
-      if (!r.ok) return;
+      if (!r.ok) {
+        el.innerHTML = `<div class="empty">regression-suite.json not found for this session (HTTP ${r.status}).</div>`;
+        return;
+      }
       const tests = await r.json();
-      const el = document.getElementById('pane-regression');
-      if (!el) return;
       el.innerHTML = `<div style="margin-bottom:12px;color:var(--ink-2);font-size:12px;font-family:var(--mono)">
-        ${tests.length} regression tests captured · <code>sessions/${id}/regression-suite.json</code> (persona prompts + assertion rubrics; re-runner lands in v1.2)
+        ${tests.length} regression tests captured · <code>sessions/${id}/regression-suite.json</code> (persona prompts + assertion rubrics, preserved for future re-runs — automated re-runner not yet shipped)
       </div>` + tests.map(t => `
         <div class="reg-card">
           <div class="id">${escapeHtml(t.test_id)}</div>
@@ -944,7 +979,9 @@ async function renderRegression(s) {
           <div class="body">${escapeHtml(t.assertion || (t.assertions ? t.assertions.length + ' dimensions' : ''))}</div>
         </div>
       `).join('');
-    } catch {}
+    } catch {
+      el.innerHTML = '<div class="empty">could not load the regression suite (network error).</div>';
+    }
   }, 30);
   return `<div class="empty">loading regression suite…</div>`;
 }

@@ -265,31 +265,32 @@
   "scoreboard": {
     "before": 0.6020000000000001,
     "after": 1,
+    "replay": "measured",
     "dimensions": [
       {
         "dimension": "intent_capture",
-        "before": 0.5682033202999319,
-        "after": 0.99
+        "before": 1,
+        "after": 1
       },
       {
         "dimension": "scheduling_safety",
-        "before": 0.5630992938232423,
-        "after": 0.99
+        "before": 0.45999999999999996,
+        "after": 1
       },
       {
         "dimension": "sms_truthfulness",
-        "before": 0.6016650847304599,
-        "after": 0.99
+        "before": 0.45999999999999996,
+        "after": 1
       },
       {
         "dimension": "latency_floor",
-        "before": 0.5977538242947483,
-        "after": 0.99
+        "before": 0.85,
+        "after": 1
       },
       {
         "dimension": "persona_robustness",
-        "before": 0.5531213940462805,
-        "after": 0.99
+        "before": 0.8200000000000001,
+        "after": 1
       }
     ]
   },
@@ -462,6 +463,16 @@
       "step": "session.complete",
       "status": "ok",
       "detail": "refinement complete in 19 steps"
+    },
+    {
+      "at": "2026-07-07T05:16:56.875Z",
+      "step": "session.rescore",
+      "status": "ok",
+      "detail": "re-scored against catalog 2026-05 with the current detector; transcripts unchanged",
+      "data": {
+        "defects": 7,
+        "fixes_proposed": 3
+      }
     }
   ],
   "compliance_artifact_path": "proof/sessions/example/compliance.html"

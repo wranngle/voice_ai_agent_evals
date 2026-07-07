@@ -133,6 +133,22 @@ function mockKeyFor(name: string): keyof typeof MOCK_FIXTURES | undefined {
   return undefined;
 }
 
+/**
+ * Clamp scraped/inferred text at a sentence boundary instead of mid-word.
+ * "Quantified, paste-re" in a legal-facing artifact is worse than a shorter
+ * but complete sentence.
+ */
+function sentenceClamp(text: string, maxLength = 240): string {
+  const clean = text.replaceAll(/\s+/g, ' ').trim();
+  if (clean.length <= maxLength) {
+    return clean;
+  }
+
+  const cut = clean.slice(0, maxLength);
+  const boundary = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf('? '));
+  return boundary > 60 ? cut.slice(0, boundary + 1) : `${cut.replace(/\s+\S*$/, '')}…`;
+}
+
 export async function enrichFromAgentPrompt(input: {
   agentName: string;
   systemPrompt: string;
@@ -141,14 +157,16 @@ export async function enrichFromAgentPrompt(input: {
   const classification = classifyVertical(blob);
   const hoursMatch = (/(?:hours?|open):\s*([^.\n]{8,100})/i.exec(blob))
     ?? (/(?:mon|tue|wed)[^.\n]{8,80}/i.exec(blob));
-  const areaMatch = /(?:service area|serving|located in|in)\s+([a-z][^.\n]{4,80})/i.exec(blob);
+  // Only phrases that explicitly announce a location — a bare "in" matches
+  // arbitrary prose and captures prompt debris as a "service area".
+  const areaMatch = /(?:service area|serving|located in|based in)\s*:?\s+([a-z][^.\n]{4,80})/i.exec(blob);
   return {
     business_name: input.agentName,
     vertical_label: classification.vertical_label,
     category_hint: classification.category,
     service_area: areaMatch?.[1]?.trim() ?? 'local area',
     business_hours: hoursMatch?.[0]?.trim() ?? 'unspecified',
-    services_summary: input.systemPrompt.slice(0, 400).replaceAll(/\s+/g, ' ').trim(),
+    services_summary: sentenceClamp(input.systemPrompt, 400),
     sources: ['firmographic'],
     confidence: 0.65,
   };
@@ -190,7 +208,7 @@ export async function enrich(input: {
       const classification = classifyVertical(`${name} ${text}`);
       category = classification.category;
       vertical_label = classification.vertical_label;
-      services_summary = text.slice(0, 400);
+      services_summary = sentenceClamp(text, 400);
     }
   }
 

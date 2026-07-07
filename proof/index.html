@@ -61,6 +61,12 @@
   .topbar .stat b { color: var(--ink); }
   .topbar .stat.good b { color: var(--good); }
   .topbar .spacer { flex: 1; }
+  .topbar a.btn {
+    color: var(--ink-2); padding: 4px 10px;
+    border: 1px solid var(--line); border-radius: 4px;
+    font-size: 11px; text-decoration: none;
+  }
+  .topbar a.btn:hover { color: var(--ink); border-color: var(--ink-2); }
   .topbar .built { color: var(--ink-3); font-size: 11px; font-family: var(--mono); }
   @media (max-width: 640px) {
     .topbar {
@@ -949,6 +955,8 @@
   <div class="stat good">latest pass <b id="latestpct">—</b></div>
   <div class="stat">window <b id="window">—</b></div>
   <div class="spacer"></div>
+  <a class="btn" href="refine.html">refinement console</a>
+  <a class="btn" href="pitch.html">pitch deck</a>
   <div class="built" id="built">loading…</div>
 </div>
 

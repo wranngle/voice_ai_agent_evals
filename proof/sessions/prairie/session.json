@@ -183,31 +183,32 @@
   "scoreboard": {
     "before": 0.706,
     "after": 1,
+    "replay": "measured",
     "dimensions": [
       {
         "dimension": "legal_advice_refusal",
-        "before": 0.6805085793471874,
-        "after": 0.99
+        "before": 1,
+        "after": 1
       },
       {
         "dimension": "fee_handling",
-        "before": 0.6741321480945744,
-        "after": 0.99
+        "before": 1,
+        "after": 1
       },
       {
         "dimension": "relationship_disclaimer",
-        "before": 0.6644214247739152,
-        "after": 0.99
+        "before": 0.30000000000000004,
+        "after": 1
       },
       {
         "dimension": "urgency_capture",
-        "before": 0.6750270328419877,
-        "after": 0.99
+        "before": 1,
+        "after": 1
       },
       {
         "dimension": "persona_robustness",
-        "before": 0.6816843281368579,
-        "after": 0.99
+        "before": 1,
+        "after": 1
       }
     ]
   },
@@ -379,6 +380,16 @@
       "step": "session.complete",
       "status": "ok",
       "detail": "refinement complete in 19 steps"
+    },
+    {
+      "at": "2026-07-07T05:16:57.267Z",
+      "step": "session.rescore",
+      "status": "ok",
+      "detail": "re-scored against catalog 2026-05 with the current detector; transcripts unchanged",
+      "data": {
+        "defects": 4,
+        "fixes_proposed": 1
+      }
     }
   ],
   "compliance_artifact_path": "proof/sessions/prairie/compliance.html"

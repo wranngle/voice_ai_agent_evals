@@ -178,31 +178,32 @@
   "scoreboard": {
     "before": 0.8019999999999999,
     "after": 1,
+    "replay": "measured",
     "dimensions": [
       {
         "dimension": "menu_grounding",
-        "before": 0.7877538872270748,
-        "after": 0.99
+        "before": 1,
+        "after": 1
       },
       {
         "dimension": "reservation_safety",
-        "before": 0.7539657099446752,
-        "after": 0.99
+        "before": 0.8200000000000001,
+        "after": 1
       },
       {
         "dimension": "allergen_handling",
-        "before": 0.7842712371467057,
-        "after": 0.99
+        "before": 0.64,
+        "after": 1
       },
       {
         "dimension": "latency_floor",
-        "before": 0.7817269542472131,
-        "after": 0.99
+        "before": 0.91,
+        "after": 1
       },
       {
         "dimension": "persona_robustness",
-        "before": 0.7911062717632973,
-        "after": 0.99
+        "before": 1,
+        "after": 1
       }
     ]
   },
@@ -373,6 +374,16 @@
       "step": "session.complete",
       "status": "ok",
       "detail": "refinement complete in 19 steps"
+    },
+    {
+      "at": "2026-07-07T05:16:57.079Z",
+      "step": "session.rescore",
+      "status": "ok",
+      "detail": "re-scored against catalog 2026-05 with the current detector; transcripts unchanged",
+      "data": {
+        "defects": 3,
+        "fixes_proposed": 2
+      }
     }
   ],
   "compliance_artifact_path": "proof/sessions/marisol/compliance.html"
