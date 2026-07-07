@@ -80,7 +80,16 @@ When `frictionLogPath` is set, every iteration appends a JSONL event:
 {"timestamp":"…","type":"VERIFICATION_FAILED","pattern":"system_prompt","agentId":"…","success":false,"detail":"before=1 after=1","resolved":false}
 ```
 
-`logFriction`, `readFrictionLog`, `getUnresolvedFrictions`, `resolveFriction` from `@wranngle/voice-evals/remediation` round-trip the log.
+Six exports from `@wranngle/voice-evals/remediation` round-trip the log:
+
+- `logFriction(event, opts?)` — append a single JSONL row (auto-stamps timestamp, creates the parent dir on first write).
+- `readFrictionLog(path?)` — full raw stream, malformed lines skipped.
+- `getUnresolvedFrictions(path?)` — applies tombstones at read time, then filters `resolved !== true`.
+- `resolveFrictionAppend(matcher, opts?)` — **preferred** for high-throughput logs (10k+ events). Writes a single `TOMBSTONE` event; O(1) IO. The read-time `applyTombstones` step flips matching rows to resolved.
+- `resolveFriction(matcher, opts?)` — legacy. Rewrites the entire file with `resolved: true` flipped in place; O(N) IO. Kept for back-compat at small scale.
+- `applyTombstones(events, {includeTombstones?})` — pure helper if you want to materialise the resolved view yourself.
+
+`TOMBSTONE` is a first-class `FrictionEventType`. If you write your own consumer, treat unknown types as pass-through and tombstones as deletion markers.
 
 ## Aggregating across runs
 

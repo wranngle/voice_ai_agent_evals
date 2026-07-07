@@ -15,10 +15,10 @@
  *   doctor           Python sidecar status / install
  *   factory ...      generate / upload / list / cleanup / execute / report / run
  *   agent ...        agents.{list, create, clone, archive, promote} (governance-gated)
- *   friction ...     remediation cycle stats + friction log (summary | dump | stats)
- *   n8n ...          n8n workflow auto-corrector (fix | validate | diagnose)
+ *   friction ...     remediation cycle stats + friction log (tail | list | resolve)
+ *   n8n ...          n8n workflow auto-corrector (diagnose | fix | eval)
  *   webhooks ...     ElevenLabs ↔ n8n post-call webhook (provision | rotate | status)
- *   scenarios ...    random scenario generator (list | export)
+ *   scenarios ...    random scenario generator (generate)
  *   legacy <cmd>     legacy harness (v0.x scenario YAML / .test-data flow)
  *   --help, -h       this help
  */

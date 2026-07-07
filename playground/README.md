@@ -8,7 +8,7 @@ A **one-page Agent Console** that demos **every public ElevenLabs UI surface** �
 bun playground          # → http://localhost:4321   (alias for: bun run playground/server.ts)
 ```
 
-The server reads `ELEVENLABS_API_KEY` from `./.env` or `~/.agents/.env`. **The key never reaches the browser** — every authenticated call goes through the proxy.
+The server reads `ELEVENLABS_API_KEY` from `process.env` first, then falls back to `./.env`, then `~/.agents/.env` (see `playground/server.ts:19-27`). **The key never reaches the browser** — every authenticated call goes through the proxy.
 
 ## The one page
 

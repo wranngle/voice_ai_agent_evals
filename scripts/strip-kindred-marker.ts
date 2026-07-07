@@ -2,9 +2,9 @@
 export {};
 
 /**
- * One-off remediation: strip the `[kindred] ` leak from first_message on both
- * [DEV] template clones (inbound + outbound) and every language_preset
- * override beneath them.
+ * One-off remediation: strip the `[kindred] ` leak from first_message on the
+ * [TEMPLATE] source agent, both [DEV] template clones (inbound + outbound),
+ * and every language_preset override beneath each.
  *
  * Surfaced by `voice-evals ceo-demo` 2026-05-14 — the simulate-conversation
  * transcripts opened with `agent: [kindred] Hello!`, where `kindred` is a
@@ -12,9 +12,10 @@ export {};
  * TTS model bracketed directives are spoken or treated as unknown markup —
  * either way a CEO would hear the defect on the first call.
  *
- * This script does NOT touch the bare [TEMPLATE] source agent — that agent
- * has no [PHASE] prefix and per AGENTS.md is out of scope for autonomous
- * mutation until renamed.
+ * Per AGENTS.md (rule revised 2026-05-14), names without a `[PHASE]` prefix
+ * are treated as implicit `[DEV]` and modifiable. `[TEMPLATE]` is not one of
+ * the five recognized phases, so the bare source agent is in-scope here too
+ * — and is included in AGENTS below.
  */
 
 const API_BASE = 'https://api.elevenlabs.io/v1';

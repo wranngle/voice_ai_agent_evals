@@ -3,10 +3,12 @@
  * the Python sidecar provisioner.
  *
  * Phase 6.x extracted from src/cli.ts into its own module; Phase 5.x
- * landed `--install` which provisions the venv via `uv` + installs the
- * `gepa` pip package + stages PyRIT under the same cache path (see
- * `installSidecar` below). Without `--install` the command is read-only:
- * it prints the cache path, venv binary, bridge script, and availability.
+ * landed `--install` which provisions the venv via `uv` and installs the
+ * `gepa` pip package (see `installSidecar` below). PyRIT adversarial
+ * staging is deferred — `src/ingestion/index.ts` calls it "still deferred"
+ * and `installSidecar` only `pip install`s `gepa`. Without `--install`
+ * the command is read-only: it prints the cache path, venv binary,
+ * bridge script, and availability.
  */
 
 import {getSidecarPaths, isGepaAvailable} from '../../remediation/gepa-bridge';
@@ -54,8 +56,9 @@ export async function runDoctor(options: DoctorOptions = {}): Promise<number> {
   out(`Bridge script:   ${script}`);
   out(`Status:          ${available ? 'available' : 'unavailable'}`);
   out('');
-  out('GEPA optimizer + PyRIT adversarial campaigns require the Python sidecar.');
-  out('Without it, polishLoop falls back to the single-shot LLM proposer (still');
+  out('GEPA optimizer requires the Python sidecar (PyRIT adversarial campaigns');
+  out('are deferred — the sidecar installer only stages gepa today). Without the');
+  out('sidecar, polishLoop falls back to the single-shot LLM proposer (still');
   out('useful, just less sample-efficient).');
   out('');
   out('To install the sidecar (uv-managed venv + gepa pip install):');

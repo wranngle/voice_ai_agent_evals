@@ -8,7 +8,7 @@ Raw files downloaded into `source/` (commit `main`, fetched 2026-05-23):
 
 | File | Repo path | What it proves |
 |---|---|---|
-| `types-attributes.ts` | `packages/convai-widget-core/src/types/attributes.ts` | **Exhaustive 45-entry `CustomAttributeList`** — the complete HTML attribute surface (docs show ~20). |
+| `types-attributes.ts` | `packages/convai-widget-core/src/types/attributes.ts` | **Exhaustive 44-entry `CustomAttributeList`** — the complete HTML attribute surface (docs show ~20). |
 | `types-config.ts` | `packages/convai-widget-core/src/types/config.ts` | `WidgetConfig` interface, `DefaultTextContents` (all text keys + defaults), `DefaultStyles` (every `--el-` var default), `Variants`/`Placements`/`Location` enums. |
 | `styles-index.css` | `packages/convai-widget-core/src/styles/index.css` | Shadow-DOM base CSS, `--el-audio-tag`, syntax-highlight token colors, `.sheet` variant sizing. |
 | `styles-Style.tsx` | `packages/convai-widget-core/src/styles/Style.tsx` | Proves `--el-<key>` vars are emitted into `:host, :root` from the `styles` config (numbers → `px`). |
