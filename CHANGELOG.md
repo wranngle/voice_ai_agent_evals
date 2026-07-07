@@ -4,6 +4,58 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ## [Unreleased]
 
+Everything since the 1.1.0 milestone. Still research-stage: no npm publish, no
+v1.1.0 git tag (only `v1.0.0` exists); `package.json` carries `1.1.0` as the
+milestone marker.
+
+### Added
+
+- **Refinement engine** (`src/refinement/`, `voice-evals refine`). One-button
+  business-targeted pipeline: enrichment (business name / website / live agent
+  prompt inference) → vertical template (hvac / dental / restaurant / legal) →
+  5 canonical persona calls (deterministic fixtures or live
+  `simulateConversation` via `--agent-id`) → failure-mode catalog detection
+  (regex + LLM `rubric_judge` layer, model-aware `voice_marker_leakage` guard
+  for v3 TTS) → plain-language prompt diffs → deterministic before/after
+  scoreboard → session bundle under `proof/sessions/<id>/` with one-page
+  compliance artifact and captured regression suite. `rescoreSession()` +
+  `scripts/rescore-session.ts` re-derive a stored session's analytics from its
+  recorded transcripts with the current detector.
+- **Proof consoles** (`proof/`): refinement session console (`refine.html`),
+  data console (`index.html`), pitch deck (`pitch.html`), served by
+  `bun run proof` (`scripts/serve-proof.ts`).
+- **New CLI verbs**: `demo` (60-second no-key demo), `ceo-demo` (live
+  multi-scenario × persona showcase), `refine`, plus bare
+  `run`/`list`/`validate`/`report` passthroughs to the legacy harness.
+- **Guardrail modules**: `src/fuzz` (prompt-injection fuzz harness,
+  `bun run fuzz:inject`), `src/budget` (latency + cost budgets from
+  `voice-evals.budget.yaml`), `src/replay` (schema-validated tool-call
+  replay), `src/notify` (outbound report webhook), `src/leaderboard` and
+  `src/compare` (N-agent scorecards; `./compare` subpath export).
+- **Playground** (`playground/`): one-page ElevenLabs widget/UI showcase +
+  control plane with its own verify suite (excluded from the publish gate).
+- **GTM-ops external adapter** (`src/testing/runners/external-command-runner.ts`,
+  `bun run testing:gtm-ops`).
+
+### Changed
+
+- Refinement scoreboards are now honest and deterministic: live phase-1 runs
+  mark the after-score `pending replay` (`scoreboard.replay: 'deferred'`)
+  instead of fabricating a perfect after-state; per-dimension scores derive
+  from `related_failure_modes` declared in the vertical templates instead of
+  random jitter. All five shipped proof sessions regenerated accordingly.
+- README, `package.json` description/keywords, and `src/index.ts` rewritten to
+  research-stage truthfulness (no shipped-product claims).
+
+### Removed
+
+- OpenSpec scaffolding (PR #4) and community-health boilerplate (#179).
+- `live-badge.yml` workflow + `docs/live-status.json`: the badge was dropped
+  from the README in the truthfulness rewrite, the workflow had failed every
+  scheduled run since 2026-05-14 (Bun 1.1.0 cannot read the text lockfile) and
+  its commit-to-main step is impossible under branch protection. CI's offline
+  suite covers the same fixture-demo liveness on every PR.
+
 ## [1.1.0] — 2026-05-13
 
 Ports the supersystem from `wranngle/voice_ai_agents` (archived 2026-05-06) into `voice-evals` on top of the v1.0 wrapper / scoring / ingestion / regression / remediation core. Excluded by request: Gemini brain (L4), Claude Code auto-commit (L5), Deep Research engine (L6).
@@ -32,7 +84,7 @@ Ports the supersystem from `wranngle/voice_ai_agents` (archived 2026-05-06) into
 
 ## [1.0.0] — 2026-05-12
 
-Rename to `@wranngle/voice-evals` and rebuild as a published Bun package with audio-native voice-AI evals, closed-loop remediation, and dynamic test detection. Tagged `v1.0.0` at commit `cb497a1`.
+Rename to `@wranngle/voice-evals` and rebuild as an npm-shaped Bun package (exports map, dual build, publish gate) with audio-native voice-AI evals, closed-loop remediation, and dynamic test detection. Tagged `v1.0.0` at commit `cb497a1`. **Correction (2026-07-07):** despite the entry below, no version was ever published to the npm registry — the package remains install-from-source.
 
 ### Added
 
@@ -47,7 +99,7 @@ Rename to `@wranngle/voice-evals` and rebuild as a published Bun package with au
 - **Phase 5.x — Python sidecar install.** `voice-evals doctor --install` provisions a uv-managed venv + `gepa pip` + `gepa_run.py` JSON-IO protocol. Full optimizer wiring deferred to v1.2; today's bridge throws `GepaUnavailableError` with installation instructions until `--install` runs.
 - **Phase 6 — CLI doctor + quickstart + README v1.0.** `voice-evals doctor` prints Python sidecar status (cache path, venv binary, bridge script, availability). README rewritten for v1.0 positioning: quickstart code that touches every namespace, capability table vs. Hamming / Coval / Vapi / ElevenLabs sim, subpath-exports reference, phase tracker. `examples/quickstart.ts` ships a runnable end-to-end demo using synthesized data.
 - **Phase 6.x — Matrix CI + CLI split.** Bun 1.1 + Node 20 + Node 22 matrix. CLI commands split (`init`, `baseline capture`, `baseline diff`).
-- **npm publish.** `@wranngle/voice-evals@1.0.0` shipped to the registry.
+- ~~**npm publish.** `@wranngle/voice-evals@1.0.0` shipped to the registry.~~ **Never happened** — `npm view @wranngle/voice-evals` 404s; the publish gate (`prepublishOnly`) shipped, the publish itself did not. Kept struck-through rather than deleted so the correction is visible.
 
 ## Versioning
 

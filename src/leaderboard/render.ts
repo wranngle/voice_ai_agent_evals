@@ -4,8 +4,8 @@
  *
  *   | Agent | Score | Latency p95 | Cost | Pass% |
  *
- * so downstream consumers (the live-badge workflow, the wranngle.com pricing
- * page) can grep for the column ordering deterministically.
+ * so downstream consumers (e.g. the wranngle.com pricing page) can grep for
+ * the column ordering deterministically.
  */
 
 import type {Leaderboard, LeaderboardRow} from './types';

@@ -81,15 +81,24 @@ failures and applies partial updates (retry, error-handling, timeout,
 webhook-data fixes), with node-level vs parameter-level key separation.
 
 **CLI (`src/cli.ts`).** Verbs: `init`, `demo`, `score`, `ingest`, `polish`,
-`refine`, `baseline`, `compare`, `doctor`, `factory`, `agent`, `friction`,
-`n8n`, `webhooks`, `scenarios`, `legacy`. Each verb has `--help`, and the
-dispatcher-to-help alignment is regression-tested.
+`refine`, `ceo-demo`, `baseline`, `compare`, `doctor`, `factory`, `agent`,
+`friction`, `n8n`, `webhooks`, `scenarios`, `legacy` (plus bare
+`run`/`list`/`validate`/`report` passthroughs to the legacy harness). Each
+verb has `--help`, and the dispatcher-to-help alignment is regression-tested.
 
 ## Try the demo (no keys, no config)
 
 ```bash
 bun install
 bun run src/cli.ts demo
+```
+
+The refinement proof console (session timelines, transcripts, scoreboards,
+compliance artifacts) is served locally — it fetches session data, so opening
+the HTML file directly won't work:
+
+```bash
+bun run proof   # → http://localhost:4173/refine.html
 ```
 
 It synthesizes a short stereo fixture (caller left, agent right), runs the
@@ -148,7 +157,7 @@ gh secret set ELEVENLABS_API_KEY VOICE_EVALS_AGENT_ID
 git add .github/workflows/voice-evals-gate.yml && git commit -m "ci: gate PRs on voice-evals"
 ```
 
-The template calls the research-stage `voice-evals` CLI, and its header lists working fallbacks to splice in until the unified gate CLI ships.
+The template runs the harness **from source** (it checks out this repo inside the consumer's workflow — the package is not on npm) and gates on the stored-scenario pass rate. The gate-native `score --fixtures --min-success-rate` CLI is a v1.2 target; the template will be rewritten around it when it ships.
 
 ## Tests
 
