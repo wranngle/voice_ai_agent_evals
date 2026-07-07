@@ -1,32 +1,31 @@
-# voice-evals merge gating workflow (template) — PREVIEW
+# voice-evals merge gating workflow (template)
 #
 # Copy this file into your repo as `.github/workflows/voice-evals-gate.yml`
 # to block merges whose voice-eval success rate drops below the configured
-# threshold. Pinned to the `@wranngle/voice-evals@v1` major tag — bumping the
-# tag is an explicit opt-in to breaking changes.
+# threshold.
 #
-# ⚠️  Forward-looking interface. `voice-evals score --fixtures <dir>
-#     --min-success-rate <rate> --json-summary <file>` is the v1.2 gate-native
-#     CLI shape and is NOT shipped in v1.1.x. Today's `voice-evals score`
-#     accepts a single WAV positional + `--html-out` / `--run-id` /
-#     `--json-log`. Until the gate CLI lands, use one of these alternatives:
+# ⚠️  The package is NOT published to npm (research stage — see README
+#     "Status"), so anything `bunx '@wranngle/voice-evals…'`-shaped will 404.
+#     The steps below run the harness FROM SOURCE: they check out
+#     wranngle/voice_ai_agent_evals next to your repo and invoke
+#     `bun src/cli.ts run -t scenario --json`, which executes the scenario
+#     TestCases stored in YOUR repo's `.test-data/` and emits a summary JSON
+#     shaped `{total_tests, passed, failed, ...}`. The jq step gates on
+#     `passed / total_tests`.
 #
-#       a) `bunx '@wranngle/voice-evals@1' legacy run -t scenario --json`
-#          — runs the offline scenario fixtures and emits a `summary` JSON
-#          with `{total, passed, failed, errors, skipped}`. Threshold-gate
-#          against `.summary.passed / .summary.total` with jq.
-#       b) Drive `voice-evals score <wav>` per fixture from a shell loop and
-#          aggregate exit codes.
-#
-#     Treat this template as the contract we're landing in v1.2.
+#     `voice-evals score --fixtures <dir> --min-success-rate <rate>
+#     --json-summary <file>` is the v1.2 gate-native CLI shape and is NOT
+#     shipped yet; when it (and an npm publish) land, this template will be
+#     rewritten around it.
 #
 # Required repo secrets:
 #   ELEVENLABS_API_KEY            — read-only key for the agent under test
 #   VOICE_EVALS_AGENT_ID          — id of the ElevenLabs Conversational AI agent
 #
 # Optional env (override at the workflow_dispatch level if needed):
-#   VOICE_EVALS_FIXTURES_DIR      — defaults to `.test-data` (planned v1.2)
-#   VOICE_EVALS_MIN_SUCCESS_RATE  — defaults to `0.9` (90%) (planned v1.2)
+#   TEST_STORAGE_DIR              — where the legacy CLI reads stored TestCases
+#                                     (defaults to `.test-data/` in the working dir)
+#   VOICE_EVALS_MIN_SUCCESS_RATE  — pass-rate floor, defaults to `0.9` (90%)
 
 name: voice-evals-gate
 
@@ -48,29 +47,44 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VOICE_EVALS_MIN_SUCCESS_RATE: '0.9'
-      VOICE_EVALS_FIXTURES_DIR: .test-data
+      TEST_STORAGE_DIR: .test-data
     steps:
       - uses: actions/checkout@v4
         with:
+          persist-credentials: false
+
+      - name: checkout the voice-evals harness (not on npm — run from source)
+        uses: actions/checkout@v4
+        with:
+          repository: wranngle/voice_ai_agent_evals
+          path: .voice-evals-harness
           persist-credentials: false
 
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
-      - name: install voice-evals (v1 major)
-        run: bunx --bun '@wranngle/voice-evals@v1' --version
+      - name: install harness dependencies
+        working-directory: .voice-evals-harness
+        run: bun install --frozen-lockfile
 
-      - name: score fixtures and emit gate verdict
+      - name: run stored scenario TestCases and emit gate verdict
         id: score
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
           VOICE_EVALS_AGENT_ID: ${{ secrets.VOICE_EVALS_AGENT_ID }}
         run: |
-          bunx --bun '@wranngle/voice-evals@v1' score \
-            --fixtures "$VOICE_EVALS_FIXTURES_DIR" \
-            --min-success-rate "$VOICE_EVALS_MIN_SUCCESS_RATE" \
-            --json-summary voice-evals-summary.json
+          bun .voice-evals-harness/src/cli.ts run -t scenario --json \
+            > voice-evals-summary.json
+          total=$(jq '.total_tests' voice-evals-summary.json)
+          passed=$(jq '.passed' voice-evals-summary.json)
+          if [ "$total" -eq 0 ]; then
+            echo "gate: no scenario TestCases found under $TEST_STORAGE_DIR — failing closed"
+            exit 1
+          fi
+          rate=$(jq -n "$passed / $total")
+          echo "gate: $passed/$total passed (rate $rate, floor $VOICE_EVALS_MIN_SUCCESS_RATE)"
+          jq -en "$rate >= $VOICE_EVALS_MIN_SUCCESS_RATE" > /dev/null
 
       - name: upload report
         if: always()

@@ -6,12 +6,13 @@
  *
  *   - out/leaderboard.md   — human-readable, header row pinned to
  *     `| Agent | Score | Latency p95 | Cost | Pass% |` so downstream
- *     workflows (live-badge, wranngle.com pricing page) can grep against
+ *     consumers (e.g. the wranngle.com pricing page) can grep against
  *     a stable contract.
  *   - out/leaderboard.json — full structured snapshot for AI consumers.
  *
- * Build on top of the round-1 nightly live-badge workflow (PR #16) — the
- * leaderboard.json is meant to be the data file that workflow refreshes.
+ * A nightly refresh workflow was the original plan (round-1 live-badge,
+ * PR #16 — since retired); today the artifacts are generated on demand via
+ * `bun run leaderboard`.
  */
 
 export {aggregateAgent, buildLeaderboard} from './aggregate';

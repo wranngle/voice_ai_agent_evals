@@ -22,9 +22,21 @@ describe('voice-evals-gate.yml.template — consumer-facing gating workflow', ()
     expect(doc.jobs).toBeDefined();
   });
 
-  it('pins the @wranngle/voice-evals@v1 major tag (not floating latest)', () => {
-    expect(raw).toMatch(/@wranngle\/voice-evals@v1/);
-    expect(raw).not.toMatch(/@wranngle\/voice-evals@latest/);
+  it('runs the harness from source — no npm install of an unpublished package', () => {
+    // The package is not on npm (research stage), so any bunx/npx of
+    // @wranngle/voice-evals would 404 in the consumer's CI. The template must
+    // check out this repo and invoke the CLI from source instead. (The header
+    // comment may mention the bunx shape to warn against it — only executable
+    // lines count.)
+    const executable = raw.split('\n').filter(l => !l.trimStart().startsWith('#')).join('\n');
+    expect(executable).not.toMatch(/bunx[^\n]*@wranngle\/voice-evals/);
+    expect(executable).not.toMatch(/npx[^\n]*@wranngle\/voice-evals/);
+    expect(executable).toMatch(/repository:\s*wranngle\/voice_ai_agent_evals/);
+    expect(executable).toMatch(/src\/cli\.ts run -t scenario --json/);
+  });
+
+  it('fails closed when no scenario TestCases are found', () => {
+    expect(raw).toMatch(/failing closed/);
   });
 
   it('uses `if: failure()` gating so failures actually block the merge', () => {

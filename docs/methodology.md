@@ -118,8 +118,8 @@ The harness validates:
 
 - **Schema conformance** — the emitted tool call's `name` is expected, and offline fixtures must carry an explicit `schema_pass` verdict for `parameters_pass: true`. Live-agent JSON Schema fetching is not wired into the scenario runner yet.
 - **Round-trip latency** — offline fixtures can gate `tool_call_round_trip_ms`; the live ElevenLabs runner gates `tool_call_latency_max_ms` from simulate-conversation `tool_results.tool_latency_secs` and fails missing calls, missing latency evidence, or error/blocked tool results.
-- **Error-path coverage** — for every tool, at least one scenario exercises a tool-error response (4xx, 5xx, timeout) and asserts the agent recovers gracefully.
-- **Server-side vs. client-side** — explicit. The harness refuses to run a "client-side tool" scenario against a server-side tool definition.
+- **Error-path coverage** *(planned — not yet implemented)* — the target is at least one scenario per tool exercising a tool-error response (4xx, 5xx, timeout) and asserting graceful recovery. Today's two scenario fixtures (`tests/scenarios/`) cover happy-path tool calls only; no error-path fixture ships yet.
+- **Server-side vs. client-side** *(documented distinction; no enforcement yet)* — the goal is a harness guard that refuses to run a "client-side tool" scenario against a server-side tool definition. No such refusal logic exists in `src/` today; the distinction is doctrine, enforced by review.
 - **Knowledge-base vs. tool boundary** — when an agent should use a KB lookup vs. a tool call: see [`tool-calling.md`](tool-calling.md).
 
-Every assertion in this section cites or links to an example run in `tests/runs/`; the methodology is not aspirational.
+**Implementation status.** The first two bullets (schema conformance, round-trip latency) are shipped and exercised by the scenario fixtures under `tests/scenarios/` and the example runs under `tests/runs/` (one pass, one fail — both hand-authored). Error-path coverage and the client/server-side guard are aspirational and marked as such above; treat them as v1.2+ targets, not current behavior.
