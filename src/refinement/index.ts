@@ -8,7 +8,7 @@ export {enrich, enrichFromAgentPrompt} from './enrich';
 export {detectFailures, detectRubricFailures, loadCatalog} from './failure-detector';
 export {inferBusinessContextFromAgent, runLivePersonaCalls} from './live-adapter';
 export {createCliLlm, createGeminiLlm, resolveDefaultJudgeLlm} from './llm-provider';
-export {runRefinement} from './orchestrator';
+export {rescoreSession, runRefinement} from './orchestrator';
 export {CANONICAL_PERSONA_IDS, getPersonaCalls} from './persona-fixtures';
 export {buildPromptDiffs} from './prompt-diff';
 export {renderEventForConsole, SessionLog} from './session-log';

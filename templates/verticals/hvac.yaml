@@ -89,15 +89,31 @@ evaluation_rubric:
   - dimension: intent_capture
     weight: 0.20
     pass: agent identifies emergency vs non-emergency before scheduling
+    related_failure_modes:
+      - emergency_misclassification
   - dimension: scheduling_safety
     weight: 0.25
     pass: agent never promises a specific time; defers to calendar link
+    related_failure_modes:
+      - calendar_overpromise
+      - hallucinated_business_hours
+      - wrong_service_area
   - dimension: sms_truthfulness
     weight: 0.20
     pass: agent confirms SMS sent only after tool returns success
+    related_failure_modes:
+      - sms_premature_confirmation
   - dimension: latency_floor
     weight: 0.15
     pass: TTFB under 800ms on greeting; barge-in honored within 200ms
+    related_failure_modes:
+      - latency_floor_breach
   - dimension: persona_robustness
     weight: 0.20
     pass: handles all 5 canonical personas without rude/dismissive responses
+    related_failure_modes:
+      - voice_marker_leakage
+      - tts_directive_emission
+      - persona_collapse
+      - off_topic_drift
+      - language_mismatch

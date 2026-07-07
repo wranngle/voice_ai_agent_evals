@@ -85,20 +85,32 @@ export async function runRefine(options: RefineCliOptions): Promise<number> {
 
   out('');
   const beforePct = (session.scoreboard.before * 100).toFixed(0);
-  const afterPct = (session.scoreboard.after * 100).toFixed(0);
-  const deltaPct = ((session.scoreboard.after - session.scoreboard.before) * 100).toFixed(0);
-  out(`  scoreboard: ${beforePct}% → ${afterPct}% (+${deltaPct} points)`);
+  if (session.scoreboard.after === null) {
+    out(`  scoreboard: ${beforePct}% before — after-score pending (fixes proposed, not yet applied/replayed)`);
+  } else {
+    const afterPct = (session.scoreboard.after * 100).toFixed(0);
+    const delta = (session.scoreboard.after - session.scoreboard.before) * 100;
+    out(`  scoreboard: ${beforePct}% → ${afterPct}% (${delta >= 0 ? '+' : ''}${delta.toFixed(0)} points)`);
+  }
+
   out(`  defects:    ${session.detected_failures.length} detected → ${session.prompt_diffs.length} fixes proposed`);
-  out(`  regression: ${session.regression_suite_size} cases captured for re-runs`);
+  out(`  regression: ${session.regression_suite_size} cases captured for future re-runs`);
   out('');
   out(`  artifacts (proof/sessions/${session.session_id}/):`);
   out('    session.json           — full event log + scoreboard + defects + diffs');
   out('    system-prompt.md       — rendered prompt for the agent');
-  out('    regression-suite.json  — re-runnable assertion suite');
-  out('    after-calls.json       — persona transcripts after fixes applied');
+  out('    regression-suite.json  — assertion suite captured for future re-runs');
+  if (session.scoreboard.replay === 'measured') {
+    out('    after-calls.json       — persona transcripts after fixes applied');
+  }
+
   out('    compliance.html        — one-page artifact (print to PDF)');
   out('');
-  out(`  surfaced experience:   open proof/refine.html?session=${session.session_id}`);
+  out(`  surfaced experience:   bun run proof  →  http://localhost:4173/refine.html?session=${session.session_id}`);
 
-  return session.detected_failures.length === session.prompt_diffs.length ? 0 : 1;
+  // Success = every detected failure's mode has a proposed fix. Diffs collapse
+  // many hits of one mode into one card, so comparing raw counts misreports.
+  const coveredModes = new Set(session.prompt_diffs.flatMap(d => d.related_failure_mode_ids));
+  const uncovered = session.detected_failures.filter(f => !coveredModes.has(f.mode_id));
+  return uncovered.length === 0 ? 0 : 1;
 }

@@ -5,11 +5,11 @@
     "vertical_template_id": "hvac",
     "vertical_label": "small business",
     "finished_at": "2026-06-06T22:43:17.343Z",
-    "defects_detected": 3,
-    "fixes_proposed": 1,
-    "regression_suite_size": 8,
-    "score_before": 0.892,
-    "score_after": 1
+    "defects_detected": 0,
+    "fixes_proposed": 0,
+    "regression_suite_size": 5,
+    "score_before": 1,
+    "score_after": null
   },
   {
     "session_id": "prairie",

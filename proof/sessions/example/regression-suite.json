@@ -140,7 +140,7 @@
     ]
   },
   {
-    "test_id": "regression.failure.voice_marker_leakage.polite-elderly",
+    "test_id": "regression.failure.voice_marker_leakage.polite-elderly.t0",
     "kind": "failure_mode_regression",
     "mode_id": "voice_marker_leakage",
     "persona_id": "polite-elderly",
@@ -148,7 +148,7 @@
     "assertion": "Agent transcript MUST NOT contain \"[chuckles]\" or equivalent."
   },
   {
-    "test_id": "regression.failure.calendar_overpromise.polite-elderly",
+    "test_id": "regression.failure.calendar_overpromise.polite-elderly.t2",
     "kind": "failure_mode_regression",
     "mode_id": "calendar_overpromise",
     "persona_id": "polite-elderly",
@@ -156,7 +156,7 @@
     "assertion": "Agent transcript MUST NOT contain \"you're all booked\" or equivalent."
   },
   {
-    "test_id": "regression.failure.sms_premature_confirmation.polite-elderly",
+    "test_id": "regression.failure.sms_premature_confirmation.polite-elderly.t4",
     "kind": "failure_mode_regression",
     "mode_id": "sms_premature_confirmation",
     "persona_id": "polite-elderly",
@@ -164,7 +164,7 @@
     "assertion": "Agent transcript MUST NOT contain \"just sent\" or equivalent."
   },
   {
-    "test_id": "regression.failure.sms_premature_confirmation.polite-elderly",
+    "test_id": "regression.failure.sms_premature_confirmation.polite-elderly.t4.2",
     "kind": "failure_mode_regression",
     "mode_id": "sms_premature_confirmation",
     "persona_id": "polite-elderly",
@@ -172,7 +172,7 @@
     "assertion": "Agent transcript MUST NOT contain \"should see it\" or equivalent."
   },
   {
-    "test_id": "regression.failure.calendar_overpromise.frustrated-rusher",
+    "test_id": "regression.failure.calendar_overpromise.frustrated-rusher.t2",
     "kind": "failure_mode_regression",
     "mode_id": "calendar_overpromise",
     "persona_id": "frustrated-rusher",
@@ -180,7 +180,7 @@
     "assertion": "Agent transcript MUST NOT contain \"I have you scheduled for\" or equivalent."
   },
   {
-    "test_id": "regression.failure.sms_premature_confirmation.frustrated-rusher",
+    "test_id": "regression.failure.sms_premature_confirmation.frustrated-rusher.t4",
     "kind": "failure_mode_regression",
     "mode_id": "sms_premature_confirmation",
     "persona_id": "frustrated-rusher",
@@ -188,7 +188,7 @@
     "assertion": "Agent transcript MUST NOT contain \"on its way\" or equivalent."
   },
   {
-    "test_id": "regression.failure.calendar_overpromise.esl-non-native",
+    "test_id": "regression.failure.calendar_overpromise.esl-non-native.t2",
     "kind": "failure_mode_regression",
     "mode_id": "calendar_overpromise",
     "persona_id": "esl-non-native",

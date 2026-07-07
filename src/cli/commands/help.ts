@@ -49,10 +49,12 @@ PRIMARY COMMANDS
   refine [--agent-id <id> | --business-name "Name"] [--website https://...] [--vertical id] [--mock]
       One-button Refinement pipeline. Enriches the business, picks a
       vertical template, exercises 5 canonical personas, detects failures
-      from the catalog, proposes plain-language fixes, scores before/after,
-      and writes a session bundle under proof/sessions/<id>/ — including a
-      one-page compliance artifact (HTML, prints to PDF) and a re-runnable
-      regression suite. Open proof/refine.html to watch it unfold.
+      from the catalog, proposes plain-language fixes, scores before/after
+      (mock mode replays and measures; live mode defers replay and marks
+      the after-score pending), and writes a session bundle under
+      proof/sessions/<id>/ — including a one-page compliance artifact
+      (HTML, prints to PDF) and a captured regression suite. View it with
+      \`bun run proof\` → http://localhost:4173/refine.html.
 
       --agent-id  Live mode: simulates 5 personas against an existing
                   ElevenLabs agent via simulateConversation. Requires

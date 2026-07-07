@@ -16,7 +16,7 @@
  */
 
 import {
-  existsSync, mkdirSync, readFileSync, writeFileSync,
+  existsSync, mkdirSync, readFileSync, rmSync, writeFileSync,
 } from 'node:fs';
 import {join} from 'node:path';
 import type {VoiceEvalsClient} from '../wrapper/types';
@@ -28,7 +28,7 @@ import {inferBusinessContextFromAgent, runLivePersonaCalls} from './live-adapter
 import {CANONICAL_PERSONA_IDS, getPersonaCalls} from './persona-fixtures';
 import {buildPromptDiffs} from './prompt-diff';
 import {SessionLog} from './session-log';
-import {fillSystemPrompt, selectTemplate} from './template-selector';
+import {fillSystemPrompt, loadVerticalTemplates, selectTemplate} from './template-selector';
 import type {
   PersonaCall, RefineOptions, RefinementSession, VerticalTemplate,
 } from './types';
@@ -69,6 +69,34 @@ function countFailuresByPersona(failures: ReturnType<typeof detectFailures>): Ma
   return map;
 }
 
+/**
+ * Deterministic per-dimension score. Failures whose mode id appears in the
+ * dimension's `related_failure_modes` count against it with the same 0.18
+ * per-failure penalty `scoreCall` uses; `latency_floor_breach` dimensions
+ * additionally fold in the measured TTFB (fraction of calls over 800ms at the
+ * same 0.15 penalty). No randomness — same inputs, same scoreboard.
+ */
+function dimensionScore(
+  relatedModes: string[] | undefined,
+  calls: PersonaCall[],
+  failures: ReturnType<typeof detectFailures>,
+): number {
+  if (calls.length === 0) {
+    return 0;
+  }
+
+  const related = new Set(relatedModes ?? []);
+  const hits = failures.filter(f => related.has(f.mode_id)).length;
+  const failureComponent = Math.max(0, 1 - Math.min(0.7, hits * 0.18));
+  if (related.has('latency_floor_breach')) {
+    const slow = calls.filter(c => (c.ttfb_ms ?? 0) > 800).length;
+    const latencyComponent = 1 - (0.15 * (slow / calls.length));
+    return Math.min(failureComponent, latencyComponent);
+  }
+
+  return failureComponent;
+}
+
 function buildRegressionSuite(
   template: VerticalTemplate,
   beforeCalls: PersonaCall[],
@@ -89,9 +117,17 @@ function buildRegressionSuite(
     });
   }
 
+  // turn_index + occurrence counter disambiguate repeated hits of the same
+  // mode on the same persona (even two patterns matching one turn) — without
+  // them, suite entries collide and any result store keyed by test_id
+  // silently clobbers.
+  const seen = new Map<string, number>();
   for (const failure of failures) {
+    const base = `regression.failure.${failure.mode_id}.${failure.persona_id}.t${failure.evidence.turn_index}`;
+    const n = (seen.get(base) ?? 0) + 1;
+    seen.set(base, n);
     suite.push({
-      test_id: `regression.failure.${failure.mode_id}.${failure.persona_id}`,
+      test_id: n === 1 ? base : `${base}.${n}`,
       kind: 'failure_mode_regression',
       mode_id: failure.mode_id,
       persona_id: failure.persona_id,
@@ -204,31 +240,46 @@ export async function runRefinement(
   const promptDiffs = buildPromptDiffs(beforeFailures);
   log.emit('diff.done', 'ok', `${promptDiffs.length} fix proposals authored`);
 
-  log.emit('personas.after.start', 'start', 'replaying personas with fixes applied');
-  const afterCalls = isLive
-    ? beforeCalls.map(c => ({...c, ttfb_ms: Math.max(400, Math.round((c.ttfb_ms ?? 800) * 0.65))}))
-    : getPersonaCalls(template.id, 'after', [...personaIds]);
-  const afterFailures = isLive ? [] : detectFailures(afterCalls, catalog, template.priority_failure_modes);
-  log.emit(
-    'personas.after.done',
-    afterFailures.length === 0 ? 'ok' : 'warn',
-    isLive
-      ? 'live replay deferred to phase 2 (current run scores from one pass + proposed fixes)'
-      : `replay produced ${afterFailures.length} residual defects`,
-  );
+  // Live phase-1 runs propose fixes but do NOT replay personas against a
+  // patched agent — there is no honest after-measurement, so none is invented.
+  // Mock runs replay against the 'after' fixtures and measure for real.
+  const replay: 'measured' | 'deferred' = isLive ? 'deferred' : 'measured';
+  let afterCalls: PersonaCall[] = [];
+  let afterFailures: ReturnType<typeof detectFailures> = [];
+  if (replay === 'measured') {
+    log.emit('personas.after.start', 'start', 'replaying personas with fixes applied');
+    afterCalls = getPersonaCalls(template.id, 'after', [...personaIds]);
+    afterFailures = detectFailures(afterCalls, catalog, template.priority_failure_modes, ttsModelId);
+    log.emit(
+      'personas.after.done',
+      afterFailures.length === 0 ? 'ok' : 'warn',
+      `replay produced ${afterFailures.length} residual defects`,
+    );
+  } else {
+    log.emit('personas.after.skipped', 'warn', 'live replay deferred to phase 2 — fixes are proposed, not yet applied or re-measured');
+  }
 
   const beforeByPersona = countFailuresByPersona(beforeFailures);
-  const afterByPersona = countFailuresByPersona(afterFailures);
   const before = aggregateScore(beforeCalls, beforeByPersona);
-  const after = aggregateScore(afterCalls, afterByPersona);
+  const after = replay === 'measured'
+    ? aggregateScore(afterCalls, countFailuresByPersona(afterFailures))
+    : null;
 
   const dimensions = template.evaluation_rubric.map(r => ({
     dimension: r.dimension,
-    before: Math.max(0.35, before - 0.05 + Math.random() * 0.05),
-    after: Math.min(0.99, after + 0.02 + Math.random() * 0.03),
+    before: dimensionScore(r.related_failure_modes, beforeCalls, beforeFailures),
+    after: replay === 'measured'
+      ? dimensionScore(r.related_failure_modes, afterCalls, afterFailures)
+      : null,
   }));
 
-  log.emit('scoreboard', 'ok', `overall ${(before * 100).toFixed(0)}% → ${(after * 100).toFixed(0)}% (+${((after - before) * 100).toFixed(0)} points)`);
+  log.emit(
+    'scoreboard',
+    'ok',
+    after === null
+      ? `overall ${(before * 100).toFixed(0)}% before — ${promptDiffs.length} fix(es) proposed, after-score pending replay`
+      : `overall ${(before * 100).toFixed(0)}% → ${(after * 100).toFixed(0)}% (${after >= before ? '+' : ''}${((after - before) * 100).toFixed(0)} points)`,
+  );
 
   const regressionSuite = buildRegressionSuite(template, beforeCalls, beforeFailures);
   writeFileSync(join(sessionDir, 'regression-suite.json'), JSON.stringify(regressionSuite, null, 2));
@@ -248,7 +299,9 @@ export async function runRefinement(
     detected_failures: beforeFailures,
     prompt_diffs: promptDiffs,
     regression_suite_size: regressionSuite.length,
-    scoreboard: {before, after, dimensions},
+    scoreboard: {
+      before, after, replay, dimensions,
+    },
     events: log.snapshot(),
   };
 
@@ -258,7 +311,12 @@ export async function runRefinement(
   session.compliance_artifact_path = `proof/sessions/${sessionId}/compliance.html`;
   log.emit('compliance.persist', 'ok', 'one-page compliance artifact generated', {path: session.compliance_artifact_path});
 
-  writeFileSync(join(sessionDir, 'after-calls.json'), JSON.stringify(afterCalls, null, 2));
+  // Deferred replay ⇒ no after-calls artifact. Writing the before-transcripts
+  // under an "after" filename is exactly the lie the console would then render.
+  if (replay === 'measured') {
+    writeFileSync(join(sessionDir, 'after-calls.json'), JSON.stringify(afterCalls, null, 2));
+  }
+
   writeFileSync(join(sessionDir, 'session.json'), JSON.stringify({...session, events: log.snapshot()}, null, 2));
   log.emit('session.persist', 'ok', 'session manifest written', {path: `proof/sessions/${sessionId}/session.json`});
 
@@ -281,6 +339,101 @@ export async function runRefinement(
   return session;
 }
 
+/**
+ * Re-derive every analytic artifact of a stored session from its RECORDED
+ * transcripts using the CURRENT failure-mode catalog + detector. The
+ * transcripts (persona_calls) are the immutable evidence; detected failures,
+ * fix proposals, scoreboard, regression suite, and compliance artifact are
+ * derived views that must track the shipped detector — a session published
+ * with findings the current code classifies as false positives is a lie.
+ *
+ * `ttsModelId` supplies the agent's TTS model for sessions recorded before
+ * the orchestrator captured it (enables the model-aware voice_marker guard).
+ */
+export function rescoreSession(options: {
+  sessionDir: string;
+  ttsModelId?: string;
+}): RefinementSession {
+  const sessionPath = join(options.sessionDir, 'session.json');
+  const session = JSON.parse(readFileSync(sessionPath, 'utf8')) as RefinementSession;
+  const template = loadVerticalTemplates().find(t => t.id === session.vertical_template_id);
+  if (!template) {
+    throw new Error(`rescoreSession: unknown vertical template '${session.vertical_template_id}'`);
+  }
+
+  const catalog = loadCatalog();
+  const beforeCalls = session.persona_calls;
+  const beforeFailures = detectFailures(beforeCalls, catalog, template.priority_failure_modes, options.ttsModelId);
+  const promptDiffs = buildPromptDiffs(beforeFailures);
+
+  // Sessions recorded before the honest-replay change lack scoreboard.replay:
+  // infer it from the recorded run mode. Live phase-1 runs never had a real
+  // replay — any after-calls.json they carry is the fabricated before-copy,
+  // which gets removed rather than re-scored.
+  const recordedReplay = session.scoreboard.replay
+    ?? (session.events.some(e => e.data?.mode === 'live') ? 'deferred' : 'measured');
+  const afterCallsPath = join(options.sessionDir, 'after-calls.json');
+  if (recordedReplay === 'deferred' && existsSync(afterCallsPath)) {
+    rmSync(afterCallsPath);
+  }
+
+  const measuredAfter = recordedReplay === 'measured' && existsSync(afterCallsPath);
+  const afterCalls: PersonaCall[] = measuredAfter
+    ? JSON.parse(readFileSync(afterCallsPath, 'utf8')) as PersonaCall[]
+    : [];
+  const afterFailures = measuredAfter
+    ? detectFailures(afterCalls, catalog, template.priority_failure_modes, options.ttsModelId)
+    : [];
+
+  const before = aggregateScore(beforeCalls, countFailuresByPersona(beforeFailures));
+  const after = measuredAfter
+    ? aggregateScore(afterCalls, countFailuresByPersona(afterFailures))
+    : null;
+  const dimensions = template.evaluation_rubric.map(r => ({
+    dimension: r.dimension,
+    before: dimensionScore(r.related_failure_modes, beforeCalls, beforeFailures),
+    after: measuredAfter
+      ? dimensionScore(r.related_failure_modes, afterCalls, afterFailures)
+      : null,
+  }));
+
+  const regressionSuite = buildRegressionSuite(template, beforeCalls, beforeFailures);
+
+  session.detected_failures = beforeFailures;
+  session.prompt_diffs = promptDiffs;
+  session.regression_suite_size = regressionSuite.length;
+  session.scoreboard = {
+    before, after, replay: measuredAfter ? 'measured' : 'deferred', dimensions,
+  };
+  // Replace (not stack) any previous rescore marker — repeated rescores are
+  // idempotent views of the same transcripts, not new pipeline steps.
+  session.events = [...session.events.filter(e => e.step !== 'session.rescore'), {
+    at: new Date().toISOString(),
+    step: 'session.rescore',
+    status: 'ok',
+    detail: `re-scored against catalog ${catalog.version} with the current detector${options.ttsModelId ? ` (tts_model_id ${options.ttsModelId})` : ''}; transcripts unchanged`,
+    data: {defects: beforeFailures.length, fixes_proposed: promptDiffs.length},
+  }];
+
+  writeFileSync(join(options.sessionDir, 'regression-suite.json'), JSON.stringify(regressionSuite, null, 2));
+  writeFileSync(join(options.sessionDir, 'compliance.html'), renderComplianceArtifact(session));
+  writeFileSync(sessionPath, JSON.stringify(session, null, 2));
+  updateSessionIndex(join(options.sessionDir, '..'), {
+    session_id: session.session_id,
+    business_name: session.enrichment.business_name,
+    vertical_template_id: session.vertical_template_id,
+    vertical_label: session.enrichment.vertical_label,
+    finished_at: session.finished_at ?? session.started_at,
+    defects_detected: beforeFailures.length,
+    fixes_proposed: promptDiffs.length,
+    regression_suite_size: regressionSuite.length,
+    score_before: before,
+    score_after: after,
+  });
+
+  return session;
+}
+
 type SessionIndexEntry = {
   session_id: string;
   business_name: string;
@@ -291,7 +444,12 @@ type SessionIndexEntry = {
   fixes_proposed: number;
   regression_suite_size: number;
   score_before: number;
-  score_after: number;
+  /**
+   * Null when the session's replay is deferred (live phase-1) — no measured
+   * after-score exists. `null` not `undefined`: survives JSON.stringify.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-restricted-types
+  score_after: number | null;
 };
 
 function updateSessionIndex(outRoot: string, entry: SessionIndexEntry): void {
