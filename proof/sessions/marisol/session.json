@@ -289,60 +289,6 @@
       }
     },
     {
-      "at": "2026-05-15T01:44:24.837Z",
-      "step": "detect.start",
-      "status": "start",
-      "detail": "applying failure-mode catalog"
-    },
-    {
-      "at": "2026-05-15T01:44:24.838Z",
-      "step": "detect.done",
-      "status": "warn",
-      "detail": "3 defects detected",
-      "data": {
-        "high": 3
-      }
-    },
-    {
-      "at": "2026-05-15T01:44:24.838Z",
-      "step": "diff.start",
-      "status": "start",
-      "detail": "building plain-language fix proposals"
-    },
-    {
-      "at": "2026-05-15T01:44:24.839Z",
-      "step": "diff.done",
-      "status": "ok",
-      "detail": "2 fix proposals authored"
-    },
-    {
-      "at": "2026-05-15T01:44:24.839Z",
-      "step": "personas.after.start",
-      "status": "start",
-      "detail": "replaying personas with fixes applied"
-    },
-    {
-      "at": "2026-05-15T01:44:24.839Z",
-      "step": "personas.after.done",
-      "status": "ok",
-      "detail": "replay produced 0 residual defects"
-    },
-    {
-      "at": "2026-05-15T01:44:24.840Z",
-      "step": "scoreboard",
-      "status": "ok",
-      "detail": "overall 80% → 100% (+20 points)"
-    },
-    {
-      "at": "2026-05-15T01:44:24.840Z",
-      "step": "regression.persist",
-      "status": "ok",
-      "detail": "8-case regression suite captured",
-      "data": {
-        "path": "proof/sessions/marisol/regression-suite.json"
-      }
-    },
-    {
       "at": "2026-05-15T01:44:24.840Z",
       "step": "artifact.prompt",
       "status": "ok",
@@ -352,34 +298,40 @@
       }
     },
     {
-      "at": "2026-05-15T01:44:24.856Z",
-      "step": "compliance.persist",
-      "status": "ok",
-      "detail": "one-page compliance artifact generated",
-      "data": {
-        "path": "proof/sessions/marisol/compliance.html"
-      }
+      "at": "2026-07-08T04:35:18.891Z",
+      "step": "detect.done",
+      "status": "warn",
+      "detail": "3 defects detected"
     },
     {
-      "at": "2026-05-15T01:44:24.856Z",
-      "step": "session.persist",
+      "at": "2026-07-08T04:35:18.891Z",
+      "step": "diff.done",
       "status": "ok",
-      "detail": "session manifest written",
-      "data": {
-        "path": "proof/sessions/marisol/session.json"
-      }
+      "detail": "2 fix proposals authored"
     },
     {
-      "at": "2026-05-15T01:44:24.856Z",
-      "step": "session.complete",
+      "at": "2026-07-08T04:35:18.891Z",
+      "step": "personas.after.done",
       "status": "ok",
-      "detail": "refinement complete in 19 steps"
+      "detail": "replay produced 0 residual defects"
     },
     {
-      "at": "2026-07-07T05:16:57.079Z",
+      "at": "2026-07-08T04:35:18.891Z",
+      "step": "scoreboard",
+      "status": "ok",
+      "detail": "overall 80% → 100% (+20 points)"
+    },
+    {
+      "at": "2026-07-08T04:35:18.891Z",
+      "step": "regression.persist",
+      "status": "ok",
+      "detail": "8-case regression suite captured"
+    },
+    {
+      "at": "2026-07-08T04:35:18.891Z",
       "step": "session.rescore",
       "status": "ok",
-      "detail": "re-scored against catalog 2026-05 with the current detector; transcripts unchanged",
+      "detail": "re-scored against catalog 2026-05 with the current detector; transcripts unchanged, derived events rebuilt",
       "data": {
         "defects": 3,
         "fixes_proposed": 2

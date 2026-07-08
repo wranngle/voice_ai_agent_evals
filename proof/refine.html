@@ -572,10 +572,13 @@ let verticalFilter = null;
 
 // Sessions written before the honest-replay change have a numeric
 // scoreboard.after and no replay field; new deferred (live phase-1) sessions
-// have after: null + replay: 'deferred'. Normalize both shapes.
-function replayState(scoreboard) {
-  if (scoreboard.replay) return scoreboard.replay;
-  return scoreboard.after === null || scoreboard.after === undefined ? 'deferred' : 'measured';
+// have after: null + replay: 'deferred'. Normalize both shapes — and fail
+// CLOSED for legacy LIVE sessions (their numeric after was fabricated):
+// mirrors src/refinement/replay-state.ts.
+function replayState(s) {
+  if (s.scoreboard.replay) return s.scoreboard.replay;
+  if ((s.events || []).some(e => e.data && e.data.mode === 'live')) return 'deferred';
+  return s.scoreboard.after === null || s.scoreboard.after === undefined ? 'deferred' : 'measured';
 }
 
 async function loadIndex() {
@@ -681,7 +684,7 @@ async function loadAfterCalls(id) {
 
 function renderSession() {
   const s = currentSession;
-  const deferred = replayState(s.scoreboard) === 'deferred';
+  const deferred = replayState(s) === 'deferred';
   const total = deferred ? null : (s.scoreboard.after - s.scoreboard.before) * 100;
   document.getElementById('sessionMeta').textContent =
     `${s.session_id} · ${s.events.length} events · ${s.detected_failures.length} defects · ${deferred ? 'replay pending' : `${total >= 0 ? '+' : ''}${total.toFixed(0)} pts`}`;
@@ -833,7 +836,7 @@ function renderEnrichment(s) {
 }
 
 function renderPersonas(s) {
-  const deferred = replayState(s.scoreboard) === 'deferred';
+  const deferred = replayState(s) === 'deferred';
   const failuresByPersona = {};
   const afterByPersona = {};
   for (const f of s.detected_failures) {
@@ -928,7 +931,7 @@ function renderDiffs(s) {
 }
 
 function renderScoreboard(s) {
-  const deferred = replayState(s.scoreboard) === 'deferred';
+  const deferred = replayState(s) === 'deferred';
   const dims = s.scoreboard.dimensions;
   const pct = v => `${(v*100).toFixed(0)}%`;
   const note = deferred

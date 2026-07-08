@@ -35,8 +35,19 @@ describe('voice-evals-gate.yml.template — consumer-facing gating workflow', ()
     expect(executable).toMatch(/src\/cli\.ts run -t scenario --json/);
   });
 
-  it('fails closed when no scenario TestCases are found', () => {
+  it('fails closed when no scenario fixtures are found — via a reachable branch', () => {
     expect(raw).toMatch(/failing closed/);
+    // The CLI itself exits 1 when `-t scenario` matches zero fixtures, which
+    // would abort the -e shell before the friendly verdict line. `|| true` on
+    // the run plus a `// 0` jq default keep the zero-case branch reachable.
+    expect(raw).toMatch(/\|\| true/);
+    expect(raw).toMatch(/\.total_tests \/\/ 0/);
+  });
+
+  it('requires no secrets — the scenario gate is fixture-driven and offline', () => {
+    const executable = raw.split('\n').filter(l => !l.trimStart().startsWith('#')).join('\n');
+    expect(executable).not.toMatch(/secrets\./);
+    expect(executable).not.toMatch(/TEST_STORAGE_DIR/);
   });
 
   it('uses `if: failure()` gating so failures actually block the merge', () => {

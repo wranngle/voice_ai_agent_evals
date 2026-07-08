@@ -22,28 +22,30 @@ export type FactoryDispatchOptions = {
   out?: (line: string) => void;
 };
 
+// Pure router: when it delegates, the SUBCOMMAND's traced() wrapper owns the
+// invocation's run_id — wrapping the dispatch too would emit a second,
+// uncorrelated run_id for the same user-facing command. The router only
+// traces its own terminal outcomes (help text, unknown subcommand).
 export async function dispatchFactory(options: FactoryDispatchOptions): Promise<number> {
-  return traced(trace, undefined, async () => dispatchFactoryInner(options));
-}
-
-async function dispatchFactoryInner(options: FactoryDispatchOptions): Promise<number> {
   const out = options.out ?? ((line: string) => {
     process.stdout.write(`${line}\n`);
   });
   const subcommand = options.argv[0];
 
   if (!subcommand || subcommand === '--help' || subcommand === '-h') {
-    out('voice-evals factory <subcommand>');
-    out('');
-    out('  generate [--strategy cartesian|pairwise|sample] [--count N] [--seed N]');
-    out('           [--templates <dir>] [--output <file>]');
-    out('  upload   --input <file> [--agent-id <id>] [--clean-first --clean-manifest <file>] [--manifest <file>]');
-    out('  list     [--agent-id <id>]');
-    out('  cleanup  (--manifest <file> | --all --yes) [--agent-id <id>]');
-    out('  execute  --agent-id <id> (--tests <id…> | --manifest <file>) [--async]');
-    out('  report   --invocation-id <id>');
-    out('  run      --agent-id <id> [--count N] [--strategy …] [--keep-artifacts]');
-    return 0;
+    return traced(trace, {outcome: 'help'}, () => {
+      out('voice-evals factory <subcommand>');
+      out('');
+      out('  generate [--strategy cartesian|pairwise|sample] [--count N] [--seed N]');
+      out('           [--templates <dir>] [--output <file>]');
+      out('  upload   --input <file> [--agent-id <id>] [--clean-first --clean-manifest <file>] [--manifest <file>]');
+      out('  list     [--agent-id <id>]');
+      out('  cleanup  (--manifest <file> | --all --yes) [--agent-id <id>]');
+      out('  execute  --agent-id <id> (--tests <id…> | --manifest <file>) [--async]');
+      out('  report   --invocation-id <id>');
+      out('  run      --agent-id <id> [--count N] [--strategy …] [--keep-artifacts]');
+      return 0;
+    });
   }
 
   switch (subcommand) {
@@ -130,9 +132,11 @@ async function dispatchFactoryInner(options: FactoryDispatchOptions): Promise<nu
     }
 
     default: {
-      out(`unknown factory subcommand: ${subcommand}`);
-      out('Run `voice-evals factory --help` for the full surface.');
-      return 1;
+      return traced(trace, {outcome: 'unknown-subcommand', subcommand}, () => {
+        out(`unknown factory subcommand: ${subcommand}`);
+        out('Run `voice-evals factory --help` for the full surface.');
+        return 1;
+      });
     }
   }
 }

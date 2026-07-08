@@ -18,9 +18,23 @@ const ROOT = join(import.meta.dir, '..', 'proof');
 const server = Bun.serve({
   hostname: '127.0.0.1',
   port: PORT,
+  // Never Bun's dev error overlay — it embeds absolute paths + handler source
+  // into 500 responses. Errors degrade to the clean handler below.
+  development: false,
   async fetch(request) {
     const url = new URL(request.url);
-    let path = normalize(decodeURIComponent(url.pathname));
+    let path: string;
+    try {
+      // decodeURIComponent throws URIError on malformed percent-encoding
+      // (%zz, overlong UTF-8); null bytes crash the filesystem layer later.
+      path = normalize(decodeURIComponent(url.pathname));
+      if (path.includes('\0')) {
+        return new Response('Bad request', {status: 400});
+      }
+    } catch {
+      return new Response('Bad request', {status: 400});
+    }
+
     // normalize() collapses ../ sequences; anything still escaping is refused.
     if (path.includes('..')) {
       return new Response('Forbidden', {status: 403});
@@ -36,6 +50,11 @@ const server = Bun.serve({
     }
 
     return new Response(file);
+  },
+  error(error: Error) {
+    // Log server-side; the response carries no internals.
+    console.error(error.stack ?? String(error));
+    return new Response('Internal error', {status: 500});
   },
 });
 

@@ -8,23 +8,24 @@
 #     "Status"), so anything `bunx '@wranngle/voice-evals…'`-shaped will 404.
 #     The steps below run the harness FROM SOURCE: they check out
 #     wranngle/voice_ai_agent_evals next to your repo and invoke
-#     `bun src/cli.ts run -t scenario --json`, which executes the scenario
-#     TestCases stored in YOUR repo's `.test-data/` and emits a summary JSON
-#     shaped `{total_tests, passed, failed, ...}`. The jq step gates on
-#     `passed / total_tests`.
+#     `bun src/cli.ts run -t scenario --json`.
 #
-#     `voice-evals score --fixtures <dir> --min-success-rate <rate>
-#     --json-summary <file>` is the v1.2 gate-native CLI shape and is NOT
-#     shipped yet; when it (and an npm publish) land, this template will be
-#     rewritten around it.
+# What the gate actually runs: the OFFLINE scenario fixtures COMMITTED IN
+# YOUR REPO under `tests/scenarios/<id>/scenario.yaml` (discovered from the
+# working directory — authoring guide: docs/extending-the-harness.md in the
+# harness repo; canonical examples under its own tests/scenarios/). It emits
+# a summary JSON shaped `{total_tests, passed, failed, ...}` and the jq step
+# gates on `passed / total_tests`. No secrets are required — the scenario
+# runner is fixture-driven and never calls the ElevenLabs API. (A future
+# live-gate mode would need ELEVENLABS_API_KEY; the gate-native
+# `voice-evals score --fixtures --min-success-rate` CLI is a v1.2 target.)
 #
-# Required repo secrets:
-#   ELEVENLABS_API_KEY            — read-only key for the agent under test
-#   VOICE_EVALS_AGENT_ID          — id of the ElevenLabs Conversational AI agent
+# Note: with zero committed fixtures the CLI itself exits 1 with
+# `{"error":"no tests matched type=scenario","total_tests":0}` — the `|| true`
+# + explicit total check below turn that into a readable fail-closed verdict
+# instead of a bare nonzero exit.
 #
 # Optional env (override at the workflow_dispatch level if needed):
-#   TEST_STORAGE_DIR              — where the legacy CLI reads stored TestCases
-#                                     (defaults to `.test-data/` in the working dir)
 #   VOICE_EVALS_MIN_SUCCESS_RATE  — pass-rate floor, defaults to `0.9` (90%)
 
 name: voice-evals-gate
@@ -47,7 +48,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VOICE_EVALS_MIN_SUCCESS_RATE: '0.9'
-      TEST_STORAGE_DIR: .test-data
     steps:
       - uses: actions/checkout@v4
         with:
@@ -68,18 +68,19 @@ jobs:
         working-directory: .voice-evals-harness
         run: bun install --frozen-lockfile
 
-      - name: run stored scenario TestCases and emit gate verdict
+      - name: run committed scenario fixtures and emit gate verdict
         id: score
-        env:
-          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
-          VOICE_EVALS_AGENT_ID: ${{ secrets.VOICE_EVALS_AGENT_ID }}
         run: |
+          # The CLI exits 1 itself when zero fixtures match `-t scenario`
+          # (targeted-filter guard) — capture the summary either way so the
+          # verdict below is readable instead of a bare nonzero exit.
           bun .voice-evals-harness/src/cli.ts run -t scenario --json \
-            > voice-evals-summary.json
-          total=$(jq '.total_tests' voice-evals-summary.json)
-          passed=$(jq '.passed' voice-evals-summary.json)
+            > voice-evals-summary.json || true
+          total=$(jq -r '.total_tests // 0' voice-evals-summary.json)
+          passed=$(jq -r '.passed // 0' voice-evals-summary.json)
           if [ "$total" -eq 0 ]; then
-            echo "gate: no scenario TestCases found under $TEST_STORAGE_DIR — failing closed"
+            echo "gate: no scenario fixtures found under tests/scenarios/ — failing closed"
+            echo "gate: commit at least one tests/scenarios/<id>/scenario.yaml (see docs/extending-the-harness.md in the harness repo)"
             exit 1
           fi
           rate=$(jq -n "$passed / $total")
