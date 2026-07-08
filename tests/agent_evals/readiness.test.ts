@@ -1,3 +1,5 @@
+import {readFileSync} from 'node:fs';
+import {join} from 'node:path';
 import {describe, expect, test} from 'vitest';
 import {assessEvalUtility} from '../../src/agent_evals/service';
 
@@ -86,5 +88,61 @@ describe('assessEvalUtility', () => {
       'artifact_collection',
     ]);
     expect(assessment.verdict).toBe('yellow');
+  });
+
+  test('audio stays a required artifact and reports missing when a run captures no audio', () => {
+    // Mirrors the ceo-demo proof runs: transcript + tool + latency evidence,
+    // but no per-run audio. The fixed side-rail greeting clip is a voice demo,
+    // not run evidence, so audio must surface as a missing artifact rather than
+    // being fabricated as covered.
+    const assessment = assessEvalUtility({
+      totalRuns: 3,
+      totalTrials: 30,
+      currentRunTrials: 10,
+      passRatePct: 100,
+      scenarioCount: 5,
+      personaCount: 5,
+      minDimensionHitRatePct: 96,
+      coveredModes: ['chat_voice'],
+      artifacts: ['transcript', 'tool_calls', 'latency_samples'],
+    });
+
+    const audio = assessment.artifactCoverage.find(coverage => coverage.artifact === 'audio');
+    expect(audio?.status).toBe('missing');
+    expect(assessment.gaps.some(gap => gap.includes('audio'))).toBe(true);
+
+    // Voice metrics depend on audio; with only a transcript they must not read
+    // as fully covered — no audio means no trustworthy voice-quality evidence.
+    const voiceMetrics = assessment.metricCoverage.filter(metric => metric.group === 'speech_voice_quality');
+    expect(voiceMetrics.length).toBeGreaterThan(0);
+    expect(voiceMetrics.every(metric => metric.status !== 'covered')).toBe(true);
+  });
+});
+
+const REQUIRED_ARTIFACTS_RE = /REQUIRED_ARTIFACTS\s*=\s*\[([\s\S]*?)]/;
+
+function extractRequiredArtifacts(source: string): string[] {
+  const block = REQUIRED_ARTIFACTS_RE.exec(source);
+  if (!block) {
+    throw new Error('REQUIRED_ARTIFACTS array not found in source');
+  }
+
+  return [...block[1].matchAll(/['"]([a-z_]+)['"]/g)].map(match => match[1]);
+}
+
+describe('REQUIRED_ARTIFACTS drift', () => {
+  // The proof console (proof/index.html) re-derives readiness client-side and
+  // cannot import from src/, so it hardcodes its own copy of REQUIRED_ARTIFACTS.
+  // A duplicated constant across two files is a silent-drift hazard; this locks
+  // the two lists together so audio (and the other required artifacts) cannot be
+  // quietly removed from one side to paper over the proof accounting.
+  test('proof console mirrors the canonical readiness artifact set exactly', () => {
+    const root = process.cwd();
+    const canonical = extractRequiredArtifacts(readFileSync(join(root, 'src/agent_evals/service/readiness.ts'), 'utf8'));
+    const proofConsole = extractRequiredArtifacts(readFileSync(join(root, 'proof/index.html'), 'utf8'));
+
+    expect(canonical.length).toBeGreaterThan(0);
+    expect(proofConsole).toEqual(canonical);
+    expect(canonical).toContain('audio');
   });
 });

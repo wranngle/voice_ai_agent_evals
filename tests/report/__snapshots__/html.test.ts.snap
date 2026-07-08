@@ -7,6 +7,12 @@ exports[`renderHtml (filesystem) > matches a stable snapshot for fixed inputs 1`
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>voice-evals scorecard — snapshot-fixture</title>
+<meta name="description" content="voice-evals scorecard — run snapshot-fixture: failed at 0.70 / 1.00.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="voice-evals scorecard — snapshot-fixture">
+<meta property="og:description" content="voice-evals scorecard — run snapshot-fixture: failed at 0.70 / 1.00.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:description" content="voice-evals scorecard — run snapshot-fixture: failed at 0.70 / 1.00.">
 <style>
   :root { color-scheme: light dark; --pass:#1f9d55; --fail:#c0392b; --skip:#888; --bg:#0f1115; --fg:#e8e8e8; --panel:#171a21; --rule:#2a2f3a; }
   * { box-sizing: border-box; }

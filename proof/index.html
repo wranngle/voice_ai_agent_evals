@@ -4,7 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>voice-evals · console</title>
-<link rel="icon" href="data:,">
+<meta name="description" content="Can this voice agent ship? Test pass rate only says the harness assertions passed. Deployment readiness weighs volume, scenario breadth, artifacts, tool evidence, latency, and missing phone or recording coverage.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="voice-evals · console">
+<meta property="og:description" content="Can this voice agent ship? Test pass rate only says the harness assertions passed. Deployment readiness weighs volume, scenario breadth, artifacts, tool evidence, latency, and missing phone or recording coverage.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:description" content="Can this voice agent ship? Test pass rate only says the harness assertions passed. Deployment readiness weighs volume, scenario breadth, artifacts, tool evidence, latency, and missing phone or recording coverage.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cdefs%3E%3CradialGradient%20id='g'%20cx='38%25'%20cy='32%25'%20r='75%25'%3E%3Cstop%20offset='0'%20stop-color='%23ffcaa1'/%3E%3Cstop%20offset='.42'%20stop-color='%23ff5f00'/%3E%3Cstop%20offset='.8'%20stop-color='%239f3000'/%3E%3Cstop%20offset='1'%20stop-color='%232a0f14'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%2312111a'/%3E%3Ccircle%20cx='16'%20cy='16'%20r='10'%20fill='url(%23g)'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -352,6 +358,8 @@
     line-height: 0.96;
     letter-spacing: -0.045em;
     max-width: 640px;
+    font-weight: 400;
+    margin: 0;
   }
   .hero-title span { color: var(--good); }
   @media (max-width: 420px) {
@@ -963,7 +971,7 @@
 <div class="runtabs" id="runtabs"></div>
 
 <div class="grid">
-  <div class="main">
+  <main class="main">
     <div class="agent-page">
       <div class="h2-row"><h2>Ship decision</h2><div class="meta" id="runmeta"></div></div>
       <section class="agent-hero" id="utility"></section>
@@ -1016,9 +1024,9 @@
         <tbody id="trials"></tbody>
       </table>
     </div>
-  </div>
+  </main>
 
-  <div class="side">
+  <aside class="side">
     <div class="side-section">
       <h2>Runs</h2>
       <div class="runlist" id="runlist"></div>
@@ -1049,7 +1057,7 @@
 
     <div class="side-section">
       <h2>Voice clip · agent greeting</h2>
-      <audio controls preload="auto" src="audio/turn-00-agent.mp3" style="width:100%;height:36px;background:var(--bg);border:1px solid var(--line);border-radius:3px"></audio>
+      <audio controls preload="metadata" src="audio/turn-00-agent.mp3" style="width:100%;height:36px;background:var(--bg);border:1px solid var(--line);border-radius:3px"></audio>
       <div class="faint" style="font-family:var(--mono);font-size:11px;margin-top:6px">Real Charlotte voice · voice_id <span class="muted">6fZce9LFNG3iEITDfqZZ</span> · eleven_v3_conversational. The greeting AS-IS, post-kindred-fix.</div>
     </div>
 
@@ -1063,7 +1071,7 @@
         <div>voice <span class="muted">Charlotte</span></div>
       </div>
     </div>
-  </div>
+  </aside>
 </div>
 
 <footer>
@@ -1314,6 +1322,13 @@ function computeEvalUtility(run) {
 }
 
 function collectArtifacts(run) {
+  // Only transcript, tool_calls, and latency_samples are derivable from the
+  // ceo-demo runs.json schema. audio, webhook_logs, evaluator_rationale, and
+  // root_cause_analysis are not captured per-run (tracked gaps — see
+  // tests/_meta_audit E1/E2), so they honestly report missing. This mirrors
+  // the canonical REQUIRED_ARTIFACTS in src/agent_evals/service/readiness.ts,
+  // drift-locked by tests/agent_evals/readiness.test.ts. The side-rail
+  // greeting is a fixed voice demo, not per-run evidence — never counted here.
   const artifacts = new Set();
   if (run.defects.has_transcripts) artifacts.add('transcript');
   let toolEvidence = false;
@@ -1455,7 +1470,7 @@ function renderUtility(utility) {
   $('utility').innerHTML = `
     <div class="hero-copy">
       <div class="hero-kicker">agent-to-agent readiness ledger</div>
-      <div class="hero-title">Can this <span>voice agent</span> ship?</div>
+      <h1 class="hero-title">Can this <span>voice agent</span> ship?</h1>
       <div class="hero-sub">${shipCopy} Test pass rate only says the harness assertions passed. Deployment readiness weighs volume, scenario breadth, artifacts, tool evidence, latency, and missing phone or recording coverage.</div>
       <div class="verdict"><span class="state ${utility.verdict}">${utility.verdict}</span><span class="score">${utility.confidence}/100 confidence</span></div>
       <div class="utility-meter"><div class="fill ${fillCls}" style="width:${utility.confidence}%"></div></div>
