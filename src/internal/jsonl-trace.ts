@@ -92,19 +92,26 @@ function emit(input: TraceEventInput): void {
  * are recorded as the exit code; a throw emits an error event and rethrows.
  * This is the canonical way a `runX`/`dispatchX` command emits its lifecycle
  * — one `traced()` per invocation, `trace.child(...)` for nested steps.
+ *
+ * The tracer argument is a CHANNEL TEMPLATE: traced() mints a fresh run_id
+ * per call. Module-level tracers bake one runId at import time, so reusing
+ * it directly would group every call of the same command in one process
+ * under a single "invocation" — breaking this file's run_id contract for
+ * library consumers and test suites that call command functions repeatedly.
  */
 export async function traced<T>(
   trace: Tracer,
   fields: TraceFields | undefined,
   run: () => Promise<T> | T,
 ): Promise<T> {
-  trace.info('start', fields);
+  const invocation = createTracer(trace.channel);
+  invocation.info('start', fields);
   try {
     const result = await run();
-    trace.info('end', typeof result === 'number' ? {exit_code: result} : undefined);
+    invocation.info('end', typeof result === 'number' ? {exit_code: result} : undefined);
     return result;
   } catch (error) {
-    trace.error('fail', {error: error instanceof Error ? error.message : String(error)});
+    invocation.error('fail', {error: error instanceof Error ? error.message : String(error)});
     throw error;
   }
 }

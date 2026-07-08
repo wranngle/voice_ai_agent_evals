@@ -27,6 +27,7 @@ import {detectFailures, detectRubricFailures, loadCatalog} from './failure-detec
 import {inferBusinessContextFromAgent, runLivePersonaCalls} from './live-adapter';
 import {CANONICAL_PERSONA_IDS, getPersonaCalls} from './persona-fixtures';
 import {buildPromptDiffs} from './prompt-diff';
+import {normalizeReplayState} from './replay-state';
 import {SessionLog} from './session-log';
 import {fillSystemPrompt, loadVerticalTemplates, selectTemplate} from './template-selector';
 import type {
@@ -367,11 +368,10 @@ export function rescoreSession(options: {
   const promptDiffs = buildPromptDiffs(beforeFailures);
 
   // Sessions recorded before the honest-replay change lack scoreboard.replay:
-  // infer it from the recorded run mode. Live phase-1 runs never had a real
-  // replay — any after-calls.json they carry is the fabricated before-copy,
-  // which gets removed rather than re-scored.
-  const recordedReplay = session.scoreboard.replay
-    ?? (session.events.some(e => e.data?.mode === 'live') ? 'deferred' : 'measured');
+  // the shared normalizer infers it from the recorded run mode. Live phase-1
+  // runs never had a real replay — any after-calls.json they carry is the
+  // fabricated before-copy, which gets removed rather than re-scored.
+  const recordedReplay = normalizeReplayState(session);
   const afterCallsPath = join(options.sessionDir, 'after-calls.json');
   if (recordedReplay === 'deferred' && existsSync(afterCallsPath)) {
     rmSync(afterCallsPath);
@@ -405,15 +405,65 @@ export function rescoreSession(options: {
   session.scoreboard = {
     before, after, replay: measuredAfter ? 'measured' : 'deferred', dimensions,
   };
-  // Replace (not stack) any previous rescore marker — repeated rescores are
-  // idempotent views of the same transcripts, not new pipeline steps.
-  session.events = [...session.events.filter(e => e.step !== 'session.rescore'), {
-    at: new Date().toISOString(),
-    step: 'session.rescore',
-    status: 'ok',
-    detail: `re-scored against catalog ${catalog.version} with the current detector${options.ttsModelId ? ` (tts_model_id ${options.ttsModelId})` : ''}; transcripts unchanged`,
-    data: {defects: beforeFailures.length, fixes_proposed: promptDiffs.length},
-  }];
+  // Events fall in two classes: EVIDENCE (what the original run observed —
+  // enrichment, template selection, the before persona calls) and DERIVED
+  // (detection counts, diffs, after-state, scoreboard — claims computed by
+  // whatever detector version ran). Evidence is kept verbatim; derived events
+  // are REBUILT from the recomputed analytics. Keeping the old derived lines
+  // would render stale (and, for pre-#184 live sessions, fabricated) claims
+  // like "overall 89% → 100%" in the console's timeline. Repeated rescores
+  // stay idempotent: each pass drops the previous derived tail and re-emits.
+  const DERIVED_STEPS = new Set([
+    'detect.start',
+    'detect.done',
+    'detect.rubric',
+    'detect.rubric.done',
+    'diff.start',
+    'diff.done',
+    'personas.after.start',
+    'personas.after.done',
+    'personas.after.skipped',
+    'scoreboard',
+    'regression.persist',
+    'compliance.persist',
+    'session.persist',
+    'session.complete',
+    'session.rescore',
+  ]);
+  const rescoredAt = new Date().toISOString();
+  const scoreboardDetail = after === null
+    ? `overall ${(before * 100).toFixed(0)}% before — ${promptDiffs.length} fix(es) proposed, after-score pending replay`
+    : `overall ${(before * 100).toFixed(0)}% → ${(after * 100).toFixed(0)}% (${after >= before ? '+' : ''}${((after - before) * 100).toFixed(0)} points)`;
+  session.events = [
+    ...session.events.filter(e => !DERIVED_STEPS.has(e.step)),
+    {
+      at: rescoredAt, step: 'detect.done', status: beforeFailures.length > 0 ? 'warn' : 'ok', detail: `${beforeFailures.length} defects detected`,
+    },
+    {
+      at: rescoredAt, step: 'diff.done', status: 'ok', detail: `${promptDiffs.length} fix proposals authored`,
+    },
+    measuredAfter
+      ? {
+        at: rescoredAt, step: 'personas.after.done', status: afterFailures.length === 0 ? 'ok' : 'warn', detail: `replay produced ${afterFailures.length} residual defects`,
+      }
+      : {
+        at: rescoredAt, step: 'personas.after.skipped', status: 'warn', detail: 'live replay deferred to phase 2 — fixes are proposed, not yet applied or re-measured',
+      },
+    {
+      at: rescoredAt, step: 'scoreboard', status: 'ok', detail: scoreboardDetail,
+    },
+    {
+      at: rescoredAt, step: 'regression.persist', status: 'ok', detail: `${regressionSuite.length}-case regression suite captured`,
+    },
+    {
+      at: rescoredAt,
+      step: 'session.rescore',
+      status: 'ok',
+      detail: `re-scored against catalog ${catalog.version} with the current detector`
+        + `${options.ttsModelId ? ` (tts_model_id ${options.ttsModelId})` : ''}; transcripts unchanged, derived events rebuilt`,
+      data: {defects: beforeFailures.length, fixes_proposed: promptDiffs.length},
+    },
+  ];
 
   writeFileSync(join(options.sessionDir, 'regression-suite.json'), JSON.stringify(regressionSuite, null, 2));
   writeFileSync(join(options.sessionDir, 'compliance.html'), renderComplianceArtifact(session));

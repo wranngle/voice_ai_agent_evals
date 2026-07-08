@@ -487,72 +487,6 @@
       }
     },
     {
-      "at": "2026-06-06T22:41:37.610Z",
-      "step": "detect.start",
-      "status": "start",
-      "detail": "applying failure-mode catalog"
-    },
-    {
-      "at": "2026-06-06T22:41:37.612Z",
-      "step": "detect.rubric",
-      "status": "start",
-      "detail": "routing rubric_judge modes through LLM judge"
-    },
-    {
-      "at": "2026-06-06T22:43:17.338Z",
-      "step": "detect.rubric.done",
-      "status": "ok",
-      "detail": "LLM judge flagged 0 additional defect(s)"
-    },
-    {
-      "at": "2026-06-06T22:43:17.339Z",
-      "step": "detect.done",
-      "status": "warn",
-      "detail": "3 defects detected",
-      "data": {
-        "high": 3
-      }
-    },
-    {
-      "at": "2026-06-06T22:43:17.339Z",
-      "step": "diff.start",
-      "status": "start",
-      "detail": "building plain-language fix proposals"
-    },
-    {
-      "at": "2026-06-06T22:43:17.340Z",
-      "step": "diff.done",
-      "status": "ok",
-      "detail": "1 fix proposals authored"
-    },
-    {
-      "at": "2026-06-06T22:43:17.340Z",
-      "step": "personas.after.start",
-      "status": "start",
-      "detail": "replaying personas with fixes applied"
-    },
-    {
-      "at": "2026-06-06T22:43:17.341Z",
-      "step": "personas.after.done",
-      "status": "ok",
-      "detail": "live replay deferred to phase 2 (current run scores from one pass + proposed fixes)"
-    },
-    {
-      "at": "2026-06-06T22:43:17.341Z",
-      "step": "scoreboard",
-      "status": "ok",
-      "detail": "overall 89% → 100% (+11 points)"
-    },
-    {
-      "at": "2026-06-06T22:43:17.342Z",
-      "step": "regression.persist",
-      "status": "ok",
-      "detail": "8-case regression suite captured",
-      "data": {
-        "path": "proof/sessions/refine-2026-06-06T22-38-44-278Z/regression-suite.json"
-      }
-    },
-    {
       "at": "2026-06-06T22:43:17.342Z",
       "step": "artifact.prompt",
       "status": "ok",
@@ -562,34 +496,40 @@
       }
     },
     {
-      "at": "2026-06-06T22:43:17.360Z",
-      "step": "compliance.persist",
+      "at": "2026-07-08T04:35:19.269Z",
+      "step": "detect.done",
       "status": "ok",
-      "detail": "one-page compliance artifact generated",
-      "data": {
-        "path": "proof/sessions/refine-2026-06-06T22-38-44-278Z/compliance.html"
-      }
+      "detail": "0 defects detected"
     },
     {
-      "at": "2026-06-06T22:43:17.361Z",
-      "step": "session.persist",
+      "at": "2026-07-08T04:35:19.269Z",
+      "step": "diff.done",
       "status": "ok",
-      "detail": "session manifest written",
-      "data": {
-        "path": "proof/sessions/refine-2026-06-06T22-38-44-278Z/session.json"
-      }
+      "detail": "0 fix proposals authored"
     },
     {
-      "at": "2026-06-06T22:43:17.361Z",
-      "step": "session.complete",
-      "status": "ok",
-      "detail": "refinement complete in 21 steps"
+      "at": "2026-07-08T04:35:19.269Z",
+      "step": "personas.after.skipped",
+      "status": "warn",
+      "detail": "live replay deferred to phase 2 — fixes are proposed, not yet applied or re-measured"
     },
     {
-      "at": "2026-07-07T05:16:57.461Z",
+      "at": "2026-07-08T04:35:19.269Z",
+      "step": "scoreboard",
+      "status": "ok",
+      "detail": "overall 100% before — 0 fix(es) proposed, after-score pending replay"
+    },
+    {
+      "at": "2026-07-08T04:35:19.269Z",
+      "step": "regression.persist",
+      "status": "ok",
+      "detail": "5-case regression suite captured"
+    },
+    {
+      "at": "2026-07-08T04:35:19.269Z",
       "step": "session.rescore",
       "status": "ok",
-      "detail": "re-scored against catalog 2026-05 with the current detector (tts_model_id eleven_v3_conversational); transcripts unchanged",
+      "detail": "re-scored against catalog 2026-05 with the current detector (tts_model_id eleven_v3_conversational); transcripts unchanged, derived events rebuilt",
       "data": {
         "defects": 0,
         "fixes_proposed": 0

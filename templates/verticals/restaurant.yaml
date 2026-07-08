@@ -100,7 +100,7 @@ evaluation_rubric:
       - allergen_advice_emission
   - dimension: latency_floor
     weight: 0.15
-    pass: TTFB under 700ms; turn-taking feels conversational
+    pass: TTFB under 800ms (catalog latency_floor_breach threshold); turn-taking feels conversational
     related_failure_modes:
       - latency_floor_breach
   - dimension: persona_robustness

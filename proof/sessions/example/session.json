@@ -377,61 +377,6 @@
       }
     },
     {
-      "at": "2026-05-15T01:44:24.531Z",
-      "step": "detect.start",
-      "status": "start",
-      "detail": "applying failure-mode catalog"
-    },
-    {
-      "at": "2026-05-15T01:44:24.532Z",
-      "step": "detect.done",
-      "status": "warn",
-      "detail": "7 defects detected",
-      "data": {
-        "high": 4,
-        "critical": 3
-      }
-    },
-    {
-      "at": "2026-05-15T01:44:24.532Z",
-      "step": "diff.start",
-      "status": "start",
-      "detail": "building plain-language fix proposals"
-    },
-    {
-      "at": "2026-05-15T01:44:24.533Z",
-      "step": "diff.done",
-      "status": "ok",
-      "detail": "3 fix proposals authored"
-    },
-    {
-      "at": "2026-05-15T01:44:24.534Z",
-      "step": "personas.after.start",
-      "status": "start",
-      "detail": "replaying personas with fixes applied"
-    },
-    {
-      "at": "2026-05-15T01:44:24.534Z",
-      "step": "personas.after.done",
-      "status": "ok",
-      "detail": "replay produced 0 residual defects"
-    },
-    {
-      "at": "2026-05-15T01:44:24.534Z",
-      "step": "scoreboard",
-      "status": "ok",
-      "detail": "overall 60% → 100% (+40 points)"
-    },
-    {
-      "at": "2026-05-15T01:44:24.535Z",
-      "step": "regression.persist",
-      "status": "ok",
-      "detail": "12-case regression suite captured",
-      "data": {
-        "path": "proof/sessions/example/regression-suite.json"
-      }
-    },
-    {
       "at": "2026-05-15T01:44:24.535Z",
       "step": "artifact.prompt",
       "status": "ok",
@@ -441,34 +386,40 @@
       }
     },
     {
-      "at": "2026-05-15T01:44:24.551Z",
-      "step": "compliance.persist",
-      "status": "ok",
-      "detail": "one-page compliance artifact generated",
-      "data": {
-        "path": "proof/sessions/example/compliance.html"
-      }
+      "at": "2026-07-08T04:35:18.774Z",
+      "step": "detect.done",
+      "status": "warn",
+      "detail": "7 defects detected"
     },
     {
-      "at": "2026-05-15T01:44:24.552Z",
-      "step": "session.persist",
+      "at": "2026-07-08T04:35:18.774Z",
+      "step": "diff.done",
       "status": "ok",
-      "detail": "session manifest written",
-      "data": {
-        "path": "proof/sessions/example/session.json"
-      }
+      "detail": "3 fix proposals authored"
     },
     {
-      "at": "2026-05-15T01:44:24.552Z",
-      "step": "session.complete",
+      "at": "2026-07-08T04:35:18.774Z",
+      "step": "personas.after.done",
       "status": "ok",
-      "detail": "refinement complete in 19 steps"
+      "detail": "replay produced 0 residual defects"
     },
     {
-      "at": "2026-07-07T05:16:56.875Z",
+      "at": "2026-07-08T04:35:18.774Z",
+      "step": "scoreboard",
+      "status": "ok",
+      "detail": "overall 60% → 100% (+40 points)"
+    },
+    {
+      "at": "2026-07-08T04:35:18.774Z",
+      "step": "regression.persist",
+      "status": "ok",
+      "detail": "12-case regression suite captured"
+    },
+    {
+      "at": "2026-07-08T04:35:18.774Z",
       "step": "session.rescore",
       "status": "ok",
-      "detail": "re-scored against catalog 2026-05 with the current detector; transcripts unchanged",
+      "detail": "re-scored against catalog 2026-05 with the current detector; transcripts unchanged, derived events rebuilt",
       "data": {
         "defects": 7,
         "fixes_proposed": 3

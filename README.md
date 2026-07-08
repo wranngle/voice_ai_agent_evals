@@ -153,11 +153,10 @@ The gating workflow template lives at [`.github/workflows/voice-evals-gate.yml.t
 mkdir -p .github/workflows
 curl -fsSL https://raw.githubusercontent.com/wranngle/voice_ai_agent_evals/main/.github/workflows/voice-evals-gate.yml.template \
   -o .github/workflows/voice-evals-gate.yml
-gh secret set ELEVENLABS_API_KEY VOICE_EVALS_AGENT_ID
 git add .github/workflows/voice-evals-gate.yml && git commit -m "ci: gate PRs on voice-evals"
 ```
 
-The template runs the harness **from source** (it checks out this repo inside the consumer's workflow — the package is not on npm) and gates on the stored-scenario pass rate. The gate-native `score --fixtures --min-success-rate` CLI is a v1.2 target; the template will be rewritten around it when it ships.
+The template runs the harness **from source** (it checks out this repo inside the consumer's workflow — the package is not on npm) and gates on the pass rate of the scenario fixtures committed under your repo's `tests/scenarios/<id>/scenario.yaml` (authoring guide: [`docs/extending-the-harness.md`](docs/extending-the-harness.md); with zero fixtures the gate fails closed with instructions). No secrets are required — the scenario runner is fixture-driven and offline. The gate-native `score --fixtures --min-success-rate` CLI is a v1.2 target; the template will be rewritten around it when it ships.
 
 ## Tests
 

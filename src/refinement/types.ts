@@ -48,6 +48,11 @@ export type VerticalTemplate = {
   priority_failure_modes: string[];
   evaluation_rubric: Array<{
     dimension: string;
+    /**
+     * Advisory only — no scoring path consumes it today. The overall score is
+     * the measured per-persona aggregate; per-dimension scores derive from
+     * `related_failure_modes`. Kept for a future weighted-rollup view.
+     */
     weight: number;
     pass: string;
     /**

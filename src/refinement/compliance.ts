@@ -8,6 +8,7 @@
  * end-to-end today.
  */
 
+import {normalizeReplayState} from './replay-state';
 import type {RefinementSession} from './types';
 
 function escape(value: unknown): string {
@@ -50,16 +51,25 @@ export function renderComplianceArtifact(session: RefinementSession): string {
   const generated = new Date(session.finished_at ?? session.started_at).toLocaleString();
   const failureCount = session.detected_failures.length;
   const fixCount = session.prompt_diffs.length;
-  const measured = session.scoreboard.replay !== 'deferred';
+  // Fail CLOSED on legacy shapes: a pre-#184 live session carries a numeric
+  // (fabricated) after-score and no replay field — the normalizer infers
+  // 'deferred' from the recorded run mode, and every after-value below is
+  // suppressed when replay is deferred, whatever the raw field says.
+  const measured = normalizeReplayState(session) !== 'deferred';
   const pct = (v: number) => `${(v * 100).toFixed(0)}%`;
-  const rubricRows = session.scoreboard.dimensions.map(d => `
+  // eslint-disable-next-line @typescript-eslint/no-restricted-types -- scoreboard after-values are null (JSON round-trip), not undefined
+  const dimAfter = (after: number | null): number | null => (measured ? after : null);
+  const rubricRows = session.scoreboard.dimensions.map(d => {
+    const after = dimAfter(d.after);
+    return `
     <tr>
       <td>${escape(d.dimension)}</td>
       <td class="num">${pct(d.before)}</td>
-      <td class="num">${d.after === null ? '<span class="pending">pending replay</span>' : pct(d.after)}</td>
-      <td class="num delta">${d.after === null ? '—' : `${d.after >= d.before ? '+' : ''}${((d.after - d.before) * 100).toFixed(0)}`}</td>
+      <td class="num">${after === null ? '<span class="pending">pending replay</span>' : pct(after)}</td>
+      <td class="num delta">${after === null ? '—' : `${after >= d.before ? '+' : ''}${((after - d.before) * 100).toFixed(0)}`}</td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
 
   const failureRows = session.detected_failures.slice(0, 10).map(f => `
     <tr>
@@ -74,10 +84,11 @@ export function renderComplianceArtifact(session: RefinementSession): string {
     ? ` · <a href="${escape(session.enrichment.website_url)}">${escape(session.enrichment.website_url)}</a>`
     : '';
   const overallBefore = (session.scoreboard.before * 100).toFixed(0);
-  const overallAfter = session.scoreboard.after === null ? null : (session.scoreboard.after * 100).toFixed(0);
-  const overallDelta = session.scoreboard.after === null
+  const effectiveAfter = dimAfter(session.scoreboard.after);
+  const overallAfter = effectiveAfter === null ? null : (effectiveAfter * 100).toFixed(0);
+  const overallDelta = effectiveAfter === null
     ? null
-    : `${session.scoreboard.after >= session.scoreboard.before ? '+' : ''}${((session.scoreboard.after - session.scoreboard.before) * 100).toFixed(0)}`;
+    : `${effectiveAfter >= session.scoreboard.before ? '+' : ''}${((effectiveAfter - session.scoreboard.before) * 100).toFixed(0)}`;
   const serviceArea = presentableEnrichmentField(session.enrichment.service_area);
   const hours = presentableEnrichmentField(session.enrichment.business_hours);
   const overallAfterCell = overallAfter === null ? '<span class="pending">pending replay</span>' : `${overallAfter}%`;

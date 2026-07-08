@@ -184,10 +184,12 @@ describe('Convention: Offline/Live Project Classification', () => {
     const {LIVE_PROJECTS} = await import('../../vitest.config');
     const liveSet = new Set(LIVE_PROJECTS);
     const workflow = readFileSync(join(PROJECT_ROOT, '.github/workflows/vitest.yml'), 'utf-8');
-    // Each `--project`-enumerating step must either cover the FULL offline
-    // list (the Bun job + the Node matrix job) or run only live projects
-    // (the secrets-gated live job) — anything else is silent drift.
-    const runBlocks = workflow.split(/\n\s+- name:/).filter(b => b.includes('--project'));
+    // Each VITEST step enumerating `--project` flags must either cover the
+    // FULL offline list (the Bun job + the Node matrix job) or run only live
+    // projects (the secrets-gated live job) — anything else is silent drift.
+    // Scoped to vitest-invoking blocks so an unrelated future step using a
+    // `--project`-shaped flag (e.g. `tsc --project`) can't trip the guard.
+    const runBlocks = workflow.split(/\n\s+- name:/).filter(b => b.includes('--project') && b.includes('vitest'));
     const offlineBlocks = runBlocks.filter(b => ![...extractProjects(b)].every(p => liveSet.has(p)));
     expect(offlineBlocks.length, 'expected at least the Bun job and the Node matrix job to enumerate offline --project flags')
       .toBeGreaterThanOrEqual(2);

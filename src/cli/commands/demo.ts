@@ -1,7 +1,8 @@
 /**
  * `voice-evals demo` — 60-second end-to-end demo against a synthesized fixture.
  *
- * Promise: a brand-new visitor, after `npx @wranngle/voice-evals demo`, sees a
+ * Promise: a brand-new visitor, after `bun run src/cli.ts demo` in a fresh
+ * checkout (the package is not on npm), sees a
  * score, an HTML report path, and exit 0 in under a minute on a clean runner.
  * No env vars, no API keys, no file system inputs — the fixture is synthesized
  * deterministically in-memory so this works the same on any machine and any CI

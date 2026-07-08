@@ -19,7 +19,7 @@
       },
       {
         "dimension": "latency_floor",
-        "rubric": "TTFB under 700ms; turn-taking feels conversational"
+        "rubric": "TTFB under 800ms (catalog latency_floor_breach threshold); turn-taking feels conversational"
       },
       {
         "dimension": "persona_robustness",
@@ -47,7 +47,7 @@
       },
       {
         "dimension": "latency_floor",
-        "rubric": "TTFB under 700ms; turn-taking feels conversational"
+        "rubric": "TTFB under 800ms (catalog latency_floor_breach threshold); turn-taking feels conversational"
       },
       {
         "dimension": "persona_robustness",
@@ -75,7 +75,7 @@
       },
       {
         "dimension": "latency_floor",
-        "rubric": "TTFB under 700ms; turn-taking feels conversational"
+        "rubric": "TTFB under 800ms (catalog latency_floor_breach threshold); turn-taking feels conversational"
       },
       {
         "dimension": "persona_robustness",
@@ -103,7 +103,7 @@
       },
       {
         "dimension": "latency_floor",
-        "rubric": "TTFB under 700ms; turn-taking feels conversational"
+        "rubric": "TTFB under 800ms (catalog latency_floor_breach threshold); turn-taking feels conversational"
       },
       {
         "dimension": "persona_robustness",
@@ -131,7 +131,7 @@
       },
       {
         "dimension": "latency_floor",
-        "rubric": "TTFB under 700ms; turn-taking feels conversational"
+        "rubric": "TTFB under 800ms (catalog latency_floor_breach threshold); turn-taking feels conversational"
       },
       {
         "dimension": "persona_robustness",
