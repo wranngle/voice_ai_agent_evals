@@ -94,7 +94,7 @@ bun run src/cli.ts demo
 ```
 
 The refinement proof console (session timelines, transcripts, scoreboards,
-compliance artifacts) is served locally — it fetches session data, so opening
+compliance artifacts) is served locally. It fetches session data, so opening
 the HTML file directly won't work:
 
 ```bash
@@ -156,7 +156,7 @@ curl -fsSL https://raw.githubusercontent.com/wranngle/voice_ai_agent_evals/main/
 git add .github/workflows/voice-evals-gate.yml && git commit -m "ci: gate PRs on voice-evals"
 ```
 
-The template runs the harness **from source** (it checks out this repo inside the consumer's workflow — the package is not on npm) and gates on the pass rate of the scenario fixtures committed under your repo's `tests/scenarios/<id>/scenario.yaml` (authoring guide: [`docs/extending-the-harness.md`](docs/extending-the-harness.md); with zero fixtures the gate fails closed with instructions). No secrets are required — the scenario runner is fixture-driven and offline. The gate-native `score --fixtures --min-success-rate` CLI is a v1.2 target; the template will be rewritten around it when it ships.
+The template runs the harness **from source** (it checks out this repo inside the consumer's workflow; the package is not on npm) and gates on the pass rate of the scenario fixtures committed under your repo's `tests/scenarios/<id>/scenario.yaml` (authoring guide: [`docs/extending-the-harness.md`](docs/extending-the-harness.md); with zero fixtures the gate fails closed with instructions). No secrets are required. The scenario runner is fixture-driven and offline. The gate-native `score --fixtures --min-success-rate` CLI is a v1.2 target; the template will be rewritten around it when it ships.
 
 ## Tests
 
