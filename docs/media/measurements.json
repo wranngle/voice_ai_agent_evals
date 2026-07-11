@@ -1,0 +1,36 @@
+{
+  "repo": "wranngle/voice_ai_agent_evals",
+  "commit": "3c692dc",
+  "measured_at": "2026-07-11T12:22:00-05:00",
+  "artifacts": {
+    "proof-index-hero.png": {
+      "source": "http://127.0.0.1:4179/index.html via committed `bun run proof` server (scripts/serve-proof.ts, PROOF_PORT=4179)",
+      "viewport": "1440x900 @2x (2880x1800)",
+      "content": "real ship-verdict console rendered from committed proof/runs.json + proof/sessions data: 5 runs, 75 trials, red 43/100 readiness, 100% latest pass",
+      "numbers_on_screen_owned_by": "committed proof data, not authored for this capture"
+    },
+    "proof-refine-scoreboard.png": {
+      "source": "http://127.0.0.1:4179/refine.html, same server",
+      "viewport": "1440x900 @2x",
+      "content": "real session console: 5 committed sessions, timeline of refine-2026-06-06T22-38-44-278Z (15 events, 273.06s)"
+    },
+    "voice-evals-wordmark-dark.png": {
+      "source": "rendered fresh from the committed proof/ design tokens (proof/index.html :root block); dot accents sample --good #5D8C61 and --bad #cf3c69",
+      "size": "1200x320 RGBA, transparent",
+      "variant": "light text for dark backgrounds"
+    },
+    "voice-evals-wordmark-light.png": {
+      "source": "same render, dark-ink variant",
+      "size": "1200x320 RGBA, transparent",
+      "variant": "dark text for light backgrounds"
+    }
+  },
+  "capture_tooling": "playwright 1.60.0 (repo devDependency) driving chromium_headless_shell-1228, networkidle + settle waits",
+  "readme_numbers": {
+    "offline_tests": "1245 passed, 6 skipped (1251) from a live `bun run test:offline` on 2026-07-11",
+    "test_files": "105 *.test.ts under tests/ (99 passed, 3 skipped file-level in the same run)",
+    "scoring_dimensions": "15 = 6 audio (src/scoring/audio.ts) + 2 dialog (src/scoring/dialog.ts) + 7 LLM rubric (src/scoring/rubrics.ts)",
+    "failure_patterns": "5 detectors in src/remediation/patterns.ts",
+    "secrets_required": "0 for the demo and offline suite"
+  }
+}
