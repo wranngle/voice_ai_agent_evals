@@ -80,7 +80,7 @@ flowchart LR
 
 | 1245 | 105 | 15 | 5 | 0 |
 |:---:|:---:|:---:|:---:|:---:|
-| offline tests | test files | scoring dimensions | failure patterns | secrets required |
+| offline tests | test files repo-wide | scoring dimensions | failure patterns | secrets required |
 
 </div>
 
