@@ -216,12 +216,17 @@ bun run testing run -t scenario   # nonzero exit if a committed scenario fails
 
 <div align="center">
 
-<a href="https://star-history.com/#wranngle/voice_ai_agent_evals&Date">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=wranngle/voice_ai_agent_evals&type=Date&theme=dark">
-    <img src="https://api.star-history.com/svg?repos=wranngle/voice_ai_agent_evals&type=Date" alt="Star history chart" width="600">
-  </picture>
-</a>
+<!--
+The server-rendered chart image is down: api.star-history.com returns 404
+during an outage. This falls back to the live star badge linked to
+star-history's client-side page, which still draws the chart during the API
+outage. Restore this line when api.star-history.com recovers:
+[![Star History Chart](https://api.star-history.com/svg?repos=wranngle/voice_ai_agent_evals&type=Date)](https://www.star-history.com/#wranngle/voice_ai_agent_evals&Date)
+-->
+
+[![GitHub stars](https://img.shields.io/github/stars/wranngle/voice_ai_agent_evals?style=social)](https://www.star-history.com/#wranngle/voice_ai_agent_evals&Date)
+
+[**View the interactive star history**](https://www.star-history.com/#wranngle/voice_ai_agent_evals&Date), drawn live even while star-history's image API is down.
 
 </div>
 
