@@ -26,8 +26,9 @@ PRIMARY COMMANDS
   demo
       Run a 60-second end-to-end demo against a synthesized fixture: prints
       dimension scores, writes an HTML report, exits 0. No env vars required —
-      ideal first-touch surface (\`bun run src/cli.ts demo\` from a
-      checkout — the package is not on npm).
+      ideal first-touch surface (\`bun run src/cli.ts demo\` from a checkout,
+      or \`voice-evals demo\` after installing the tarball from the latest
+      GitHub release — the package is not on the npm registry).
 
   score <wav-file> [--html-out <file>] [--run-id <id>] [--json-log <file>]
       Score a recorded conversation. Audio-native: voice-activity per channel
