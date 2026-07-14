@@ -14,6 +14,7 @@ An eval and regression harness for ElevenLabs Conversational AI agents. Every ru
 **[Quick start](#quick-start)** | **[How a run flows](#how-a-run-flows)** | **[Scoring](#scoring-dimensions)** | **[Failure patterns](#failure-patterns)** | **[Proof console](#proof-console)** | **[Status](#status)** | **[What ships](#what-ships)**
 
 [![CI](https://github.com/wranngle/voice_ai_agent_evals/actions/workflows/vitest.yml/badge.svg)](https://github.com/wranngle/voice_ai_agent_evals/actions/workflows/vitest.yml)
+[![Release](https://img.shields.io/github/v/release/wranngle/voice_ai_agent_evals?style=flat-square)](https://github.com/wranngle/voice_ai_agent_evals/releases/latest)
 [![License: MIT](https://img.shields.io/github/license/wranngle/voice_ai_agent_evals?style=flat-square)](LICENSE)
 [![Last commit](https://img.shields.io/github/last-commit/wranngle/voice_ai_agent_evals?style=flat-square)](https://github.com/wranngle/voice_ai_agent_evals/commits/main)
 
@@ -110,7 +111,7 @@ Works on transcripts from ElevenLabs post-call webhooks, mocked persona fixtures
 
 ## Status
 
-Research and personal-tool stage. This is a solo build by one operator (Wranngle), with no external users and no published npm package; install from source. The code under `src/` works and is exercised by the offline suite on every push and a daily cron, but treat it as an experimental harness, not a hardened product.
+Research and personal-tool stage. This is a solo build by one operator (Wranngle), with no external users and no published npm package; install from source, or grab the packaged tarball attached to the [latest GitHub release](https://github.com/wranngle/voice_ai_agent_evals/releases/latest). The code under `src/` works and is exercised by the offline suite on every push and a daily cron, but treat it as an experimental harness, not a hardened product.
 
 The honest gaps:
 

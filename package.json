@@ -1,17 +1,17 @@
 {
   "name": "@wranngle/voice-evals",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Research-stage eval and regression harness for ElevenLabs voice agents: WAV barge-in and VAD scoring, LLM-judge rubrics (G-Eval), baseline diffs, and synthetic-conversation ingestion. Bun-first TypeScript.",
   "type": "module",
   "license": "MIT",
   "author": "Wranngle Systems LLC",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wranngle/voice-evals.git"
+    "url": "git+https://github.com/wranngle/voice_ai_agent_evals.git"
   },
-  "homepage": "https://github.com/wranngle/voice-evals#readme",
+  "homepage": "https://github.com/wranngle/voice_ai_agent_evals#readme",
   "bugs": {
-    "url": "https://github.com/wranngle/voice-evals/issues"
+    "url": "https://github.com/wranngle/voice_ai_agent_evals/issues"
   },
   "keywords": [
     "elevenlabs",
