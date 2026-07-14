@@ -4,9 +4,14 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ## [Unreleased]
 
-Everything since the 1.1.0 milestone. Still research-stage: no npm publish, no
-v1.1.0 git tag (only `v1.0.0` exists); `package.json` carries `1.1.0` as the
-milestone marker.
+Nothing yet.
+
+## [1.2.0] — 2026-07-13
+
+First packaged release since v1.0.0: tagged `v1.2.0`, GitHub release with the
+`npm pack` tarball attached. Still research-stage and not on the npm registry —
+install from source or from the release tarball. Rolls up the untagged 1.1.0
+milestone below plus everything since.
 
 ### Added
 
@@ -56,7 +61,14 @@ milestone marker.
   its commit-to-main step is impossible under branch protection. CI's offline
   suite covers the same fixture-demo liveness on every PR.
 
-## [1.1.0] — 2026-05-13
+### Fixed
+
+- `package.json` `repository` / `homepage` / `bugs` URLs pointed at the
+  nonexistent `wranngle/voice-evals` repo slug; corrected to
+  `wranngle/voice_ai_agent_evals` (the npm scope name `@wranngle/voice-evals`
+  is unchanged).
+
+## [1.1.0] — 2026-05-13 (untagged milestone)
 
 Ports the supersystem from `wranngle/voice_ai_agents` (archived 2026-05-06) into `voice-evals` on top of the v1.0 wrapper / scoring / ingestion / regression / remediation core. Excluded by request: Gemini brain (L4), Claude Code auto-commit (L5), Deep Research engine (L6).
 
