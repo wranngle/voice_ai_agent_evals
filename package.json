@@ -175,7 +175,7 @@
     "typescript": "6.0.3",
     "use-stick-to-bottom": "1.1.4",
     "vaul": "1.1.2",
-    "vitest": "4.1.5",
+    "vitest": "4.1.11",
     "xo": "1.2.3",
     "zod": "4.4.3"
   },
